@@ -10,10 +10,6 @@ const categorySchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    description: {
-      type: String,
-    },
-
     image: {
       url: {
         type: String,
@@ -23,6 +19,19 @@ const categorySchema = new mongoose.Schema(
         type: String,
         default: "",
       },
+    },
+
+    meal: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Meal",
+      required: true,
+    },
+
+    foodType: {
+      type: String,
+      enum: ["veg", "non-veg"],
+      required: true,
+      lowercase: true,
     },
 
     isActive: {
