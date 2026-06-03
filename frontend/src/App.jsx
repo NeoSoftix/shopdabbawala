@@ -1,8 +1,8 @@
-import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminLayout from "./pages/Admin/AdminLayout";
 import "./index.css";
 
 function App() {
-  return <AdminDashboard />;
+  return <AdminLayout />;
 }
 
 export default App;
