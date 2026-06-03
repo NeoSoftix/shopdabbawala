@@ -6,7 +6,7 @@ import {
   MdShoppingCart,
   MdSettings,
 } from "react-icons/md";
-
+import { MdTune } from "react-icons/md";
 import {
   FaStore,
   FaClipboardList,
@@ -23,20 +23,26 @@ export const adminMenu = [
     icon: MdDashboard,
   },
   {
-    label: "Meal Categories",
-    path: "/admin/categories",
-    icon: BiCategoryAlt,
-  },
-  {
-    label: "Meal Items",
-    path: "/admin/items",
-    icon: MdRestaurantMenu,
-  },
-  {
-    label: "Item Variations",
-    path: "/admin/variations",
-    icon: MdFastfood,
-  },
+  label: "Meals",
+  path: "/admin/meals",
+  icon: MdRestaurantMenu,
+},
+ {
+  label: "Categories",
+  path: "/admin/categories",
+  icon: BiCategoryAlt,
+},
+
+{
+  label: "Items",
+  path: "/admin/items",
+  icon: MdFastfood,
+},
+ {
+  label: "Item Variations",
+  path: "/admin/variations",
+  icon: MdTune,
+},
   {
     label: "Vendors",
     path: "/admin/vendors",
