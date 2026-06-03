@@ -40,6 +40,15 @@ export const createCategory = async (req, res) => {
       foodType,
       image,
       createdBy: req.user?.id || null,
+      name,
+      description,
+
+      image: {
+        url: image?.url || "",
+        public_id: image?.public_id || "",
+      },
+
+      createdBy: null,
     });
 
     return res.status(201).json({

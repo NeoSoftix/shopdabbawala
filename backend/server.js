@@ -5,6 +5,8 @@ import { connectDB } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/category.routes.js"
 import mealRoutes from "./src/routes/meal.route.js"
+import itemRoutes from "./src/routes/item.routes.js";
+
 
 const app = express();
 
@@ -15,7 +17,7 @@ connectDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/meal", mealRoutes)
 app.use("/api/category", categoryRoutes )
-
+app.use("/api/items", itemRoutes);
 app.listen(5000, () => {
   console.log("Server running on 5000");
 });
