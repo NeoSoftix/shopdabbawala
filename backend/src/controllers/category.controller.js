@@ -41,7 +41,6 @@ export const createCategory = async (req, res) => {
       image,
       createdBy: req.user?.id || null,
       name,
-      description,
 
       image: {
         url: image?.url || "",

@@ -13,11 +13,12 @@ const app = express();
 app.use(express.json());
 
 connectDB();
-
+console.log(process.env.JWT_SECRET);
 app.use("/api/auth", authRoutes);
 app.use("/api/meal", mealRoutes)
 app.use("/api/category", categoryRoutes )
 app.use("/api/items", itemRoutes);
+
 app.listen(5000, () => {
   console.log("Server running on 5000");
 });
