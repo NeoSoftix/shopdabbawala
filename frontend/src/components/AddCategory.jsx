@@ -3,11 +3,12 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const AddCategory = () => {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [meal, setMeal] = useState("");
   const [foodType, setFoodType] = useState("");
   const [image, setImage] = useState(null);
-  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,15 +18,10 @@ const AddCategory = () => {
       name,
       meal,
       foodType,
-      image: image?.name || "",
+      image: image ? URL.createObjectURL(image) : "",
     };
 
-    const existingCategories =
-      JSON.parse(localStorage.getItem("categories")) || [];
-
-    existingCategories.push(newCategory);
-
-    localStorage.setItem("categories", JSON.stringify(existingCategories));
+    console.log("Category Data:", newCategory);
 
     toast.success("Category Added");
 
@@ -49,16 +45,16 @@ const AddCategory = () => {
 
         <button
           onClick={() => navigate("/admin/categories")}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
         >
-          <span className="text-lg">←</span>
+          <span>←</span>
           <span>Back to Categories</span>
         </button>
       </div>
 
-      {/* Form Card */}
+      {/* Form */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-5">
             {/* Category Name */}
             <div>
@@ -72,7 +68,7 @@ const AddCategory = () => {
                 placeholder="Enter category name"
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -83,10 +79,10 @@ const AddCategory = () => {
               </label>
 
               <select
-                required
                 value={meal}
                 onChange={(e) => setMeal(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                required
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select Meal</option>
 
@@ -105,16 +101,16 @@ const AddCategory = () => {
               </label>
 
               <select
-                required
                 value={foodType}
                 onChange={(e) => setFoodType(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                required
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select Food Type</option>
 
-                <option value="veg">Veg</option>
+                <option value="Veg">Veg</option>
 
-                <option value="non-veg">Non Veg</option>
+                <option value="Non Veg">Non Veg</option>
               </select>
             </div>
 
@@ -124,7 +120,7 @@ const AddCategory = () => {
                 Category Image
               </label>
 
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-500 transition">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-500">
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Click to upload image</p>
 
@@ -135,6 +131,7 @@ const AddCategory = () => {
 
                 <input
                   type="file"
+                  accept="image/*"
                   className="hidden"
                   onChange={(e) => setImage(e.target.files[0])}
                 />
@@ -142,21 +139,21 @@ const AddCategory = () => {
             </div>
           </div>
 
-          {/* Preview */}
+          {/* Image Preview */}
           {image && (
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-lg p-4 mt-6">
               <p className="text-sm text-gray-600 mb-2">Selected Image</p>
 
               <img
                 src={URL.createObjectURL(image)}
-                alt="preview"
+                alt="Preview"
                 className="w-28 h-28 rounded-lg object-cover border"
               />
             </div>
           )}
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
               onClick={() => {
@@ -165,7 +162,7 @@ const AddCategory = () => {
                 setFoodType("");
                 setImage(null);
               }}
-              className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50"
+              className="px-5 py-2.5 border rounded-lg text-gray-700"
             >
               Cancel
             </button>

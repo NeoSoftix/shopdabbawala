@@ -11,6 +11,8 @@ import UsersList from "./components/UserList";
 import "./index.css";
 import OrderList from "./components/OrderList";
 import Settings from "./components/Settings";
+import AddItem from "./components/AddItem";
+import Item from "./components/Item";
 
 function App() {
   return (
@@ -28,11 +30,17 @@ function App() {
 
         <Route path="meals/add" element={<AddMeal />} />
 
+        <Route path="items" element={< Item/>} />
+
+        <Route path="items/add" element={<AddItem />} />
+
         <Route path="users" element={<UsersList />} />
 
         <Route path="orders" element={< OrderList />}/>
+        
 
         <Route path="settings" element={< Settings/>} />
+
 
         {/* Future Pages */}
         {/* <Route path="users" element={<Users />} /> 

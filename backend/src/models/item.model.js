@@ -36,8 +36,8 @@ const itemSchema = new mongoose.Schema(
     },
 
     // mealType: {
-    //   type: String,
-    //   enum: ["breakfast", "lunch", "dinner"],
+    //   type: mongoose,
+    //   ref:"Meal",
     //   required: true,
     // },
 
