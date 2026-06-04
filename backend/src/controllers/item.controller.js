@@ -1,30 +1,106 @@
 import Item from "../models/item.model.js";
 
-
 // ➤ Create Item
 export const createItem = async (req, res) => {
   try {
-    const item = await Item.create(req.body);
-    res.status(201).json({ success: true, item });
+    const { name, description, price, category, image } = req.body;
+
+    // Required fields validation
+    if (!name || !price || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, price and category are required",
+      });
+    }
+
+    // Category Id validation
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Category Id",
+      });
+    }
+
+    // Category exists or not
+    const categoryExists = await Category.findById(category);
+
+    if (!categoryExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // Duplicate item check
+    const existingItem = await Item.findOne({
+      name: name.trim(),
+    });
+
+    if (existingItem) {
+      return res.status(409).json({
+        success: false,
+        message: "Item already exists",
+      });
+    }
+
+    let imageData = {
+      url: "",
+      publicId: "",
+    };
+
+    // Image uploaded?
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "items",
+      });
+
+      imageData = {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }
+
+    const item = await Item.create({
+      name,
+      description,
+      price,
+      category,
+      image: imageData,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      item,
+      image: imageData,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
-
 
 // ➤ Get All Items
 export const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
-      .populate("category")
+      .populate("category", "name")
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, items });
+    return res.status(200).json({
+      success: true,
+      count: items.length,
+      items,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
-
 
 // ➤ Get Single Item
 export const getSingleItem = async (req, res) => {
@@ -41,76 +117,213 @@ export const getSingleItem = async (req, res) => {
   }
 };
 
-
 // ➤ Update Item
 export const updateItem = async (req, res) => {
   try {
-    const item = await Item.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const { id } = req.params;
 
-    res.json({ success: true, item });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Item Id",
+      });
+    }
+
+    const item = await Item.findById(id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    const updateData = {
+      ...req.body,
+    };
+
+    // New image uploaded
+    if (req.file) {
+      // delete old image
+      if (item.image?.publicId) {
+        await cloudinary.uploader.destroy(item.image.publicId);
+      }
+
+      // upload new image
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "items",
+      });
+
+      updateData.image = {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }
+
+    const updatedItem = await Item.findByIdAndUpdate(id, updateData, {
+      returnDocument: "after",
+      runValidators: true,
+    }).populate("category", "name");
+
+    return res.status(200).json({
+      success: true,
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Update Item Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating item",
+    });
   }
 };
-
 
 // ➤ Delete Item
 export const deleteItem = async (req, res) => {
   try {
-    await Item.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Item deleted" });
+    const { id } = req.params;
+
+    // Validate Id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Item Id",
+      });
+    }
+
+    const item = await Item.findById(id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    // Delete image from Cloudinary
+    if (item.image?.publicId) {
+      await cloudinary.uploader.destroy(item.image.publicId);
+    }
+
+    await item.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Item deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Delete Item Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while deleting item",
+    });
   }
 };
-
 
 // ➤ Disable / Enable Item
 export const toggleItemStatus = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Item Id",
+      });
+    }
+
+    const item = await Item.findById(id);
 
     if (!item) {
-      return res.status(404).json({ message: "Item not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
     }
 
     item.isActive = !item.isActive;
+
     await item.save();
 
-    res.json({ success: true, item });
+    return res.status(200).json({
+      success: true,
+      message: `Item ${
+        item.isActive ? "activated" : "deactivated"
+      } successfully`,
+      item,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Toggle Item Status Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating item status",
+    });
   }
 };
 
-
-// ➤ Get Items by Category
 export const getItemsByCategory = async (req, res) => {
   try {
-    const items = await Item.find({ category: req.params.categoryId, isActive: true })
-      .populate("category");
+    const { categoryId } = req.params;
 
-    res.json({ success: true, items });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Category Id",
+      });
+    }
 
+    // Check category exists
+    const category = await Category.findById(categoryId);
 
-// ➤ Get Items by Meal Type (breakfast/lunch/dinner)
-export const getItemsByMeal = async (req, res) => {
-  try {
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
     const items = await Item.find({
-      mealType: req.params.mealType,
+      category: categoryId,
       isActive: true,
-    }).populate("category");
+    })
+      .populate("category", "name")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ success: true, items });
+    return res.status(200).json({
+      success: true,
+      count: items.length,
+      items,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Get Items By Category Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching items",
+    });
   }
 };
+
+
+
+
+// // ➤ Get Items by Meal Type (breakfast/lunch/dinner)
+// export const getItemsByMeal = async (req, res) => {
+//   try {
+//     const items = await Item.find({
+//       mealType: req.params.mealType,
+//       isActive: true,
+//     }).populate("category");
+
+//     res.json({ success: true, items });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };

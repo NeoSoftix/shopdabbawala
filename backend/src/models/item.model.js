@@ -14,8 +14,14 @@ const itemSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String, // URL (cloudinary / local path)
-      required: true,
+      url:{
+        type:String,
+        default:""
+      },
+      publicId:{
+        type:String,
+        default:""
+      },
     },
 
     price: {
@@ -29,11 +35,11 @@ const itemSchema = new mongoose.Schema(
       required: true,
     },
 
-    mealType: {
-      type: String,
-      enum: ["breakfast", "lunch", "dinner"],
-      required: true,
-    },
+    // mealType: {
+    //   type: String,
+    //   enum: ["breakfast", "lunch", "dinner"],
+    //   required: true,
+    // },
 
     isActive: {
       type: Boolean,
