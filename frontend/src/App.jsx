@@ -13,6 +13,8 @@ import OrderList from "./components/OrderList";
 import Settings from "./components/Settings";
 import AddItem from "./components/AddItem";
 import Item from "./components/Item";
+import VendorList from "./components/Vendor";
+import AddVendor from "./components/AddVendor";
 
 function App() {
   return (
@@ -40,6 +42,10 @@ function App() {
         
 
         <Route path="settings" element={< Settings/>} />
+
+        <Route path="vendors" element={<VendorList />}/>
+
+        <Route path="vendors/add" element={<AddVendor />}/>
 
 
         {/* Future Pages */}

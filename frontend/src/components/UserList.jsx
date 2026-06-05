@@ -7,25 +7,21 @@ const Users = () => {
     {
       _id: "1",
       name: "Rahul Sharma",
-      email: "rahul@example.com",
       phone: "9876543210",
     },
     {
       _id: "2",
       name: "Priya Verma",
-      email: "priya@example.com",
       phone: "9876543211",
     },
     {
       _id: "3",
       name: "Amit Singh",
-      email: "amit@example.com",
       phone: "9876543212",
     },
     {
       _id: "4",
       name: "Neha Gupta",
-      email: "neha@example.com",
       phone: "9876543213",
     },
   ]);
@@ -40,7 +36,6 @@ const Users = () => {
             <thead>
               <tr className="border-b text-gray-500 text-sm">
                 <th className="text-left py-3">Name</th>
-                <th className="text-left py-3">Email</th>
                 <th className="text-left py-3">Phone</th>
                 <th className="text-center py-3">Action</th>
               </tr>
@@ -54,18 +49,12 @@ const Users = () => {
                 >
                   <td className="py-4">{user.name}</td>
 
-                  <td className="py-4 text-gray-600">{user.email}</td>
-
                   <td className="py-4">{user.phone}</td>
 
                   <td className="py-4">
                     <div className="flex justify-center gap-4">
                       <button>
                         <FiEye className="text-gray-500 text-lg" />
-                      </button>
-
-                      <button>
-                        <FiEdit className="text-blue-500 text-lg" />
                       </button>
 
                       <button>

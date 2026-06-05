@@ -4,9 +4,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const verifyToken = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-
-    const token = authHeader?.split(" ")[1];
+    const token = req.cookies.token;
 
     if (!token) {
       return res.status(401).json({
@@ -22,10 +20,10 @@ export const verifyToken = (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
+
     return res.status(401).json({
       success: false,
       message: "Invalid Token",
-    
     });
   }
 };

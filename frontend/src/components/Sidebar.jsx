@@ -3,6 +3,7 @@ import { FiLogOut } from "react-icons/fi";
 
 export default function Sidebar({
   title = "TIFFIN SERVICE",
+  
   subtitle = "ADMIN PANEL",
   menuItems = [],
   onLogout,

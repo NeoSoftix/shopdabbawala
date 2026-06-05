@@ -3,7 +3,7 @@ import Item from "../models/item.model.js";
 // ➤ Create Item
 export const createItem = async (req, res) => {
   try {
-    const { name, description, price, category, image } = req.body;
+    const { name, description, category, image } = req.body;
 
     // Required fields validation
     if (!name || !price || !category) {
@@ -63,7 +63,6 @@ export const createItem = async (req, res) => {
     const item = await Item.create({
       name,
       description,
-      price,
       category,
       image: imageData,
     });
@@ -223,6 +222,9 @@ export const deleteItem = async (req, res) => {
   }
 };
 
+
+
+
 // ➤ Disable / Enable Item
 export const toggleItemStatus = async (req, res) => {
   try {
@@ -265,6 +267,8 @@ export const toggleItemStatus = async (req, res) => {
     });
   }
 };
+
+// get item by category
 
 export const getItemsByCategory = async (req, res) => {
   try {
@@ -311,19 +315,3 @@ export const getItemsByCategory = async (req, res) => {
   }
 };
 
-
-
-
-// // ➤ Get Items by Meal Type (breakfast/lunch/dinner)
-// export const getItemsByMeal = async (req, res) => {
-//   try {
-//     const items = await Item.find({
-//       mealType: req.params.mealType,
-//       isActive: true,
-//     }).populate("category");
-
-//     res.json({ success: true, items });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };

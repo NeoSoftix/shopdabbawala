@@ -2,7 +2,7 @@ import Meal from "../models/meals.model.js";
 import fs from "fs";
 import cloudinary from "../config/cloudinary.js";
 import mongoose from "mongoose";
-import { removeLocalFile } from "../middleware/upload.middleware.js"
+import { removeLocalFile } from "../middleware/upload.middleware.js";
 
 // for create the meals
 
@@ -51,6 +51,9 @@ export const createMeal = async (req, res) => {
       image,
       createdBy: req.user?.id || null,
     });
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
 
     return res.status(201).json({
       success: true,
@@ -201,7 +204,7 @@ export const updateMeal = async (req, res) => {
     return res.status(500).json({
       message: "Internal Server error",
       success: false,
-      data:meal
+      data: meal,
     });
   }
 };
@@ -238,22 +241,19 @@ export const toggleMealStatus = async (req, res) => {
       data: meal,
     });
   } catch (error) {
-    console.error("Toggle the Meal error", error)
+    console.error("Toggle the Meal error", error);
 
     return res.status(500).json({
-      message:"Internal Server Error",
-      success:false
-    })
+      message: "Internal Server Error",
+      success: false,
+    });
   }
 };
-
-
 
 // contoller for delte the meal
 
 export const deleteMeal = async (req, res) => {
   try {
-
     const { id } = req.params;
 
     // validate id
@@ -276,10 +276,7 @@ export const deleteMeal = async (req, res) => {
 
     // delete cloudinary image
     if (meal.image?.publicId) {
-
-      await cloudinary.uploader.destroy(
-        meal.image.publicId
-      );
+      await cloudinary.uploader.destroy(meal.image.publicId);
     }
 
     // delete meal from db
@@ -289,13 +286,8 @@ export const deleteMeal = async (req, res) => {
       message: "Meal deleted successfully",
       success: true,
     });
-
   } catch (error) {
-
-    console.error(
-      "Delete Meal Error",
-      error
-    );
+    console.error("Delete Meal Error", error);
 
     return res.status(500).json({
       message: "Internal Server Error",
@@ -304,25 +296,25 @@ export const deleteMeal = async (req, res) => {
   }
 };
 
+// get active meal
 
-// get active meal 
-
-export const getActiveMeal = async (req, res) =>  {
+export const getActiveMeal = async (req, res) => {
   try {
-    const meals = (await Meal.find({isActive: true})).toSorted({createdAt:-1})
+    const meals = (await Meal.find({ isActive: true })).toSorted({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
-      message:"Active meals fetched successfully",
+      message: "Active meals fetched successfully",
       count: meals.length,
-      data: meals
-    })
+      data: meals,
+    });
   } catch (error) {
-    console.log("Get Active Meals Error", error)
+    console.log("Get Active Meals Error", error);
 
     return res.status(500).json({
-      message:"Internal Server Error",
-      success:false
-    })
+      message: "Internal Server Error",
+      success: false,
+    });
   }
-}
-
+};

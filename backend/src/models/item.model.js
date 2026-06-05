@@ -23,23 +23,12 @@ const itemSchema = new mongoose.Schema(
         default:""
       },
     },
-
-    price: {
-      type: Number,
-      required: true,
-    },
-
+    
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
     },
-
-    // mealType: {
-    //   type: mongoose,
-    //   ref:"Meal",
-    //   required: true,
-    // },
 
     isActive: {
       type: Boolean,

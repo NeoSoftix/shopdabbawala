@@ -1,69 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getAllMeals, updateMeal, deleteMeal } from "../service/meal.service";
 import { MdDelete } from "react-icons/md";
 import { FiEdit3 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const Meal = () => {
   const navigate = useNavigate();
-
-  const [meals, setMeals] = useState([
-    {
-      id: 1,
-      name: "Breakfast",
-      image:
-        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=300",
-    },
-    {
-      id: 2,
-      name: "Lunch",
-      image:
-        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300",
-    },
-    {
-      id: 3,
-      name: "Dinner",
-      image:
-        "https://images.unsplash.com/photo-1544025162-d76694265947?w=300",
-    },
-  ]);
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [isEdit, setIsEdit] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  const handleDelete = (id) => {
-    const updatedMeals = meals.filter(
-      (meal) => meal.id !== id
-    );
+  useEffect(() => {
+    fetchMeals();
+  }, []);
 
-    setMeals(updatedMeals);
+  const fetchMeals = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getAllMeals();
+
+      setMeals(res.data || res.meals || []);
+    } catch (error) {
+      setError(error?.response?.data?.message || "Failed to fetch meals");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdate = () => {
-    const updatedMeals = meals.map((meal) =>
-      meal.id === selectedMeal.id
-        ? selectedMeal
-        : meal
-    );
+  const handleDelete = async (id) => {
+    try {
+      await deleteMeal(id);
 
-    setMeals(updatedMeals);
+      setMeals((prev) => prev.filter((meal) => meal._id !== id));
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    setIsEdit(false);
-    setSelectedMeal(null);
+  const handleUpdate = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append("name", selectedMeal.name);
+
+      if (selectedMeal.file) {
+        formData.append("image", selectedMeal.file);
+      }
+
+      await updateMeal(selectedMeal._id, formData);
+
+      fetchMeals();
+
+      setIsEdit(false);
+      setSelectedMeal(null);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
     <div className="p-4 md:p-6">
-
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Meals
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Meals</h1>
 
-          <p className="text-sm text-gray-500">
-            Manage all meals
-          </p>
+          <p className="text-sm text-gray-500">Manage all meals</p>
         </div>
 
         <button
@@ -80,27 +86,18 @@ const Meal = () => {
           <table className="w-full min-w-[700px]">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-5 py-4 text-left">
-                  Image
-                </th>
+                <th className="px-5 py-4 text-left">Image</th>
 
-                <th className="px-5 py-4 text-left">
-                  Meal Name
-                </th>
+                <th className="px-5 py-4 text-left">Meal Name</th>
 
-                <th className="px-5 py-4 text-center">
-                  Actions
-                </th>
+                <th className="px-5 py-4 text-center">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {meals.length > 0 ? (
                 meals.map((meal) => (
-                  <tr
-                    key={meal.id}
-                    className="border-b hover:bg-gray-50"
-                  >
+                  <tr key={meal._id} className="border-b hover:bg-gray-50">
                     <td className="px-5 py-4">
                       <img
                         src={meal.image}
@@ -109,9 +106,7 @@ const Meal = () => {
                       />
                     </td>
 
-                    <td className="px-5 py-4 font-medium">
-                      {meal.name}
-                    </td>
+                    <td className="px-5 py-4 font-medium">{meal.name}</td>
 
                     <td className="px-5 py-4">
                       <div className="flex justify-center gap-4">
@@ -126,9 +121,7 @@ const Meal = () => {
                         </button>
 
                         <button
-                          onClick={() =>
-                            handleDelete(meal.id)
-                          }
+                          onClick={() => handleDelete(meal._id)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <MdDelete size={20} />
@@ -139,10 +132,7 @@ const Meal = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="3"
-                    className="text-center py-10 text-gray-500"
-                  >
+                  <td colSpan="3" className="text-center py-10 text-gray-500">
                     No Meals Found
                   </td>
                 </tr>
@@ -156,13 +146,9 @@ const Meal = () => {
       {isEdit && selectedMeal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-xl w-full max-w-md">
-
-            <h2 className="text-xl font-bold mb-4">
-              Edit Meal
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Edit Meal</h2>
 
             <div className="space-y-4">
-
               <input
                 type="text"
                 value={selectedMeal.name}
@@ -177,24 +163,19 @@ const Meal = () => {
               />
 
               <div>
-                <label className="block mb-2 font-medium">
-                  Meal Image
-                </label>
+                <label className="block mb-2 font-medium">Meal Image</label>
 
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const file =
-                      e.target.files[0];
+                    const file = e.target.files[0];
 
                     if (file) {
                       setSelectedMeal({
                         ...selectedMeal,
-                        image:
-                          URL.createObjectURL(
-                            file
-                          ),
+                        image: URL.createObjectURL(file),
+                        file,
                       });
                     }
                   }}
@@ -209,7 +190,6 @@ const Meal = () => {
                   />
                 )}
               </div>
-
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -230,7 +210,6 @@ const Meal = () => {
                 Update
               </button>
             </div>
-
           </div>
         </div>
       )}
