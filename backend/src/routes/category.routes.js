@@ -7,17 +7,19 @@ import { allowedRoles, verifyToken } from "../middleware/auth.middleware.js"
 const router = express.Router()
 
 router.post("/", verifyToken, allowedRoles('admin'),upload.single("image") ,createCategory)
+
 router.get("/", getAllCategories)
+
 router.get("/food-type/:foodType", getCategoryByFoodType)
+
 router.get("/:id", getSingleCategory)
-router.patch("/:id",verifyToken, allowedRoles('admin'),upload.single("image") ,updateCategory)
+
+router.put("/:id",verifyToken, allowedRoles('admin'),upload.single("image") ,updateCategory)
+
 router.patch("/:id/status",verifyToken, allowedRoles('admin'), disableCategory)
+
 router.delete("/:id",verifyToken, allowedRoles('admin'),deleteCategory)
 
 
 
-router.patch("/:id/status", disableCategory)
-
-router.patch("/:id", updateCategory)
-router.delete("/:id", deleteCategory);
 export default router

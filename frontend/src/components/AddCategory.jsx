@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { toast } from "react-hot-toast";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createCategory } from "../service/category.service.js";
+import { getAllMeals } from "../service/meal.service.js";
 
 const AddCategory = () => {
   const navigate = useNavigate();
@@ -9,26 +10,53 @@ const AddCategory = () => {
   const [meal, setMeal] = useState("");
   const [foodType, setFoodType] = useState("");
   const [image, setImage] = useState(null);
+  const [meals, setMeals] = useState([]);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const newCategory = {
-      id: Date.now(),
-      name,
-      meal,
-      foodType,
-      image: image ? URL.createObjectURL(image) : "",
+  useEffect(() => {
+    const loadMeals = async () => {
+      try {
+        const res = await getAllMeals();
+        setMeals(res.data || []);
+      } catch (err) {
+        console.log("Get all meals error", err);
+      }
     };
 
-    console.log("Category Data:", newCategory);
+    loadMeals();
+  }, []);
 
-    toast.success("Category Added");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    setName("");
-    setMeal("");
-    setFoodType("");
-    setImage(null);
+    try {
+      setError("");
+      setSuccess("");
+
+      const formData = new FormData();
+
+      formData.append("name", name);
+      formData.append("meal", meal);
+      formData.append("foodType", foodType);
+      if (image) {
+        formData.append("image", image);
+      }
+
+      await createCategory(formData);
+
+      setSuccess("Add category successfully");
+      setError("");
+
+      setName("");
+      setMeal("");
+      setFoodType("");
+      setImage(null);
+    } catch (error) {
+      console.log("Create Category error", error);
+      setSuccess("");
+      setError(error?.response?.data?.message || "Failed to add category");
+    }
   };
 
   return (
@@ -51,6 +79,21 @@ const AddCategory = () => {
           <span>Back to Categories</span>
         </button>
       </div>
+      {success && (
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 font-medium shadow-sm">
+          <div className="flex items-center gap-2">
+            <span>{success}</span>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium shadow-sm">
+          <div className="flex items-center gap-2">
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
@@ -75,7 +118,7 @@ const AddCategory = () => {
             {/* Meal Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Meal Type
+                Meal
               </label>
 
               <select
@@ -85,12 +128,11 @@ const AddCategory = () => {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select Meal</option>
-
-                <option value="Breakfast">Breakfast</option>
-
-                <option value="Lunch">Lunch</option>
-
-                <option value="Dinner">Dinner</option>
+                {meals.map((mealOption) => (
+                  <option key={mealOption._id} value={mealOption._id}>
+                    {mealOption.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -108,9 +150,9 @@ const AddCategory = () => {
               >
                 <option value="">Select Food Type</option>
 
-                <option value="Veg">Veg</option>
+                <option value="veg">Veg</option>
 
-                <option value="Non Veg">Non Veg</option>
+                <option value="non-veg">Non Veg</option>
               </select>
             </div>
 

@@ -14,7 +14,7 @@ const mealSchema = new mongoose.Schema(
         default: "",
       },
 
-      publicId: {
+      public_id: {
         type: String,
         default: "",
       },

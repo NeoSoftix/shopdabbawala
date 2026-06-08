@@ -8,10 +8,11 @@ import Meal from "../models/meals.model.js";
 export const createCategory = async (req, res) => {
   try {
     const { name, meal, foodType } = req.body;
+    const normalizedFoodType = foodType?.toLowerCase();
 
     let image = {
       url: "",
-      publicId: "",
+      public_id: "",
     };
 
     if (!name?.trim()) {
@@ -21,6 +22,13 @@ export const createCategory = async (req, res) => {
       });
     }
 
+    if (!meal) {
+      return res.status(400).json({
+        success: false,
+        message: "Meal is required",
+      });
+    }
+    
     if (req.file) {
       const uploaded = await cloudinary.uploader.upload(req.file.path, {
         folder: "categories",
@@ -28,26 +36,30 @@ export const createCategory = async (req, res) => {
 
       image = {
         url: uploaded.secure_url,
-        publicId: uploaded.public_id,
+        public_id: uploaded.public_id,
       };
 
       removeLocalFile(req.file.path);
     }
 
+    const mealExists = await Meal.findById(meal);
+
+    if (!mealExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Meal not found",
+      });
+    }
+
     const category = await Category.create({
       name: name.trim(),
       meal,
-      foodType,
-      image,
+      foodType: normalizedFoodType,
       createdBy: req.user?.id || null,
-      name,
-
       image: {
         url: image?.url || "",
         public_id: image?.public_id || "",
       },
-
-      createdBy: null,
     });
 
     return res.status(201).json({
@@ -69,7 +81,9 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const allCategories = await Category.find().sort({ createdAt: -1 });
+    const allCategories = await Category.find()
+      .populate("meal", "name")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -97,7 +111,7 @@ export const getSingleCategory = async (req, res) => {
       });
     }
 
-    const category = await Category.findById(id);
+    const category = await Category.findById(id).populate("meal", "name");
 
     if (!category) {
       return res.status(404).json({
@@ -127,7 +141,7 @@ export const getSingleCategory = async (req, res) => {
 export const getActiveCategory = async (req, res) => {
   try {
     const category = await Category.find({ isActive: true }).sort({
-      createAt: -1,
+      createdAt: -1,
     });
 
     return res.status(200).json({
@@ -200,8 +214,8 @@ export const updateCategory = async (req, res) => {
     // update image
     if (req.file) {
       // delete old cloudinary image
-      if (category.image?.publicId) {
-        await cloudinary.uploader.destroy(category.image.publicId);
+      if (category.image?.public_id) {
+        await cloudinary.uploader.destroy(category.image.public_id);
       }
 
       // upload new image
@@ -211,8 +225,7 @@ export const updateCategory = async (req, res) => {
 
       category.image = {
         url: uploaded.secure_url,
-
-        publicId: uploaded.public_id,
+        public_id: uploaded.public_id,
       };
 
       // delete local file
@@ -315,6 +328,10 @@ export const deleteCategory = async (req, res) => {
       });
     }
 
+    if (category.image?.public_id) {
+      await cloudinary.uploader.destroy(category.image.public_id);
+    }
+
     await category.deleteOne();
 
     return res.status(200).json({
@@ -335,7 +352,7 @@ export const deleteCategory = async (req, res) => {
 
 export const getCategoryByFoodType = async (req, res) => {
   try {
-    const { foodType } = req.params
+    const { foodType } = req.params;
 
     const allowedType = ["veg", "non-veg"];
 
@@ -350,20 +367,22 @@ export const getCategoryByFoodType = async (req, res) => {
       foodType: foodType.toLowerCase(),
 
       isActive: true,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .populate("meal", "name");
 
     return res.status(200).json({
       message: `${foodType} categories fetched successfully`,
       success: true,
       data: category,
-      count : category.length
+      count: category.length,
     });
   } catch (error) {
-    console.log("Get category by food type error", error)
+    console.log("Get category by food type error", error);
 
     return res.status(500).json({
-      message:"Internal Server Error",
-      success: false
-    })
+      message: "Internal Server Error",
+      success: false,
+    });
   }
 };

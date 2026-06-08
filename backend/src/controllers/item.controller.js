@@ -45,7 +45,7 @@ export const createItem = async (req, res) => {
 
     let imageData = {
       url: "",
-      publicId: "",
+      public_id: "",
     };
 
     // Image uploaded?
@@ -56,7 +56,7 @@ export const createItem = async (req, res) => {
 
       imageData = {
         url: result.secure_url,
-        publicId: result.public_id,
+        public_id: result.public_id,
       };
     }
 
@@ -144,8 +144,8 @@ export const updateItem = async (req, res) => {
     // New image uploaded
     if (req.file) {
       // delete old image
-      if (item.image?.publicId) {
-        await cloudinary.uploader.destroy(item.image.publicId);
+      if (item.image?.public_id) {
+        await cloudinary.uploader.destroy(item.image.public_id);
       }
 
       // upload new image
@@ -155,7 +155,7 @@ export const updateItem = async (req, res) => {
 
       updateData.image = {
         url: result.secure_url,
-        publicId: result.public_id,
+        public_id: result.public_id,
       };
     }
 
@@ -202,8 +202,8 @@ export const deleteItem = async (req, res) => {
     }
 
     // Delete image from Cloudinary
-    if (item.image?.publicId) {
-      await cloudinary.uploader.destroy(item.image.publicId);
+    if (item.image?.public_id) {
+      await cloudinary.uploader.destroy(item.image.public_id);
     }
 
     await item.deleteOne();
@@ -267,6 +267,8 @@ export const toggleItemStatus = async (req, res) => {
     });
   }
 };
+
+
 
 // get item by category
 

@@ -76,6 +76,7 @@ const Item = () => {
               <tr className="border-b text-left">
                 <th className="p-4">Image</th>
                 <th className="p-4">Name</th>
+                <th className="p-4">Description</th>
                 <th className="p-4">Category</th>
                 <th className="p-4">Meal Type</th>
                 <th className="p-4">Allergies</th>
@@ -96,6 +97,10 @@ const Item = () => {
                     </td>
 
                     <td className="p-4 font-medium">{item.name}</td>
+
+                    <td className="p-4 max-w-[250px] text-gray-600">
+                      {item.description}
+                    </td>
 
                     <td className="p-4">{item.category.name}</td>
 
@@ -139,7 +144,7 @@ const Item = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-12 text-gray-500">
+                  <td colSpan="7" className="text-center py-12 text-gray-500">
                     No Items Found
                   </td>
                 </tr>

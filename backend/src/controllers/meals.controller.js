@@ -12,7 +12,7 @@ export const createMeal = async (req, res) => {
 
     let image = {
       url: "",
-      publicId: "",
+      public_id: "",
     };
 
     if (!name?.trim()) {
@@ -40,7 +40,7 @@ export const createMeal = async (req, res) => {
 
       image = {
         url: uploaded.secure_url,
-        publicId: uploaded.public_id,
+        public_id: uploaded.public_id,
       };
 
       fs.unlinkSync(req.file.path);
@@ -174,8 +174,8 @@ export const updateMeal = async (req, res) => {
     // update image
     if (req.file) {
       // delete old cloudinary image
-      if (meal.image?.publicId) {
-        await cloudinary.uploader.destroy(meal.image.publicId);
+      if (meal.image?.public_id) {
+        await cloudinary.uploader.destroy(meal.image.public_id);
       }
 
       // upload new image
@@ -185,7 +185,7 @@ export const updateMeal = async (req, res) => {
 
       meal.image = {
         url: uploaded.secure_url,
-        publicId: uploaded.public_id,
+        public_id: uploaded.public_id,
       };
 
       // delete local file
@@ -275,8 +275,8 @@ export const deleteMeal = async (req, res) => {
     }
 
     // delete cloudinary image
-    if (meal.image?.publicId) {
-      await cloudinary.uploader.destroy(meal.image.publicId);
+    if (meal.image?.public_id) {
+      await cloudinary.uploader.destroy(meal.image.public_id);
     }
 
     // delete meal from db

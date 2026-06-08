@@ -18,7 +18,7 @@ const itemSchema = new mongoose.Schema(
         type:String,
         default:""
       },
-      publicId:{
+      public_id:{
         type:String,
         default:""
       },
