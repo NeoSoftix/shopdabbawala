@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import Login from "./pages/Login";
+
 import AddCategory from "./components/AddCategory";
 import Categories from "./components/Categries";
 import AddMeal from "./components/AddMeal";
@@ -20,6 +22,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+      <Route path="/login" element={<Login />} />
 
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<AdminDashboard />} />
