@@ -63,6 +63,7 @@ export const login = async (req, res) => {
     });
 
     res.json({
+      success: true,
       message: "Login successful",
       user: {
         id: user._id,
@@ -74,6 +75,58 @@ export const login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: error.message,
+    });
+  }
+};
+
+// get me controller
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully get the user",
+      user: user,
+    });
+  } catch (error) {
+    console.log("Get me error", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// log out
+
+export const logout = async (req, res) => {
+  try {
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
     });
   }
 };

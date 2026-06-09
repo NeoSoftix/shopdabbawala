@@ -1,58 +1,145 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BiEditAlt } from "react-icons/bi";
 import { MdDeleteOutline } from "react-icons/md";
+import { deleteItem, getAllItems, updateItem } from "../service/items.service";
+import { getAllCategories } from "../service/category.service";
 
 const Item = () => {
   const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-  const [items] = useState([
-    {
-      _id: "1",
-      name: "Paneer Curry",
-      description: "Rich Paneer Curry",
-      category: {
-        name: "Indian",
-        mealType: "Dinner",
-      },
-      allergies: ["Milk"],
-      image: {
-        url: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400",
-      },
-    },
-    {
-      _id: "2",
-      name: "Poha",
-      description: "Healthy Breakfast",
-      category: {
-        name: "Indian",
-        mealType: "Breakfast",
-      },
-      allergies: ["Gluten"],
-      image: {
-        url: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400",
-      },
-    },
-    {
-      _id: "3",
-      name: "Noodles",
-      description: "Chinese Noodles",
-      category: {
-        name: "Chinese",
-        mealType: "Lunch",
-      },
-      allergies: ["Soy", "Gluten"],
-      image: {
-        url: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400",
-      },
-    },
-  ]);
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  useEffect(() => {
+    fetchItems();
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await getAllCategories();
+
+      setCategories(res.data);
+    } catch (error) {
+      console.log("Fetch categories error", error);
+    }
+  };
+
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await getAllItems();
+
+      setItems(res.data);
+    } catch (error) {
+      console.log("Fetch items error");
+
+      setError(
+        error?.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Delete this item?");
+
+    if (!confirmDelete) return;
+    try {
+      await deleteItem(id);
+
+      setSuccess("Successfully Delete Item");
+
+      fetchItems();
+    } catch (error) {
+      console.log("Delete Item error", error);
+
+      setError(error?.response?.data?.message || "Failed to delete item");
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append("name", selectedItem.name);
+      formData.append("description", selectedItem.description);
+
+      formData.append("category", selectedItem.category._id);
+
+      formData.append("allergies", selectedItem.allergies.join(","));
+
+      if (selectedItem.imageFile) {
+        formData.append("image", selectedItem.imageFile);
+      }
+
+      await updateItem(selectedItem._id, formData);
+
+      setSuccess("Item updated successfully");
+
+      setIsEdit(false);
+
+      fetchItems();
+    } catch (error) {
+      console.log("Update Item Error", error);
+
+      setError(error?.response?.data?.message || "Failed to update item");
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
+      {success && (
+        <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-emerald-100 bg-emerald-50/50 p-3 text-sm font-medium text-emerald-800 shadow-sm animate-fade-in">
+          <svg
+            className="h-4 w-4 text-emerald-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2.5"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 12.75l6 6 9-13.5"
+            />
+          </svg>
+          <span>{success}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-rose-100 bg-rose-50/50 p-3 text-sm font-medium text-rose-800 shadow-sm animate-fade-in">
+          <svg
+            className="h-4 w-4 text-rose-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2.5"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+            />
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-4xl font-bold text-slate-800">Items</h1>
@@ -90,7 +177,7 @@ const Item = () => {
                   <tr key={item._id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <img
-                        src={item.image.url}
+                        src={item.image?.url}
                         alt={item.name}
                         className="w-14 h-14 rounded-lg object-cover"
                       />
@@ -102,17 +189,17 @@ const Item = () => {
                       {item.description}
                     </td>
 
-                    <td className="p-4">{item.category.name}</td>
+                    <td className="p-4">{item.category?.name}</td>
 
                     <td className="p-4">
                       <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm">
-                        {item.category.mealType}
+                        {item.category?.mealType}
                       </span>
                     </td>
 
                     <td className="p-4">
                       <div className="flex flex-wrap gap-2">
-                        {item.allergies.map((allergy, index) => (
+                        {item.allergies?.map((allergy, index) => (
                           <span
                             key={index}
                             className="px-2 py-1 bg-red-100 text-red-600 rounded-md text-xs"
@@ -135,7 +222,10 @@ const Item = () => {
                           <BiEditAlt />
                         </button>
 
-                        <button className="px-3 py-1 bg-red-500 text-white rounded-lg">
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-lg"
+                        >
                           <MdDeleteOutline />
                         </button>
                       </div>
@@ -164,7 +254,13 @@ const Item = () => {
 
                 <input
                   type="text"
-                  defaultValue={selectedItem?.name}
+                  value={selectedItem?.name || ""}
+                  onChange={(e) =>
+                    setSelectedItem({
+                      ...selectedItem,
+                      name: e.target.value,
+                    })
+                  }
                   className="w-full border p-3 rounded-lg"
                 />
               </div>
@@ -173,12 +269,25 @@ const Item = () => {
                 <label className="block mb-2">Category</label>
 
                 <select
-                  defaultValue={selectedItem?.category?.name}
+                  value={selectedItem?.category?._id || ""}
+                  onChange={(e) =>
+                    setSelectedItem({
+                      ...selectedItem,
+                      category: {
+                        ...selectedItem.category,
+                        _id: e.target.value,
+                      },
+                    })
+                  }
                   className="w-full border p-3 rounded-lg"
                 >
-                  <option>Indian</option>
-                  <option>Chinese</option>
-                  <option>South Indian</option>
+                  <option value="">Select Category</option>
+
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -187,7 +296,13 @@ const Item = () => {
 
                 <textarea
                   rows="4"
-                  defaultValue={selectedItem?.description}
+                  value={selectedItem?.description || ""}
+                  onChange={(e) =>
+                    setSelectedItem({
+                      ...selectedItem,
+                      description: e.target.value,
+                    })
+                  }
                   className="w-full border p-3 rounded-lg"
                 />
               </div>
@@ -197,15 +312,46 @@ const Item = () => {
 
                 <input
                   type="text"
-                  defaultValue={selectedItem?.allergies?.join(", ")}
+                  value={selectedItem?.allergies?.join(", ") || ""}
+                  onChange={(e) =>
+                    setSelectedItem({
+                      ...selectedItem,
+                      allergies: e.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean),
+                    })
+                  }
                   className="w-full border p-3 rounded-lg"
                 />
+
+                {(selectedItem?.previewImage || selectedItem?.image?.url) && (
+                  <img
+                    src={selectedItem.previewImage || selectedItem.image?.url}
+                    alt="Preview"
+                    className="w-24 h-24 rounded-lg mt-3 object-cover border"
+                  />
+                )}
               </div>
 
               <div>
                 <label className="block mb-2">Image</label>
 
-                <input type="file" className="w-full border p-3 rounded-lg" />
+                <input
+                  type="file"
+                  className="w-full border p-3 rounded-lg"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+
+                    if (file) {
+                      setSelectedItem({
+                        ...selectedItem,
+                        imageFile: file,
+                        previewImage: URL.createObjectURL(file),
+                      });
+                    }
+                  }}
+                />
               </div>
             </div>
 
@@ -217,7 +363,10 @@ const Item = () => {
                 Cancel
               </button>
 
-              <button className="bg-red-500 text-white px-5 py-2 rounded-lg">
+              <button
+                onClick={handleUpdate}
+                className="bg-red-500 text-white px-5 py-2 rounded-lg"
+              >
                 Save Changes
               </button>
             </div>

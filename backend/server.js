@@ -8,6 +8,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/category.routes.js";
 import mealRoutes from "./src/routes/meal.route.js";
 import itemRoutes from "./src/routes/item.routes.js";
+import addOnRoutes from "./src/routes/addOns.routes.js"
 
 const app = express();
 
@@ -23,10 +24,20 @@ app.use(
   }),
 );
 
+// auth routes
 app.use("/api/auth", authRoutes);
+
+// meals route
 app.use("/api/meal", mealRoutes);
+
+// category route
 app.use("/api/category", categoryRoutes);
+
+// Items routes
 app.use("/api/items", itemRoutes);
+
+// Add ons route
+app.use("/api/addons", addOnRoutes)
 
 app.listen(5000, () => {
   console.log("Server running on 5000");

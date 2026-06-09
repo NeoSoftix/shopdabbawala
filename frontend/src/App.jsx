@@ -17,6 +17,8 @@ import AddItem from "./components/AddItem";
 import Item from "./components/Item";
 import VendorList from "./components/Vendor";
 import AddVendor from "./components/AddVendor";
+import CreateAddOns from "./components/CreateAddOns";
+import AddOns from "./components/AddOns";
 
 function App() {
   return (
@@ -35,28 +37,23 @@ function App() {
 
         <Route path="meals/add" element={<AddMeal />} />
 
-        <Route path="items" element={< Item/>} />
+        <Route path="items" element={<Item />} />
 
         <Route path="items/add" element={<AddItem />} />
 
         <Route path="users" element={<UsersList />} />
 
-        <Route path="orders" element={< OrderList />}/>
-        
+        <Route path="orders" element={<OrderList />} />
 
-        <Route path="settings" element={< Settings/>} />
+        <Route path="settings" element={<Settings />} />
 
-        <Route path="vendors" element={<VendorList />}/>
+        <Route path="vendors" element={<VendorList />} />
 
-        <Route path="vendors/add" element={<AddVendor />}/>
+        <Route path="vendors/add" element={<AddVendor />} />
 
+        <Route path="add-on" element={<AddOns />} />
 
-        {/* Future Pages */}
-        {/* <Route path="users" element={<Users />} /> 
-           <Route path="vendors" element={<Vendors />} />
-          <Route path="meals" element={<Meals />} /> 
-          <Route path="items" element={<Items />} />
-           <Route path="orders" element={<Orders />} /> */}
+        <Route path="add-on/add" element={<CreateAddOns />} />
       </Route>
     </Routes>
   );
