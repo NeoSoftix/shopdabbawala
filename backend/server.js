@@ -9,6 +9,7 @@ import categoryRoutes from "./src/routes/category.routes.js";
 import mealRoutes from "./src/routes/meal.route.js";
 import itemRoutes from "./src/routes/item.routes.js";
 import addOnRoutes from "./src/routes/addOns.routes.js"
+import vendorRoutes from "./src/routes/vendor.routes.js"
 
 const app = express();
 
@@ -38,6 +39,9 @@ app.use("/api/items", itemRoutes);
 
 // Add ons route
 app.use("/api/addons", addOnRoutes)
+
+// Vendor routes
+app.use("/api/vendor", vendorRoutes)
 
 app.listen(5000, () => {
   console.log("Server running on 5000");

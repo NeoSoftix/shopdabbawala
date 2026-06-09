@@ -8,10 +8,24 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
     phone: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
     },
 
     role: {
@@ -20,7 +34,7 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("User", userSchema);
