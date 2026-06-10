@@ -8,8 +8,8 @@ import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/category.routes.js";
 import mealRoutes from "./src/routes/meal.route.js";
 import itemRoutes from "./src/routes/item.routes.js";
-import addOnRoutes from "./src/routes/addOns.routes.js"
-import vendorRoutes from "./src/routes/vendor.routes.js"
+import addOnRoutes from "./src/routes/addOns.routes.js";
+import vendorRoutes from "./src/routes/vendor.routes.js";
 
 const app = express();
 
@@ -18,9 +18,21 @@ app.use(express.json());
 app.use(cookieParser());
 connectDB();
 
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://tiffin-delivery-app.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
@@ -38,10 +50,10 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/items", itemRoutes);
 
 // Add ons route
-app.use("/api/addons", addOnRoutes)
+app.use("/api/addons", addOnRoutes);
 
 // Vendor routes
-app.use("/api/vendor", vendorRoutes)
+app.use("/api/vendor", vendorRoutes);
 
 app.listen(5000, () => {
   console.log("Server running on 5000");
