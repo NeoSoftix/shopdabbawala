@@ -3,7 +3,7 @@ import Vendor from "../models/vendor.model.js";
 import User from "../models/User.model.js";
 import cloudinary from "../config/cloudinary.js";
 import bcrypt from "bcryptjs";
-import  passwordGenerator  from "../utils/generatePassword.js";
+import passwordGenerator from "../utils/generatePassword.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import vendorWelcomeTemplate from "../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
@@ -11,6 +11,8 @@ import { removeLocalFile } from "../middleware/upload.middleware.js";
 // contoller for create Vendor
 
 export const createVendor = async (req, res) => {
+
+  
   try {
     const {
       name,
@@ -24,68 +26,59 @@ export const createVendor = async (req, res) => {
       phone,
     } = req.body;
 
+    // 1. Validation (Sabse pehle check taaki faltu DB processing na ho)
     if (
-      !name ||
-      !email ||
-      !phone ||
-      !organizationName ||
-      !address ||
-      !city ||
-      !state ||
-      !pincode
+      !name || !email || !phone || !organizationName || 
+      !address || !city || !state || !pincode
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "Name, Email, Phone, Organization Name, Address, City, State and Pincode are required",
+        message: "Name, Email, Phone, Organization Name, Address, City, State and Pincode are required",
       });
     }
 
+    const formattedEmail = email.trim().toLowerCase();
+    const formattedPhone = phone.trim();
+
+    // 2. Step-by-Step Execution (Bina Promise.all ke standard await flow)
     const existingUser = await User.findOne({
-      $or: [{ email: email.trim().toLowerCase() }, { phone: phone.trim() }],
+      $or: [{ email: formattedEmail }, { phone: formattedPhone }],
     }).lean();
 
     if (existingUser) {
-      const isEmailMatch = existingUser.email === email.trim().toLowerCase();
-
+      const isEmailMatch = existingUser.email === formattedEmail;
       return res.status(409).json({
         success: false,
-        message: isEmailMatch
-          ? "Email already exists"
-          : "Phone number already exists",
+        message: isEmailMatch ? "Email already exists" : "Phone number already exists",
       });
     }
 
-    // generate password
+    // Password Generation & Hashing
     const plainPassword = passwordGenerator();
-
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    // Upload logo
-    let logoData = {
-      url: "",
-      public_id: "",
-    };
-    if (req.file) {
+    // 3. Safe Cloudinary Upload Flow
+    let logoData = { url: "", public_id: "" };
+    if (req.file && req.file.path) {
+      const filePath = req.file.path; // Path ko variable me safe rakhlein
       try {
-  
-        const result = await cloudinary.uploader.upload(req.file.path, {
+        const result = await cloudinary.uploader.upload(filePath, {
           folder: "vendors",
         });
-
         logoData = {
           url: result.secure_url,
           public_id: result.public_id,
         };
       } finally {
-        removeLocalFile(req.file.path);
+        removeLocalFile(filePath); // Safe file cleanup
       }
     }
 
+    // 4. DB Insertions
     const user = await User.create({
       name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
+      email: formattedEmail,
+      phone: formattedPhone,
       password: hashedPassword,
       role: "vendor",
     });
@@ -101,34 +94,34 @@ export const createVendor = async (req, res) => {
       description: description?.trim() || "",
     });
 
-    const populatedVendor = await Vendor.findById(vendor._id)
-      .populate("userId", "name email phone")
-      .lean();
+    // 5. Query Optimization: Database call (.findById) ki bajay data memory se banayein (0ms)
+    const populatedVendor = {
+      ...(vendor.toObject ? vendor.toObject() : vendor),
+      userId: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone
+      }
+    };
 
-    // Send Welcome Email
-    try {
-   
-      await sendEmail(
-        email,
-        "Welcome to Tiffin Delivery",
-        vendorWelcomeTemplate(name, email, plainPassword),
-      );
+    // 6. Background Email (Fire-and-Forget): 'await' hata diya hai.
+    // Email ab background me jayega aur frontend ko response turant mil jayega!
+    sendEmail(
+      formattedEmail,
+      "Welcome to Tiffin Delivery",
+      vendorWelcomeTemplate(name.trim(), formattedEmail, plainPassword)
+    ).catch((error) => console.error("Background Welcome Email Error:", error.message));
 
-  
-    } catch (error) {
-      console.error("Welcome Email Error:", error.message);
-    }
-
+    // 7. Fast Response Return
     return res.status(201).json({
-      message: "Vendor Create successfully",
+      message: "Vendor Created successfully",
       success: true,
       data: populatedVendor,
     });
 
-   
   } catch (error) {
-    console.log("Create Vendor error", error);
-
+    console.error("Create Vendor error", error);
     return res.status(500).json({
       message: "Internal Server Error",
       success: false,

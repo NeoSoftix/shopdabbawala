@@ -1,5 +1,6 @@
 import User from "../models/User.model.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt"
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -38,16 +39,38 @@ export const signup = async (req, res) => {
 // LOGIN
 export const login = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { email, password } = req.body;
 
-    const user = await User.findOne({ phone });
-
-    if (!user) {
+    if (!email || !password) {
       return res.status(400).json({
-        message: "User not found",
+        success: false,
+        message: "Email and password are required",
       });
     }
 
+    const formattedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: formattedEmail }).lean();
+
+    if (!user) {
+      return res.status(401).json({
+        // Security standard: Use 401 instead of 400 for authentication
+        success: false,
+        message: "Invalid Email or Password", 
+      });
+    }
+
+    //Verify Password using Bcrypt
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+
+    //  Generate JWT Token
     const token = jwt.sign(
       {
         id: user._id,
@@ -57,24 +80,29 @@ export const login = async (req, res) => {
       { expiresIn: "7d" },
     );
 
+    //  Production Ready Secure Cookie Setup
     res.cookie("token", token, {
-      httpOnly: true,
+      httpOnly: true, // Prevents XSS attacks
+      secure: process.env.NODE_ENV === "production", // HTTPS mandatory in production
+      sameSite: "strict", // Protects against CSRF attacks
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.json({
+    // Security Cleanup: Response bhejne se pehle object se password delete karein
+    const userResponse = { ...user };
+    delete userResponse.password;
+
+    return res.json({
       success: true,
       message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-      },
+      user: userResponse,
     });
+
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    console.error("Login Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
     });
   }
 };
@@ -111,7 +139,6 @@ export const getMe = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-
     res.clearCookie("token", {
       httpOnly: true,
       secure: true,
