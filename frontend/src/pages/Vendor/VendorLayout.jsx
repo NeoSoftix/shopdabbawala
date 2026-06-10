@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../../components/Header";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../../constants/vendormenu.js"
 
 import { vendorMenu } from "../../constants/vendorMenu";
 import { useAuth } from "../../context/AuthContext";
