@@ -1,25 +1,45 @@
-import express from "express"
-import { createVendor, deleteVendor, getAllVendors, getOneVendor, toggleVendorStatus, updateVendor } from "../controllers/vendor.controller.js"
-import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js"
+import express from "express";
+import { 
+  createVendor, 
+  deleteVendor, 
+  getAllVendors, 
+  getOneVendor, 
+  toggleVendorStatus, 
+  updateVendor 
+} from "../controllers/vendor.controller.js";
+import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
+import  upload  from "../middleware/upload.middleware.js"; 
 
-const router = express.Router()
+const router = express.Router();
 
-// create the vendor 
-router.post("/", verifyToken, allowedRoles("admin"),createVendor)
+// creaet a vender
+router.post(
+  "/", 
+  verifyToken, 
+  allowedRoles("admin"), 
+  upload.single("logo"), 
+  createVendor
+);
 
-// get vendor by id
-router.get("/:id", getOneVendor)
+// Get vendor by ID (Public Route)
+router.get("/:id", getOneVendor);
 
-// get all vender
-router.get("/", getAllVendors)
+// Get all vendors (Public Route)
+router.get("/", getAllVendors);
 
-// update the vendor
-router.put("/:id", verifyToken, allowedRoles("admin"),updateVendor)
+// Update the vendor (Admin Only + Optional Logo Update)
+router.put(
+  "/:id", 
+  verifyToken, 
+  allowedRoles("admin"), 
+  upload.single("logo"), 
+  updateVendor
+);
 
-// Active/inActive the vdender
-router.patch("/:id/status",verifyToken, allowedRoles("admin"), toggleVendorStatus)
+// Toggle Vendor Status (Active/Inactive)
+router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);
 
-// delete vendor 
-router.delete("/:id",verifyToken, allowedRoles("admin"), deleteVendor)
+// Delete vendor (Admin Only)
+router.delete("/:id", verifyToken, allowedRoles("admin"), deleteVendor);
 
-export default router
+export default router;

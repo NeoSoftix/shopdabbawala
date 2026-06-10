@@ -3,7 +3,7 @@ import Vendor from "../models/vendor.model.js";
 import User from "../models/User.model.js";
 import cloudinary from "../config/cloudinary.js";
 import bcrypt from "bcryptjs";
-import { passwordGenerator } from "../utils/generatePassword.js";
+import  passwordGenerator  from "../utils/generatePassword.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import vendorWelcomeTemplate from "../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
@@ -68,6 +68,7 @@ export const createVendor = async (req, res) => {
     };
     if (req.file) {
       try {
+  
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: "vendors",
         });
@@ -106,11 +107,14 @@ export const createVendor = async (req, res) => {
 
     // Send Welcome Email
     try {
+   
       await sendEmail(
         email,
         "Welcome to Tiffin Delivery",
         vendorWelcomeTemplate(name, email, plainPassword),
       );
+
+  
     } catch (error) {
       console.error("Welcome Email Error:", error.message);
     }
@@ -120,6 +124,8 @@ export const createVendor = async (req, res) => {
       success: true,
       data: populatedVendor,
     });
+
+   
   } catch (error) {
     console.log("Create Vendor error", error);
 
@@ -278,17 +284,12 @@ export const updateVendor = async (req, res) => {
     if (req.file) {
       try {
         if (vendor.logo?.public_id) {
-          await cloudinary.uploader.destroy(
-            vendor.logo.public_id
-          );
+          await cloudinary.uploader.destroy(vendor.logo.public_id);
         }
 
-        const result = await cloudinary.uploader.upload(
-          req.file.path,
-          {
-            folder: "vendors",
-          }
-        );
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "vendors",
+        });
 
         vendor.logo = {
           url: result.secure_url,
@@ -304,39 +305,23 @@ export const updateVendor = async (req, res) => {
 
     // Update Vendor fields
     vendor.organizationName =
-      organizationName?.trim() ||
-      vendor.organizationName;
+      organizationName?.trim() || vendor.organizationName;
 
-    vendor.address =
-      address?.trim() ||
-      vendor.address;
+    vendor.address = address?.trim() || vendor.address;
 
-    vendor.city =
-      city?.trim() ||
-      vendor.city;
+    vendor.city = city?.trim() || vendor.city;
 
-    vendor.state =
-      state?.trim() ||
-      vendor.state;
+    vendor.state = state?.trim() || vendor.state;
 
-    vendor.pincode =
-      pincode?.trim() ||
-      vendor.pincode;
+    vendor.pincode = pincode?.trim() || vendor.pincode;
 
-    vendor.description =
-      description?.trim() ||
-      vendor.description;
+    vendor.description = description?.trim() || vendor.description;
 
     await user.save();
     await vendor.save();
 
-    const updatedVendor = await Vendor.findById(
-      vendor._id
-    )
-      .populate(
-        "userId",
-        "name email phone role"
-      )
+    const updatedVendor = await Vendor.findById(vendor._id)
+      .populate("userId", "name email phone role")
       .lean();
 
     return res.status(200).json({
@@ -345,10 +330,7 @@ export const updateVendor = async (req, res) => {
       data: updatedVendor,
     });
   } catch (error) {
-    console.error(
-      "Update Vendor Error:",
-      error.message
-    );
+    console.error("Update Vendor Error:", error.message);
 
     return res.status(500).json({
       success: false,
@@ -363,6 +345,7 @@ export const toggleVendorStatus = async (req, res) => {
     const { id } = req.params;
     const { isActive } = req.body;
 
+    // 1. Id Validate ki
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -370,6 +353,7 @@ export const toggleVendorStatus = async (req, res) => {
       });
     }
 
+    // 2. Data type Validate kiya
     if (typeof isActive !== "boolean") {
       return res.status(400).json({
         success: false,
@@ -377,6 +361,7 @@ export const toggleVendorStatus = async (req, res) => {
       });
     }
 
+    // 3. Pehle Vendor ko dhoondo
     const vendor = await Vendor.findById(id);
 
     if (!vendor) {
@@ -386,14 +371,14 @@ export const toggleVendorStatus = async (req, res) => {
       });
     }
 
+    // 4. Property badlo aur .save() chala do (No Warning, Auto Updated Data Return)
     vendor.isActive = isActive;
-
     await vendor.save();
 
     return res.status(200).json({
       success: true,
       message: `Vendor ${isActive ? "activated" : "deactivated"} successfully`,
-      data: vendor,
+      data: vendor, // Isme apne aap updated data hi jayega
     });
   } catch (error) {
     console.error("Toggle Vendor Status Error:", error.message);
@@ -406,10 +391,12 @@ export const toggleVendorStatus = async (req, res) => {
 };
 
 // delete the vendor cotroller
+
 export const deleteVendor = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate Vendor Id
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -431,7 +418,10 @@ export const deleteVendor = async (req, res) => {
       await cloudinary.uploader.destroy(vendor.logo.public_id);
     }
 
-    // Delete vendor from MongoDB
+    // Delete associated user account
+    await User.findByIdAndDelete(vendor.userId);
+
+    // Delete vendor profile
     await Vendor.findByIdAndDelete(id);
 
     return res.status(200).json({
