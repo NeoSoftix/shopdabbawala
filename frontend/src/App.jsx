@@ -20,6 +20,12 @@ import AddVendor from "./components/AddVendor";
 import CreateAddOns from "./components/CreateAddOns";
 import AddOns from "./components/AddOns";
 
+
+import VendorLayout from "../src/pages/Vendor/VendorLayout";
+import VendorDashboard from "../src/pages/Vendor/VendorDashboard";
+// import VendorOrders from "./pages/Vendor/VendorOrders";
+// import VendorProfile from "./pages/Vendor/VendorProfile";
+import VendorNotifications from "../src/pages/Vendor/VendorNotifications";
 function App() {
   return (
     <Routes>
@@ -55,6 +61,13 @@ function App() {
 
         <Route path="add-on/add" element={<CreateAddOns />} />
       </Route>
+
+      <Route path="/vendor" element={<VendorLayout />}>
+   <Route path="dashboard" element={<VendorDashboard />}></Route>
+ {/* <Route path="orders" element={<VendorOrders />} />
+  <Route path="profile" element={<VendorProfile />} />  */}
+ <Route path="notifications" element={<VendorNotifications />} />
+</Route>
     </Routes>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   FiUsers,
   FiShoppingBag,
@@ -9,45 +10,100 @@ import {
   MdFastfood,
 } from "react-icons/md";
 
-import { FaRupeeSign } from "react-icons/fa";
+import { FaRupeeSign } from "react-icons/fa"; 
+
 import DashboardPieChart from "../../components/DashboardPieChart";
-import StatCard from "../../components/StatsCards";
-import OrdersTable from "../../components/OrdersTable";
 import DashboardLineChart from "../../components/DashboardLineChart";
+import OrdersTable from "../../components/OrdersTable";
+import StatCard from "../../components/StatsCards";
+
+import { getAllVendors } from "../../service/vendor.service";
+import { getAllMeals } from "../../service/meal.service";
+import { getAllItems } from "../../service/items.service";
 
 export default function AdminDashboard() {
+  const [vendorCount, setVendorCount] = useState(0);
+  const [mealCount, setMealCount] = useState(0);
+const [itemCount, setItemCount] = useState(0);
 
-  // baad me API se replace hoga
+useEffect(() => {
+  fetchVendorCount();
+  fetchMealCount();
+  fetchItemCount();
+}, []);
+
+const fetchVendorCount = async () => {
+  try {
+    const res = await getAllVendors();
+
+    console.log("Vendor Response:", res);
+
+    if (res.success) {
+      setVendorCount(res.count);
+    }
+  } catch (error) {
+    console.error("Vendor Count Error:", error);
+  }
+};
+
+const fetchMealCount = async () => {
+  try {
+    const res = await getAllMeals();
+
+    console.log("Meals Response:", res);
+
+    if (res.success) {
+      setMealCount(res.count || 0);
+    }
+  } catch (error) {
+    console.error("Meal Count Error:", error);
+  }
+};
+
+const fetchItemCount = async () => {
+  try {
+    const res = await getAllItems();
+
+    console.log("Items Response:", res);
+
+    if (res.success) {
+      setItemCount(res.count || 0);
+    }
+  } catch (error) {
+    console.error("Item Count Error:", error);
+  }
+};
 const dashboardStats = {
   users: 40,
-  vendors: 25,
-  meals: 30,
-  items: 50,
+  vendors: vendorCount,
+  meals: mealCount,
+  items: itemCount,
   orders: 60,
   revenue: 10000,
 };
-const pieData = [
-  { name: "Users", value: dashboardStats.users },
-  { name: "Vendors", value: dashboardStats.vendors },
-  { name: "Meals", value: dashboardStats.meals },
-  { name: "Items", value: dashboardStats.items },
-  { name: "Orders", value: dashboardStats.orders },
-];
 
-const lineData = [
-  { name: "Mon", value: 10 },
-  { name: "Tue", value: 20 },
-  { name: "Wed", value: 15 },
-  { name: "Thu", value: 30 },
-  { name: "Fri", value: 25 },
-  { name: "Sat", value: 40 },
-  { name: "Sun", value: 35 },
-];
+  const pieData = [
+    { name: "Users", value: dashboardStats.users },
+    { name: "Vendors", value: dashboardStats.vendors },
+    { name: "Meals", value: dashboardStats.meals },
+    { name: "Items", value: dashboardStats.items },
+    { name: "Orders", value: dashboardStats.orders },
+  ];
+
+  const lineData = [
+    { name: "Mon", value: 10 },
+    { name: "Tue", value: 20 },
+    { name: "Wed", value: 15 },
+    { name: "Thu", value: 30 },
+    { name: "Fri", value: 25 },
+    { name: "Sat", value: 40 },
+    { name: "Sun", value: 35 },
+  ];
+
   const recentOrders = [];
 
   return (
     <div className="space-y-8">
-
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-5">
 
         <StatCard
@@ -93,21 +149,22 @@ const lineData = [
         />
 
       </div>
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-  <DashboardPieChart
-    data={pieData}
-    title="Platform Overview"
-  />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-  <DashboardLineChart
-    data={lineData}
-    title="Orders Trend"
-  />
+        <DashboardPieChart
+          data={pieData}
+          title="Platform Overview"
+        />
 
-</div>
+        <DashboardLineChart
+          data={lineData}
+          title="Orders Trend"
+        />
+
+      </div>
+
       <OrdersTable orders={recentOrders} />
-
     </div>
   );
 }
