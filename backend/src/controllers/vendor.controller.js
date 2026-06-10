@@ -129,304 +129,304 @@ export const createVendor = async (req, res) => {
   }
 };
 
-// contoller for get all vendor
+  // contoller for get all vendor
 
-export const getAllVendors = async (req, res) => {
-  try {
-    const vendors = await Vendor.find()
-      .populate("userId", "name phone email")
-      .sort({ createdAt: -1 })
-      .lean();
+  export const getAllVendors = async (req, res) => {
+    try {
+      const vendors = await Vendor.find()
+        .populate("userId", "name phone email")
+        .sort({ createdAt: -1 })
+        .lean();
 
-    return res.status(200).json({
-      success: true,
-      count: vendors.length,
-      data: vendors,
-    });
-  } catch (error) {
-    console.error("Get All Vendors Error:", error.message);
+      return res.status(200).json({
+        success: true,
+        count: vendors.length,
+        data: vendors,
+      });
+    } catch (error) {
+      console.error("Get All Vendors Error:", error.message);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
-
-// get One Vendor by ID
-
-export const getOneVendor = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
+      return res.status(500).json({
         success: false,
-        message: "Invalid Vendor Id",
+        message: "Internal Server Error",
       });
     }
+  };
 
-    const vendor = await Vendor.findById(id)
-      .populate("userId", "name email phone role")
-      .lean();
+  // get One Vendor by ID
 
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
+  export const getOneVendor = async (req, res) => {
+    try {
+      const { id } = req.params;
 
-    return res.status(200).json({
-      success: true,
-      data: vendor,
-    });
-  } catch (error) {
-    console.error("Get One Vendor Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
-
-// update the vendor controller
-export const updateVendor = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const {
-      name,
-      email,
-      phone,
-      organizationName,
-      address,
-      city,
-      state,
-      pincode,
-      description,
-    } = req.body;
-
-    // Validate Vendor Id
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Vendor Id",
-      });
-    }
-
-    const vendor = await Vendor.findById(id);
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
-
-    const user = await User.findById(vendor.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Associated user not found",
-      });
-    }
-
-    // Email duplicate check
-    if (email) {
-      const normalizedEmail = email.trim().toLowerCase();
-
-      const existingEmail = await User.findOne({
-        email: normalizedEmail,
-        _id: { $ne: user._id },
-      });
-
-      if (existingEmail) {
-        return res.status(409).json({
+      // Validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
           success: false,
-          message: "Email already exists",
+          message: "Invalid Vendor Id",
         });
       }
 
-      user.email = normalizedEmail;
-    }
+      const vendor = await Vendor.findById(id)
+        .populate("userId", "name email phone role")
+        .lean();
 
-    // Phone duplicate check
-    if (phone) {
-      const normalizedPhone = phone.trim();
-
-      const existingPhone = await User.findOne({
-        phone: normalizedPhone,
-        _id: { $ne: user._id },
-      });
-
-      if (existingPhone) {
-        return res.status(409).json({
+      if (!vendor) {
+        return res.status(404).json({
           success: false,
-          message: "Phone number already exists",
+          message: "Vendor not found",
         });
       }
 
-      user.phone = normalizedPhone;
-    }
+      return res.status(200).json({
+        success: true,
+        data: vendor,
+      });
+    } catch (error) {
+      console.error("Get One Vendor Error:", error.message);
 
-    // Upload new logo
-    if (req.file) {
-      try {
-        if (vendor.logo?.public_id) {
-          await cloudinary.uploader.destroy(vendor.logo.public_id);
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
+    }
+  };
+
+  // update the vendor controller
+  export const updateVendor = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const {
+        name,
+        email,
+        phone,
+        organizationName,
+        address,
+        city,
+        state,
+        pincode,
+        description,
+      } = req.body;
+
+      // Validate Vendor Id
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Vendor Id",
+        });
+      }
+
+      const vendor = await Vendor.findById(id);
+
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+
+      const user = await User.findById(vendor.userId);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Associated user not found",
+        });
+      }
+
+      // Email duplicate check
+      if (email) {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const existingEmail = await User.findOne({
+          email: normalizedEmail,
+          _id: { $ne: user._id },
+        });
+
+        if (existingEmail) {
+          return res.status(409).json({
+            success: false,
+            message: "Email already exists",
+          });
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "vendors",
+        user.email = normalizedEmail;
+      }
+
+      // Phone duplicate check
+      if (phone) {
+        const normalizedPhone = phone.trim();
+
+        const existingPhone = await User.findOne({
+          phone: normalizedPhone,
+          _id: { $ne: user._id },
         });
 
-        vendor.logo = {
-          url: result.secure_url,
-          public_id: result.public_id,
-        };
-      } finally {
-        removeLocalFile(req.file.path);
+        if (existingPhone) {
+          return res.status(409).json({
+            success: false,
+            message: "Phone number already exists",
+          });
+        }
+
+        user.phone = normalizedPhone;
       }
-    }
 
-    // Update User fields
-    user.name = name?.trim() || user.name;
+      // Upload new logo
+      if (req.file) {
+        try {
+          if (vendor.logo?.public_id) {
+            await cloudinary.uploader.destroy(vendor.logo.public_id);
+          }
 
-    // Update Vendor fields
-    vendor.organizationName =
-      organizationName?.trim() || vendor.organizationName;
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "vendors",
+          });
 
-    vendor.address = address?.trim() || vendor.address;
+          vendor.logo = {
+            url: result.secure_url,
+            public_id: result.public_id,
+          };
+        } finally {
+          removeLocalFile(req.file.path);
+        }
+      }
 
-    vendor.city = city?.trim() || vendor.city;
+      // Update User fields
+      user.name = name?.trim() || user.name;
 
-    vendor.state = state?.trim() || vendor.state;
+      // Update Vendor fields
+      vendor.organizationName =
+        organizationName?.trim() || vendor.organizationName;
 
-    vendor.pincode = pincode?.trim() || vendor.pincode;
+      vendor.address = address?.trim() || vendor.address;
 
-    vendor.description = description?.trim() || vendor.description;
+      vendor.city = city?.trim() || vendor.city;
 
-    await user.save();
-    await vendor.save();
+      vendor.state = state?.trim() || vendor.state;
 
-    const updatedVendor = await Vendor.findById(vendor._id)
-      .populate("userId", "name email phone role")
-      .lean();
+      vendor.pincode = pincode?.trim() || vendor.pincode;
 
-    return res.status(200).json({
-      success: true,
-      message: "Vendor updated successfully",
-      data: updatedVendor,
-    });
-  } catch (error) {
-    console.error("Update Vendor Error:", error.message);
+      vendor.description = description?.trim() || vendor.description;
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
+      await user.save();
+      await vendor.save();
 
-// for toggle Vendor active/inActive status
-export const toggleVendorStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { isActive } = req.body;
+      const updatedVendor = await Vendor.findById(vendor._id)
+        .populate("userId", "name email phone role")
+        .lean();
 
-    // 1. Id Validate ki
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
+      return res.status(200).json({
+        success: true,
+        message: "Vendor updated successfully",
+        data: updatedVendor,
+      });
+    } catch (error) {
+      console.error("Update Vendor Error:", error.message);
+
+      return res.status(500).json({
         success: false,
-        message: "Invalid Vendor Id",
+        message: "Internal Server Error",
       });
     }
+  };
 
-    // 2. Data type Validate kiya
-    if (typeof isActive !== "boolean") {
-      return res.status(400).json({
+  // for toggle Vendor active/inActive status
+  export const toggleVendorStatus = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+
+      // 1. Id Validate ki
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Vendor Id",
+        });
+      }
+
+      // 2. Data type Validate kiya
+      if (typeof isActive !== "boolean") {
+        return res.status(400).json({
+          success: false,
+          message: "isActive must be true or false",
+        });
+      }
+
+      // 3. Pehle Vendor ko dhoondo
+      const vendor = await Vendor.findById(id);
+
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+
+      // 4. Property badlo aur .save() chala do (No Warning, Auto Updated Data Return)
+      vendor.isActive = isActive;
+      await vendor.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `Vendor ${isActive ? "activated" : "deactivated"} successfully`,
+        data: vendor, // Isme apne aap updated data hi jayega
+      });
+    } catch (error) {
+      console.error("Toggle Vendor Status Error:", error.message);
+
+      return res.status(500).json({
         success: false,
-        message: "isActive must be true or false",
+        message: "Internal Server Error",
       });
     }
+  };
 
-    // 3. Pehle Vendor ko dhoondo
-    const vendor = await Vendor.findById(id);
+  // delete the vendor cotroller
 
-    if (!vendor) {
-      return res.status(404).json({
+  export const deleteVendor = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Validate Vendor Id
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Vendor Id",
+        });
+      }
+
+      const vendor = await Vendor.findById(id);
+
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+
+      // Delete logo from Cloudinary
+      if (vendor.logo?.public_id) {
+        await cloudinary.uploader.destroy(vendor.logo.public_id);
+      }
+
+      // Delete associated user account
+      await User.findByIdAndDelete(vendor.userId);
+
+      // Delete vendor profile
+      await Vendor.findByIdAndDelete(id);
+
+      return res.status(200).json({
+        success: true,
+        message: "Vendor deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete Vendor Error:", error.message);
+
+      return res.status(500).json({
         success: false,
-        message: "Vendor not found",
+        message: "Internal Server Error",
       });
     }
-
-    // 4. Property badlo aur .save() chala do (No Warning, Auto Updated Data Return)
-    vendor.isActive = isActive;
-    await vendor.save();
-
-    return res.status(200).json({
-      success: true,
-      message: `Vendor ${isActive ? "activated" : "deactivated"} successfully`,
-      data: vendor, // Isme apne aap updated data hi jayega
-    });
-  } catch (error) {
-    console.error("Toggle Vendor Status Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
-
-// delete the vendor cotroller
-
-export const deleteVendor = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Validate Vendor Id
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Vendor Id",
-      });
-    }
-
-    const vendor = await Vendor.findById(id);
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
-
-    // Delete logo from Cloudinary
-    if (vendor.logo?.public_id) {
-      await cloudinary.uploader.destroy(vendor.logo.public_id);
-    }
-
-    // Delete associated user account
-    await User.findByIdAndDelete(vendor.userId);
-
-    // Delete vendor profile
-    await Vendor.findByIdAndDelete(id);
-
-    return res.status(200).json({
-      success: true,
-      message: "Vendor deleted successfully",
-    });
-  } catch (error) {
-    console.error("Delete Vendor Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
+  };

@@ -61,9 +61,7 @@ export const removeLocalFile = (filePath) => {
     fs.unlink(filePath, (err) => {
       if (err) {
         console.error("File delete error:", err.message);
-      } else {
-        console.log("Local file deleted successfully");
-      }
+      } 
     });
   }
 };
