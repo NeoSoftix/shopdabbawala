@@ -36,32 +36,32 @@ export const signup = async (req, res) => {
   }
 };
 
-// LOGIN
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !role) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email, Password and Role are required",
       });
     }
 
-    const formattedEmail = email.trim().toLowerCase();
-
-    const user = await User.findOne({ email: formattedEmail }).lean();
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    });
 
     if (!user) {
       return res.status(401).json({
-        // Security standard: Use 401 instead of 400 for authentication
         success: false,
-        message: "Invalid Email or Password", 
+        message: "Invalid Email or Password",
       });
     }
 
-    //Verify Password using Bcrypt
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    const isPasswordMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isPasswordMatch) {
       return res.status(401).json({
@@ -70,36 +70,42 @@ export const login = async (req, res) => {
       });
     }
 
-    //  Generate JWT Token
+    // Role Validation
+    if (user.role !== role) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+
     const token = jwt.sign(
       {
         id: user._id,
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: "7d" }
     );
 
-    //  Production Ready Secure Cookie Setup
     res.cookie("token", token, {
-      httpOnly: true, // Prevents XSS attacks
-      secure: process.env.NODE_ENV === "production", // HTTPS mandatory in production
-      sameSite: "strict", // Protects against CSRF attacks
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Security Cleanup: Response bhejne se pehle object se password delete karein
-    const userResponse = { ...user };
+    const userResponse = { ...user.toObject() };
     delete userResponse.password;
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       user: userResponse,
     });
 
   } catch (error) {
-    console.error("Login Error:", error);
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",

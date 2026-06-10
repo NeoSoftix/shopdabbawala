@@ -1,20 +1,56 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ShieldCheck, Clock3 } from "lucide-react";
 import RoleSelector from "../components/RoleSelector";
+import { login } from "../service/auth.service";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log({
-      role,
-      email,
-      password,
-    });
+    setError("");
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        email,
+        password,
+        role,
+      };
+
+      console.log(payload);
+
+      
+      const res = await login(payload);
+
+      if (res.user.role === "admin") {
+        navigate("/admin/dashboard");
+      }
+
+      if (res.user.role === "vendor") {
+        navigate("/vendor/dashboard");
+      }
+      
+
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          "Invalid Email or Password"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,7 +70,6 @@ export default function Login() {
           </div>
 
           <div className="mt-12 space-y-8">
-
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
                 <ShieldCheck
@@ -72,19 +107,24 @@ export default function Login() {
                 </p>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* Right Side */}
         <div className="p-12 flex flex-col justify-center">
-
           <h2 className="text-4xl font-bold text-center mb-3">
             Login
           </h2>
 
-          <p className="text-center text-gray-500 mb-8">
+          <p className="text-center text-gray-500 mb-4">
             Enter your credentials to continue
+          </p>
+
+          <p className="text-center text-sm text-gray-500 mb-8">
+            Logging in as{" "}
+            <span className="font-semibold text-[#E23747] capitalize">
+              {role}
+            </span>
           </p>
 
           <RoleSelector
@@ -92,11 +132,16 @@ export default function Login() {
             setRole={setRole}
           />
 
+          {error && (
+            <div className="mb-5 bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit}
             className="space-y-5"
           >
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Email Address
@@ -120,7 +165,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Password
@@ -144,7 +188,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Remember + Forgot */}
             <div className="flex justify-between items-center text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -162,17 +205,17 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
-              className="w-full h-14 bg-[#E23747] hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200"
+              disabled={loading}
+              className="w-full h-14 bg-[#E23747] hover:bg-red-700 disabled:bg-red-300 text-white rounded-xl font-semibold transition-all duration-200"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
-
         </div>
       </div>
     </div>
   );
 }
+

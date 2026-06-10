@@ -17,17 +17,17 @@ export const signup = async (data) => {
 
 // login service
 
-export const login = async (phone) => {
-    try {
-        const res = await API.post("/auth/login", {phone})
+export const login = async (data) => {
+  try {
+    const res = await API.post("/auth/login", data);
 
-        return res.data
-    } catch (error) {
-        console.log("Login user error", error)
-        
-        throw error
-    }
-}
+    return res.data;
+  } catch (error) {
+    console.log("Login error", error);
+    
+    throw error;
+  }
+};
 
 // get ME service
 
