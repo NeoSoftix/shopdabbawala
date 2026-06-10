@@ -2,9 +2,9 @@ import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../../components/Header";
-import Sidebar from "../../constants/vendormenu.js"
+import Sidebar from "../../components/Sidebar";
 
-import { vendorMenu } from "../../constants/vendorMenu";
+import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
 
 export default function VendorLayout() {
