@@ -94,7 +94,6 @@ export const createVendor = async (req, res) => {
       description: description?.trim() || "",
     });
 
-    // 5. Query Optimization: Database call (.findById) ki bajay data memory se banayein (0ms)
     const populatedVendor = {
       ...(vendor.toObject ? vendor.toObject() : vendor),
       userId: {
@@ -105,8 +104,6 @@ export const createVendor = async (req, res) => {
       }
     };
 
-    // 6. Background Email (Fire-and-Forget): 'await' hata diya hai.
-    // Email ab background me jayega aur frontend ko response turant mil jayega!
     sendEmail(
       formattedEmail,
       "Welcome to Tiffin Delivery",

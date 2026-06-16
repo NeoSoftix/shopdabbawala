@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BiEditAlt } from "react-icons/bi";
 import { MdDeleteOutline } from "react-icons/md";
-import { deleteItem, getAllItems, updateItem } from "../service/items.service";
-import { getAllCategories } from "../service/category.service";
+import { deleteItem, getAllItems, updateItem } from "../../service/items.service";
+import { getAllCategories } from "../../service/category.service";
 
 const Item = () => {
   const navigate = useNavigate();

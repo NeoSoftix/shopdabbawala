@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createAddOn } from "../service/addOn.service.js";
+import { createAddOn } from "../../service/addOn.service.js";
 import { useNavigate } from "react-router-dom";
 
 const CreateAddOns = () => {

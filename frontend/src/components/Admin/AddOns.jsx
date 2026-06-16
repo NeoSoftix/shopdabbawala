@@ -6,7 +6,7 @@ import {
   deleteAddOn,
   updateAddOn,
   toggleStatus,
-} from "../service/addOn.service.js";
+} from "../../service/addOn.service.js";
 
 const AddOns = () => {
   const navigate = useNavigate();

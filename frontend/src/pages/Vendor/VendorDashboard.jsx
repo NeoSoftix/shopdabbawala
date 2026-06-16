@@ -1,6 +1,6 @@
-import StatCard from "../../components/StatsCards";
+import StatCard from "../../components/Admin/StatsCards";
 import OrderBanner from "../../components/OrderBanner";
-import OrdersTable from "../../components/OrdersTable";
+import OrdersTable from "../../components/Admin/OrdersTable";
 import VendorAreaSection from "../../components/VendorAreaSection";
 import {
   MdShoppingCart,

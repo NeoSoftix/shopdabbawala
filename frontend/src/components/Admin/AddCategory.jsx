@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createCategory } from "../service/category.service.js";
-import { getAllMeals } from "../service/meal.service.js";
+import { createCategory } from "../../service/category.service.js";
+import { getAllMeals } from "../../service/meal.service.js";
 
 const AddCategory = () => {
   const navigate = useNavigate();

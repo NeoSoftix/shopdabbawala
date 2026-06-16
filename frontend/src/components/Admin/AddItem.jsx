@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllCategories } from "../service/category.service";
+import { getAllCategories } from "../../service/category.service";
 
 const AddItem = () => {
   const navigate = useNavigate();

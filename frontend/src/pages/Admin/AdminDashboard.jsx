@@ -12,10 +12,10 @@ import {
 
 import { FaRupeeSign } from "react-icons/fa"; 
 
-import DashboardPieChart from "../../components/DashboardPieChart";
-import DashboardLineChart from "../../components/DashboardLineChart";
-import OrdersTable from "../../components/OrdersTable";
-import StatCard from "../../components/StatsCards";
+import DashboardPieChart from "../../components/Admin/DashboardPieChart";
+import DashboardLineChart from "../../components/Admin/DashboardLineChart";
+import OrdersTable from "../../components/Admin/OrdersTable";
+import StatCard from "../../components/Admin/StatsCards";
 
 import { getAllVendors } from "../../service/vendor.service";
 import { getAllMeals } from "../../service/meal.service";

@@ -5,7 +5,9 @@ import {
   MdPeople,
   MdShoppingCart,
   MdSettings,
-  MdAddShoppingCart
+  MdAddShoppingCart,
+    MdLocalOffer
+
 } from "react-icons/md";
 import { MdTune } from "react-icons/md";
 import { FaStore, FaClipboardList, FaHeart, FaImage } from "react-icons/fa";
@@ -56,6 +58,12 @@ export const adminMenu = [
     label: "Orders",
     path: "/admin/orders",
     icon: MdShoppingCart,
+  },
+  // ✅ NEW ADDED
+  {
+    label: "Packages",
+    path: "/admin/packages",
+    icon: MdLocalOffer,
   },
 
   {

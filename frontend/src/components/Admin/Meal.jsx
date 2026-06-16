@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAllMeals, updateMeal, deleteMeal } from "../service/meal.service";
+import { getAllMeals, updateMeal, deleteMeal } from "../../service/meal.service";
 import { MdDelete } from "react-icons/md";
 import { FiEdit3 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";

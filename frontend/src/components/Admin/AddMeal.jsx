@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createMeal } from "../service/meal.service.js";
+import { createMeal } from "../../service/meal.service.js";
 
 const AddMeal = () => {
   const [name, setName] = useState("");

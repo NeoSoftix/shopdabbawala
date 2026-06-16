@@ -6,8 +6,8 @@ import {
   getAllCategories,
   updateCategory,
   deleteCategory,
-} from "../service/category.service.js";
-import { getAllMeals } from "../service/meal.service.js";
+} from "../../service/category.service.js";
+import { getAllMeals } from "../../service/meal.service.js";
 
 const Categories = () => {
   const navigate = useNavigate();

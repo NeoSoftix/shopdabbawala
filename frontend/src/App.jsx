@@ -4,28 +4,32 @@ import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Login from "./pages/Login";
 
-import AddCategory from "./components/AddCategory";
-import Categories from "./components/Categries";
-import AddMeal from "./components/AddMeal";
-import Meal from "./components/Meal";
-import UsersList from "./components/UserList";
+import AddCategory from "../src/components/Admin/AddCategory";
+import Categories from "../src/components/Admin/Categries";
+import AddMeal from "../src/components/Admin/AddMeal";
+import Meal from "../src/components/Admin/Meal";
+import UsersList from "../src/components/Admin/UserList";
 
 import "./index.css";
-import OrderList from "./components/OrderList";
-import Settings from "./components/Settings";
-import AddItem from "./components/AddItem";
-import Item from "./components/Item";
-import VendorList from "./components/Vendor";
-import AddVendor from "./components/AddVendor";
-import CreateAddOns from "./components/CreateAddOns";
-import AddOns from "./components/AddOns";
-
+import OrderList from "../src/components/OrderList";
+import Settings from "../src/components/Admin/Settings";
+import AddItem from "../src/components/Admin/AddItem";
+import Item from "../src/components/Admin/Item";
+import VendorList from "../src/components/Admin/Vendor";
+import AddVendor from "../src/components/Admin/AddVendor";
+import CreateAddOns from "../src/components/Admin/CreateAddOns";
+import AddOns from "../src/components/Admin/AddOns";
+import PackagesPage from "../src/components/Admin/PackagesPage";
 
 import VendorLayout from "../src/pages/Vendor/VendorLayout";
 import VendorDashboard from "../src/pages/Vendor/VendorDashboard";
-// import VendorOrders from "./pages/Vendor/VendorOrders";
-// import VendorProfile from "./pages/Vendor/VendorProfile";
+import VendorOrders from "../src/pages/Vendor/OrdersPage";
+import VendorProfile from "../src/pages/Vendor/VendorProfilePage";
 import VendorNotifications from "../src/pages/Vendor/VendorNotifications";
+
+import UserLayout from "../src/pages/User/UserLayout";
+import UserDashboard from "../src/pages/User/UserDashboard";
+import "./react-calendar.css";
 function App() {
   return (
     <Routes>
@@ -56,7 +60,7 @@ function App() {
         <Route path="vendors" element={<VendorList />} />
 
         <Route path="vendors/add" element={<AddVendor />} />
-
+        <Route path="packages" element={<PackagesPage />} />                  
         <Route path="add-on" element={<AddOns />} />
 
         <Route path="add-on/add" element={<CreateAddOns />} />
@@ -64,9 +68,15 @@ function App() {
 
       <Route path="/vendor" element={<VendorLayout />}>
    <Route path="dashboard" element={<VendorDashboard />}></Route>
- {/* <Route path="orders" element={<VendorOrders />} />
-  <Route path="profile" element={<VendorProfile />} />  */}
+ <Route path="orders" element={<VendorOrders />} />
+   <Route path="profile" element={<VendorProfile />} />  
  <Route path="notifications" element={<VendorNotifications />} />
+</Route>
+<Route path="/user" element={<UserLayout />}>
+  <Route
+    index
+    element={<UserDashboard />}
+  />
 </Route>
     </Routes>
   );
