@@ -33,7 +33,7 @@ import "./react-calendar.css";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+      <Route path="/" element={<Navigate to="/user" />} />
       <Route path="/login" element={<Login />} />
 
       <Route path="/admin" element={<AdminLayout />}>
