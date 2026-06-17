@@ -4,7 +4,6 @@ import cloudinary from "../config/cloudinary.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
 
 // for create the Add On
-
 export const createAddOn = async (req, res) => {
   try {
     const { name, description, price, allergies } = req.body;
@@ -88,7 +87,6 @@ export const createAddOn = async (req, res) => {
 };
 
 // for get all addsOn
-
 export const getAllAddOns = async (req, res) => {
   try {
     const addOns = await AddOn.find().sort({ createdAt: -1 });
@@ -110,7 +108,6 @@ export const getAllAddOns = async (req, res) => {
 };
 
 // for get one Add On
-
 export const getOneAddOns = async (req, res) => {
   try {
     const { id } = req.params;
@@ -147,7 +144,6 @@ export const getOneAddOns = async (req, res) => {
 };
 
 // for update add on
-
 export const updateAddOn = async (req, res) => {
   try {
     const { id } = req.params;
@@ -247,7 +243,6 @@ export const updateAddOn = async (req, res) => {
 };
 
 // for delete the Add On
-
 export const deleteAddOn = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,7 +285,6 @@ export const deleteAddOn = async (req, res) => {
 };
 
 // toggelStatus the Add On
-
 export const toggleStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -334,7 +328,6 @@ export const toggleStatus = async (req, res) => {
 };
 
 // get active Add On
-
 export const getActiveAddOns = async (req, res) => {
   try {
     const addOns = await AddOn.find({

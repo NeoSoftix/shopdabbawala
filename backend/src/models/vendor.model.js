@@ -54,6 +54,22 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    
+    serviceZones: [
+      {
+        area: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        category: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Category",
+          required: true,
+        },
+        _id: false
+      },
+    ],
 
     isActive: {
       type: Boolean,

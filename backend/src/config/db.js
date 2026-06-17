@@ -14,27 +14,3 @@ export const connectDB = async () => {
 };
 
 
-// import pg from "pg";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-
-// const { Pool } = pg;
-
-// const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL,
-//   ssl: {
-//     rejectUnauthorized: false,
-//   },
-// });
-
-// export const connectDB = async () => {
-//   try {
-//     const res = await pool.query("SELECT NOW()");
-//     console.log("PostgreSQL Connected");
-//   } catch (err) {
-//     console.log("DB Connection Error:", err.message);
-//   }
-// };
-
-// export default pool;

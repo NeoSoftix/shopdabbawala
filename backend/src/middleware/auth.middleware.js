@@ -2,7 +2,11 @@ import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    let token = req.cookies?.token;
+
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -11,13 +15,14 @@ export const verifyToken = (req, res, next) => {
       });
     }
 
+    // Verify Token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = decoded;
 
     next();
   } catch (error) {
-    console.log(error);
+    console.log("Token Verification Error:", error.message);
 
     return res.status(401).json({
       success: false,
@@ -25,7 +30,6 @@ export const verifyToken = (req, res, next) => {
     });
   }
 };
-
 
 // allowed for a event snd permission 
 export const allowedRoles = (...roles) => {

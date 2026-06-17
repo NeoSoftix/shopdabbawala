@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit3 } from "react-icons/fi";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdEdit } from "react-icons/md";
 import {
   getAllCategories,
   updateCategory,
@@ -38,13 +37,9 @@ const Categories = () => {
       setLoading(true);
       setError("");
       const res = await getAllCategories();
-
       setCategories(res.data);
-
-      console.log(res.data)
     } catch (error) {
       console.log("Get all categrioes error", error);
-
       setError(error?.response?.data?.message || "Failed to fetch categories");
     } finally {
       setLoading(false);
@@ -52,22 +47,17 @@ const Categories = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this category?")) {
-      return;
-    }
+    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
+    if (!confirmDelete) return;
 
     try {
       setError("");
       setSuccess("");
-
       await deleteCategory(id);
-
       setSuccess("Category deleted successfully");
-
       await fetchCategories();
     } catch (error) {
       console.log("Delete category error", error);
-
       setSuccess("");
       setError(error?.response?.data?.message || "Failed to delete category");
     }
@@ -76,7 +66,6 @@ const Categories = () => {
   const handleEdit = (category) => {
     setSelectedCategory(category);
     setIsEditOpen(true);
-
     setError("");
     setSuccess("");
   };
@@ -87,12 +76,8 @@ const Categories = () => {
       setSuccess("");
 
       const formData = new FormData();
-
       formData.append("name", selectedCategory.name);
-      formData.append(
-        "meal",
-        selectedCategory.meal?._id || selectedCategory.meal || ""
-      );
+      formData.append("meal", selectedCategory.meal?._id || selectedCategory.meal || "");
       formData.append("foodType", selectedCategory.foodType);
 
       if (selectedCategory.imageFile) {
@@ -100,24 +85,33 @@ const Categories = () => {
       }
 
       await updateCategory(selectedCategory._id, formData);
-
       await fetchCategories();
-
       setSuccess("Category updated successfully");
-
       setIsEditOpen(false);
       setSelectedCategory(null);
     } catch (error) {
       console.log("Update category error", error);
-
       setSuccess("");
       setError(error?.response?.data?.message || "Failed to update category");
     }
   };
 
   return (
-    <div className="p-4 md:p-6">
-      {/* Header */}{" "}
+    <div className="p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Categories</h1>
+          <p className="text-gray-500 mt-1">Manage your categories.</p>
+        </div>
+
+        <button
+          onClick={() => navigate("/admin/categories/add")}
+          className="inline-flex items-center justify-center rounded-full bg-red-500 px-5 py-2.5 text-white transition hover:bg-red-600"
+        >
+          Create Category
+        </button>
+      </div>
+
       {success && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-100 bg-emerald-50/50 p-3.5 text-sm text-emerald-800 shadow-sm backdrop-blur-sm">
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -130,113 +124,106 @@ const Categories = () => {
           <p className="font-medium">{error}</p>
         </div>
       )}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        {" "}
-        <div>
-          {" "}
-          <h1 className="text-2xl font-bold text-gray-800">Categories </h1>
-          <p className="text-sm text-gray-500">Manage all categories</p>
-        </div>
-        <button
-          onClick={() => navigate("/admin/categories/add")}
-          className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg font-medium"
-        >
-          + Add Category
-        </button>
-      </div>
-      {/* Table */}
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-5 py-4 text-left">Image</th>
 
-                <th className="px-5 py-4 text-left">Category Name</th>
+      <div className="overflow-x-auto rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <table className="w-full min-w-[900px] text-sm text-slate-600">
+          <thead>
+            <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+              <th className="px-4 py-4">Image</th>
+              <th className="px-4 py-4">Category Name</th>
+              <th className="px-4 py-4">Meal Type</th>
+              <th className="px-4 py-4">Food Type</th>
+              <th className="px-4 py-4">Action</th>
+            </tr>
+          </thead>
 
-                <th className="px-5 py-4 text-left">Meal Type</th>
+          <tbody>
+            {categories.map((category, index) => (
+              <tr key={category._id} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                <td className="px-4 py-4 align-middle">
+                  {category.image?.url ? (
+                    <img
+                      src={category.image.url}
+                      alt={category.name}
+                      className="h-14 w-14 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
+                      No image
+                    </div>
+                  )}
+                </td>
 
-                <th className="px-5 py-4 text-left">Food Type</th>
+                <td className="px-4 py-4 align-middle font-medium text-slate-900">
+                  {category.name}
+                </td>
 
-                <th className="px-5 py-4 text-center">Actions</th>
+                <td className="px-4 py-4 align-middle">
+                  <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                    {category.meal?.name || category.meal}
+                  </span>
+                </td>
+
+                <td className="px-4 py-4 align-middle">
+                  <span
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                      category.foodType === "veg"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-700"
+                    }`}
+                  >
+                    {category.foodType}
+                  </span>
+                </td>
+
+                <td className="px-4 py-4 align-middle">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                      aria-label="Edit category"
+                    >
+                      <MdEdit size={20} />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(category._id)}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                      aria-label="Delete category"
+                    >
+                      <MdDelete size={20} />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
+            ))}
 
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-8">
-                    Loading categories...
-                  </td>
-                </tr>
-              ) : categories.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-gray-500">
-                    No categories found
-                  </td>
-                </tr>
-              ) : (
-                categories.map((category) => (
-                  <tr key={category._id} className="border-b hover:bg-gray-50">
-                    <td className="px-5 py-4">
-                      <img
-                        src={category.image?.url}
-                        alt={category.name}
-                        className="w-14 h-14 rounded-lg object-cover border"
-                      />
-                    </td>
+            {loading && (
+              <tr>
+                <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                  Loading categories...
+                </td>
+              </tr>
+            )}
 
-                    <td className="px-5 py-4 font-medium">{category.name}</td>
-
-                    <td className="px-5 py-4">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs">
-                        {category.meal?.name || category.meal}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs ${
-                          category.foodType === "veg"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {category.foodType}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex justify-center gap-4">
-                        <button
-                          onClick={() => handleEdit(category)}
-                          className="text-blue-600"
-                        >
-                          <FiEdit3 size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(category._id)}
-                          className="text-red-600"
-                        >
-                          <MdDelete size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+            {!loading && categories.length === 0 && (
+              <tr>
+                <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                  No categories found. Create one to get started.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-      {/* Edit Modal */}
-      {isEditOpen && selectedCategory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
-            <h2 className="text-xl font-semibold mb-6">Edit Category</h2>
 
-            <div className="space-y-4">
+      {isEditOpen && selectedCategory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-[600px] rounded-xl p-6">
+            <h2 className="text-xl font-bold mb-4">Update Category</h2>
+
+            <div className="mb-3">
+              <label className="block mb-2">Category Name</label>
               <input
                 type="text"
                 value={selectedCategory.name}
@@ -246,9 +233,12 @@ const Categories = () => {
                     name: e.target.value,
                   })
                 }
-                className="w-full border rounded-lg px-4 py-3"
+                className="w-full border p-3 rounded mb-3"
               />
+            </div>
 
+            <div className="mb-3">
+              <label className="block mb-2">Meal</label>
               <select
                 value={selectedCategory.meal?._id || selectedCategory.meal || ""}
                 onChange={(e) =>
@@ -257,7 +247,7 @@ const Categories = () => {
                     meal: e.target.value,
                   })
                 }
-                className="w-full border rounded-lg px-4 py-3"
+                className="w-full border p-3 rounded mb-3"
               >
                 <option value="">Select Meal</option>
                 {meals.map((meal) => (
@@ -266,7 +256,10 @@ const Categories = () => {
                   </option>
                 ))}
               </select>
+            </div>
 
+            <div className="mb-3">
+              <label className="block mb-2">Food Type</label>
               <select
                 value={selectedCategory.foodType}
                 onChange={(e) =>
@@ -275,62 +268,58 @@ const Categories = () => {
                     foodType: e.target.value,
                   })
                 }
-                className="w-full border rounded-lg px-4 py-3"
+                className="w-full border p-3 rounded mb-3"
               >
                 <option value="veg">Veg</option>
                 <option value="non-veg">Non Veg</option>
               </select>
+            </div>
 
-              <div>
-                <label className="block mb-2 font-medium">Category Image</label>
+            <div className="mb-3">
+              <label className="block mb-2">Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setSelectedCategory({
+                      ...selectedCategory,
+                      imageFile: file,
+                      previewImage: URL.createObjectURL(file),
+                    });
+                  }
+                }}
+                className="w-full border p-3 rounded mb-3"
+              />
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-
-                    if (file) {
-                      setSelectedCategory({
-                        ...selectedCategory,
-                        imageFile: file,
-                        previewImage: URL.createObjectURL(file),
-                      });
-                    }
-                  }}
-                  className="w-full border rounded-lg px-4 py-3"
-                />
-
-                {(selectedCategory.previewImage ||
-                  selectedCategory.image?.url) && (
+              <div className="mb-3">
+                {(selectedCategory.previewImage || selectedCategory.image?.url) && (
                   <img
-                    src={
-                      selectedCategory.previewImage ||
-                      selectedCategory.image?.url
-                    }
+                    src={selectedCategory.previewImage || selectedCategory.image?.url}
                     alt="Preview"
-                    className="w-24 h-24 object-cover rounded-lg border mt-3"
+                    className="w-24 h-24 object-cover rounded"
                   />
                 )}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
                   setIsEditOpen(false);
                   setSelectedCategory(null);
                 }}
-                className="border px-4 py-2 rounded-lg"
+                className="border px-4 py-2 rounded"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleUpdate}
-                className="bg-red-600 text-white px-5 py-2 rounded-lg"
+                className="bg-red-500 text-white px-4 py-2 rounded"
               >
-                Update Category
+                Update
               </button>
             </div>
           </div>

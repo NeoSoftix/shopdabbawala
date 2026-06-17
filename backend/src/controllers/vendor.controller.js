@@ -7,12 +7,11 @@ import passwordGenerator from "../utils/generatePassword.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import vendorWelcomeTemplate from "../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
+import Category from "../models/category.model.js";
 
 // contoller for create Vendor
 
 export const createVendor = async (req, res) => {
-
-  
   try {
     const {
       name,
@@ -28,12 +27,19 @@ export const createVendor = async (req, res) => {
 
     // 1. Validation (Sabse pehle check taaki faltu DB processing na ho)
     if (
-      !name || !email || !phone || !organizationName || 
-      !address || !city || !state || !pincode
+      !name ||
+      !email ||
+      !phone ||
+      !organizationName ||
+      !address ||
+      !city ||
+      !state ||
+      !pincode
     ) {
       return res.status(400).json({
         success: false,
-        message: "Name, Email, Phone, Organization Name, Address, City, State and Pincode are required",
+        message:
+          "Name, Email, Phone, Organization Name, Address, City, State and Pincode are required",
       });
     }
 
@@ -49,7 +55,9 @@ export const createVendor = async (req, res) => {
       const isEmailMatch = existingUser.email === formattedEmail;
       return res.status(409).json({
         success: false,
-        message: isEmailMatch ? "Email already exists" : "Phone number already exists",
+        message: isEmailMatch
+          ? "Email already exists"
+          : "Phone number already exists",
       });
     }
 
@@ -100,15 +108,17 @@ export const createVendor = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone
-      }
+        phone: user.phone,
+      },
     };
 
     sendEmail(
       formattedEmail,
       "Welcome to Tiffin Delivery",
-      vendorWelcomeTemplate(name.trim(), formattedEmail, plainPassword)
-    ).catch((error) => console.error("Background Welcome Email Error:", error.message));
+      vendorWelcomeTemplate(name.trim(), formattedEmail, plainPassword),
+    ).catch((error) =>
+      console.error("Background Welcome Email Error:", error.message),
+    );
 
     // 7. Fast Response Return
     return res.status(201).json({
@@ -116,7 +126,6 @@ export const createVendor = async (req, res) => {
       success: true,
       data: populatedVendor,
     });
-
   } catch (error) {
     console.error("Create Vendor error", error);
     return res.status(500).json({
@@ -126,304 +135,446 @@ export const createVendor = async (req, res) => {
   }
 };
 
-  // contoller for get all vendor
+// contoller for get all vendor
 
-  export const getAllVendors = async (req, res) => {
-    try {
-      const vendors = await Vendor.find()
-        .populate("userId", "name phone email")
-        .sort({ createdAt: -1 })
-        .lean();
+export const getAllVendors = async (req, res) => {
+  try {
+    const vendors = await Vendor.find()
+      .populate("userId", "name phone email")
+      .sort({ createdAt: -1 })
+      .lean();
 
-      return res.status(200).json({
-        success: true,
-        count: vendors.length,
-        data: vendors,
-      });
-    } catch (error) {
-      console.error("Get All Vendors Error:", error.message);
+    return res.status(200).json({
+      success: true,
+      count: vendors.length,
+      data: vendors,
+    });
+  } catch (error) {
+    console.error("Get All Vendors Error:", error.message);
 
-      return res.status(500).json({
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// get One Vendor by ID
+
+export const getOneVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
         success: false,
-        message: "Internal Server Error",
+        message: "Invalid Vendor Id",
       });
     }
-  };
 
-  // get One Vendor by ID
+    const vendor = await Vendor.findById(id)
+      .populate("userId", "name email phone role")
+      .lean();
 
-  export const getOneVendor = async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      // Validate ObjectId
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Vendor Id",
-        });
-      }
-
-      const vendor = await Vendor.findById(id)
-        .populate("userId", "name email phone role")
-        .lean();
-
-      if (!vendor) {
-        return res.status(404).json({
-          success: false,
-          message: "Vendor not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: vendor,
-      });
-    } catch (error) {
-      console.error("Get One Vendor Error:", error.message);
-
-      return res.status(500).json({
+    if (!vendor) {
+      return res.status(404).json({
         success: false,
-        message: "Internal Server Error",
+        message: "Vendor not found",
       });
     }
-  };
 
-  // update the vendor controller
-  export const updateVendor = async (req, res) => {
-    try {
-      const { id } = req.params;
+    return res.status(200).json({
+      success: true,
+      data: vendor,
+    });
+  } catch (error) {
+    console.error("Get One Vendor Error:", error.message);
 
-      const {
-        name,
-        email,
-        phone,
-        organizationName,
-        address,
-        city,
-        state,
-        pincode,
-        description,
-      } = req.body;
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
 
-      // Validate Vendor Id
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
+// update the vendor controller
+export const updateVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      name,
+      email,
+      phone,
+      organizationName,
+      address,
+      city,
+      state,
+      pincode,
+      description,
+    } = req.body;
+
+    // Validate Vendor Id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Vendor Id",
+      });
+    }
+
+    const vendor = await Vendor.findById(id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    const user = await User.findById(vendor.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Associated user not found",
+      });
+    }
+
+    // Email duplicate check
+    if (email) {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      const existingEmail = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: user._id },
+      });
+
+      if (existingEmail) {
+        return res.status(409).json({
           success: false,
-          message: "Invalid Vendor Id",
+          message: "Email already exists",
         });
       }
 
-      const vendor = await Vendor.findById(id);
+      user.email = normalizedEmail;
+    }
 
-      if (!vendor) {
-        return res.status(404).json({
+    // Phone duplicate check
+    if (phone) {
+      const normalizedPhone = phone.trim();
+
+      const existingPhone = await User.findOne({
+        phone: normalizedPhone,
+        _id: { $ne: user._id },
+      });
+
+      if (existingPhone) {
+        return res.status(409).json({
           success: false,
-          message: "Vendor not found",
+          message: "Phone number already exists",
         });
       }
 
-      const user = await User.findById(vendor.userId);
+      user.phone = normalizedPhone;
+    }
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Associated user not found",
-        });
-      }
-
-      // Email duplicate check
-      if (email) {
-        const normalizedEmail = email.trim().toLowerCase();
-
-        const existingEmail = await User.findOne({
-          email: normalizedEmail,
-          _id: { $ne: user._id },
-        });
-
-        if (existingEmail) {
-          return res.status(409).json({
-            success: false,
-            message: "Email already exists",
-          });
+    // Upload new logo
+    if (req.file) {
+      try {
+        if (vendor.logo?.public_id) {
+          await cloudinary.uploader.destroy(vendor.logo.public_id);
         }
 
-        user.email = normalizedEmail;
-      }
-
-      // Phone duplicate check
-      if (phone) {
-        const normalizedPhone = phone.trim();
-
-        const existingPhone = await User.findOne({
-          phone: normalizedPhone,
-          _id: { $ne: user._id },
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "vendors",
         });
 
-        if (existingPhone) {
-          return res.status(409).json({
-            success: false,
-            message: "Phone number already exists",
-          });
-        }
-
-        user.phone = normalizedPhone;
+        vendor.logo = {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      } finally {
+        removeLocalFile(req.file.path);
       }
+    }
 
-      // Upload new logo
-      if (req.file) {
-        try {
-          if (vendor.logo?.public_id) {
-            await cloudinary.uploader.destroy(vendor.logo.public_id);
-          }
+    // Update User fields
+    user.name = name?.trim() || user.name;
 
-          const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: "vendors",
-          });
+    // Update Vendor fields
+    vendor.organizationName =
+      organizationName?.trim() || vendor.organizationName;
 
-          vendor.logo = {
-            url: result.secure_url,
-            public_id: result.public_id,
-          };
-        } finally {
-          removeLocalFile(req.file.path);
-        }
-      }
+    vendor.address = address?.trim() || vendor.address;
 
-      // Update User fields
-      user.name = name?.trim() || user.name;
+    vendor.city = city?.trim() || vendor.city;
 
-      // Update Vendor fields
-      vendor.organizationName =
-        organizationName?.trim() || vendor.organizationName;
+    vendor.state = state?.trim() || vendor.state;
 
-      vendor.address = address?.trim() || vendor.address;
+    vendor.pincode = pincode?.trim() || vendor.pincode;
 
-      vendor.city = city?.trim() || vendor.city;
+    vendor.description = description?.trim() || vendor.description;
 
-      vendor.state = state?.trim() || vendor.state;
+    await user.save();
+    await vendor.save();
 
-      vendor.pincode = pincode?.trim() || vendor.pincode;
+    const updatedVendor = await Vendor.findById(vendor._id)
+      .populate("userId", "name email phone role")
+      .lean();
 
-      vendor.description = description?.trim() || vendor.description;
+    return res.status(200).json({
+      success: true,
+      message: "Vendor updated successfully",
+      data: updatedVendor,
+    });
+  } catch (error) {
+    console.error("Update Vendor Error:", error.message);
 
-      await user.save();
-      await vendor.save();
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
 
-      const updatedVendor = await Vendor.findById(vendor._id)
-        .populate("userId", "name email phone role")
-        .lean();
+// for toggle Vendor active/inActive status
+export const toggleVendorStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
 
-      return res.status(200).json({
-        success: true,
-        message: "Vendor updated successfully",
-        data: updatedVendor,
-      });
-    } catch (error) {
-      console.error("Update Vendor Error:", error.message);
-
-      return res.status(500).json({
+    // 1. Id Validate ki
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
         success: false,
-        message: "Internal Server Error",
+        message: "Invalid Vendor Id",
       });
     }
-  };
 
-  // for toggle Vendor active/inActive status
-  export const toggleVendorStatus = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { isActive } = req.body;
-
-      // 1. Id Validate ki
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Vendor Id",
-        });
-      }
-
-      // 2. Data type Validate kiya
-      if (typeof isActive !== "boolean") {
-        return res.status(400).json({
-          success: false,
-          message: "isActive must be true or false",
-        });
-      }
-
-      // 3. Pehle Vendor ko dhoondo
-      const vendor = await Vendor.findById(id);
-
-      if (!vendor) {
-        return res.status(404).json({
-          success: false,
-          message: "Vendor not found",
-        });
-      }
-
-      // 4. Property badlo aur .save() chala do (No Warning, Auto Updated Data Return)
-      vendor.isActive = isActive;
-      await vendor.save();
-
-      return res.status(200).json({
-        success: true,
-        message: `Vendor ${isActive ? "activated" : "deactivated"} successfully`,
-        data: vendor, // Isme apne aap updated data hi jayega
-      });
-    } catch (error) {
-      console.error("Toggle Vendor Status Error:", error.message);
-
-      return res.status(500).json({
+    // 2. Data type Validate kiya
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
         success: false,
-        message: "Internal Server Error",
+        message: "isActive must be true or false",
       });
     }
-  };
 
-  // delete the vendor cotroller
+    // 3. Pehle Vendor ko dhoondo
+    const vendor = await Vendor.findById(id);
 
-  export const deleteVendor = async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      // Validate Vendor Id
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Vendor Id",
-        });
-      }
-
-      const vendor = await Vendor.findById(id);
-
-      if (!vendor) {
-        return res.status(404).json({
-          success: false,
-          message: "Vendor not found",
-        });
-      }
-
-      // Delete logo from Cloudinary
-      if (vendor.logo?.public_id) {
-        await cloudinary.uploader.destroy(vendor.logo.public_id);
-      }
-
-      // Delete associated user account
-      await User.findByIdAndDelete(vendor.userId);
-
-      // Delete vendor profile
-      await Vendor.findByIdAndDelete(id);
-
-      return res.status(200).json({
-        success: true,
-        message: "Vendor deleted successfully",
-      });
-    } catch (error) {
-      console.error("Delete Vendor Error:", error.message);
-
-      return res.status(500).json({
+    if (!vendor) {
+      return res.status(404).json({
         success: false,
-        message: "Internal Server Error",
+        message: "Vendor not found",
       });
     }
-  };
+
+    // 4. Property badlo aur .save() chala do (No Warning, Auto Updated Data Return)
+    vendor.isActive = isActive;
+    await vendor.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Vendor ${isActive ? "activated" : "deactivated"} successfully`,
+      data: vendor, // Isme apne aap updated data hi jayega
+    });
+  } catch (error) {
+    console.error("Toggle Vendor Status Error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// delete the vendor cotroller
+export const deleteVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate Vendor Id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Vendor Id",
+      });
+    }
+
+    const vendor = await Vendor.findById(id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Delete logo from Cloudinary
+    if (vendor.logo?.public_id) {
+      await cloudinary.uploader.destroy(vendor.logo.public_id);
+    }
+
+    // Delete associated user account
+    await User.findByIdAndDelete(vendor.userId);
+
+    // Delete vendor profile
+    await Vendor.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Vendor Error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// selectAreaAndCategory
+export const selectAreaAndCategory = async (req, res) => {
+  try {
+    const { category, area } = req.body;
+
+    if (!category || !area) {
+      return res.status(400).json({
+        message: "Category And Area is required",
+        success: false,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        message: "Invalid Category ID format",
+        success: false,
+      });
+    }
+
+    const isCategoryExist = await Category.findById(category).lean();
+    if (!isCategoryExist) {
+      return res.status(404).json({
+        message: "This  category does not exist in our system",
+        success: false,
+      });
+    }
+
+    const formattedArea = area.trim().toLowerCase();
+
+    const currentVendor = await Vendor.findOne({ userId: req.user.id });
+
+    if (!currentVendor) {
+      return res.status(400).json({
+        message: "Vendor profile not found",
+      });
+    }
+
+    const globalDuplicate = await Vendor.findOne({
+      _id: { $ne: currentVendor.id },
+      serviceZones: {
+        $elemMatch: {
+          area: formattedArea,
+          category,
+        },
+      },
+    }).lean();
+
+    if (globalDuplicate) {
+      return res.status(400).json({
+        message: `A vendor is already serving the ${isCategoryExist.name} category in ${area}. Please select a different area or category.`,
+        success: false,
+      });
+    }
+
+    const localDuplicate = currentVendor.serviceZones.some(
+      (zone) =>
+        zone.area === formattedArea &&
+        String(zone.category) === String(category),
+    );
+
+    if (localDuplicate) {
+      return res.status(400).json({
+        message: `You have already added the selected category for ${area}.`,
+        success: false,
+      });
+    }
+
+    currentVendor.serviceZones.push({
+      area: formattedArea,
+      category: category,
+    });
+
+    await currentVendor.save();
+
+    const updatedVendor = await Vendor.findById(currentVendor._id)
+      .populate("userId", "name email phone")
+      .populate("serviceZones.category", "name")
+      .lean();
+
+    return res.status(200).json({
+      message: "Service Zone Added Successfully",
+      data: updatedVendor,
+      success: true,
+    });
+  } catch (error) {
+    console.log("Select Area and Category Area error", error);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+    });
+  }
+};
+
+// remove the category and Area
+export const removeAreaAndCategory = async (req, res) => {
+  try {
+    const { area, category } = req.body;
+
+    if (!area || !category) {
+      return res.status(400).json({
+        message: "Both Area and Category Required",
+        success: false,
+      });
+    }
+
+    const formattedArea = area.trim().toLowerCase();
+
+    const updateVendorData = await Vendor.findOneAndUpdate(
+      { userId: req.user.id },
+      {
+        $pull: {
+          serviceZones: {
+            area: formattedArea,
+            category: category,
+          },
+        },
+      },
+      { returnDocument: "after" },
+    );
+
+    if (!updateVendorData) {
+      return res.status(404).json({
+        message: "Vendor profile not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Service Zone Removed Successfully",
+      data: updateVendorData,
+      success: true,
+    });
+  } catch (error) {
+    console.log("Deselect Area and Category Error:", error);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+    });
+  }
+};

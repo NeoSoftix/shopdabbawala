@@ -3,13 +3,14 @@ import Item from "../models/item.model.js";
 // ➤ Create Item
 export const createItem = async (req, res) => {
   try {
-    const { name, description, category, image } = req.body;
+    // 1. req.body se allergies ko destructure kiya
+    const { name, description, category, allergies } = req.body;
 
-    // Required fields validation
-    if (!name || !price || !category) {
+    // Required fields validation (Price hata diya kyunki aapke model mein nahi hai)
+    if (!name || !category) {
       return res.status(400).json({
         success: false,
-        message: "Name, price and category are required",
+        message: "Name and category are required",
       });
     }
 
@@ -23,7 +24,6 @@ export const createItem = async (req, res) => {
 
     // Category exists or not
     const categoryExists = await Category.findById(category);
-
     if (!categoryExists) {
       return res.status(404).json({
         success: false,
@@ -65,13 +65,13 @@ export const createItem = async (req, res) => {
       description,
       category,
       image: imageData,
+      allergies: allergies ? JSON.parse(allergies) : [], 
     });
 
     return res.status(201).json({
       success: true,
       message: "Item created successfully",
       item,
-      image: imageData,
     });
   } catch (error) {
     return res.status(500).json({
@@ -85,7 +85,7 @@ export const createItem = async (req, res) => {
 export const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
-      .populate("category", "name")
+      .populate({ path: "category", populate: { path: "meal", select: "name" } })
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -141,6 +141,16 @@ export const updateItem = async (req, res) => {
       ...req.body,
     };
 
+    // Handle Allergies (Agar FormData se stringified array aa raha hai)
+    if (req.body.allergies) {
+      try {
+        updateData.allergies = JSON.parse(req.body.allergies);
+      } catch (e) {
+        // Agar pehle se hi proper array hai ya parse nahi ho paa raha
+        updateData.allergies = req.body.allergies;
+      }
+    }
+
     // New image uploaded
     if (req.file) {
       // delete old image
@@ -159,10 +169,11 @@ export const updateItem = async (req, res) => {
       };
     }
 
+    // findByIdAndUpdate short syntax defaults to returning old document unless specified
     const updatedItem = await Item.findByIdAndUpdate(id, updateData, {
-      returnDocument: "after",
+      new: true, // Yeh 'returnDocument: "after"' ki jagah standard Mongoose syntax hai
       runValidators: true,
-    }).populate("category", "name");
+    }).populate({ path: "category", populate: { path: "meal", select: "name" } });
 
     return res.status(200).json({
       success: true,
@@ -222,9 +233,6 @@ export const deleteItem = async (req, res) => {
   }
 };
 
-
-
-
 // ➤ Disable / Enable Item
 export const toggleItemStatus = async (req, res) => {
   try {
@@ -268,10 +276,7 @@ export const toggleItemStatus = async (req, res) => {
   }
 };
 
-
-
 // get item by category
-
 export const getItemsByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -298,7 +303,7 @@ export const getItemsByCategory = async (req, res) => {
       category: categoryId,
       isActive: true,
     })
-      .populate("category", "name")
+      .populate({ path: "category", populate: { path: "meal", select: "name" } })
       .sort({ createdAt: -1 })
       .lean();
 

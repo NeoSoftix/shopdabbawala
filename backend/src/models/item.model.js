@@ -14,13 +14,13 @@ const itemSchema = new mongoose.Schema(
     },
 
     image: {
-      url:{
-        type:String,
-        default:""
+      url: {
+        type: String,
+        default: ""
       },
-      public_id:{
-        type:String,
-        default:""
+      public_id: {
+        type: String,
+        default: ""
       },
     },
     
@@ -28,6 +28,11 @@ const itemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
+    },
+
+    allergies: {
+      type: [String],
+      default: [],
     },
 
     isActive: {

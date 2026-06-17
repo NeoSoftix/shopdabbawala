@@ -4,6 +4,8 @@ import {
   deleteVendor, 
   getAllVendors, 
   getOneVendor, 
+  removeAreaAndCategory, 
+  selectAreaAndCategory, 
   toggleVendorStatus, 
   updateVendor 
 } from "../controllers/vendor.controller.js";
@@ -36,6 +38,11 @@ router.put(
   updateVendor
 );
 
+// select Area And category 
+router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory)
+
+// remove Area and category
+router.patch("/deselect-zone", verifyToken, allowedRoles("vendor"), removeAreaAndCategory)
 // Toggle Vendor Status (Active/Inactive)
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);
 
