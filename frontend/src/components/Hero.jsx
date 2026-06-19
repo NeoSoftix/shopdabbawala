@@ -22,6 +22,7 @@ export default function Hero() {
       className="relative min-h-[88vh] overflow-hidden"
       style={{
         background: `radial-gradient(circle at center, #ef4444 0%, ${slide.color} 80%)`,
+        padding: "0 1.5rem",
       }}
     >
       <HeroHeader />
@@ -51,11 +52,10 @@ export default function Hero() {
 
       <div className="max-w-[1600px] mx-auto px-4 lg:px-8 pt-24 min-h-[88vh] flex items-center">
 
-        <div className="grid lg:grid-cols-2 gap-8 items-center w-full">
+            <div className="grid lg:grid-cols-2 gap-20 xl:gap-28 items-center w-full">
 
           {/* LEFT */}
-          <div className="z-20">
-
+<div className="z-20 lg:pl-8">
             <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl px-5 py-3 mb-8">
 
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -76,11 +76,11 @@ export default function Hero() {
               >
                 <h1 className="text-white font-black leading-[0.85] tracking-[-4px]">
 
-                  <span className="block text-[70px] md:text-[110px] xl:text-[150px]">
+                  <span className="text-[70px] md:text-[90px] xl:text-[120px]">
                     {slide.title}
                   </span>
 
-                  <span className="block text-[60px] md:text-[90px] xl:text-[130px] text-white/70">
+                  <span className="block text-[55px] md:text-[80px] xl:text-[105px] text-white/70">
                     {slide.subtitle}
                   </span>
 
