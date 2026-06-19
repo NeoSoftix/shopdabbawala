@@ -67,7 +67,6 @@ const vendorSchema = new mongoose.Schema(
           ref: "Category",
           required: true,
         },
-        _id: false
       },
     ],
 

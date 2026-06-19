@@ -1,52 +1,104 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
 import { getActiveCategory } from "../../service/category.service";
-
+import {
+  addServiceArea,
+  getServiceArea,
+  removeServiceArea
+} from "../../service/serviceArea.service";
 
 const ServiceArea = () => {
   const [serviceArea, setServiceArea] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [categories, setCategories] = useState([])
-  const [formData, setForm] = useState({
-    category:"",
-    area:""
-  })
+  const [categories, setCategories] = useState([]);
+  const [formData, setFormData] = useState({
+    category: "",
+    area: "",
+  });
 
   const fetchCategories = async () => {
     try {
-      setSuccess("")
-      setError("")
-      const res = await getActiveCategory()
-
-      setCategories(res.data || res.data.data || [])
+      const res = await getActiveCategory();
+      setCategories(res.data || res.data.data || []);
     } catch (error) {
-      console.log("Get Category error", error)
-      setError("Failed to fetch Category")
+      console.log("Get Category error", error);
+      setError("Failed to fetch Category");
     }
-  }
+  };
+
+  const fetchServiceArea = async () => {
+    try {
+      const res = await getServiceArea();
+      setServiceArea(res.data || res.data.data || []);
+    } catch (error) {
+      console.log("Get Service Area error", error);
+      setError("Failed To fetch Service Area");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await removeServiceArea(id);
+      setSuccess("Successfully Removed Service Area");
+      fetchServiceArea();
+    } catch (error) {
+      console.log("Remove Service Area Error", error);
+      setError(error.response?.data?.message || "Failed to Remove Service Area");
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+    fetchServiceArea();
+  }, []);
+
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess("");
+        setError("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   const handleChange = (e) => {
-
-    const {name, value} = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault()
-  //   try {
-  //     setError("")
-  //     setSuccess("")
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  //     const res = 
-  //   } catch (error) {
-      
-  //   }
-  // }
+    // Basic Validation
+    if (!formData.category || !formData.area) {
+      setError("Please fill all required fields");
+      return;
+    }
 
+    try {
+      setError("");
+      setSuccess("");
+
+      const res = await addServiceArea(formData);
+      setSuccess(res?.message || "Service Area Added Successfully");
+
+      setFormData({
+        category: "",
+        area: "",
+      });
+
+      fetchServiceArea();
+    } catch (error) {
+      console.log("Submit details error", error);
+      setError(error?.response?.data?.message || "Failed To Submit Details");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -59,8 +111,20 @@ const ServiceArea = () => {
         <p className="text-gray-500 mt-2 mb-6">
           Select category and area to add a service zone.
         </p>
+        
+        {success && (
+          <div className="mb-4 p-3 rounded-lg bg-green-100 text-green-700 border border-green-300">
+            {success}
+          </div>
+        )}
 
-        <form action="">
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-300">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Category */}
             <div>
@@ -68,11 +132,18 @@ const ServiceArea = () => {
                 Category <span className="text-red-500">*</span>
               </label>
 
-              <select className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-red-500" name="category" value={formData.category} onChange={handleChange}>
-                <option>Select Category</option>
-                <option>Veg Meals</option>
-                <option>Non Veg Meals</option>
-                <option>Diet Meals</option>
+              <select
+                className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -84,16 +155,21 @@ const ServiceArea = () => {
 
               <input
                 type="text"
+                name="area"
                 placeholder="Enter Area (e.g. Sector 22 Chandigarh)"
+                onChange={handleChange}
+                value={formData.area}
                 className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
           </div>
+          <button
+            className="mt-6 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl transition"
+            type="submit"
+          >
+            Add Service Zone
+          </button>
         </form>
-
-        <button className="mt-6 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl transition">
-          Add Service Zone
-        </button>
       </div>
 
       {/* Service Areas Table */}
@@ -112,43 +188,39 @@ const ServiceArea = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-4 text-sm font-semibold text-gray-600">
-                  #
-                </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-600">
-                  Category
-                </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-600">
-                  Area
-                </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-600">
-                  Action
-                </th>
+                <th className="text-left p-4 text-sm font-semibold text-gray-600">#</th>
+                <th className="text-left p-4 text-sm font-semibold text-gray-600">Category</th>
+                <th className="text-left p-4 text-sm font-semibold text-gray-600">Area</th>
+                <th className="text-left p-4 text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {categories.map((cat, index) => (
+              {serviceArea.map((area, index) => (
                 <tr
-                  key={cat.id}
+                  key={area._id || index}
                   className="border-t border-gray-100 hover:bg-gray-50 transition"
                 >
                   <td className="p-4">{index + 1}</td>
-
-                  <td className="p-4 font-medium text-gray-800">{cat.name}</td>
-
-                  <td className="p-4 text-gray-600">{cat.area}</td>
+                  <td className="p-4 font-medium text-gray-800">
+                    {area.category?.name || "N/A"}
+                  </td>
+                  <td className="p-4 text-gray-600">{area.area}</td>
                   <td className="p-4">
-                    <button className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium transition">
-                      <MdDelete />
+                    {/* FIXED: Arrow function used here to prevent immediate invocation */}
+                    <button 
+                      className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium transition" 
+                      onClick={() => handleDelete(area._id)}
+                    >
+                      delete
                     </button>
                   </td>
                 </tr>
               ))}
 
-              {categories.length === 0 && (
+              {serviceArea.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="text-center py-8 text-gray-500">
+                  <td colSpan="4" className="text-center py-8 text-gray-500">
                     No service zones found.
                   </td>
                 </tr>

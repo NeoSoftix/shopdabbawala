@@ -533,48 +533,62 @@ export const selectAreaAndCategory = async (req, res) => {
 // remove the category and Area
 export const removeAreaAndCategory = async (req, res) => {
   try {
-    const { area, category } = req.body;
+    const { id } = req.params;
 
-    if (!area || !category) {
+    // Validate the incoming ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
-        message: "Both Area and Category Required",
         success: false,
+        message: "Invalid Service Zone ID.",
       });
     }
 
-    const formattedArea = area.trim().toLowerCase();
+    const vendor = await Vendor.findOne({ userId: req.user.id });
 
-    const updateVendorData = await Vendor.findOneAndUpdate(
-      { userId: req.user.id },
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found.",
+      });
+    }
+    
+    // Check if the zone exists before attempting removal
+    const zoneExists = vendor.serviceZones.some(
+      (zone) => zone._id.toString() === id
+    );
+
+    if (!zoneExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Service Zone not found. It may have already been deleted.",
+      });
+    }
+
+    // If the zone exists, pull it from the array
+    const updatedVendor = await Vendor.findByIdAndUpdate(
+      vendor._id,
       {
         $pull: {
           serviceZones: {
-            area: formattedArea,
-            category: category,
+            _id: id,
           },
         },
       },
-      { returnDocument: "after" },
-    );
+      { new: true }
+    ).populate("serviceZones.category", "name");
 
-    if (!updateVendorData) {
-      return res.status(404).json({
-        message: "Vendor profile not found",
-        success: false,
-      });
-    }
 
     return res.status(200).json({
-      message: "Service Zone Removed Successfully",
-      data: updateVendorData,
       success: true,
+      message: "Service Zone Removed Successfully",
+      data: updatedVendor,
     });
   } catch (error) {
-    console.log("Deselect Area and Category Error:", error);
+    console.log(error);
 
     return res.status(500).json({
-      message: "Internal Server Error",
       success: false,
+      message: "Internal Server Error",
     });
   }
 };

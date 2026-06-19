@@ -31,6 +31,8 @@ import UserLayout from "../src/pages/User/UserLayout";
 import UserDashboard from "../src/pages/User/UserDashboard";
 import "./react-calendar.css";
 import ServiceArea from "./pages/Vendor/ServiceArea";
+import CreatePackage from "./pages/User/CreatePackage";
+
 function App() {
   return (
     <Routes>
@@ -76,8 +78,10 @@ function App() {
         <Route path="profile" element={<VendorProfile />} />
         <Route path="notifications" element={<VendorNotifications />} />
       </Route>
+
       <Route path="/user" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
+        <Route path="create-package" element={<CreatePackage />} />
       </Route>
     </Routes>
   );

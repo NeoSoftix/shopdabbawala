@@ -33,6 +33,8 @@ router.put(
   updateVendor
 );
 
+router.get("/", verifyToken, allowedRoles("admin"), getAllVendors)
+
 // select Area And category 
 router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory)
 
@@ -40,7 +42,11 @@ router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndC
 router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaOfvendor)
 
 // remove Area and category
-router.patch("/deselect-zone", verifyToken, allowedRoles("vendor"), removeAreaAndCategory)
+router.delete(
+  "/remove-area-category/:id",
+  verifyToken, allowedRoles("vendor"),
+  removeAreaAndCategory
+);
 
 // Toggle Vendor Status (Active/Inactive)
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);

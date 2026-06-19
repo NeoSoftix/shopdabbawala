@@ -98,12 +98,14 @@ export const deleteCategory = async (id) => {
 
 // get active category
 
-export const getActiveCategory = () => {
+export const getActiveCategory = async () => {
   try {
-    const res = API.get("/category/active")
+    const res = await API.get("/category/active")
 
     return res.data
   } catch (error) {
-    
+    console.log("Get Active category error", error)
+
+    throw error
   }
 }
