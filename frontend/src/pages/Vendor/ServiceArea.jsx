@@ -35,17 +35,17 @@ const ServiceArea = () => {
     }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      setError("")
-      setSuccess("")
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+  //   try {
+  //     setError("")
+  //     setSuccess("")
 
-      const res = 
-    } catch (error) {
+  //     const res = 
+  //   } catch (error) {
       
-    }
-  }
+  //   }
+  // }
 
 
   return (
