@@ -578,3 +578,35 @@ export const removeAreaAndCategory = async (req, res) => {
     });
   }
 };
+
+// get the all service area of a vendor
+export const getServiceAreaOfvendor = async (req, res) => {
+  try {
+    const vendorServiceArea = await Vendor.findOne({
+      userId: req.user.id,
+    })
+      .select("serviceZones")
+      .populate("serviceZones.category", "name");
+
+    if (!vendorServiceArea) {
+      return res.status(404).json({
+        message: "No vendor Service Zone found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Service Zone Fetched Successfully",
+      success: true,
+      count: vendorServiceArea.serviceZones.length,
+      data: vendorServiceArea.serviceZones,
+    });
+  } catch (error) {
+    console.log("Get Vendor Service Error", error);
+
+    return res.status(500).json({
+      message: "Internal Server error",
+      success: false,
+    });
+  }
+};

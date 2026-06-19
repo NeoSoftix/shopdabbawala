@@ -30,12 +30,14 @@ import VendorNotifications from "../src/pages/Vendor/VendorNotifications";
 import UserLayout from "../src/pages/User/UserLayout";
 import UserDashboard from "../src/pages/User/UserDashboard";
 import "./react-calendar.css";
+import ServiceArea from "./pages/Vendor/ServiceArea";
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/user" />} />
       <Route path="/login" element={<Login />} />
 
+      {/* admin route */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<AdminDashboard />} />
 
@@ -60,24 +62,23 @@ function App() {
         <Route path="vendors" element={<VendorList />} />
 
         <Route path="vendors/add" element={<AddVendor />} />
-        <Route path="packages" element={<PackagesPage />} />                  
+        <Route path="packages" element={<PackagesPage />} />
         <Route path="add-on" element={<AddOns />} />
 
         <Route path="add-on/add" element={<CreateAddOns />} />
       </Route>
 
+      {/* Vendor layout route */}
       <Route path="/vendor" element={<VendorLayout />}>
-   <Route path="dashboard" element={<VendorDashboard />}></Route>
- <Route path="orders" element={<VendorOrders />} />
-   <Route path="profile" element={<VendorProfile />} />  
- <Route path="notifications" element={<VendorNotifications />} />
-</Route>
-<Route path="/user" element={<UserLayout />}>
-  <Route
-    index
-    element={<UserDashboard />}
-  />
-</Route>
+        <Route path="dashboard" element={<VendorDashboard />}></Route>
+        <Route path="orders" element={<VendorOrders />} />
+        <Route path ="service-area" element={< ServiceArea/>} />
+        <Route path="profile" element={<VendorProfile />} />
+        <Route path="notifications" element={<VendorNotifications />} />
+      </Route>
+      <Route path="/user" element={<UserLayout />}>
+        <Route index element={<UserDashboard />} />
+      </Route>
     </Routes>
   );
 }

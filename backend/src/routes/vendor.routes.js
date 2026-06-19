@@ -4,6 +4,7 @@ import {
   deleteVendor, 
   getAllVendors, 
   getOneVendor, 
+  getServiceAreaOfvendor, 
   removeAreaAndCategory, 
   selectAreaAndCategory, 
   toggleVendorStatus, 
@@ -23,12 +24,6 @@ router.post(
   createVendor
 );
 
-// Get vendor by ID (Public Route)
-router.get("/:id", getOneVendor);
-
-// Get all vendors (Public Route)
-router.get("/", getAllVendors);
-
 // Update the vendor (Admin Only + Optional Logo Update)
 router.put(
   "/:id", 
@@ -41,10 +36,17 @@ router.put(
 // select Area And category 
 router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory)
 
+// get Service Area Of a Vendor
+router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaOfvendor)
+
 // remove Area and category
 router.patch("/deselect-zone", verifyToken, allowedRoles("vendor"), removeAreaAndCategory)
+
 // Toggle Vendor Status (Active/Inactive)
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);
+
+// Get vendor by ID (Public Route)
+router.get("/:id", getOneVendor);
 
 // Delete vendor (Admin Only)
 router.delete("/:id", verifyToken, allowedRoles("admin"), deleteVendor);

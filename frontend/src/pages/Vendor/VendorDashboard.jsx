@@ -1,7 +1,7 @@
 import StatCard from "../../components/Admin/StatsCards";
 import OrderBanner from "../../components/OrderBanner";
 import OrdersTable from "../../components/Admin/OrdersTable";
-import VendorAreaSection from "../../components/VendorAreaSection";
+
 import {
   MdShoppingCart,
   MdPendingActions,
@@ -70,25 +70,7 @@ export default function VendorDashboard() {
         totalOrders={156}
         pendingOrders={18}
       />
-<VendorAreaSection
-  areas={[
-    {
-      area: "Sector 66",
-      mealType: "Chinese",
-      orders: 12,
-    },
-    {
-      area: "Sector 67",
-      mealType: "North Indian",
-      orders: 8,
-    },
-    {
-      area: "Sector 45",
-      mealType: "South Indian",
-      orders: 5,
-    },
-  ]}
-/>
+
       <OrdersTable orders={orders} />
     </div>
   );

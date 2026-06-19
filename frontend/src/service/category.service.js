@@ -95,3 +95,15 @@ export const deleteCategory = async (id) => {
     throw error;
   }
 };
+
+// get active category
+
+export const getActiveCategory = () => {
+  try {
+    const res = API.get("/category/active")
+
+    return res.data
+  } catch (error) {
+    
+  }
+}
