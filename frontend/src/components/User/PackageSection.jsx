@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FiArrowRight,
-  FiClock,
-} from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
 
 export default function PackageSection() {
   const [packages, setPackages] = useState([]);
@@ -39,16 +36,16 @@ export default function PackageSection() {
   }
 
   return (
-    <section className="max-w-[1150px] mx-auto">
+    <section className="max-w-[1200px] mx-auto py-16 px-4">
 
       {/* Header */}
-      <div className="mb-10 text-center">
+      <div className="text-center mb-14">
 
         <span className="inline-block px-4 py-2 rounded-full bg-red-50 text-[#E23747] font-semibold text-sm">
           🍱 Meal Packages
         </span>
 
-        <h2 className="mt-4 text-4xl font-black text-gray-900">
+        <h2 className="mt-4 text-4xl lg:text-5xl font-black text-gray-900">
           Choose Your Perfect Plan
         </h2>
 
@@ -59,160 +56,136 @@ export default function PackageSection() {
 
       </div>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+      {/* Packages */}
+      <div className="grid lg:grid-cols-3 gap-8">
 
-        {packages.map((pkg, index) => (
+        {packages.slice(0, 3).map((pkg, index) => (
 
           <div
             key={pkg._id}
             className={`
-              group
+              relative
               bg-white
-              rounded-[24px]
-              border
-              p-5
+              rounded-[28px]
+              border-2
+              p-8
+              text-center
               transition-all
               duration-300
-              hover:-translate-y-1
+              hover:-translate-y-2
+              hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]
               ${
                 index === 1
-                  ? "border-[#E23747] shadow-[0_12px_30px_rgba(226,55,71,0.12)]"
-                  : "border-gray-100 shadow-[0_8px_20px_rgba(0,0,0,0.05)]"
+                  ? "border-[#E23747] scale-[1.03] shadow-[0_20px_50px_rgba(226,55,71,0.15)]"
+                  : "border-red-100"
               }
             `}
           >
 
-            {/* Top */}
-            <div className="flex items-start justify-between">
-
-              <div>
-
-                <span
-                  className={`
-                    inline-flex
-                    px-3
-                    py-1
-                    rounded-full
-                    text-[11px]
-                    font-semibold
-                    ${
-                      pkg.isActive
-                        ? "bg-green-50 text-green-600"
-                        : "bg-gray-100 text-gray-500"
-                    }
-                  `}
-                >
-                  {pkg.isActive
-                    ? "Active Package"
-                    : "Inactive Package"}
+            {/* Popular Badge */}
+            {index === 1 && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-[#E23747] text-white px-5 py-2 rounded-full text-xs font-bold shadow-lg">
+                  ⭐ Popular
                 </span>
-
-                <h3 className="mt-3 text-xl font-black text-gray-900 capitalize">
-                  {pkg.name}
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  {pkg.description}
-                </p>
-
               </div>
+            )}
 
+            {/* Icon */}
+            <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center text-4xl">
+              🍱
             </div>
+
+            {/* Package Name */}
+            <h3 className="mt-6 text-2xl font-bold text-gray-900">
+              {pkg.name}
+            </h3>
 
             {/* Price */}
             <div className="mt-5">
 
-              <h2 className="text-3xl font-black text-[#E23747]">
+              <h2 className="text-5xl font-black text-[#E23747]">
                 ₹{pkg.price}
               </h2>
 
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 mt-5">
-
-              <div className="bg-red-50 rounded-2xl p-3">
-
-                <p className="text-xs text-gray-500">
-                  Total Meals
-                </p>
-
-                <h4 className="text-lg font-bold text-gray-900">
-                  {pkg.totalMeals}
-                </h4>
-
-              </div>
-
-              <div className="bg-red-50 rounded-2xl p-3">
-
-                <p className="text-xs text-gray-500">
-                  Validity
-                </p>
-
-                <h4 className="text-lg font-bold text-gray-900">
-                  {pkg.validityDays} Days
-                </h4>
-
-              </div>
+              <p className="mt-2 text-gray-500 text-sm">
+                Per Package
+              </p>
 
             </div>
 
             {/* Features */}
-            <div className="flex flex-wrap gap-2 mt-5">
+            <div className="mt-8 space-y-4 text-left">
 
-              <span className="px-3 py-1 rounded-full bg-red-50 text-[#E23747] text-[11px]">
-                🍳 Breakfast
-              </span>
+              <div className="flex items-center gap-3 text-gray-700">
+                ✅ {pkg.totalMeals} Meals Included
+              </div>
 
-              <span className="px-3 py-1 rounded-full bg-red-50 text-[#E23747] text-[11px]">
-                🍛 Lunch
-              </span>
+              <div className="flex items-center gap-3 text-gray-700">
+                ✅ {pkg.validityDays} Days Validity
+              </div>
 
-              <span className="px-3 py-1 rounded-full bg-red-50 text-[#E23747] text-[11px]">
-                🍽 Dinner
-              </span>
+              <div className="flex items-center gap-3 text-gray-700">
+                ✅ Breakfast / Lunch / Dinner
+              </div>
+
+              <div className="flex items-center gap-3 text-gray-700">
+                ✅ Free Home Delivery
+              </div>
 
               {pkg.isAddOnAllowed && (
-                <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[11px]">
-                  ➕ Add-On
-                </span>
+                <div className="flex items-center gap-3 text-gray-700">
+                  ✅ Add-On Available
+                </div>
               )}
 
             </div>
 
-            {/* Bottom */}
-            <div className="mt-5 flex items-center justify-between">
-
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <FiClock />
-                {pkg.validityDays} Days Plan
-              </div>
-
-              <button
-                className="
-                  h-10
-                  px-4
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-[#E23747]
-                  to-[#ff5d6c]
-                  text-white
-                  text-sm
-                  font-semibold
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-                Select
-                <FiArrowRight size={14} />
-              </button>
-
-            </div>
+            {/* CTA */}
+            <button
+              className="
+                mt-8
+                w-full
+                h-12
+                rounded-xl
+                bg-[#E23747]
+                hover:bg-[#cf3040]
+                text-white
+                font-semibold
+                flex
+                items-center
+                justify-center
+                gap-2
+                transition
+              "
+            >
+              Choose Plan
+              <FiArrowRight />
+            </button>
 
           </div>
 
         ))}
+
+      </div>
+
+      {/* Bottom CTA */}
+      <div className="text-center mt-12">
+
+        <button
+          className="
+            bg-[#E23747]
+            hover:bg-[#cf3040]
+            text-white
+            px-8
+            h-12
+            rounded-xl
+            font-semibold
+            transition
+          "
+        >
+          Build Your Own Package 🍱
+        </button>
 
       </div>
 

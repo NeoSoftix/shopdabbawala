@@ -1,42 +1,103 @@
+import {
+  FiPackage,
+  FiShoppingBag,
+  FiTruck,
+  FiSmile,
+  FiArrowRight,
+} from "react-icons/fi";
+
 export default function GettingStarted() {
   const steps = [
     {
-      no: "01",
+      icon: <FiPackage />,
       title: "Choose Package",
-      desc: "Select a meal package according to your lifestyle.",
+      desc: "Select your meals, duration & preferences",
     },
     {
-      no: "02",
-      title: "Schedule Meals",
-      desc: "Plan breakfast, lunch and dinner in advance.",
+      icon: <FiShoppingBag />,
+      title: "Place Order",
+      desc: "Confirm your package and complete checkout",
     },
     {
-      no: "03",
-      title: "Enjoy Delivery",
-      desc: "Receive fresh homemade meals every day.",
+      icon: <FiTruck />,
+      title: "We Deliver",
+      desc: "Fresh homemade meals delivered daily",
+    },
+    {
+      icon: <FiSmile />,
+      title: "Enjoy Meals",
+      desc: "Healthy food delivered right to your doorstep",
     },
   ];
 
   return (
-    <section className="bg-white rounded-[32px] p-10 shadow-[0_15px_50px_rgba(0,0,0,0.06)]">
-      <h2 className="text-3xl font-bold mb-8">
-        How It Works 🚀
-      </h2>
+    <section className="py-16 bg-white rounded-[32px]">
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {steps.map((step) => (
-          <div key={step.no}>
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E23747] to-[#ff5d6c] text-white flex items-center justify-center text-xl font-bold shadow-lg">
-              {step.no}
+      <div className="text-center mb-14">
+
+        <h2 className="text-4xl font-black text-gray-900">
+          How It Works
+        </h2>
+
+        <div className="w-16 h-1 bg-[#E23747] rounded-full mx-auto mt-3" />
+
+      </div>
+
+      <div className="grid lg:grid-cols-4 gap-8 relative">
+
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className="relative text-center"
+          >
+
+            {/* Arrow */}
+            {index !== steps.length - 1 && (
+              <div className="hidden lg:flex absolute top-10 -right-8 text-[#E23747] text-2xl">
+                <FiArrowRight />
+              </div>
+            )}
+
+            {/* Icon Circle */}
+            <div
+              className="
+                w-24
+                h-24
+                mx-auto
+                rounded-full
+                bg-white
+                border
+                border-red-100
+                shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+                flex
+                items-center
+                justify-center
+                text-[#E23747]
+                text-4xl
+                transition
+                duration-300
+                hover:-translate-y-2
+                hover:shadow-[0_15px_40px_rgba(226,55,71,0.15)]
+              "
+            >
+              {step.icon}
             </div>
 
-            <h3 className="text-xl font-semibold mt-5">
+            {/* Step Number */}
+            <div className="mt-4 text-[#E23747] font-bold text-sm">
+              Step {index + 1}
+            </div>
+
+            {/* Title */}
+            <h3 className="mt-2 text-lg font-bold text-gray-900">
               {step.title}
             </h3>
 
-            <p className="text-gray-500 mt-3">
+            {/* Description */}
+            <p className="mt-2 text-sm text-gray-500 max-w-[220px] mx-auto">
               {step.desc}
             </p>
+
           </div>
         ))}
       </div>

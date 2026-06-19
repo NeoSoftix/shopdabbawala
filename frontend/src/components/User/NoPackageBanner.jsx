@@ -1,173 +1,278 @@
-import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiCheckCircle,
+  FiTruck,
+  FiStar,
+} from "react-icons/fi";
 
 export default function NoPackageBanner() {
   return (
+    <section
+  className="
+  relative
+  overflow-hidden
+  bg-[linear-gradient(135deg,#8F1F2D_0%,#B82838_45%,#CF3040_100%)]
+  "
+>
+      {/* Glow Effects */}
+      <div className="absolute -top-24 -right-24 w-[500px] h-[500px] bg-[#CF3040]/40 rounded-full blur-[140px]" />
 
-<section className="relative overflow-hidden rounded-[40px] bg-gradient-to-r from-[#E23747] via-[#f14658] to-[#ff5c6c] min-h-[400px]">
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-[#CF3040]/30 rounded-full blur-[120px]" />
 
-    {/* White Curve */}
-<div className="absolute right-0 top-0 h-full w-[38%] bg-white rounded-l-[180px]" />
-      {/* Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[length:12px_12px]" />
-      </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#CF3040]/15 rounded-full blur-[180px]" />
 
-<div className="relative z-10 grid lg:grid-cols-2 gap-6 items-center h-full px-8 lg:px-12 py-8">
-        {/* LEFT SIDE */}
-        <div className="text-white">
+      <div className="relative z-10 px-8 lg:px-16 py-14 lg:py-20">
 
-          <span className="text-[#FFD54A] text-2xl lg:text-4xlfont-bold italic block">
-            Super Healthy
-          </span>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          <h1 className="text-[50px] md:text-[65px] lg:text-[90px] font-black leading-[0.9] uppercase">
-            TIFFIN
-          </h1>
+          {/* LEFT CONTENT */}
+          <div>
 
-          <p className="mt-4 text-base lg:text-lg text-white/90 max-w-md">
-            Fresh homemade meals delivered daily.
-            Choose your meal package and start eating healthy today.
-          </p>
+            <span
+              className="
+              inline-flex
+              items-center
+              gap-2
+              px-4
+              py-2
+              rounded-full
+              bg-white/10
+              border
+              border-white/10
+              backdrop-blur
+              text-[#F8B5BC]
+              text-sm
+              font-medium
+              "
+            >
+              🍱 Fresh Homemade Meals
+            </span>
 
-          <div className="mt-6 space-y-3">
+            <h1 className="mt-6 text-5xl lg:text-7xl font-black leading-[0.95]">
 
-            <div className="flex items-center gap-3 text-base">
-              <FiCheckCircle className="text-[#FFD54A]" />
-              Fresh Homemade Meals
+              <span className="text-white">
+                Healthy
+              </span>
+
+              <br />
+
+              <span className="text-[#F8B5BC]">
+                Homemade Meals
+              </span>
+
+              <br />
+
+              <span className="text-white">
+                Delivered Daily
+              </span>
+
+            </h1>
+
+            <p className="mt-6 text-lg text-white/75 max-w-xl leading-relaxed">
+              Enjoy healthy homemade meals prepared fresh every
+              day and delivered straight to your doorstep.
+              Delicious, hygienic and hassle-free.
+            </p>
+
+            {/* Features */}
+            <div className="flex flex-wrap gap-3 mt-8">
+
+              <div className="flex items-center gap-2 bg-white/10 border border-white/10 px-4 py-2 rounded-full text-white backdrop-blur">
+                <FiCheckCircle className="text-[#F8B5BC]" />
+                Fresh Daily
+              </div>
+
+              <div className="flex items-center gap-2 bg-white/10 border border-white/10 px-4 py-2 rounded-full text-white backdrop-blur">
+                <FiTruck className="text-[#F8B5BC]" />
+                Free Delivery
+              </div>
+
+              <div className="flex items-center gap-2 bg-white/10 border border-white/10 px-4 py-2 rounded-full text-white backdrop-blur">
+                <FiStar className="text-[#F8B5BC]" />
+                4.9 Rating
+              </div>
+
             </div>
 
-            <div className="flex items-center gap-3 text-lg">
-              <FiCheckCircle className="text-[#FFD54A]" />
-              Daily Doorstep Delivery
-            </div>
+            {/* CTA */}
+            <div className="mt-8 flex flex-wrap gap-4">
 
-            <div className="flex items-center gap-3 text-lg">
-              <FiCheckCircle className="text-[#FFD54A]" />
-              Flexible Meal Scheduling
+              <button
+                className="
+                h-14
+                px-8
+                rounded-xl
+                bg-[#CF3040]
+                hover:bg-[#B92A39]
+                text-white
+                font-bold
+                flex
+                items-center
+                gap-3
+                transition-all
+                duration-300
+                hover:scale-105
+                shadow-[0_15px_40px_rgba(207,48,64,0.45)]
+                "
+              >
+                Explore Plans
+                <FiArrowRight />
+              </button>
+
+              <button
+                className="
+                h-14
+                px-8
+                rounded-xl
+                bg-white/10
+                border
+                border-white/10
+                text-white
+                backdrop-blur
+                hover:bg-white/20
+                transition
+                "
+              >
+                View Menu
+              </button>
+
             </div>
 
           </div>
 
-          <button className="mt-8 bg-white text-red-600 px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-2xl hover:scale-105 transition">
-            Explore Packages
-            <FiArrowRight />
-          </button>
+          {/* RIGHT IMAGE */}
+          <div className="relative flex justify-center">
+
+            {/* Glow */}
+            <div className="absolute w-[500px] h-[500px] rounded-full bg-[#CF3040]/25 blur-[100px]" />
+
+            {/* Premium Circle */}
+            <div className="absolute w-[430px] h-[430px] rounded-full border border-[#F8B5BC]/20" />
+
+            {/* Price Badge */}
+            <div className="absolute top-8 right-0 z-30 bg-white rounded-2xl px-5 py-4 shadow-2xl">
+
+              <p className="text-xs text-gray-500">
+                Starting From
+              </p>
+
+              <h3 className="text-2xl font-black text-[#CF3040]">
+                ₹99/day
+              </h3>
+
+            </div>
+
+            {/* Rating Badge */}
+            <div className="absolute bottom-16 left-0 z-30 bg-white rounded-2xl px-5 py-4 shadow-2xl">
+
+              <div className="flex items-center gap-2">
+                <FiStar className="text-[#CF3040]" />
+                <span className="font-bold">
+                  4.9 Rating
+                </span>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Loved by Customers
+              </p>
+
+            </div>
+
+            {/* Main Image */}
+            <img
+              src="/tiffin.png"
+              alt="Tiffin"
+              className="
+              relative
+              z-20
+              w-[400px]
+              lg:w-[540px]
+              object-contain
+              transition-all
+              duration-500
+              hover:scale-105
+              drop-shadow-[0_0_100px_rgba(207,48,64,0.55)]
+              "
+            />
+
+          </div>
 
         </div>
-        {/* RIGHT SIDE */}
 
-  <div className="relative flex items-center justify-center h-full">
+        {/* Stats */}
+        <div className="grid md:grid-cols-3 gap-5 mt-14">
 
-  {/* Background Circle */}
-  <div
-    className="
-    absolute
-    w-[340px]
-    h-[340px]
-    lg:w-[400px]
-    lg:h-[400px]
-    rounded-full
-    bg-gradient-to-br
-    from-[#fafafa]
-    via-white
-    to-[#f1f1f1]
-    shadow-[0_20px_60px_rgba(0,0,0,0.10)]
-  "
-  />
+          <div
+            className="
+            bg-white/10
+            border
+            border-white/10
+            backdrop-blur-xl
+            rounded-[24px]
+            p-6
+            transition-all
+            duration-300
+            hover:bg-white/15
+            hover:border-[#CF3040]/50
+            "
+          >
+            <h3 className="text-4xl font-black text-white">
+              5000+
+            </h3>
 
-  {/* Main Image */}
-  <img
-    src="/tiffin.png"
-    alt=""
-    className="
-      relative
-      z-20
-      w-[320px]
-      lg:w-[430px]
-      object-contain
-      drop-shadow-[0_25px_45px_rgba(0,0,0,0.20)]
-      hover:scale-105
-      transition-all
-      duration-500
-    "
-  />
+            <p className="text-white/70 mt-2">
+              Meals Delivered
+            </p>
+          </div>
 
-  {/* Save Badge */}
-  <div
-    className="
-    absolute
-    left-4
-    bottom-8
-    z-30
-    bg-white/90
-    backdrop-blur-xl
-    border border-white
-    rounded-[20px]
-    px-4
-    py-3
-    shadow-xl
-  "
-  >
-    <p className="text-[10px] font-semibold text-gray-500 uppercase">
-      Save Upto
-    </p>
+          <div
+            className="
+            bg-white/10
+            border
+            border-white/10
+            backdrop-blur-xl
+            rounded-[24px]
+            p-6
+            transition-all
+            duration-300
+            hover:bg-white/15
+            hover:border-[#CF3040]/50
+            "
+          >
+            <h3 className="text-4xl font-black text-white">
+              4.9★
+            </h3>
 
-    <h3 className="text-3xl font-black text-[#E23747]">
-      50%
-    </h3>
-  </div>
+            <p className="text-white/70 mt-2">
+              Customer Rating
+            </p>
+          </div>
 
-  {/* Price Badge */}
-  <div
-    className="
-    absolute
-    top-4
-    right-0
-    z-30
-    bg-white/90
-    backdrop-blur-xl
-    border border-white
-    rounded-[20px]
-    px-4
-    py-3
-    shadow-xl
-  "
-  >
-    <p className="text-[10px] text-gray-500">
-      Starting From
-    </p>
+          <div
+            className="
+            bg-white/10
+            border
+            border-white/10
+            backdrop-blur-xl
+            rounded-[24px]
+            p-6
+            transition-all
+            duration-300
+            hover:bg-white/15
+            hover:border-[#CF3040]/50
+            "
+          >
+            <h3 className="text-4xl font-black text-white">
+              100%
+            </h3>
 
-    <h3 className="text-xl font-black text-[#E23747]">
-      ₹99/day
-    </h3>
-  </div>
+            <p className="text-white/70 mt-2">
+              Fresh & Hygienic
+            </p>
+          </div>
 
-  {/* Rating Badge */}
-  <div
-    className="
-    absolute
-    right-0
-    bottom-16
-    z-30
-    bg-white/90
-    backdrop-blur-xl
-    border border-white
-    rounded-[20px]
-    px-4
-    py-3
-    shadow-xl
-  "
-  >
-    <h3 className="text-lg font-black">
-      ⭐ 4.9
-    </h3>
+        </div>
 
-    <p className="text-xs text-gray-500">
-      Customer Rating
-    </p>
-  </div>
-
-</div>
       </div>
     </section>
   );
