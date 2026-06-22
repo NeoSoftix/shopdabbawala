@@ -2,7 +2,7 @@ import HeroCarousel from './HeroCarousel'
 // Demo slides matching the Instagram reel screenshots.
 // heroImage: swap these URLs for your real food photos.
 // ingredients: use { src, style } for real images, or { emoji, style } for quick demos.
-const DEMO_SLIDES = [
+export const DEMO_SLIDES = [
   {
     id: 'berry',
     bgColor: '#E8574A',
