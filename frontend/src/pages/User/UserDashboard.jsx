@@ -3,7 +3,10 @@ import PackageSection from "../../components/User/PackagesSection";
 import GettingStarted from "../../components/User/GettingStarted";
 import Footer from "../../components/Footer";
 import Hero from "../../components/Hero";
+import HeroCarousel from "../../components/HeroCarousel/HeroCarousel";
 // import ThaliShowCase from "../../components/ThaliShowCase";
+import { DEMO_SLIDES } from "../../components/HeroCarouse/HeroCarousel.stories";
+
 
 export default function UserDashboard() {
   return (
@@ -14,6 +17,13 @@ export default function UserDashboard() {
 
 
       <PackageSection />
+
+      <HeroCarousel
+        slides={DEMO_SLIDES}
+        autoPlay={true}
+        autoPlayInterval={3000}
+        height="100vh"
+      />
 
 
       <GettingStarted />

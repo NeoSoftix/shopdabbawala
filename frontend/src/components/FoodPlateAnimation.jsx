@@ -15,7 +15,7 @@ export default function FoodPlateAnimation({ trigger }) {
         initial={{ scale: 0.7, rotate: -20, opacity: 0 }}
         animate={{ scale: 1, rotate: 0, opacity: 1 }}
         transition={{ duration: 0.7 }}
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-cover"
       />
 
       {/* Rice */}
@@ -31,9 +31,9 @@ export default function FoodPlateAnimation({ trigger }) {
         }}
         className="
           absolute
-          left-[18%]
-          top-[48%]
-          w-[28%]
+          left-[12%]
+          top-[34%]
+          w-[38%]
         "
       />
 
@@ -50,7 +50,7 @@ export default function FoodPlateAnimation({ trigger }) {
         }}
         className="
           absolute
-          left-[8%]
+          left-[25%]
           top-[8%]
           w-[28%]
         "
@@ -76,8 +76,8 @@ export default function FoodPlateAnimation({ trigger }) {
         }}
         className="
           absolute
-          right-[10%]
-          top-[6%]
+          right-[18%]
+          top-[12%]
           w-[34%]
         "
       />
@@ -96,7 +96,7 @@ export default function FoodPlateAnimation({ trigger }) {
         className="
           absolute
           right-[12%]
-          top-[34%]
+          top-[40%]
           w-[34%]
         "
       />
@@ -120,7 +120,7 @@ export default function FoodPlateAnimation({ trigger }) {
         className="
           absolute
           left-[18%]
-          bottom-[10%]
+          bottom-[15%]
           w-[45%]
         "
       />
