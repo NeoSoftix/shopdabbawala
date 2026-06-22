@@ -178,46 +178,16 @@ export default function Hero() {
               🥑
             </motion.div>
 
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={slide.image}
-                src={slide.image}
-                alt=""
-                initial={{
-                  opacity: 0,
-                  scale: 0.7,
-                  rotate: -15,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  rotate: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.8,
-                }}
-                transition={{
-                  duration: 0.8,
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  rotateY: 10,
-                  rotateX: -10,
-                }}
-                className="
-                w-[380px]
-                h-[380px]
-                lg:w-[620px]
-                lg:h-[620px]
-                object-cover
-                rounded-full
-                border-[12px]
-                border-white/20
-                shadow-[0_0_120px_rgba(255,255,255,.25)]
-                "
-              />
-            </AnimatePresence>
+         <AnimatePresence mode="wait">
+  <motion.div
+    key={active}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <FoodPlateAnimation trigger={active} />
+  </motion.div>
+</AnimatePresence>
 
           </div>
         </div>
