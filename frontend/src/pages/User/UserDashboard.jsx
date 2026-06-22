@@ -1,4 +1,3 @@
-import NoPackageBanner from "../../components/User/NoPackageBanner";
 import PackageSection from "../../components/User/PackagesSection";
 import GettingStarted from "../../components/User/GettingStarted";
 import Footer from "../../components/Footer";
@@ -13,7 +12,6 @@ export default function UserDashboard() {
     <div className="space-y-8 bg-[#f7f8fc] min-h-screen">
       <Hero />
       {/* <ThaliShowCase />*/}
-      <NoPackageBanner /> 
 
 
       <PackageSection />
