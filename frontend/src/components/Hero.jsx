@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiArrowRight } from "react-icons/fi";
 import HeroHeader from "../components/HeroHeader";
 import { slides } from "../data/slides";
+import FoodPlateAnimation from "../components/FoodPlateAnimation"
 
 export default function Hero() {
   const [active, setActive] = useState(0);
