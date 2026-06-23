@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    resetPasswordToken :{
+      type:String
+    },
+
+    resetPasswordExpire : {
+      type:Date
+    },
+
     role: {
       type: String,
       enum: ["admin", "vendor", "user"],

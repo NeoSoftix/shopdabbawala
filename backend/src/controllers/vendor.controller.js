@@ -5,7 +5,7 @@ import cloudinary from "../config/cloudinary.js";
 import bcrypt from "bcryptjs";
 import passwordGenerator from "../utils/generatePassword.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
-import vendorWelcomeTemplate from "../utils/email/welcomeTemplate.js";
+import { vendorWelcomeTemplate } from "../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
 import Category from "../models/category.model.js";
 

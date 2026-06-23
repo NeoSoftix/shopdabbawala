@@ -1,4 +1,4 @@
-const vendorWelcomeTemplate = (
+export const vendorWelcomeTemplate = (
   name,
   email,
   password
@@ -18,4 +18,24 @@ const vendorWelcomeTemplate = (
   `;
 };
 
-export default vendorWelcomeTemplate;
+export const resetPasswordTemplate = (
+  name,
+  resetUrl
+) => {
+  return `
+    Hello ${name},
+
+    We received a request to reset your password.
+
+    Reset Link:
+    ${resetUrl}
+
+    This link will expire in 15 minutes.
+
+    If you did not request this, please ignore this email.
+
+    Regards,
+    Tiffin Delivery Team
+  `;
+};
+

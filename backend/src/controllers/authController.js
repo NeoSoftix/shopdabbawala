@@ -1,6 +1,9 @@
 import User from "../models/User.model.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
+import { sendEmail } from "../utils/email/sendEmail.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -58,10 +61,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
       return res.status(401).json({
@@ -84,7 +84,7 @@ export const login = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.cookie("token", token, {
@@ -102,7 +102,6 @@ export const login = async (req, res) => {
       message: "Login successful",
       user: userResponse,
     });
-
   } catch (error) {
     console.log(error);
 
@@ -161,5 +160,187 @@ export const logout = async (req, res) => {
       success: false,
       message: "Internal Server Error",
     });
+  }
+};
+
+// forgot password
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account exists, a reset link has been sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const emailContent = resetPasswordTemplate(user.name, resetUrl);
+
+    sendEmail(user.email, "Reset Password", emailContent).catch(
+      async (emailError) => {
+        console.error("Background Email sending error:", emailError);
+
+        try {
+          user.resetPasswordToken = undefined;
+          user.resetPasswordExpire = undefined;
+          await user.save({ validateBeforeSave: false });
+        } catch (dbError) {
+          console.error("Error reverting user token in background:", dbError);
+        }
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "If the email is valid, a reset link will be delivered shortly.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// reset password
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    if (!password || !confirmPassword) {
+      return res.status(400).json({
+        message: "Password is required",
+        success: false,
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        message: "Password not match",
+        success: false,
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters",
+        success: false,
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Password reset token is invalid or has expired.",
+        success: false,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password Changed Successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log("Reset Password error", error);
+
+    return res.status(500).json({
+      message: "Internal Server error",
+      success: false,
+    });
+  }
+};
+
+// changed password
+
+export const changedPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if ((!oldPassword, newPassword, confirmPassword)) {
+      return res.status(400).json({
+        message: "All feilds are required",
+        success: false,
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "New password and confirm password mismatch",
+        success: false,
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "Password lenght at least 8 char",
+        success: false,
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    const isMatch = await bcrypt.match(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Old password is not match",
+      });
+    }
+
+    if (oldPassword === password) {
+      return res.status(400).json({
+        message: "New password must be diffrent",
+        success: false,
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+
+    user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.log("Changed pas")
   }
 };
