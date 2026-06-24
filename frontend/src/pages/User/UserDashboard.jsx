@@ -1,20 +1,18 @@
 import PackageSection from "../../components/User/PackagesSection";
 import GettingStarted from "../../components/User/GettingStarted";
 import Footer from "../../components/Footer";
-import Hero from "../../components/Hero";
+// import Hero from "../../components/Hero";
 import HeroCarousel from "../../components/HeroCarousel/HeroCarousel";
 // import ThaliShowCase from "../../components/ThaliShowCase";
 import { DEMO_SLIDES } from "../../components/HeroCarousel/HeroCarousel.stories";
 import TiffinRendor from "../../components/TiffinRendor/TiffinRendor";
 
-
 export default function UserDashboard() {
   return (
     <div className="space-y-8 bg-[#f7f8fc] min-h-screen">
-      <Hero />
+      <TiffinRendor />
+      {/* <Hero /> */}
       {/* <ThaliShowCase />*/}
-
-
       <PackageSection />
 
       <HeroCarousel
@@ -24,7 +22,6 @@ export default function UserDashboard() {
         height="100vh"
       />
       <GettingStarted />
-      <TiffinRendor />
       <Footer />
 
     </div>

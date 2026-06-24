@@ -19,7 +19,7 @@ export default function Footer() {
 
       {/* CTA SECTION */}
       <div className="relative max-w-[1200px] mx-auto px-6">
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-red-700 via-red-700 to-red-700 shadow-[0_15px_50px_rgba(220,38,38,0.15)]">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-r bg-[#F82632] shadow-[0_15px_50px_rgba(220,38,38,0.15)]">
           <div className="grid lg:grid-cols-[280px_1fr] items-center">
             {/* Left Image */}
             <div className="hidden lg:flex justify-center pt-6 pl-6 self-end">
