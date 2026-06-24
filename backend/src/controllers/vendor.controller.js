@@ -624,3 +624,32 @@ export const getServiceAreaOfvendor = async (req, res) => {
     });
   }
 };
+
+// get vendor profile 
+export const vendorProfile = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({
+      userId: req.user.id,
+    }).populate("userId", "name email phone")
+
+    if(!vendor) {
+      return res.status(404).json({
+        message:"Vendor not found",
+        success:false
+      })
+    }
+
+    return res.status(200).json({
+      message:"Vendor profile fetch successfully",
+      success:true,
+      data:vendor
+    })
+  } catch (error) {
+    console.log("Get Profile Of Profile Error")
+
+    return res.status(500).json({
+      message:"Internal Server error",
+      success:false
+    })
+  }
+}

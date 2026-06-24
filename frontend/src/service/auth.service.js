@@ -43,6 +43,7 @@ export const getMe = async () => {
     }
 }
 
+// logout the page 
 export const logout = async () => {
     try {
         const res = await API.post("/auth/logout")

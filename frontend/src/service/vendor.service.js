@@ -79,3 +79,16 @@ export const deleteVendor = async (id) => {
     throw error;
   }
 };
+
+// get vendor profile 
+export const getVendorProfile = async () => {
+  try {
+    const res = await API.get("/vendor/me")
+
+    return res.data
+  } catch (error) {
+    console.error("Get Vendor Profile Error", error)
+
+    throw error
+  }
+}

@@ -1,3 +1,5 @@
+
+import { useState, useEffect } from "react";
 import {
   FaStore,
   FaEnvelope,
@@ -8,6 +10,7 @@ import {
   FaEdit,
   FaLock,
 } from "react-icons/fa";
+import { getVendorProfile } from "../../service/vendor.service.js";
 
 export default function VendorProfilePage() {
   return (

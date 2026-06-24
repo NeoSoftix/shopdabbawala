@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const DEFAULTS = {
-  duration: 750, // Buttery smooth sweet spot
-  easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+  duration: 800,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
   content: "fade",
   background: "fade",
   ingredients: "fade",
@@ -18,25 +18,52 @@ function getAnimValues(type, phase, isOutgoing, dir) {
     return { transform: "none", opacity: visible ? 1 : 0 };
   }
 
-  // 2. Plate Roll Logic: Premium Right to Left Horizontal alignment
   if (type === "plateRoll") {
     if (isOutgoing) {
       return {
-        transform:
-          phase === "running"
-            ? "translateX(-100vw) rotate(-120deg)"
-            : "translateX(0%) rotate(0deg)",
-        opacity: phase === "running" ? 0 : 1,
-      };
-    } else {
-      return {
-        transform:
-          phase === "init"
-            ? "translateX(100vw) rotate(120deg)"
-            : "translateX(0%) rotate(0deg)",
-        opacity: phase === "init" ? 0 : 1,
+        transform: phase === "running"
+          ? "translate3d(-150vw, 0, 0) rotate(-12deg) scale(0.95)"
+          : "translate3d(0, 0, 0) rotate(0deg) scale(1)",
+        opacity: phase === "running" ? 0.3 : 1,
       };
     }
+
+    return {
+      transform: phase === "init"
+        ? "translate3d(150vw, 0, 0) rotate(12deg) scale(0.95)"
+        : "translate3d(0, 0, 0) rotate(0deg) scale(1)",
+      opacity: phase === "init" ? 0.3 : 1,
+    };
+  }
+
+  // 2b. Title Slide Logic: Smooth horizontal transition without rotation
+  if (type === "titleSlide") {
+    if (isOutgoing) {
+      return {
+        transform: phase === "running" ? "translate3d(-150vw, 0, 0)" : "translate3d(0, 0, 0)",
+        opacity: 1,
+      };
+    }
+
+    return {
+      transform: phase === "init" ? "translate3d(150vw, 0, 0)" : "translate3d(0, 0, 0)",
+      opacity: 1,
+    };
+  }
+
+  // 2c. Ingredients Slide Logic: Smooth vertical slide from top to bottom
+  if (type === "ingredientsSlide") {
+    if (isOutgoing) {
+      return {
+        transform: phase === "running" ? "translate3d(0, 100vh, 0)" : "translate3d(0, 0, 0)",
+        opacity: phase === "running" ? 0 : 1,
+      };
+    }
+
+    return {
+      transform: phase === "init" ? "translate3d(0, -100vh, 0)" : "translate3d(0, 0, 0)",
+      opacity: phase === "init" ? 0 : 1,
+    };
   }
 
   // 3. Axis Sliders
@@ -76,17 +103,19 @@ export default function HeroCarousel({
   slides = [],
   transition = {},
   autoPlay = false,
-  autoPlayInterval = 4000,
+  autoPlayInterval = 4200,
   height = "100vh",
   titleFont = "Impact, 'Arial Black', sans-serif",
   onSlideChange,
 }) {
-  // Overriding string presets to guarantee 'fade' layout consistency
-  const tr = { 
-    ...DEFAULTS, 
+  // Overriding transition parameters to guarantee the requested smooth animation timing and easing
+  const tr = {
+    ...DEFAULTS,
     ...transition,
+    duration: 1600,
+    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
     background: "fade",
-    content: "fade"
+    content: "fade",
   };
 
   const [current, setCurrent] = useState(0);
@@ -112,10 +141,10 @@ export default function HeroCarousel({
       setDir(resolvedDir);
       setPhase("init");
 
-      // Hardware execution sync to eliminate raw visual jumps
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setPhase("running"));
-      });
+      // Force a paint cycle for the init state to ensure browser layout sync
+      setTimeout(() => {
+        setPhase("running");
+      }, 50);
 
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
@@ -123,7 +152,7 @@ export default function HeroCarousel({
         setPhase("idle");
         lockRef.current = false;
         onSlideChange?.(nextIdx);
-      }, tr.duration);
+      }, tr.duration + 50);
     },
     [tr.duration, onSlideChange],
   );
@@ -157,9 +186,9 @@ export default function HeroCarousel({
       zIndex,
       transform,
       opacity,
-      transition: phase === "running" ? transProp : "none",
+      transition: transProp,
       willChange: "transform, opacity",
-      pointerEvents: "none", 
+      pointerEvents: "none",
     };
   }
 
@@ -171,7 +200,7 @@ export default function HeroCarousel({
       <div
         key={`bg-${slideIdx}-${isOutgoing ? "out" : "in"}`}
         style={{
-          ...layerStyle("fade", isOutgoing, isOutgoing ? 2 : 1), 
+          ...layerStyle("fade", isOutgoing, isOutgoing ? 2 : 1),
           position: "absolute",
           inset: 0,
           background: `radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, ${slide.bgColor} 65%)`,
@@ -188,7 +217,7 @@ export default function HeroCarousel({
     return (
       <div
         key={`title-${slideIdx}-${isOutgoing ? "out" : "in"}`}
-        style={layerStyle("fade", isOutgoing, isOutgoing ? 10 : 11)}
+        style={layerStyle("titleSlide", isOutgoing, isOutgoing ? 10 : 11)}
         aria-hidden={isOutgoing}
       >
         <div
@@ -236,11 +265,10 @@ export default function HeroCarousel({
             position: "absolute",
             top: "50%",
             left: "50%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate3d(-50%, -50%, 0)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            animation: "plateFloat 3s ease-in-out infinite",
           }}
         >
           <div
@@ -250,6 +278,9 @@ export default function HeroCarousel({
               borderRadius: "50%",
               overflow: "hidden",
               boxShadow: `0 30px 100px rgba(0,0,0,0.35),0 0 50px rgba(255,255,255,0.15)`,
+              animation: isOutgoing
+                ? "plateExitTilt 1.6s ease forwards"
+                : "plateEnterTilt 1.6s ease forwards",
             }}
           >
             <div
@@ -271,7 +302,7 @@ export default function HeroCarousel({
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  display: "block",
+                  transform: "scale(1.4)",
                 }}
               />
             ) : (
@@ -362,15 +393,14 @@ export default function HeroCarousel({
     );
   }
 
-  // ─── Layer C: Floating Ingredients Layer ────────────────────────────
   function renderIngredients(slideIdx, isOutgoing) {
     const slide = slides[slideIdx];
     if (!slide?.ingredients?.length) return null;
-    
+
     return (
       <div
         key={`ing-wrapper-${slideIdx}-${isOutgoing ? "out" : "in"}`}
-        style={layerStyle("fade", isOutgoing, isOutgoing ? 32 : 31)}
+        style={layerStyle("ingredientsSlide", isOutgoing, isOutgoing ? 32 : 31)}
         aria-hidden="true"
       >
         {slide.ingredients.map((item, i) =>
@@ -384,7 +414,7 @@ export default function HeroCarousel({
                 objectFit: "contain",
                 animation: isOutgoing
                   ? "none"
-                  : `ingredientDrop 1.5s ease-out ${i * 0.25}s both, ingredientFloat ${8 + i}s ease-in-out infinite 1.8s`,
+                  : `ingredientFloat ${8 + i}s ease-in-out infinite`,
                 ...item.style,
               }}
             />
@@ -397,13 +427,13 @@ export default function HeroCarousel({
                 userSelect: "none",
                 animation: isOutgoing
                   ? "none"
-                  : `ingredientDrop 1.5s ease-out ${i * 0.25}s both, ingredientFloat ${8 + i}s ease-in-out infinite 1.8s`,
+                  : `ingredientFloat ${8 + i}s ease-in-out infinite`,
                 ...item.style,
               }}
             >
               {item.emoji}
             </span>
-          )
+          ),
         )}
       </div>
     );

@@ -8,53 +8,42 @@ import {
   removeAreaAndCategory, 
   selectAreaAndCategory, 
   toggleVendorStatus, 
-  updateVendor 
+  updateVendor,
+  vendorProfile
 } from "../controllers/vendor.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
 import  upload  from "../middleware/upload.middleware.js"; 
 
 const router = express.Router();
 
-// creaet a vender
-router.post(
-  "/", 
-  verifyToken, 
-  allowedRoles("admin"), 
-  upload.single("logo"), 
-  createVendor
-);
+// Create Vendor
+router.post("/", verifyToken, allowedRoles("admin"), upload.single("logo"), createVendor);
 
-// Update the vendor (Admin Only + Optional Logo Update)
-router.put(
-  "/:id", 
-  verifyToken, 
-  allowedRoles("admin"), 
-  upload.single("logo"), 
-  updateVendor
-);
+// Get Vendor Profile
+router.get("/me", verifyToken, allowedRoles("vendor"), vendorProfile);
 
-router.get("/", verifyToken, allowedRoles("admin"), getAllVendors)
+// Get All Vendors
+router.get("/", verifyToken, allowedRoles("admin"), getAllVendors);
 
-// select Area And category 
-router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory)
+// Select Area & Category
+router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory);
 
-// get Service Area Of a Vendor
-router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaOfvendor)
+// Service Area
+router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaOfvendor);
 
-// remove Area and category
-router.delete(
-  "/remove-area-category/:id",
-  verifyToken, allowedRoles("vendor"),
-  removeAreaAndCategory
-);
+// Remove Area & Category
+router.delete("/remove-area-category/:id", verifyToken, allowedRoles("vendor"), removeAreaAndCategory);
 
-// Toggle Vendor Status (Active/Inactive)
+// Update Vendor
+router.put("/:id", verifyToken, allowedRoles("admin"), upload.single("logo"), updateVendor);
+
+// Toggle Status
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);
 
-// Get vendor by ID (Public Route)
-router.get("/:id", getOneVendor);
+// Get One Vendor
+router.get("/:id",allowedRoles("admin"), getOneVendor);
 
-// Delete vendor (Admin Only)
+// Delete Vendor
 router.delete("/:id", verifyToken, allowedRoles("admin"), deleteVendor);
 
 export default router;

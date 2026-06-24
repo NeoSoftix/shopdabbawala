@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login, getMe, logout, forgotPassword, resetPassword } from "../controllers/authController.js";
+import { signup, login, getMe, logout, forgotPassword, resetPassword, changedPassword } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 
@@ -11,5 +11,6 @@ router.get("/me", verifyToken, getMe)
 router.post("/logout",verifyToken, logout)
 router.post("/forgot-password", forgotPassword)
 router.put("/reset-password/:token", resetPassword)
+router.patch("/change-password", verifyToken, changedPassword)
 
 export default router;

@@ -5,6 +5,7 @@ import Hero from "../../components/Hero";
 import HeroCarousel from "../../components/HeroCarousel/HeroCarousel";
 // import ThaliShowCase from "../../components/ThaliShowCase";
 import { DEMO_SLIDES } from "../../components/HeroCarousel/HeroCarousel.stories";
+import TiffinRendor from "../../components/TiffinRendor/TiffinRendor";
 
 
 export default function UserDashboard() {
@@ -19,12 +20,11 @@ export default function UserDashboard() {
       <HeroCarousel
         slides={DEMO_SLIDES}
         autoPlay={true}
-        autoPlayInterval={3000}
+        autoPlayInterval={3500}
         height="100vh"
       />
-
-
       <GettingStarted />
+      <TiffinRendor />
       <Footer />
 
     </div>

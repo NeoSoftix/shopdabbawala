@@ -26,11 +26,7 @@ export default function VendorLayout() {
       />
 
       <div className="flex flex-col flex-1">
-<Header
-  title="Vendor Dashboard"
-  userName="Vendor"
-  userRole="Vendor"
-/>
+        <Header title="Vendor Dashboard" userName="Vendor" userRole="Vendor" />
         <main className="flex-1 p-8">
           <Outlet />
         </main>
