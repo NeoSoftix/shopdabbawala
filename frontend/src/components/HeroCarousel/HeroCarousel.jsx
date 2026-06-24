@@ -9,10 +9,13 @@ const DEFAULTS = {
 };
 
 /**
- * Clean & Safe getAnimValues function
+ * Clean & Safe getAnimValues function with responsive boundaries
  */
-function getAnimValues(type, phase, isOutgoing, dir) {
-  // 1. Enhanced Fade logic for smooth color blending, text, and cta
+function getAnimValues(type, phase, isOutgoing, dir, isMobile) {
+  // Enhanced dynamic view coordinates based on layout type
+  const viewWidth = isMobile ? "100vw" : "150vw";
+  const viewHeight = "100vh";
+
   if (type === "fade") {
     const visible = isOutgoing ? phase !== "running" : phase !== "init";
     return { transform: "none", opacity: visible ? 1 : 0 };
@@ -22,81 +25,49 @@ function getAnimValues(type, phase, isOutgoing, dir) {
     if (isOutgoing) {
       return {
         transform: phase === "running"
-          ? "translate3d(-150vw, 0, 0) rotate(-12deg) scale(0.95)"
+          ? `translate3d(-${viewWidth}, 0, 0) rotate(-12deg) scale(0.85)`
           : "translate3d(0, 0, 0) rotate(0deg) scale(1)",
-        opacity: phase === "running" ? 0.3 : 1,
-      };
-    }
-
-    return {
-      transform: phase === "init"
-        ? "translate3d(150vw, 0, 0) rotate(12deg) scale(0.95)"
-        : "translate3d(0, 0, 0) rotate(0deg) scale(1)",
-      opacity: phase === "init" ? 0.3 : 1,
-    };
-  }
-
-  // 2b. Title Slide Logic: Smooth horizontal transition without rotation
-  if (type === "titleSlide") {
-    if (isOutgoing) {
-      return {
-        transform: phase === "running" ? "translate3d(-150vw, 0, 0)" : "translate3d(0, 0, 0)",
-        opacity: 1,
-      };
-    }
-
-    return {
-      transform: phase === "init" ? "translate3d(150vw, 0, 0)" : "translate3d(0, 0, 0)",
-      opacity: 1,
-    };
-  }
-
-  // 2c. Ingredients Slide Logic: Smooth vertical slide from top to bottom
-  if (type === "ingredientsSlide") {
-    if (isOutgoing) {
-      return {
-        transform: phase === "running" ? "translate3d(0, 100vh, 0)" : "translate3d(0, 0, 0)",
         opacity: phase === "running" ? 0 : 1,
       };
     }
 
     return {
-      transform: phase === "init" ? "translate3d(0, -100vh, 0)" : "translate3d(0, 0, 0)",
+      transform: phase === "init"
+        ? `translate3d(${viewWidth}, 0, 0) rotate(12deg) scale(0.85)`
+        : "translate3d(0, 0, 0) rotate(0deg) scale(1)",
       opacity: phase === "init" ? 0 : 1,
     };
   }
 
-  // 3. Axis Sliders
-  let axis, exitVal, enterVal;
+  if (type === "titleSlide") {
+    if (isOutgoing) {
+      return {
+        transform: phase === "running" ? `translate3d(-${viewWidth}, 0, 0)` : "translate3d(0, 0, 0)",
+        opacity: phase === "running" ? 0 : 1,
+      };
+    }
 
-  if (type === "slideDown") {
-    axis = "Y";
-    exitVal = "100%";
-    enterVal = "-100%";
-  } else if (type === "slideUp") {
-    axis = "Y";
-    exitVal = "-100%";
-    enterVal = "100%";
-  } else if (type === "slideRight") {
-    axis = "X";
-    exitVal = dir === "next" ? "100%" : "-100%";
-    enterVal = dir === "next" ? "-100%" : "100%";
-  } else {
-    // slideLeft (default)
-    axis = "X";
-    exitVal = dir === "next" ? "-100%" : "100%";
-    enterVal = dir === "next" ? "100%" : "-100%";
+    return {
+      transform: phase === "init" ? `translate3d(${viewWidth}, 0, 0)` : "translate3d(0, 0, 0)",
+      opacity: phase === "init" ? 0 : 1,
+    };
   }
 
-  const val = isOutgoing
-    ? phase === "running"
-      ? exitVal
-      : "0%"
-    : phase === "init"
-      ? enterVal
-      : "0%";
+  if (type === "ingredientsSlide") {
+    if (isOutgoing) {
+      return {
+        transform: phase === "running" ? `translate3d(0, ${viewHeight}, 0)` : "translate3d(0, 0, 0)",
+        opacity: phase === "running" ? 0 : 1,
+      };
+    }
 
-  return { transform: `translate${axis}(${val})`, opacity: 1 };
+    return {
+      transform: phase === "init" ? `translate3d(0, -${viewHeight}, 0)` : "translate3d(0, 0, 0)",
+      opacity: phase === "init" ? 0 : 1,
+    };
+  }
+
+  return { transform: "none", opacity: 1 };
 }
 
 export default function HeroCarousel({
@@ -108,11 +79,10 @@ export default function HeroCarousel({
   titleFont = "Impact, 'Arial Black', sans-serif",
   onSlideChange,
 }) {
-  // Overriding transition parameters to guarantee the requested smooth animation timing and easing
   const tr = {
     ...DEFAULTS,
     ...transition,
-    duration: 1600,
+    duration: 1200, // Slightly tuned down to match responsive scaling speed profiles
     easing: "cubic-bezier(0.22, 1, 0.36, 1)",
     background: "fade",
     content: "fade",
@@ -122,6 +92,19 @@ export default function HeroCarousel({
   const [outgoing, setOutgoing] = useState(null);
   const [phase, setPhase] = useState("idle");
   const [dir, setDir] = useState("next");
+  
+  // Responsive viewport dimensions listener hooks
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   const lockRef = useRef(false);
   const timerRef = useRef(null);
@@ -141,7 +124,6 @@ export default function HeroCarousel({
       setDir(resolvedDir);
       setPhase("init");
 
-      // Force a paint cycle for the init state to ensure browser layout sync
       setTimeout(() => {
         setPhase("running");
       }, 50);
@@ -168,18 +150,15 @@ export default function HeroCarousel({
     return () => clearInterval(id);
   }, [autoPlay, autoPlayInterval, navigate, slides.length]);
 
-  const goNext = () =>
-    navigate((currentRef.current + 1) % slides.length, "next");
-  const goPrev = () =>
-    navigate((currentRef.current - 1 + slides.length) % slides.length, "prev");
+  const goNext = () => navigate((currentRef.current + 1) % slides.length, "next");
+  const goPrev = () => navigate((currentRef.current - 1 + slides.length) % slides.length, "prev");
 
   if (!slides.length) return null;
 
-  // Single synced dynamic cubic transition string
   const transProp = `transform ${tr.duration}ms ${tr.easing}, opacity ${tr.duration}ms ${tr.easing}`;
 
   function layerStyle(type, isOutgoing, zIndex) {
-    const { transform, opacity } = getAnimValues(type, phase, isOutgoing, dir);
+    const { transform, opacity } = getAnimValues(type, phase, isOutgoing, dir, isMobile);
     return {
       position: "absolute",
       inset: 0,
@@ -192,7 +171,7 @@ export default function HeroCarousel({
     };
   }
 
-  // ─── Layer A: Background Color Layer ────────────────────────────────
+  // Layer A: Background Color
   function renderBg(slideIdx, isOutgoing) {
     const slide = slides[slideIdx];
     if (!slide) return null;
@@ -203,14 +182,14 @@ export default function HeroCarousel({
           ...layerStyle("fade", isOutgoing, isOutgoing ? 2 : 1),
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, ${slide.bgColor} 65%)`,
+          background: `radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, ${slide.bgColor} 75%)`,
         }}
         aria-hidden="true"
       />
     );
   }
 
-  // ─── Layer B1: Title Text Layer ──────────────────────────────────────
+  // Layer B1: Responsive Big Title Text
   function renderTitleText(slideIdx, isOutgoing) {
     const slide = slides[slideIdx];
     if (!slide) return null;
@@ -223,24 +202,26 @@ export default function HeroCarousel({
         <div
           style={{
             position: "absolute",
-            top: "50%",
+            top: isMobile ? "24%" : "50%",
             left: 0,
             right: 0,
             transform: "translateY(-50%)",
             textAlign: "center",
             zIndex: 1,
+            padding: "0 10px",
           }}
         >
           <span
             style={{
               display: "block",
               fontFamily: titleFont,
-              fontSize: "clamp(80px, 15vw, 220px)",
+              fontSize: isMobile ? "clamp(46px, 12vw, 80px)" : "clamp(80px, 15vw, 220px)",
               fontWeight: 900,
               color: "rgba(255,255,255,0.92)",
               letterSpacing: "0.02em",
-              lineHeight: 1,
+              lineHeight: 0.95,
               textTransform: "uppercase",
+              wordBreak: "break-word",
             }}
           >
             {slide.title}
@@ -250,10 +231,14 @@ export default function HeroCarousel({
     );
   }
 
-  // ─── Layer B2: Circular Plate Layer ──────────────────────────────────
+  // Layer B2: Circular Plate Layer
   function renderPlate(slideIdx, isOutgoing) {
     const slide = slides[slideIdx];
     if (!slide) return null;
+
+    // Fluid dimensions relative to design breakpoints
+    const plateSize = isMobile ? "min(34vh, 260px)" : "min(52vh, 500px)";
+
     return (
       <div
         key={`plate-${slideIdx}-${isOutgoing ? "out" : "in"}`}
@@ -263,7 +248,7 @@ export default function HeroCarousel({
         <div
           style={{
             position: "absolute",
-            top: "50%",
+            top: isMobile ? "50%" : "50%",
             left: "50%",
             transform: "translate3d(-50%, -50%, 0)",
             display: "flex",
@@ -273,27 +258,13 @@ export default function HeroCarousel({
         >
           <div
             style={{
-              width: "min(52vh, 500px)",
-              height: "min(52vh, 500px)",
+              width: plateSize,
+              height: plateSize,
               borderRadius: "50%",
               overflow: "hidden",
-              boxShadow: `0 30px 100px rgba(0,0,0,0.35),0 0 50px rgba(255,255,255,0.15)`,
-              animation: isOutgoing
-                ? "plateExitTilt 1.6s ease forwards"
-                : "plateEnterTilt 1.6s ease forwards",
+              boxShadow: `0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.1)`,
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                width: "500px",
-                height: "500px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.15)",
-                filter: "blur(100px)",
-                zIndex: -1,
-              }}
-            />
             {slide.heroImage ? (
               <img
                 src={slide.heroImage}
@@ -302,7 +273,7 @@ export default function HeroCarousel({
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  transform: "scale(1.4)",
+                  transform: isMobile ? "scale(1.25)" : "scale(1.4)",
                 }}
               />
             ) : (
@@ -314,7 +285,7 @@ export default function HeroCarousel({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "80px",
+                  fontSize: isMobile ? "44px" : "80px",
                 }}
               >
                 {slide.heroEmoji ?? "🍽"}
@@ -326,7 +297,7 @@ export default function HeroCarousel({
     );
   }
 
-  // ─── Layer B3: Content & Buttons Layer ──────────────────────────────
+  // Layer B3: Content Descriptions & Actions Box
   function renderCtaAndDesc(slideIdx, isOutgoing) {
     const slide = slides[slideIdx];
     if (!slide || (!slide.description && !slide.price && !slide.ctaLabel))
@@ -339,18 +310,22 @@ export default function HeroCarousel({
         <div
           style={{
             position: "absolute",
-            bottom: "12%",
-            left: "5%",
+            bottom: isMobile ? "14%" : "12%",
+            left: isMobile ? "0" : "5%",
+            right: isMobile ? "0" : "auto",
+            margin: isMobile ? "0 auto" : "0",
+            textAlign: isMobile ? "center" : "left",
+            maxWidth: isMobile ? "280px" : "320px",
             pointerEvents: isOutgoing ? "none" : "all",
+            padding: "0 16px",
           }}
         >
           {slide.description && (
             <p
               style={{
-                color: "rgba(255,255,255,0.82)",
-                fontSize: "13px",
-                lineHeight: 1.6,
-                maxWidth: "200px",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: isMobile ? "13px" : "14px",
+                lineHeight: 1.5,
                 margin: "0 0 10px",
               }}
             >
@@ -361,8 +336,8 @@ export default function HeroCarousel({
             <p
               style={{
                 color: "#fff",
-                fontWeight: 700,
-                fontSize: "20px",
+                fontWeight: 800,
+                fontSize: isMobile ? "22px" : "26px",
                 margin: "0 0 12px",
               }}
             >
@@ -376,13 +351,14 @@ export default function HeroCarousel({
                 background: "#fff",
                 color: slide.bgColor ?? "#333",
                 fontWeight: 700,
-                fontSize: "12px",
-                padding: "10px 22px",
+                fontSize: isMobile ? "11px" : "12px",
+                padding: isMobile ? "10px 24px" : "12px 28px",
                 borderRadius: "100px",
                 border: "none",
                 cursor: "pointer",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
               }}
             >
               {slide.ctaLabel}
@@ -393,7 +369,9 @@ export default function HeroCarousel({
     );
   }
 
+  // Layer 5: Floating Ingredient Elements (Hidden dynamically on small mobile devices to avoid chaos)
   function renderIngredients(slideIdx, isOutgoing) {
+    if (isMobile) return null; 
     const slide = slides[slideIdx];
     if (!slide?.ingredients?.length) return null;
 
@@ -412,9 +390,6 @@ export default function HeroCarousel({
               style={{
                 position: "absolute",
                 objectFit: "contain",
-                animation: isOutgoing
-                  ? "none"
-                  : `ingredientFloat ${8 + i}s ease-in-out infinite`,
                 ...item.style,
               }}
             />
@@ -425,9 +400,6 @@ export default function HeroCarousel({
                 position: "absolute",
                 lineHeight: 1,
                 userSelect: "none",
-                animation: isOutgoing
-                  ? "none"
-                  : `ingredientFloat ${8 + i}s ease-in-out infinite`,
                 ...item.style,
               }}
             >
@@ -440,15 +412,15 @@ export default function HeroCarousel({
   }
 
   const arrowBtn = {
-    width: "44px",
-    height: "44px",
+    width: isMobile ? "38px" : "44px",
+    height: isMobile ? "38px" : "44px",
     borderRadius: "50%",
-    border: "2px solid rgba(255,255,255,0.55)",
-    background: "rgba(255,255,255,0.12)",
+    border: "2px solid rgba(255,255,255,0.45)",
+    background: "rgba(255,255,255,0.1)",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
     color: "#fff",
-    fontSize: "22px",
+    fontSize: isMobile ? "18px" : "22px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -466,27 +438,22 @@ export default function HeroCarousel({
         userSelect: "none",
       }}
     >
-      {/* 1. Background Layer */}
-      {outgoing !== null && renderBg(outgoing, true)}
       {renderBg(current, false)}
+      {outgoing !== null && renderBg(outgoing, true)}
 
-      {/* 2. Text Title (Behind) */}
-      {outgoing !== null && renderTitleText(outgoing, true)}
       {renderTitleText(current, false)}
+      {outgoing !== null && renderTitleText(outgoing, true)}
 
-      {/* 3. Plate Layer (Rolls over Text) */}
-      {outgoing !== null && renderPlate(outgoing, true)}
       {renderPlate(current, false)}
+      {outgoing !== null && renderPlate(outgoing, true)}
 
-      {/* 4. Left side Content & CTA Button */}
-      {outgoing !== null && renderCtaAndDesc(outgoing, true)}
       {renderCtaAndDesc(current, false)}
+      {outgoing !== null && renderCtaAndDesc(outgoing, true)}
 
-      {/* 5. Floating Ingredients */}
-      {outgoing !== null && renderIngredients(outgoing, true)}
       {renderIngredients(current, false)}
+      {outgoing !== null && renderIngredients(outgoing, true)}
 
-      {/* Static UI Layer */}
+      {/* Control Interface UI Elements */}
       <div
         style={{
           position: "absolute",
@@ -495,13 +462,14 @@ export default function HeroCarousel({
           pointerEvents: "none",
         }}
       >
+        {/* Navigation Arrows */}
         <div
           style={{
             position: "absolute",
-            bottom: "8%",
-            right: "4%",
+            bottom: isMobile ? "4%" : "8%",
+            right: isMobile ? "5%" : "4%",
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             pointerEvents: "all",
           }}
         >
@@ -513,16 +481,18 @@ export default function HeroCarousel({
           </button>
         </div>
 
+        {/* Carousel Indicators Pagination dots */}
         {slides.length > 1 && (
           <div
             style={{
               position: "absolute",
-              bottom: "3%",
-              left: "50%",
-              transform: "translateX(-50%)",
+              bottom: "4%",
+              left: isMobile ? "5%" : "50%",
+              transform: isMobile ? "none" : "translateX(-50%)",
               display: "flex",
               gap: "6px",
               pointerEvents: "all",
+              alignItems: "center",
             }}
           >
             {slides.map((_, i) => (
@@ -531,10 +501,10 @@ export default function HeroCarousel({
                 onClick={() => navigate(i, i > current ? "next" : "prev")}
                 aria-label={`Go to slide ${i + 1}`}
                 style={{
-                  width: i === current ? "20px" : "8px",
+                  width: i === current ? (isMobile ? "16px" : "20px") : "8px",
                   height: "8px",
                   borderRadius: "4px",
-                  background: i === current ? "#fff" : "rgba(255,255,255,0.45)",
+                  background: i === current ? "#fff" : "rgba(255,255,255,0.4)",
                   border: "none",
                   cursor: "pointer",
                   transition: "width 300ms, background 300ms",
