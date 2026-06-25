@@ -33,7 +33,7 @@ const menuItems = [
   },
   {
     id: "thali3",
-    name: "Snack Meal",
+    name: "EVENING SNACKS",
     description:
       "Delicious bite-sized treats crafted with fresh ingredients and bold flavors, perfect for a quick snack, light craving, or anytime enjoyment.",
 

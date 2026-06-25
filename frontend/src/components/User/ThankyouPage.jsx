@@ -1,6 +1,11 @@
 import React from "react";
+// 1. useNavigate hook ko react-router-dom se import karein
+import { useNavigate } from "react-router-dom";
 
 export default function ThankYouPage({ setShowSuccess }) {
+  // 2. navigate function ko initialize karein
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 antialiased">
       {/* Main Container */}
@@ -25,7 +30,7 @@ export default function ThankYouPage({ setShowSuccess }) {
           </svg>
         </button>
 
-        {/* Floating Decorative Elements (Confetti/Hearts representation) */}
+        {/* Floating Decorative Elements */}
         <div className="absolute top-8 left-12 w-2 h-2 bg-red-400 rounded-full opacity-60"></div>
         <div className="absolute top-16 left-20 w-4 h-4 text-red-300 opacity-50 select-none">
           ★
@@ -140,7 +145,11 @@ export default function ThankYouPage({ setShowSuccess }) {
         </div>
 
         {/* Action Button */}
-        <button className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-colors duration-200 shadow-md shadow-red-200 mb-6 group">
+        {/* 3. onClick handler lagayein jo aapke meal planner wale path par le jaye */}
+        <button 
+          onClick={() => navigate("/meal-planner")} 
+          className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-colors duration-200 shadow-md shadow-red-200 mb-6 group"
+        >
           <svg
             className="w-5 h-5 transition-transform group-hover:scale-110"
             fill="none"
