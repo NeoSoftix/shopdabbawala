@@ -55,15 +55,10 @@ export default function PackagesSection() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupStep, setPopupStep] = useState(1); 
   const [formData, setFormData] = useState({ name: "", phone: "", pincode: "" });
-  const [expandedCards, setExpandedCards] = useState({});
   
-  // सभी पैकेज देखने के लिए नया स्टेट
+  // Specific features modal management states
+  const [featureModalData, setFeatureModalData] = useState(null);
   const [isViewAllOpen, setIsViewAllOpen] = useState(false);
-
-  const toggleExpand = (e, index) => {
-    e.stopPropagation(); 
-    setExpandedCards(prev => ({ ...prev, [index]: !prev[index] }));
-  };
 
   const getResponsiveOffset = () => {
     if (typeof window !== "undefined") {
@@ -102,6 +97,11 @@ export default function PackagesSection() {
   const handleChoosePlanInModal = (index) => {
     setActive(index);
     setIsViewAllOpen(false);
+  };
+
+  const openFeaturesModal = (e, pkg) => {
+    e.stopPropagation(); // Avoid triggering carousel selection slide change
+    setFeatureModalData(pkg);
   };
 
   return (
@@ -175,8 +175,8 @@ export default function PackagesSection() {
 
             if (!shouldRender) return null;
 
-            const isExpanded = expandedCards[index];
-            const visibleFeatures = isExpanded ? pkg.features : pkg.features.slice(0, 3);
+            // Display exactly 3 stable fixed preview list features per card
+            const visibleFeatures = pkg.features.slice(0, 3);
 
             return (
               <motion.div
@@ -254,13 +254,10 @@ export default function PackagesSection() {
                         </span>
                       </div>
 
-                      <motion.div layout className="my-3 overflow-hidden">
+                      <div className="my-3 overflow-hidden">
                         <ul className="space-y-2 text-left max-w-[150px] sm:max-w-[190px] mx-auto">
                           {visibleFeatures.map((feat) => (
-                            <motion.li 
-                              layout
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
+                            <li 
                               key={feat} 
                               className="flex items-center text-slate-600 text-[11px] sm:text-xs font-semibold tracking-wide"
                             >
@@ -270,19 +267,18 @@ export default function PackagesSection() {
                                 </svg>
                               </div>
                               <span className="truncate">{feat}</span>
-                            </motion.li>
+                            </li>
                           ))}
                         </ul>
 
-                        {pkg.features.length > 3 && (
-                          <button
-                            onClick={(e) => toggleExpand(e, index)}
-                            className="mt-2.5 text-[10px] sm:text-xs font-black tracking-widest text-red-500 hover:text-red-600 transition-colors uppercase focus:outline-none block mx-auto underline decoration-dashed underline-offset-4"
-                          >
-                            {isExpanded ? "← Show Less" : "See More +"}
-                          </button>
-                        )}
-                      </motion.div>
+                        {/* Trigger Full Package Specification Details in custom clean popup model overlay */}
+                        <button
+                          onClick={(e) => openFeaturesModal(e, pkg)}
+                          className="mt-3.5 text-[10px] sm:text-xs font-black tracking-widest text-red-500 hover:text-red-600 transition-colors uppercase focus:outline-none block mx-auto underline decoration-dashed underline-offset-4"
+                        >
+                          View Full Features +
+                        </button>
+                      </div>
                     </div>
 
                     <button
@@ -342,6 +338,74 @@ export default function PackagesSection() {
           </button>
         </div>
       </div>
+
+      {/* ================= NEW SINGLE PACKAGE PACKAGE FEATURE DETAILS POPUP MODAL ================= */}
+      <AnimatePresence>
+        {featureModalData && (
+          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setFeatureModalData(null)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl z-10 p-6 sm:p-8 border border-slate-100 pointer-events-auto"
+            >
+              {/* Close Button X */}
+              <button 
+                onClick={() => setFeatureModalData(null)}
+                className="absolute top-5 right-5 w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors focus:outline-none shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 border-4 border-slate-50 shadow-md">
+                  <img src={featureModalData.image} alt={featureModalData.title} className="w-full h-full object-cover" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-wide">
+                  {featureModalData.title} Plan
+                </h3>
+                <p className="text-red-600 font-extrabold text-sm uppercase tracking-wider mt-0.5">
+                  {featureModalData.meals} • {featureModalData.price}/mo
+                </p>
+              </div>
+
+              <div className="w-full h-[1px] bg-slate-100 mb-5" />
+
+              <h4 className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-3 text-left">
+                Included Premium Features
+              </h4>
+              <ul className="space-y-3 text-left mb-6">
+                {featureModalData.features.map((feat) => (
+                  <li key={feat} className="flex items-center text-slate-700 text-xs sm:text-sm font-semibold tracking-wide">
+                    <div className="w-5 h-5 bg-red-500/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                      <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => setFeatureModalData(null)}
+                className="w-full bg-slate-950 hover:bg-slate-900 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl shadow-md transition-all focus:outline-none"
+              >
+                Got It, Close Details
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ================= VIEW ALL PACKAGES MODAL OVERLAY ================= */}
       <AnimatePresence>

@@ -6,11 +6,8 @@ import HeroCarousel from "../../components/HeroCarousel/HeroCarousel";
 // import ThaliShowCase from "../../components/ThaliShowCase";
 import { DEMO_SLIDES } from "../../components/HeroCarousel/HeroCarousel.stories";
 import TiffinRendor from "../../components/TiffinRendor/TiffinRendor";
-<<<<<<< Updated upstream
 import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
-=======
 import HeroHeader from "../../components/HeroHeader";
->>>>>>> Stashed changes
 
 export default function UserDashboard() {
   return (
@@ -27,11 +24,8 @@ export default function UserDashboard() {
         autoPlayInterval={3500}
         height="100vh"
       />
-<<<<<<< Updated upstream
       <PerfectMatchFoodHero />
-=======
 
->>>>>>> Stashed changes
       <GettingStarted />
       <Footer />
 
