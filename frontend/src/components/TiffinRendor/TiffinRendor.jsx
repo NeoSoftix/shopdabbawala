@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import HeroHeader from "../HeroHeader";
 
 const menuItems = [
   {
@@ -10,9 +9,10 @@ const menuItems = [
       "A high-protein meal packed with lean proteins, wholesome ingredients, and balanced nutrition, crafted to fuel your body while delivering great taste in every bite.",
 
     // Hex values instead of Tailwind for absolute smooth animation syncing
-    bg: "#9E1B32",
-    waveColor: "#7A1326",
-    textColor: "text-white",
+    bg: "#FDFBF9",
+    waveColor: "#FCEBE1",
+    textColor: "text-[#881111]",
+    btnBg: "bg-[#881111]", // Added active theme colored buttons
 
     mainImage: "/TifinSlider/1.png",
     thumbImage: "/TifinSlider/1.png",
@@ -23,9 +23,10 @@ const menuItems = [
     description:
       "Fresh and healthy home-style tiffin with a variety of delicious curries, breads, and perfect flavors crafted for your daily cravings.",
 
-    bg: "#C1121F",
-    waveColor: "#980F19",
-    textColor: "text-white",
+    bg: "#FDFBF9",
+    waveColor: "#FCEBE1",
+    textColor: "text-[#636B2F]",
+    btnBg: "bg-[#636B2F]",
 
     mainImage: "/TifinSlider/2.png",
     thumbImage: "/TifinSlider/2.png",
@@ -36,9 +37,10 @@ const menuItems = [
     description:
       "Delicious bite-sized treats crafted with fresh ingredients and bold flavors, perfect for a quick snack, light craving, or anytime enjoyment.",
 
-    bg: "#FFF8F6",
-    waveColor: "#E2939E",
-    textColor: "text-[#8B1120]",
+    bg: "#FDFBF9",
+    waveColor: "#FCEBE1",
+    textColor: "text-[#915E02]",
+    btnBg: "bg-[#915E02]",
 
     mainImage: "/TifinSlider/3.png",
     thumbImage: "/TifinSlider/3.png",
@@ -67,6 +69,17 @@ export default function TiffinRender() {
     startSlider();
   };
 
+  const scrollToPackages = () => {
+    let scrolledSection = document.getElementById("plans")
+
+    if(scrolledSection) {
+      scrolledSection.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      })
+    } 
+  }
+
   return (
     <>
       <style>
@@ -80,7 +93,6 @@ export default function TiffinRender() {
           }
         `}
       </style>
-      <HeroHeader />
 
       {/* Main Wrapper Wrapper: framer-motion manages background color change instantly & smoothly */}
       <motion.div
@@ -111,7 +123,7 @@ export default function TiffinRender() {
                  C 1350,620 1390,620 1440,580 Z"
               className="hidden md:block"
             />
-            
+
             {/* Mobile View Layout Shapes */}
             <motion.path
               animate={{ fill: activeItem.waveColor }}
@@ -128,11 +140,9 @@ export default function TiffinRender() {
 
         {/* Main Content Layout Container */}
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 pt-20 md:pt-0 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
-          
           {/* Main Animated Container (Upar Dikhega Mobile me) */}
           <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[320px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
             <div className="relative w-[85%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
-              
               <div className="absolute inset-0 flex items-center justify-center">
                 <AnimatePresence mode="popLayout">
                   <motion.div
@@ -159,10 +169,9 @@ export default function TiffinRender() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-
             </div>
           </div>
-          
+
           {/* Content Area (Niche Ayega Mobile me) */}
           <div className="flex flex-col justify-center text-center md:text-left order-2 md:order-1 max-w-xl mx-auto md:mx-0 pb-12 md:pb-0 pl-0 md:pl-6 z-20">
             <h1
@@ -172,13 +181,25 @@ export default function TiffinRender() {
               {activeItem.name}
             </h1>
             <p
-              className={`text-sm sm:text-base md:text-xl font-medium leading-relaxed mb-6 md:mb-10 opacity-90 max-w-md mx-auto md:mx-0 px-2 sm:px-0 transition-colors duration-500 ${activeItem.textColor}`}
+              className={`text-sm sm:text-base md:text-xl font-medium leading-relaxed mb-6 transition-colors duration-500 ${activeItem.textColor}`}
             >
               {activeItem.description}
             </p>
 
+            {/* Premium Interactive Action Button Area */}
+            <div className="mb-8 md:mb-10">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-8 py-3.5 rounded-full font-black text-sm uppercase tracking-wider text-white shadow-lg cursor-pointer transition-colors duration-500 ${activeItem.btnBg} shadow-black/10`}
+                onClick={scrollToPackages}
+              >
+                Shop Now
+              </motion.button>
+            </div>
+
             {/* Thumbnails Container */}
-            <div className="flex gap-3 sm:gap-4 items-center bg-black/15 p-2.5 sm:p-3 rounded-full w-max mx-auto md:mx-0 backdrop-blur-md shadow-inner">
+            <div className="flex gap-3 sm:gap-4 items-center p-2.5 sm:p-3 rounded-full w-max mx-auto md:mx-0 backdrop-blur-md shadow-inner bg-black/5">
               {menuItems.map((item, index) => {
                 const isActive = activeIndex === index;
                 return (
@@ -198,7 +219,6 @@ export default function TiffinRender() {
               })}
             </div>
           </div>
-
         </div>
       </motion.div>
     </>

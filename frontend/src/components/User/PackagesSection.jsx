@@ -9,7 +9,7 @@ const packages = [
     meals: "15 Meals / Month",
     image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
     gradient: "from-[#F3FBF7] via-white to-[#FFF5F5]",
-    features: ["Healthy Meals", "Fresh Ingred", "Standard Del"],
+    features: ["Healthy Meals", "Fresh Ingredients", "Standard Delivery", "Calorie Tracked", "Macro-Friendly Plan"],
     popular: false,
   },
   {
@@ -18,7 +18,7 @@ const packages = [
     meals: "30 Meals / Month",
     image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=1200",
     gradient: "from-[#FFF5F5] via-white to-[#FFF0F5]",
-    features: ["Best Seller", "High Protein", "Priority Delivery"],
+    features: ["Best Seller Perks", "High Protein Menu", "Priority Delivery", "Nutritionist Guide", "Weekend Cheat Swaps"],
     popular: true,
   },
   {
@@ -27,7 +27,7 @@ const packages = [
     meals: "60 Meals / Month",
     image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200",
     gradient: "from-[#F5F0FA] via-white to-[#FFF5F5]",
-    features: ["Premium Select", "Chef Crafted", "24/7 Support"],
+    features: ["Premium Select", "Chef Crafted Menu", "24/7 VIP Support", "Flexible Pause Option", "Custom Allergen Filtration"],
     popular: false,
   },
   {
@@ -36,7 +36,7 @@ const packages = [
     meals: "40 Meals / Month",
     image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200",
     gradient: "from-[#F0F9FF] via-white to-[#FFF5F5]",
-    features: ["Low Carb Base", "Keto Approved", "Nutritionist Guide"],
+    features: ["Low Carb Base", "Keto Approved Dishes", "Nutritionist Consultation", "Pre-Workout Snacks", "Hydration Guide Included"],
     popular: false,
   },
   {
@@ -45,7 +45,7 @@ const packages = [
     meals: "90 Meals / Month",
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200",
     gradient: "from-[#FFFDF0] via-white to-[#FFF5F5]",
-    features: ["Bulk Discount", "Flexible Swaps", "Weekend Specials"],
+    features: ["Bulk Family Discount", "Flexible Swaps Anytime", "Weekend Specials", "Kid-Friendly Options", "Eco-Friendly Catering Boxes"],
     popular: false,
   },
 ];
@@ -53,14 +53,24 @@ const packages = [
 export default function PackagesSection() {
   const [active, setActive] = useState(1);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupStep, setPopupStep] = useState(1); 
+  const [formData, setFormData] = useState({ name: "", phone: "", pincode: "" });
+  const [expandedCards, setExpandedCards] = useState({});
+  
+  // सभी पैकेज देखने के लिए नया स्टेट
+  const [isViewAllOpen, setIsViewAllOpen] = useState(false);
 
-  // Dynamic window scale tracking for calculations
+  const toggleExpand = (e, index) => {
+    e.stopPropagation(); 
+    setExpandedCards(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
   const getResponsiveOffset = () => {
     if (typeof window !== "undefined") {
-      if (window.innerWidth < 480) return 140; // Dense stack layout for small mobile screens
-      if (window.innerWidth < 768) return 240; // Mid-scale offset for tablets
+      if (window.innerWidth < 480) return 140;
+      if (window.innerWidth < 768) return 240;
     }
-    return 380; // Standard layout desktop scale
+    return 370;
   };
 
   const handleNext = () => {
@@ -79,49 +89,72 @@ export default function PackagesSection() {
     }
   };
 
+  const handleLeadSubmit = (e) => {
+    e.preventDefault();
+    setPopupStep(2); 
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+    setPopupStep(1); 
+  };
+
+  const handleChoosePlanInModal = (index) => {
+    setActive(index);
+    setIsViewAllOpen(false);
+  };
+
   return (
     <section
       className={`relative min-h-screen w-full py-12 md:py-16 flex flex-col justify-between bg-gradient-to-br ${packages[active].gradient} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
+      id="plans"
     >
       {/* Background Glow Blobs */}
-      <div className="absolute top-0 left-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-red-100/30 rounded-full blur-[80px] md:blur-[140px] pointer-events-none z-0" />
-      <div className="absolute bottom-0 right-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-pink-100/30 rounded-full blur-[80px] md:blur-[160px] pointer-events-none z-0" />
+      <div className="absolute top-0 left-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-red-100/40 rounded-full blur-[90px] md:blur-[150px] pointer-events-none z-0" />
+      <div className="absolute bottom-0 right-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-pink-100/40 rounded-full blur-[90px] md:blur-[170px] pointer-events-none z-0" />
 
       {/* ================= HEADER BLOCK ================= */}
       <div className="text-center relative z-20 px-4 mb-4 md:mb-6 flex-shrink-0">
-        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white border border-red-200 shadow-sm text-red-600 font-black text-[10px] md:text-xs tracking-widest mb-3 md:mb-4">
+        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white border border-red-200 shadow-md text-red-600 font-extrabold text-[10px] md:text-xs tracking-widest mb-3 md:mb-4">
           ⚡ CHOOSE YOUR PLAN
         </span>
 
         <h2 className="font-black tracking-tight uppercase leading-none">
-          <span className="block text-[32px] sm:text-[48px] md:text-[68px] text-slate-900 tracking-tighter">
+          <span className="block text-[32px] sm:text-[48px] md:text-[64px] text-slate-900 tracking-tighter font-black">
             PICK YOUR
           </span>
-          <span className="block text-[28px] sm:text-[42px] md:text-[58px] text-red-600 tracking-normal mt-0.5">
+          <span className="block text-[28px] sm:text-[42px] md:text-[54px] text-red-600 tracking-normal mt-1 font-black">
             PERFECT PACKAGE
           </span>
         </h2>
-        <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[11px] md:text-xs mt-2.5">
-          <span className="md:hidden">Swipe or click cards to discover plans.</span>
-          <span className="hidden md:inline">Click any card directly or use arrows to discover plans.</span>
-        </p>
+        
+        {/* View All Packages Actions Link */}
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[11px] md:text-xs">
+            <span className="md:hidden">Swipe or click cards to discover plans.</span>
+            <span className="hidden md:inline">Click any card directly or use arrows to discover plans.</span>
+          </p>
+          <button
+            onClick={() => setIsViewAllOpen(true)}
+            className="mt-1 bg-white hover:bg-slate-50 text-red-600 border border-red-200 shadow-sm font-black text-[11px] md:text-xs uppercase tracking-wider px-5 py-2 rounded-full transition-all focus:outline-none"
+          >
+            View All Packages +
+          </button>
+        </div>
       </div>
 
       {/* ================= INTERACTIVE CAROUSEL STRUCTURE ================= */}
       <div className="relative w-full max-w-6xl mx-auto z-10 flex items-center justify-between px-2 sm:px-6 my-auto overflow-visible">
-        
-        {/* Left Arrow Controls - Hidden on Mobile */}
         <button
           onClick={handlePrev}
-          className="hidden md:flex w-12 h-12 rounded-full bg-white/90 border border-slate-100 text-slate-800 font-black items-center justify-center shadow-md hover:bg-red-600 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-40 focus:outline-none"
+          className="hidden md:flex w-12 h-12 rounded-full bg-white border border-slate-200 text-slate-800 font-black items-center justify-center shadow-lg hover:bg-red-600 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-40 focus:outline-none"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
-        {/* Carousel Window Deck Container */}
-        <div className="relative h-[440px] sm:h-[480px] md:h-[520px] w-full flex items-center justify-center overflow-visible mx-2 md:mx-4">
+        <div className="relative h-[480px] sm:h-[510px] md:h-[550px] w-full flex items-center justify-center overflow-visible mx-2 md:mx-4">
           {packages.map((pkg, index) => {
             const isActive = index === active;
             let xPosition = 0;
@@ -142,6 +175,9 @@ export default function PackagesSection() {
 
             if (!shouldRender) return null;
 
+            const isExpanded = expandedCards[index];
+            const visibleFeatures = isExpanded ? pkg.features : pkg.features.slice(0, 3);
+
             return (
               <motion.div
                 key={pkg.title}
@@ -151,49 +187,44 @@ export default function PackagesSection() {
                 onDragEnd={handleDragEnd}
                 animate={{
                   x: xPosition,
-                  scale: isActive ? 1 : 0.84,
-                  opacity: isActive ? 1 : 0.5,
-                  rotate: isActive ? 0 : distance * 4,
+                  scale: isActive ? 1 : 0.86,
+                  opacity: 1, 
+                  rotate: isActive ? 0 : distance * 3,
                 }}
                 transition={{
                   type: "spring",
-                  stiffness: 140,
-                  damping: 18,
+                  stiffness: 150,
+                  damping: 20,
                 }}
                 whileHover={{
-                  scale: isActive ? 1.01 : 0.88,
+                  scale: isActive ? 1.02 : 0.90,
                 }}
-                className="absolute w-[260px] sm:w-[300px] md:w-[330px] overflow-visible select-none touch-pan-y"
+                className="absolute w-[265px] sm:w-[310px] md:w-[340px] overflow-visible select-none touch-pan-y"
                 style={{
                   zIndex: isActive ? 30 : 10,
                   backfaceVisibility: "hidden",
                   WebkitBackfaceVisibility: "hidden",
-                  transformStyle: "flat",
                 }}
               >
-                {/* Inside Card Wrapper */}
                 <div
-                  className="relative bg-white rounded-[2rem] md:rounded-[2.5rem] border p-5 md:p-6 flex flex-col justify-between h-full min-h-[410px] sm:min-h-[450px] md:min-h-[490px] cursor-pointer shadow-xl transition-colors duration-300"
+                  className="relative bg-white rounded-[2.5rem] border p-6 flex flex-col justify-between h-full min-h-[440px] sm:min-h-[480px] md:min-h-[510px] cursor-pointer shadow-2xl transition-colors duration-300"
                   style={{
-                    transform: "translateZ(0)",
-                    WebkitFontSmoothing: "antialiased",
                     boxShadow: isActive 
-                      ? "0 25px 50px rgba(220,38,38,0.1)" 
-                      : "0 10px 30px rgba(0,0,0,0.02)",
-                    borderColor: isActive ? "#ef4444" : "rgba(226, 232, 240, 0.5)"
+                      ? "0 30px 60px rgba(220,38,38,0.15)" 
+                      : "0 15px 35px rgba(0,0,0,0.06)",
+                    borderColor: isActive ? "#ef4444" : "#f1f5f9"
                   }}
                 >
                   {pkg.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap">
                       ⚡ POPULAR CHOICE
                     </div>
                   )}
 
-                  {/* Clean Plate Image Area */}
-                  <div className="w-full flex justify-center mb-3 md:mb-5 mt-1">
+                  <div className="w-full flex justify-center mb-3 md:mb-4 mt-1">
                     <div
-                      className={`relative rounded-full overflow-hidden bg-slate-50 border-[4px] border-slate-50 shadow-sm transition-all duration-500
-                      ${isActive ? "w-24 h-24 sm:w-28 sm:h-28 md:w-32 h-32 ring-4 ring-red-500/5" : "w-16 h-16 sm:w-20 sm:h-20"}`}
+                      className={`relative rounded-full overflow-hidden bg-slate-50 border-[4px] border-slate-100 shadow-md transition-all duration-500
+                      ${isActive ? "w-24 h-24 sm:w-26 sm:h-26 md:w-28 h-28 ring-4 ring-red-500/10" : "w-18 h-18 sm:w-20 sm:h-20"}`}
                     >
                       <img
                         src={pkg.image}
@@ -203,7 +234,6 @@ export default function PackagesSection() {
                     </div>
                   </div>
 
-                  {/* Info Elements Content */}
                   <div className="text-center flex-grow flex flex-col justify-between">
                     <div>
                       <h3 className={`text-base sm:text-lg md:text-xl font-black tracking-wide uppercase ${isActive ? "text-red-600" : "text-slate-800"}`}>
@@ -213,10 +243,9 @@ export default function PackagesSection() {
                         {pkg.meals}
                       </p>
 
-                      <div className="w-8 h-[1.5px] bg-red-500/10 mx-auto my-2 md:my-3" />
+                      <div className="w-8 h-[2px] bg-red-500/20 mx-auto my-2" />
 
-                      {/* Pricing Tag */}
-                      <div className="my-0.5 flex items-baseline justify-center">
+                      <div className="my-1 flex items-baseline justify-center">
                         <span className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
                           {pkg.price}
                         </span>
@@ -225,26 +254,42 @@ export default function PackagesSection() {
                         </span>
                       </div>
 
-                      {/* Clean Checklist Grid */}
-                      <ul className="space-y-2 md:space-y-3 my-3 md:my-4 text-left max-w-[140px] sm:max-w-[170px] mx-auto">
-                        {pkg.features.map((feat) => (
-                          <li key={feat} className="flex items-center text-slate-600 text-[11px] sm:text-xs font-bold tracking-wide">
-                            <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-600 rounded-full flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0 shadow-sm">
-                              <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" strokeWidth="5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                            <span className="truncate">{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <motion.div layout className="my-3 overflow-hidden">
+                        <ul className="space-y-2 text-left max-w-[150px] sm:max-w-[190px] mx-auto">
+                          {visibleFeatures.map((feat) => (
+                            <motion.li 
+                              layout
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              key={feat} 
+                              className="flex items-center text-slate-600 text-[11px] sm:text-xs font-semibold tracking-wide"
+                            >
+                              <div className="w-4 h-4 bg-red-500/10 rounded-full flex items-center justify-center mr-2.5 flex-shrink-0">
+                                <svg className="w-2.5 h-2.5 text-red-600" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                              <span className="truncate">{feat}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
+
+                        {pkg.features.length > 3 && (
+                          <button
+                            onClick={(e) => toggleExpand(e, index)}
+                            className="mt-2.5 text-[10px] sm:text-xs font-black tracking-widest text-red-500 hover:text-red-600 transition-colors uppercase focus:outline-none block mx-auto underline decoration-dashed underline-offset-4"
+                          >
+                            {isExpanded ? "← Show Less" : "See More +"}
+                          </button>
+                        )}
+                      </motion.div>
                     </div>
 
                     <button
-                      className={`w-full py-2.5 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2
+                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm
                         ${isActive
-                          ? "bg-red-600 border-red-600 text-white shadow-md shadow-red-500/10"
-                          : "bg-white border-red-500 text-red-500 hover:bg-red-50"
+                          ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
+                          : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
                         }`}
                     >
                       Choose Plan
@@ -256,10 +301,9 @@ export default function PackagesSection() {
           })}
         </div>
 
-        {/* Right Arrow Controls - Hidden on Mobile */}
         <button
           onClick={handleNext}
-          className="hidden md:flex w-12 h-12 rounded-full bg-white/90 border border-slate-100 text-slate-800 font-black items-center justify-center shadow-md hover:bg-red-600 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-40 focus:outline-none"
+          className="hidden md:flex w-12 h-12 rounded-full bg-white border border-slate-200 text-slate-800 font-black items-center justify-center shadow-lg hover:bg-red-600 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-40 focus:outline-none"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -268,13 +312,13 @@ export default function PackagesSection() {
       </div>
 
       {/* ================= BUILD YOUR OWN PACKAGE BOX ================= */}
-      <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 relative z-30 flex-shrink-0 mt-4 md:mt-6">
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-red-600 via-red-500 to-red-600 p-5 sm:p-6 md:p-8 shadow-[0_25px_50px_-10px_rgba(220,38,38,0.25)] border border-red-400/20 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+      <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 relative z-30 flex-shrink-0 mt-6">
+        <div className="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-r from-red-600 via-red-500 to-red-600 p-6 sm:p-7 md:p-8 shadow-[0_25px_50px_-10px_rgba(220,38,38,0.25)] border border-red-400/20 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="absolute -top-16 -left-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-inner flex-shrink-0 backdrop-blur-sm">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-inner flex-shrink-0 backdrop-blur-sm">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v10M4 7v10l8 4" />
               </svg>
@@ -283,14 +327,14 @@ export default function PackagesSection() {
               <h3 className="text-white text-lg sm:text-xl md:text-2xl font-black uppercase tracking-wide">
                 BUILD YOUR OWN PACKAGE
               </h3>
-              <p className="text-red-50/80 mt-0.5 text-[10px] sm:text-xs font-semibold">
+              <p className="text-red-50/80 mt-1 text-[10px] sm:text-xs font-semibold">
                 Customize calories, proteins, meal count, and delivery schedule.
               </p>
             </div>
           </div>
 
           <button
-            className="relative z-10 w-full md:w-auto bg-white text-slate-950 font-black text-[10px] sm:text-xs tracking-widest uppercase px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl shadow-md transition-all duration-300 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-1.5 group whitespace-nowrap focus:outline-none"
+            className="relative z-10 w-full md:w-auto bg-white text-slate-950 font-black text-[10px] sm:text-xs tracking-widest uppercase px-7 sm:px-9 py-3.5 rounded-xl shadow-md transition-all duration-300 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-1.5 group whitespace-nowrap focus:outline-none"
             onClick={() => setIsPopupOpen(true)}
           >
             Customize Now
@@ -299,15 +343,15 @@ export default function PackagesSection() {
         </div>
       </div>
 
-      {/* ================= HIGH-END MODAL OVERLAY POPUP INTERFACE ================= */}
+      {/* ================= VIEW ALL PACKAGES MODAL OVERLAY ================= */}
       <AnimatePresence>
-        {isPopupOpen && (
-          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-2 sm:p-4 md:p-6">
+        {isViewAllOpen && (
+          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4 md:p-8">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsPopupOpen(false)}
+              onClick={() => setIsViewAllOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
 
@@ -315,11 +359,177 @@ export default function PackagesSection() {
               initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
-              transition={{ type: "spring", stiffness: 260, damping: 24 }}
-              className="relative bg-white w-full max-w-5xl rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
+              className="relative bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl z-10 p-6 md:p-10 max-h-[85vh] overflow-y-auto pointer-events-auto border border-slate-100"
             >
-              <CreatePackage onClose={() => setIsPopupOpen(false)} />
+              {/* Close Icon Cross */}
+              <button 
+                onClick={() => setIsViewAllOpen(false)}
+                className="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors focus:outline-none shadow-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="mb-8 text-center">
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight">
+                  All Meal Packages
+                </h3>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mt-1.5">
+                  Browse and select your perfect health subscription bundle
+                </p>
+              </div>
+
+              {/* Grid Wrapper Container */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {packages.map((pkg, index) => (
+                  <div 
+                    key={pkg.title}
+                    className="bg-slate-50/70 border border-slate-100 rounded-3xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow"
+                  >
+                    {pkg.popular && (
+                      <span className="absolute top-3 right-3 bg-red-600 text-white font-black text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-full">
+                        Popular
+                      </span>
+                    )}
+
+                    <div>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-full overflow-hidden shadow-inner border-2 border-white flex-shrink-0">
+                          <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900 text-base tracking-wide uppercase">{pkg.title}</h4>
+                          <p className="text-slate-400 font-bold text-[10px] uppercase mt-0.5">{pkg.meals}</p>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-2xl font-black text-slate-900">{pkg.price}</span>
+                        <span className="text-slate-400 font-bold text-xs">/mo</span>
+                      </div>
+
+                      <ul className="space-y-1.5 mb-2">
+                        {pkg.features.slice(0, 4).map((feat) => (
+                          <li key={feat} className="flex items-center text-slate-600 text-xs font-semibold tracking-wide">
+                            <div className="w-3.5 h-3.5 bg-red-500/10 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                              <svg className="w-2 h-2 text-red-600" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <span className="truncate">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <button
+                      onClick={() => handleChoosePlanInModal(index)}
+                      className="w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all focus:outline-none"
+                    >
+                      Choose Plan
+                    </button>
+                  </div>
+                ))}
+              </div>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ================= CUSTOMIZE POPUP LEAD MODAL ================= */}
+      <AnimatePresence>
+        {isPopupOpen && (
+          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4 md:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePopup}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            />
+
+            {popupStep === 1 ? (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 p-6 sm:p-8 pointer-events-auto"
+              >
+                <button 
+                  onClick={closePopup}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
+                <div className="mb-6 text-center">
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+                    Enter Details
+                  </h3>
+                  <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1.5">
+                    Please share your info to customize your meal plan
+                  </p>
+                </div>
+
+                <form onSubmit={handleLeadSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Full Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required
+                      placeholder="9876543210"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Area Pincode</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="110001"
+                      value={formData.pincode}
+                      onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-2 bg-red-600 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl shadow-md shadow-red-500/10 transition-all duration-300 hover:bg-red-700 active:scale-[0.98]"
+                  >
+                    Continue to Customize →
+                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 30 }}
+                transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
+              >
+                <CreatePackage onClose={closePopup} userData={formData} />
+              </motion.div>
+            )}
           </div>
         )}
       </AnimatePresence>
