@@ -32,7 +32,7 @@ import UserDashboard from "../src/pages/User/UserDashboard";
 import "./react-calendar.css";
 import ServiceArea from "./pages/Vendor/ServiceArea";
 import CreatePackage from "./pages/User/CreatePackage";
-
+import MealPlanner from "./pages/User/MealPlanner";
 function App() {
   return (
     <Routes>
@@ -82,6 +82,7 @@ function App() {
       <Route path="/user" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
+        <Route path="meal-planner" element={<MealPlanner />} />
       </Route>
     </Routes>
   );
