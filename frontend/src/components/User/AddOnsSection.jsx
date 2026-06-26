@@ -130,7 +130,7 @@ export default function AddonsSection() {
     .join(", ");
 
   return (
-    <section className="relative w-full min-h-screen bg-[#FDFBF9] py-16 px-4 sm:px-8 lg:px-16 font-sans select-none pb-36">
+    <section className="relative w-full min-h-screen bg-[#FDFBF9] sm:px-8 lg:px-16 font-sans select-none pb-36">
       
       {/* Top Main Heading Header Panel */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">

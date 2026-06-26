@@ -10,6 +10,7 @@ import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
 import HeroHeader from "../../components/HeroHeader";
 import AddonsSection from "../../components/User/AddOnsSection";
 import FAQSection from "../../components/User/FAQSection";
+import WhyChooseUs from "../../components/User/WhyChooseUs";
 export default function UserDashboard() {
   return (
     <div className="bg-[#f7f8fc] min-h-screen">
@@ -27,6 +28,7 @@ export default function UserDashboard() {
       /> */}
       <PerfectMatchFoodHero />
       <AddonsSection />
+      <WhyChooseUs />
       <GettingStarted />
       <FAQSection />
       <Footer />

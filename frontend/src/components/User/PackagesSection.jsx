@@ -54,7 +54,7 @@ export default function PackagesSection() {
   const [active, setActive] = useState(1);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupStep, setPopupStep] = useState(1); 
-  const [formData, setFormData] = useState({ name: "", phone: "", pincode: "" });
+  const [formData, setFormData] = useState({pincode: "" });
   
   // Specific features modal management states
   const [featureModalData, setFeatureModalData] = useState(null);
@@ -512,88 +512,73 @@ export default function PackagesSection() {
               onClick={closePopup}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
+{popupStep === 1 ? (
+  <motion.div
+    initial={{ scale: 0.95, opacity: 0, y: 20 }}
+    animate={{ scale: 1, opacity: 1, y: 0 }}
+    exit={{ scale: 0.95, opacity: 0, y: 20 }}
+    className="relative bg-white w-full max-w-5xl min-h-[92vh] rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 overflow-hidden pointer-events-auto flex flex-col justify-center items-center p-6"
+  >
+    {/* Close Button */}
+    <button 
+      onClick={closePopup}
+      className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors z-20"
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
 
-            {popupStep === 1 ? (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 p-6 sm:p-8 pointer-events-auto"
-              >
-                <button 
-                  onClick={closePopup}
-                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+    {/* Form Box with Border and Shadow Effect */}
+    <div className="w-full max-w-md mx-auto bg-white border border-slate-100 rounded-[2rem] p-6 sm:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] flex flex-col space-y-6">
+      
+      {/* Header Text Section */}
+      <div className="text-center">
+        <h3 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+          Enter Details
+        </h3>
+        <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1.5">
+          Please share your info to customize your meal plan
+        </p>
+      </div>
 
-                <div className="mb-6 text-center">
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
-                    Enter Details
-                  </h3>
-                  <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1.5">
-                    Please share your info to customize your meal plan
-                  </p>
-                </div>
+      {/* Form Section */}
+      <form onSubmit={handleLeadSubmit} className="space-y-5">
+        <div className="flex flex-col space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-1">
+            Area Pincode
+          </label>
+          <input 
+            type="text" 
+            required
+            placeholder="110001"
+            value={formData.pincode}
+            onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all duration-200"
+          />
+        </div>
 
-                <form onSubmit={handleLeadSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Full Name</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="John Doe"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Phone Number</label>
-                    <input 
-                      type="tel" 
-                      required
-                      placeholder="9876543210"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black tracking-wider uppercase text-slate-500 mb-1.5">Area Pincode</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="110001"
-                      value={formData.pincode}
-                      onChange={(e) => setFormData({...formData, pincode: e.target.value})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-all duration-200"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full mt-2 bg-red-600 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl shadow-md shadow-red-500/10 transition-all duration-300 hover:bg-red-700 active:scale-[0.98]"
-                  >
-                    Continue to Customize →
-                  </button>
-                </form>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 30 }}
-                transition={{ type: "spring", stiffness: 260, damping: 24 }}
-                className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
-              >
-                <CreatePackage onClose={closePopup} userData={formData} />
-              </motion.div>
-            )}
+        <button
+          type="submit"
+          className="w-full mt-2 bg-red-600 text-white font-black text-xs tracking-widest uppercase py-4 rounded-xl shadow-md shadow-red-500/20 transition-all duration-300 hover:bg-red-700 hover:shadow-lg active:scale-[0.98]"
+        >
+          Continue to Customize →
+        </button>
+      </form>
+      
+    </div>
+  </motion.div>
+) : (
+  <motion.div
+    initial={{ scale: 0.95, opacity: 0, y: 30 }}
+    animate={{ scale: 1, opacity: 1, y: 0 }}
+    exit={{ scale: 0.95, opacity: 0, y: 30 }}
+    transition={{ type: "spring", stiffness: 260, damping: 24 }}
+    className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
+  >
+    <CreatePackage onClose={closePopup} userData={formData} />
+  </motion.div>
+)}
           </div>
         )}
       </AnimatePresence>

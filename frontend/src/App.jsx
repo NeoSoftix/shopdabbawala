@@ -36,7 +36,7 @@ import MealPlanner from "./pages/User/MealPlanner";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/user" />} />
+      <Route path="/" element={<Navigate to="/" />} />
       <Route path="/login" element={<Login />} />
 
       {/* admin route */}

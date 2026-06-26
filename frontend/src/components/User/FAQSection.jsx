@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // 1. Yahan apni image ko direct import karo
-import faqBackground from '/frontend/src/assets/faqbg.png'; // Path check kar lena agar aapki file kisi aur folder mein hai
+import faqBackground from "../../assets/faqbg.png"; // Path check kar lena agar aapki file kisi aur folder mein hai
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(0);
@@ -94,14 +94,14 @@ const FAQSection = () => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat font-sans py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
+      className="min-h-screen bg-cover bg-center bg-no-repeat font-sans py-32 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
       // 2. Yahan imported variable ko use karo
       style={{ backgroundImage: `url(${faqBackground})` }}
     >
       {/* Top Food Thali Image Accent */}
-      <div className="absolute top-0 left-0 w-32 sm:w-48 md:w-64 lg:w-80 pointer-events-none hidden md:block">
+      {/* <div className="absolute top-0 left-0 w-32 sm:w-48 md:w-64 lg:w-80 pointer-events-none hidden md:block">
         <img src="https://i.imgur.com/G496Xgq.png" alt="Thali Accent" className="w-full h-auto opacity-90" />
-      </div>
+      </div> */}
 
       <div className="max-w-4xl w-full z-10 flex-grow">
         {/* Header Section */}
@@ -129,7 +129,7 @@ const FAQSection = () => {
         </div>
 
         {/* FAQ Accordion Container */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-100 max-w-3xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-100 max-w-10xl mx-auto">
           <div className="space-y-3">
             {faqData.map((faq, index) => {
               const isOpen = openIndex === index;

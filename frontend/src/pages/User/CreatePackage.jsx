@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ThankYouPage from "../../components/User/ThankyouPage";
 
 export default function CreatePackage({ onClose, userData }) {
@@ -14,7 +14,20 @@ export default function CreatePackage({ onClose, userData }) {
   const [selectedPlan, setSelectedPlan] = useState("Regular");
   const [hoveredPlan, setHoveredPlan] = useState(null);
 
-  // Meal Plan Details Data (Red/White UX Theme Specific)
+  // Dynamic Meals adjustment based on Duration selection
+  useEffect(() => {
+    if (duration === "1 Meal") {
+      setTotalMeals(1);
+    } else if (duration === "Weekly") {
+      setTotalMeals(4); // Default weekly meals
+    } else if (duration === "Monthly") {
+      setTotalMeals(16); // Default monthly meals
+    } else if (duration === "Quarterly") {
+      setTotalMeals(48); // Default quarterly meals
+    }
+  }, [duration]);
+
+  // Meal Plan Details Data
   const planDetails = {
     Regular: {
       title: "Regular Plan Includes:",
@@ -51,11 +64,42 @@ export default function CreatePackage({ onClose, userData }) {
     }
   };
 
+  // Dynamic Meal Pricing Options Data Array
+  const getMealOptions = () => {
+    if (duration === "1 Meal") {
+      return [{ count: 1, price: "$15.00", label: "Single Tiffin" }];
+    }
+    if (duration === "Weekly") {
+      return [
+        { count: 4, price: "$12.50", label: "4 Meals / Week" },
+        { count: 5, price: "$12.00", label: "5 Meals / Week" },
+        { count: 6, price: "$11.50", label: "6 Meals / Week" },
+      ];
+    }
+    if (duration === "Quarterly") {
+      return [
+        { count: 48, price: "$10.95", label: "4 Meals / Week" },
+        { count: 60, price: "$10.50", label: "5 Meals / Week" },
+        { count: 72, price: "$9.95", label: "6 Meals / Week" },
+      ];
+    }
+    // Default "Monthly" options
+    return [
+      { count: 16, price: "$11.95", label: "4 Meals / Week" },
+      { count: 20, price: "$11.50", label: "5 Meals / Week" },
+      { count: 24, price: "$10.95", label: "6 Meals / Week" },
+    ];
+  };
+
   // Price Calculation Logic
   const planMultiplier = selectedPlan === "Regular" ? 1 : selectedPlan === "Large" ? 1.2 : 1.4;
-  const basePricePerMeal = totalMeals === 16 ? 11.95 : totalMeals === 20 ? 11.5 : 10.95;
+  
+  // Find base price based on selected total meals count
+  const currentOptions = getMealOptions();
+  const matchedOption = currentOptions.find(o => o.count === totalMeals) || currentOptions[0];
+  const basePricePerMeal = parseFloat(matchedOption.price.replace("$", ""));
+  
   const pricePerMeal = parseFloat((basePricePerMeal * planMultiplier).toFixed(2));
-
   const subtotal = totalMeals * pricePerMeal;
   const discount = subtotal * 0.2; // 20% Off
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.00 : 0.00; 
@@ -93,15 +137,7 @@ export default function CreatePackage({ onClose, userData }) {
                 </div>
 
                 {userData && (
-                  <div className="bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-4 flex flex-wrap md:flex-nowrap gap-x-6 gap-y-2 shadow-sm min-w-[280px] md:max-w-md self-start md:self-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">Customer</span>
-                      <span className="text-sm font-bold text-slate-800 truncate max-w-[150px]">{userData.name || "N/A"}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">Contact</span>
-                      <span className="text-sm font-bold text-slate-700">{userData.phone || "N/A"}</span>
-                    </div>
+                  <div className="bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-4 flex items-center gap-x-6 gap-y-2 shadow-sm min-w-[280px] md:max-w-md self-start md:self-center">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">Pincode</span>
                       <span className="text-sm font-bold text-slate-700 bg-red-100/40 px-2 py-0.5 rounded-md border border-red-100/70">{userData.pincode || "N/A"}</span>
@@ -192,11 +228,7 @@ export default function CreatePackage({ onClose, userData }) {
                         <span>🍱</span> Total Meals
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {[
-                          { count: 16, price: "$11.95", label: "4 Meals / Week" },
-                          { count: 20, price: "$11.50", label: "5 Meals / Week" },
-                          { count: 24, price: "$10.95", label: "6 Meals / Week" },
-                        ].map((option) => (
+                        {getMealOptions().map((option) => (
                           <button
                             type="button"
                             key={option.count}
@@ -212,7 +244,7 @@ export default function CreatePackage({ onClose, userData }) {
                     </div>
                   </div>
 
-                  {/* ================= MOVED SECTION: RED & WHITE MEAL PLAN SELECTOR (BELOW TOTAL MEALS) ================= */}
+                  {/* Meal Plan Selector */}
                   <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <label className="text-[13px] font-bold text-[#dc2626] flex items-center gap-1.5 mb-4 uppercase tracking-wider">
                       <span>🍱</span> Select Your Meal Plan:
@@ -223,7 +255,6 @@ export default function CreatePackage({ onClose, userData }) {
                         const isSelected = selectedPlan === planName;
                         return (
                           <div key={planName} className="relative group">
-                            {/* Info Hover Indicator - Red Theme styled */}
                             <div 
                               onMouseEnter={() => setHoveredPlan(planName)}
                               onMouseLeave={() => setHoveredPlan(null)}
@@ -232,7 +263,6 @@ export default function CreatePackage({ onClose, userData }) {
                               i
                             </div>
 
-                            {/* Main Red & White Card Button Layout */}
                             <button
                               type="button"
                               onClick={() => setSelectedPlan(planName)}
@@ -248,7 +278,6 @@ export default function CreatePackage({ onClose, userData }) {
                               </span>
                             </button>
 
-                            {/* Red-White Floating Tooltip Card */}
                             {hoveredPlan === planName && (
                               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[290px] sm:w-[350px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left pointer-events-none border-t-4 border-t-[#dc2626] transition-all duration-200">
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
@@ -329,7 +358,7 @@ export default function CreatePackage({ onClose, userData }) {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Meal preference</span>
-                        <span className="text-slate-900">{preference === "Veg" ? "Veg" : "Non-Veg"}</span>
+                        <span className="text-slate-900">{preference}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Delivery timing</span>
