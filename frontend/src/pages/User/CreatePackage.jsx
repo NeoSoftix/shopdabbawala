@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ThankYouPage from "../../components/User/ThankyouPage";
+import vegIcon from "../../../public/spinach.svg";
 
 export default function CreatePackage({ onClose, userData }) {
   // Config States
@@ -36,9 +37,10 @@ export default function CreatePackage({ onClose, userData }) {
         "Dal (8 oz) - choose 1 from 2 options",
         "Veg / Non-Veg Curry (8 oz) - choose 1 from 2 options",
         "Choice of Sides: 4 Rotis OR 2 Rotis + Rice",
-        "Salad / Achar / Dessert (2x Weekly) (optional)"
+        "Salad / Achar / Dessert (2x Weekly) (optional)",
       ],
-      global: "A Veg/Non-Veg Continental Dish (24 oz) - choose 1 from 2 options"
+      global:
+        "A Veg/Non-Veg Continental Dish (24 oz) - choose 1 from 2 options",
     },
     Large: {
       title: "Large Plan Includes:",
@@ -47,9 +49,10 @@ export default function CreatePackage({ onClose, userData }) {
         "Dal (12 oz) - premium selection",
         "Veg / Non-Veg Curry (12 oz) - richer portions",
         "Choice of Sides: 6 Rotis OR 4 Rotis + Rice",
-        "Salad / Achar / Dessert (Included Daily)"
+        "Salad / Achar / Dessert (Included Daily)",
       ],
-      global: "A Veg/Non-Veg Continental Dish (32 oz) - customized chef options"
+      global:
+        "A Veg/Non-Veg Continental Dish (32 oz) - customized chef options",
     },
     "Large Premium": {
       title: "Large Premium Plan Includes:",
@@ -58,10 +61,11 @@ export default function CreatePackage({ onClose, userData }) {
         "Dal (12 oz) - organic premium collection",
         "Veg / Non-Veg Curry (12 oz) - luxury protein base",
         "Choice of Sides: Unlimited Rotis OR Premium Basmati Rice Choice",
-        "Appetizer + Salad + Complete Premium Dessert Platter Daily"
+        "Appetizer + Salad + Complete Premium Dessert Platter Daily",
       ],
-      global: "Premium Gourmet Continental Platter (36 oz) with extra side assortments"
-    }
+      global:
+        "Premium Gourmet Continental Platter (36 oz) with extra side assortments",
+    },
   };
 
   // Dynamic Meal Pricing Options Data Array
@@ -92,17 +96,21 @@ export default function CreatePackage({ onClose, userData }) {
   };
 
   // Price Calculation Logic
-  const planMultiplier = selectedPlan === "Regular" ? 1 : selectedPlan === "Large" ? 1.2 : 1.4;
-  
+  const planMultiplier =
+    selectedPlan === "Regular" ? 1 : selectedPlan === "Large" ? 1.2 : 1.4;
+
   // Find base price based on selected total meals count
   const currentOptions = getMealOptions();
-  const matchedOption = currentOptions.find(o => o.count === totalMeals) || currentOptions[0];
+  const matchedOption =
+    currentOptions.find((o) => o.count === totalMeals) || currentOptions[0];
   const basePricePerMeal = parseFloat(matchedOption.price.replace("$", ""));
-  
-  const pricePerMeal = parseFloat((basePricePerMeal * planMultiplier).toFixed(2));
+
+  const pricePerMeal = parseFloat(
+    (basePricePerMeal * planMultiplier).toFixed(2),
+  );
   const subtotal = totalMeals * pricePerMeal;
   const discount = subtotal * 0.2; // 20% Off
-  const deliveryCharges = deliveryMethod === "Delivery" ? 15.00 : 0.00; 
+  const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
   return (
@@ -117,14 +125,23 @@ export default function CreatePackage({ onClose, userData }) {
                 onClick={onClose}
                 className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
 
             <main className="max-w-full mx-auto bg-white/50 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-sm">
-              
               {/* ================= HEADER AREA WITH USER DETAILS ================= */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-gray-200/60 px-2">
                 <div>
@@ -132,15 +149,21 @@ export default function CreatePackage({ onClose, userData }) {
                     Create Your Plan
                   </h1>
                   <p className="text-gray-500 text-[14px] max-w-2xl leading-relaxed">
-                    Customize your culinary journey with premium ingredients delivered to your doorstep. Healthy, chef-prepared meals tailored to your urban lifestyle.
+                    Customize your culinary journey with premium ingredients
+                    delivered to your doorstep. Healthy, chef-prepared meals
+                    tailored to your urban lifestyle.
                   </p>
                 </div>
 
                 {userData && (
                   <div className="bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-4 flex items-center gap-x-6 gap-y-2 shadow-sm min-w-[280px] md:max-w-md self-start md:self-center">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">Pincode</span>
-                      <span className="text-sm font-bold text-slate-700 bg-red-100/40 px-2 py-0.5 rounded-md border border-red-100/70">{userData.pincode || "N/A"}</span>
+                      <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">
+                        Pincode
+                      </span>
+                      <span className="text-sm font-bold text-slate-700 bg-red-100/40 px-2 py-0.5 rounded-md border border-red-100/70">
+                        {userData.pincode || "N/A"}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -148,32 +171,45 @@ export default function CreatePackage({ onClose, userData }) {
 
               {/* Main Layout Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                
                 {/* Left Configurator Side */}
                 <div className="lg:col-span-2 space-y-6">
-                  
                   {/* Row 1: Preference & Timing */}
                   <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                      {/* Meal Preference */}
+                      {/* ================= UPDATED MEAL PREFERENCE TOGGLE ================= */}
                       <div>
                         <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
                           <span>🍴</span> Meal Preference
                         </label>
-                        <div className="bg-[#f3f4f6] p-1 rounded-xl flex border border-gray-100">
+                        <div className="bg-[#f3f1f1] p-1.5 rounded-full flex border border-gray-200/40">
                           <button
                             type="button"
                             onClick={() => setPreference("Veg")}
-                            className={`w-1/2 py-2.5 rounded-lg text-sm font-bold text-center transition-all focus:outline-none ${preference === "Veg" ? "bg-[#dc2626] text-white shadow-sm" : "text-gray-500 hover:bg-gray-200/60"}`}
+                            className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                              preference === "Veg"
+                                ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                                : "text-gray-500 hover:text-gray-800"
+                            }`}
                           >
-                            Veg
+                            <span className="flex items-center gap-2">
+                              <img
+                                src={vegIcon}
+                                alt="Veg"
+                                className="w-4 h-4"
+                              />
+                              Veg
+                            </span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setPreference("Non-Veg")}
-                            className={`w-1/2 py-2.5 rounded-lg text-sm font-bold text-center transition-all focus:outline-none ${preference === "Non-Veg" ? "bg-[#dc2626] text-white shadow-sm" : "text-gray-500 hover:bg-gray-200/60"}`}
+                            className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                              preference === "Non-Veg"
+                                ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                                : "text-gray-500 hover:text-gray-800"
+                            }`}
                           >
-                            Non-Veg
+                            <span>Non-Veg</span>
                           </button>
                         </div>
                       </div>
@@ -194,7 +230,10 @@ export default function CreatePackage({ onClose, userData }) {
                             <option value="Both">Both</option>
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-500">
-                            <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
+                            <svg
+                              className="fill-current h-4 w-4"
+                              viewBox="0 0 20 20"
+                            >
                               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                             </svg>
                           </div>
@@ -210,36 +249,60 @@ export default function CreatePackage({ onClose, userData }) {
                         <span>📅</span> Duration
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {["1 Meal", "Weekly", "Monthly", "Quarterly"].map((d) => (
-                          <button
-                            type="button"
-                            key={d}
-                            onClick={() => setDuration(d)}
-                            className={`py-3 rounded-xl text-sm font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
-                          >
-                            {d}
-                          </button>
-                        ))}
+                        {["1 Meal", "Weekly", "Monthly", "Quarterly"].map(
+                          (d) => (
+                            <button
+                              type="button"
+                              key={d}
+                              onClick={() => setDuration(d)}
+                              className={`py-3 rounded-xl text-sm font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
+                            >
+                              {d}
+                            </button>
+                          ),
+                        )}
                       </div>
                     </div>
 
+                    {/* ================= UPDATED TOTAL MEALS CONFIG SELECTION ================= */}
                     <div>
                       <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
                         <span>🍱</span> Total Meals
                       </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {getMealOptions().map((option) => (
-                          <button
-                            type="button"
-                            key={option.count}
-                            onClick={() => setTotalMeals(option.count)}
-                            className={`p-5 rounded-2xl text-center border transition-all flex flex-col items-center justify-center focus:outline-none ${totalMeals === option.count ? "bg-[#dc2626] text-white border-[#dc2626] shadow-md shadow-red-500/10" : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]"}`}
-                          >
-                            <div className="text-2xl font-black mb-0.5">{option.count}</div>
-                            <div className={`text-xs font-bold ${totalMeals === option.count ? "text-white" : "text-gray-600"}`}>{option.price} / meal</div>
-                            <div className={`text-[10px] mt-1 font-bold uppercase tracking-wide ${totalMeals === option.count ? "text-white/80" : "text-gray-400"}`}>{option.label}</div>
-                          </button>
-                        ))}
+                      <div className="bg-[#f3f1f1] p-1.5 rounded-3xl border border-gray-200/40 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {getMealOptions().map((option) => {
+                          const isSelected = totalMeals === option.count;
+                          return (
+                            <button
+                              type="button"
+                              key={option.count}
+                              onClick={() => setTotalMeals(option.count)}
+                              className={`p-4 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
+                                isSelected
+                                  ? "bg-white text-gray-900 shadow-md font-black"
+                                  : "text-gray-500 hover:text-gray-800"
+                              }`}
+                            >
+                              {/* Selection Floating Tick Indicator */}`{" "}
+                              {/* {isSelected && (
+                                <span className="absolute top-2 right-3 bg-green-500 text-white rounded-full flex items-center justify-center w-4 h-4 text-[10px]">
+                                  ✓
+                                </span>
+                              )}` */}
+                              <div
+                                className={`text-2xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}
+                              >
+                                {option.count}
+                              </div>
+                              <div className="text-xs font-bold mt-0.5 opacity-90">
+                                {option.price} / meal
+                              </div>
+                              <div className="text-[10px] mt-1 font-bold uppercase tracking-wide opacity-60">
+                                {option.label}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -255,7 +318,7 @@ export default function CreatePackage({ onClose, userData }) {
                         const isSelected = selectedPlan === planName;
                         return (
                           <div key={planName} className="relative group">
-                            <div 
+                            <div
                               onMouseEnter={() => setHoveredPlan(planName)}
                               onMouseLeave={() => setHoveredPlan(null)}
                               className="absolute top-3 right-3 z-30 w-5 h-5 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-[#dc2626] hover:bg-red-50 flex items-center justify-center text-xs font-serif font-black cursor-help transition-all shadow-sm"
@@ -267,13 +330,18 @@ export default function CreatePackage({ onClose, userData }) {
                               type="button"
                               onClick={() => setSelectedPlan(planName)}
                               className={`w-full p-5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[110px] focus:outline-none relative
-                                ${isSelected 
-                                  ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black" 
-                                  : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"
+                                ${
+                                  isSelected
+                                    ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black"
+                                    : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"
                                 }`}
                             >
-                              <span className="text-base font-black tracking-tight">{planName}</span>
-                              <span className={`text-[11px] font-medium mt-1 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}>
+                              <span className="text-base font-black tracking-tight">
+                                {planName}
+                              </span>
+                              <span
+                                className={`text-[11px] font-medium mt-1 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}
+                              >
                                 {planDetails[planName].description}
                               </span>
                             </button>
@@ -281,26 +349,39 @@ export default function CreatePackage({ onClose, userData }) {
                             {hoveredPlan === planName && (
                               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[290px] sm:w-[350px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left pointer-events-none border-t-4 border-t-[#dc2626] transition-all duration-200">
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
-                                
+
                                 <div className="text-xs font-black text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wide">
                                   <span>ℹ️</span> {planDetails[planName].title}
                                 </div>
-                                
+
                                 <div className="space-y-3.5">
                                   <div className="text-[11px]">
-                                    <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">🚩 Indian Option</span>
+                                    <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">
+                                      🚩 Indian Option
+                                    </span>
                                     <ul className="list-none space-y-1.5 font-semibold text-slate-600">
-                                      {planDetails[planName].indian.map((item, idx) => (
-                                        <li key={idx} className="flex items-start gap-1.5">
-                                          <span className="text-[#dc2626] mt-0.5">•</span>
-                                          <span>{item}</span>
-                                        </li>
-                                      ))}
+                                      {planDetails[planName].indian.map(
+                                        (item, idx) => (
+                                          <li
+                                            key={idx}
+                                            className="flex items-start gap-1.5"
+                                          >
+                                            <span className="text-[#dc2626] mt-0.5">
+                                              •
+                                            </span>
+                                            <span>{item}</span>
+                                          </li>
+                                        ),
+                                      )}
                                     </ul>
                                   </div>
                                   <div className="text-[11px] pt-2 border-t border-slate-100">
-                                    <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">🌍 Global Option</span>
-                                    <p className="font-semibold text-slate-600 pl-2 border-l-2 border-red-500/30">{planDetails[planName].global}</p>
+                                    <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">
+                                      🌍 Global Option
+                                    </span>
+                                    <p className="font-semibold text-slate-600 pl-2 border-l-2 border-red-500/30">
+                                      {planDetails[planName].global}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -314,26 +395,63 @@ export default function CreatePackage({ onClose, userData }) {
 
                 {/* Right Side Stack */}
                 <div className="space-y-6 lg:sticky lg:top-6 relative z-10">
-                  
                   {/* Fulfillment Mode Toggle Card */}
-                  <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                    <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-2.5 uppercase tracking-wider">
-                      <span>🚚</span> Fulfillment Mode
-                    </label>
-                    <div className="bg-[#f3f4f6] p-1 rounded-xl flex border border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => setDeliveryMethod("Delivery")}
-                        className={`w-1/2 py-2 rounded-lg text-sm font-bold text-center transition-all focus:outline-none ${deliveryMethod === "Delivery" ? "bg-[#dc2626] text-white shadow-sm" : "text-gray-500 hover:bg-gray-200/60"}`}
-                      >
-                        Delivery
-                      </button>
+                  <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <div className="bg-[#f3f1f1] p-1.5 rounded-full flex border border-gray-200/40">
+                      {/* Pickup Button */}
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("Pickup")}
-                        className={`w-1/2 py-2 rounded-lg text-sm font-bold text-center transition-all focus:outline-none ${deliveryMethod === "Pickup" ? "bg-[#dc2626] text-white shadow-sm" : "text-gray-500 hover:bg-gray-200/60"}`}
+                        className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                          deliveryMethod === "Pickup"
+                            ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
                       >
-                        Pickup
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2.5"
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.5a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75v3.25c0 .414.336.75.75.75Z"
+                          />
+                        </svg>
+                        <span>Pickup</span>
+                      </button>
+
+                      {/* Delivery Button */}
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryMethod("Delivery")}
+                        className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                          deliveryMethod === "Delivery"
+                            ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2.5"
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <circle cx="6" cy="18" r="2.5" />
+                          <circle cx="18" cy="18" r="2.5" />
+                          <path
+                            d="M12 18V13H16L18 9M9 13H12M12 13L10 7H14"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Delivery</span>
                       </button>
                     </div>
                   </div>
@@ -342,8 +460,19 @@ export default function CreatePackage({ onClose, userData }) {
                   <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-gray-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
                     <div className="flex items-center gap-2.5 pb-4 border-b border-gray-100">
                       <div className="bg-red-50 p-2 rounded-lg text-[#dc2626]">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2.5"
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                          />
                         </svg>
                       </div>
                       <h2 className="text-base font-black text-slate-800 uppercase tracking-wide">
@@ -354,7 +483,9 @@ export default function CreatePackage({ onClose, userData }) {
                     <div className="py-4 space-y-3.5 text-xs font-bold border-b border-gray-100 text-slate-600 uppercase tracking-wide">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Meal Size / Tier</span>
-                        <span className="text-[#dc2626] font-extrabold uppercase">{selectedPlan}</span>
+                        <span className="text-[#dc2626] font-extrabold uppercase">
+                          {selectedPlan}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Meal preference</span>
@@ -366,11 +497,15 @@ export default function CreatePackage({ onClose, userData }) {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Duration</span>
-                        <span className="text-slate-900">{duration === "Monthly" ? "1 month" : duration}</span>
+                        <span className="text-slate-900">
+                          {duration === "Monthly" ? "1 month" : duration}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Fulfillment</span>
-                        <span className="text-[#dc2626] font-extrabold">{deliveryMethod}</span>
+                        <span className="text-[#dc2626] font-extrabold">
+                          {deliveryMethod}
+                        </span>
                       </div>
                     </div>
 
@@ -378,7 +513,9 @@ export default function CreatePackage({ onClose, userData }) {
                     <div className="bg-[#f4f5f7] p-4 rounded-2xl my-4 space-y-3">
                       <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
                         <span>Subtotal ({totalMeals} meals)</span>
-                        <span className="text-slate-700">${subtotal.toFixed(2)}</span>
+                        <span className="text-slate-700">
+                          ${subtotal.toFixed(2)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-xs font-bold text-[#dc2626] uppercase tracking-wide">
                         <span>Discount (20% off)</span>
@@ -386,20 +523,43 @@ export default function CreatePackage({ onClose, userData }) {
                       </div>
                       <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
                         <span>{deliveryMethod} Charges</span>
-                        <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
-                          {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
+                        <span
+                          className={
+                            deliveryCharges === 0
+                              ? "text-green-600 font-black"
+                              : "text-slate-700"
+                          }
+                        >
+                          {deliveryCharges === 0
+                            ? "FREE"
+                            : `$${deliveryCharges.toFixed(2)}`}
                         </span>
                       </div>
                       <hr className="border-gray-200" />
                       <div className="flex justify-between items-center pt-1">
-                        <span className="text-xs font-black text-slate-800 uppercase tracking-wide">Total Amount</span>
-                        <span className="text-3xl font-black text-[#dc2626] tracking-tight">${totalAmount.toFixed(2)}</span>
+                        <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                          Total Amount
+                        </span>
+                        <span className="text-3xl font-black text-[#dc2626] tracking-tight">
+                          ${totalAmount.toFixed(2)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="bg-red-50 border border-red-100 text-[#dc2626] text-[10px] rounded-xl p-2.5 text-center font-black uppercase tracking-widest mb-4 flex items-center justify-center space-x-1.5">
-                      <svg xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-3.5 h-3.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/xl"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                        stroke="currentColor"
+                        className="w-3.5 h-3.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                       <span>Price per Tiffin: ${pricePerMeal}</span>
                     </div>
@@ -409,14 +569,24 @@ export default function CreatePackage({ onClose, userData }) {
                       className="w-full bg-[#dc2626] text-white h-13 rounded-xl text-xs font-black tracking-widest uppercase flex items-center justify-center space-x-2 shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none"
                       onClick={() => setShowSuccess(true)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0zm12.75 0a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0zm12.75 0a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0z"
+                        />
                       </svg>
                       <span>Proceed to Checkout</span>
                     </button>
                   </div>
                 </div>
-
               </div>
             </main>
           </div>
