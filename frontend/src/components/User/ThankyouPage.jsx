@@ -9,7 +9,7 @@ export default function ThankYouPage({ setShowSuccess }) {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 antialiased">
       {/* Main Container */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-100 border border-slate-100/50 p-6 md:p-8 relative overflow-hidden flex flex-col items-center text-center">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-100 border border-slate-100/50 p-2 md:p-8 relative overflow-hidden flex flex-col items-center text-center">
         <button
           onClick={() => setShowSuccess(false)}
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-red-100 hover:text-red-600 transition-all flex items-center justify-center"

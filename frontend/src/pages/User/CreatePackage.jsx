@@ -115,19 +115,19 @@ export default function CreatePackage({ onClose, userData }) {
   const totalAmount = subtotal - discount + deliveryCharges;
 
   return (
-    <div className="bg-white rounded-3xl min-h-screen">
+    <div className={`bg-white rounded-[2.5rem] ${onClose ? "h-auto" : "h-screen"}`}>
       {showSuccess ? (
         <ThankYouPage setShowSuccess={setShowSuccess} />
       ) : (
         <>
-          <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-screen py-6 px-2 sm:px-4 lg:px-6 relative">
+          <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased ${onClose ? "h-auto rounded-[2.5rem]" : "min-h-screen"} py-3 px-2 sm:px-4 lg:px-5 relative`}>
             {onClose && (
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-colors"
+                className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-colors"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="3"
@@ -142,17 +142,15 @@ export default function CreatePackage({ onClose, userData }) {
               </button>
             )}
 
-            <main className="max-w-full mx-auto bg-white/50 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-sm">
+            <main className="max-w-full bg-white/50 rounded-3xl">
               {/* ================= HEADER AREA WITH USER DETAILS ================= */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pb-6 border-b border-gray-200/60 px-2">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-1.5 pb-1.5 border-b border-gray-200/60 px-2">
                 <div>
-                  <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2 uppercase">
+                  <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight uppercase">
                     Create Your Plan
                   </h1>
-                  <p className="text-gray-500 text-[14px] max-w-2xl leading-relaxed">
-                    Customize your culinary journey with premium ingredients
-                    delivered to your doorstep. Healthy, chef-prepared meals
-                    tailored to your urban lifestyle.
+                  <p className="text-gray-500 text-xs max-w-2xl leading-relaxed">
+                    Customize your culinary journey with premium ingredients delivered to your doorstep.
                   </p>
                 </div>
 
@@ -171,22 +169,22 @@ export default function CreatePackage({ onClose, userData }) {
               </div>
 
               {/* Main Layout Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
                 {/* Left Configurator Side */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-3">
                   {/* Row 1: Preference & Timing */}
-                  <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* ================= UPDATED MEAL PREFERENCE TOGGLE ================= */}
                       <div>
-                        <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
+                        <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                           <span>🍴</span> Meal Preference
                         </label>
-                        <div className="bg-[#f3f1f1] p-1.5 rounded-full flex border border-gray-200/40">
+                        <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
                           <button
                             type="button"
                             onClick={() => setPreference("Veg")}
-                            className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                            className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
                               preference === "Veg"
                                 ? "bg-white text-gray-900 shadow-sm font-extrabold"
                                 : "text-gray-500 hover:text-gray-800"
@@ -218,7 +216,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <button
                             type="button"
                             onClick={() => setPreference("Non-Veg")}
-                            className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                            className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
                               preference === "Non-Veg"
                                 ? "bg-white text-gray-900 shadow-sm font-extrabold"
                                 : "text-gray-500 hover:text-gray-800"
@@ -226,8 +224,8 @@ export default function CreatePackage({ onClose, userData }) {
                           >
                             <span className="flex items-center gap-2 text-red-700 font-medium">
                               <svg
-                                width="16"
-                                height="16"
+                                width="14"
+                                height="14"
                                 viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
                               >
@@ -255,14 +253,14 @@ export default function CreatePackage({ onClose, userData }) {
 
                       {/* Meal Timing */}
                       <div>
-                        <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
+                        <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                           <span>🕒</span> Meal Timing
                         </label>
                         <div className="relative">
                           <select
                             value={timing}
                             onChange={(e) => setTiming(e.target.value)}
-                            className="w-full bg-white border border-gray-300 rounded-xl p-3 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
+                            className="w-full bg-white border border-gray-300 rounded-xl p-2 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
                           >
                             <option value="Lunch">Lunch</option>
                             <option value="Dinner">Dinner</option>
@@ -282,19 +280,19 @@ export default function CreatePackage({ onClose, userData }) {
                   </div>
 
                   {/* Row 2: Duration & Total Meals */}
-                  <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-6">
+                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-2">
                     <div>
-                      <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
+                      <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                         <span>📅</span> Duration
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {["1 Meal", "Weekly", "Monthly", "Quarterly"].map(
                           (d) => (
                             <button
                               type="button"
                               key={d}
                               onClick={() => setDuration(d)}
-                              className={`py-3 rounded-xl text-sm font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
+                              className={`py-1.5 rounded-xl text-xs font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
                             >
                               {d}
                             </button>
@@ -305,10 +303,10 @@ export default function CreatePackage({ onClose, userData }) {
 
                     {/* ================= UPDATED TOTAL MEALS CONFIG SELECTION ================= */}
                     <div>
-                      <label className="text-[13px] font-semibold text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wider">
+                      <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                         <span>🍱</span> Total Meals
                       </label>
-                      <div className="bg-[#f3f1f1] p-1.5 rounded-3xl border border-gray-200/40 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="bg-[#f3f1f1] p-1 rounded-3xl border border-gray-200/40 grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                         {getMealOptions().map((option) => {
                           const isSelected = totalMeals === option.count;
                           return (
@@ -316,27 +314,27 @@ export default function CreatePackage({ onClose, userData }) {
                               type="button"
                               key={option.count}
                               onClick={() => setTotalMeals(option.count)}
-                              className={`p-4 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
+                              className={`py-1 px-2 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
                                 isSelected
                                   ? "bg-white text-gray-900 shadow-md font-black"
                                   : "text-gray-500 hover:text-gray-800"
                               }`}
                             >
-                              {/* Selection Floating Tick Indicator */}`{" "}
+                              {/* Selection Floating Tick Indicator */}
                               {/* {isSelected && (
                                 <span className="absolute top-2 right-3 bg-green-500 text-white rounded-full flex items-center justify-center w-4 h-4 text-[10px]">
                                   ✓
                                 </span>
                               )}` */}
                               <div
-                                className={`text-2xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}
+                                className={`text-xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}
                               >
                                 {option.count}
                               </div>
-                              <div className="text-xs font-bold mt-0.5 opacity-90">
+                              <div className="text-[11px] font-bold mt-0.5 opacity-90">
                                 {option.price} / meal
                               </div>
-                              <div className="text-[10px] mt-1 font-bold uppercase tracking-wide opacity-60">
+                              <div className="text-[9px] mt-0.5 font-bold uppercase tracking-wide opacity-60">
                                 {option.label}
                               </div>
                             </button>
@@ -347,12 +345,12 @@ export default function CreatePackage({ onClose, userData }) {
                   </div>
 
                   {/* Meal Plan Selector */}
-                  <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                    <label className="text-[13px] font-bold text-[#dc2626] flex items-center gap-1.5 mb-4 uppercase tracking-wider">
+                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <label className="text-xs font-bold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                       <span>🍱</span> Select Your Meal Plan:
                     </label>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {Object.keys(planDetails).map((planName) => {
                         const isSelected = selectedPlan === planName;
                         return (
@@ -360,7 +358,7 @@ export default function CreatePackage({ onClose, userData }) {
                             <div
                               onMouseEnter={() => setHoveredPlan(planName)}
                               onMouseLeave={() => setHoveredPlan(null)}
-                              className="absolute top-3 right-3 z-30 w-5 h-5 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-[#dc2626] hover:bg-red-50 flex items-center justify-center text-xs font-serif font-black cursor-help transition-all shadow-sm"
+                              className="absolute top-2 right-2 z-30 w-4 h-4 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-[#dc2626] hover:bg-red-50 flex items-center justify-center text-[10px] font-serif font-black cursor-help transition-all shadow-sm"
                             >
                               i
                             </div>
@@ -368,25 +366,25 @@ export default function CreatePackage({ onClose, userData }) {
                             <button
                               type="button"
                               onClick={() => setSelectedPlan(planName)}
-                              className={`w-full p-5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[110px] focus:outline-none relative
+                              className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[75px] focus:outline-none relative
                                 ${
                                   isSelected
                                     ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black"
                                     : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"
                                 }`}
                             >
-                              <span className="text-base font-black tracking-tight">
+                              <span className="text-sm font-black tracking-tight">
                                 {planName}
                               </span>
                               <span
-                                className={`text-[11px] font-medium mt-1 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}
+                                className={`text-[10px] font-medium mt-0.5 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}
                               >
                                 {planDetails[planName].description}
                               </span>
                             </button>
 
                             {hoveredPlan === planName && (
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[290px] sm:w-[350px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left pointer-events-none border-t-4 border-t-[#dc2626] transition-all duration-200">
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[350px] sm:w-[250px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left pointer-events-none border-t-4 border-t-[#dc2626] transition-all duration-200">
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
 
                                 <div className="text-xs font-black text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wide">
@@ -433,15 +431,15 @@ export default function CreatePackage({ onClose, userData }) {
                 </div>
 
                 {/* Right Side Stack */}
-                <div className="space-y-6 lg:sticky lg:top-6 relative z-10">
+                <div className="space-y-3 lg:sticky lg:top-6 relative z-10">
                   {/* Fulfillment Mode Toggle Card */}
-                  <div className="bg-white p-3 rounded-3xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                    <div className="bg-[#f3f1f1] p-1.5 rounded-full flex border border-gray-200/40">
+                  <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                    <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
                       {/* Pickup Button */}
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("Pickup")}
-                        className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                        className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
                           deliveryMethod === "Pickup"
                             ? "bg-white text-gray-900 shadow-sm font-extrabold"
                             : "text-gray-500 hover:text-gray-800"
@@ -453,7 +451,7 @@ export default function CreatePackage({ onClose, userData }) {
                           viewBox="0 0 24 24"
                           strokeWidth="2.5"
                           stroke="currentColor"
-                          className="w-4 h-4"
+                          className="w-3.5 h-3.5"
                         >
                           <path
                             strokeLinecap="round"
@@ -468,7 +466,7 @@ export default function CreatePackage({ onClose, userData }) {
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("Delivery")}
-                        className={`w-1/2 py-2.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                        className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
                           deliveryMethod === "Delivery"
                             ? "bg-white text-gray-900 shadow-sm font-extrabold"
                             : "text-gray-500 hover:text-gray-800"
@@ -480,7 +478,7 @@ export default function CreatePackage({ onClose, userData }) {
                           viewBox="0 0 24 24"
                           strokeWidth="2.5"
                           stroke="currentColor"
-                          className="w-4 h-4"
+                          className="w-3.5 h-3.5"
                         >
                           <circle cx="6" cy="18" r="2.5" />
                           <circle cx="18" cy="18" r="2.5" />
@@ -496,8 +494,8 @@ export default function CreatePackage({ onClose, userData }) {
                   </div>
 
                   {/* Plan Summary Card */}
-                  <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-gray-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-                    <div className="flex items-center gap-2.5 pb-4 border-b border-gray-100">
+                  <div className="bg-white p-3 rounded-2xl border border-gray-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                       <div className="bg-red-50 p-2 rounded-lg text-[#dc2626]">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -519,7 +517,7 @@ export default function CreatePackage({ onClose, userData }) {
                       </h2>
                     </div>
 
-                    <div className="py-4 space-y-3.5 text-xs font-bold border-b border-gray-100 text-slate-600 uppercase tracking-wide">
+                    <div className="py-2 space-y-1.5 text-xs font-bold border-b border-gray-100 text-slate-600 uppercase tracking-wide">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Meal Size / Tier</span>
                         <span className="text-[#dc2626] font-extrabold uppercase">
@@ -549,7 +547,7 @@ export default function CreatePackage({ onClose, userData }) {
                     </div>
 
                     {/* Computations Box */}
-                    <div className="bg-[#f4f5f7] p-4 rounded-2xl my-4 space-y-3">
+                    <div className="bg-[#f4f5f7] p-2.5 rounded-xl my-2 space-y-1.5">
                       <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
                         <span>Subtotal ({totalMeals} meals)</span>
                         <span className="text-slate-700">
@@ -575,17 +573,17 @@ export default function CreatePackage({ onClose, userData }) {
                         </span>
                       </div>
                       <hr className="border-gray-200" />
-                      <div className="flex justify-between items-center pt-1">
+                      <div className="flex justify-between items-center pt-0.5">
                         <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
                           Total Amount
                         </span>
-                        <span className="text-3xl font-black text-[#dc2626] tracking-tight">
+                        <span className="text-lg font-black text-[#dc2626] tracking-tight">
                           ${totalAmount.toFixed(2)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="bg-red-50 border border-red-100 text-[#dc2626] text-[10px] rounded-xl p-2.5 text-center font-black uppercase tracking-widest mb-4 flex items-center justify-center space-x-1.5">
+                    <div className="bg-red-50 border border-red-100 text-[#dc2626] text-[10px] rounded-xl p-1.5 text-center font-black uppercase tracking-widest mb-2 flex items-center justify-center space-x-1.5">
                       <svg
                         xmlns="http://www.w3.org/2000/xl"
                         fill="none"
@@ -605,7 +603,7 @@ export default function CreatePackage({ onClose, userData }) {
 
                     <button
                       type="button"
-                      className="w-full bg-[#dc2626] text-white h-13 rounded-xl text-xs font-black tracking-widest uppercase flex items-center justify-center space-x-2 shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none"
+                      className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black tracking-widest uppercase flex items-center justify-center space-x-2 shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none"
                       onClick={() => setShowSuccess(true)}
                     >
                       <svg

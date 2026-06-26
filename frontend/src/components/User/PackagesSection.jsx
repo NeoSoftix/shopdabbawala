@@ -287,6 +287,7 @@ export default function PackagesSection() {
                           ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
                           : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
                         }`}
+                        onClick={() => setIsPopupOpen(true) }
                     >
                       Choose Plan
                     </button>
@@ -574,7 +575,7 @@ export default function PackagesSection() {
     animate={{ scale: 1, opacity: 1, y: 0 }}
     exit={{ scale: 0.95, opacity: 0, y: 30 }}
     transition={{ type: "spring", stiffness: 260, damping: 24 }}
-    className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
+    className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar pointer-events-auto"
   >
     <CreatePackage onClose={closePopup} userData={formData} />
   </motion.div>

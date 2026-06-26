@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaShoppingCart } from "react-icons/fa"
+import { FaShoppingCart } from "react-icons/fa";
 
 const FOOD_DATA = [
   {
@@ -72,23 +72,23 @@ export default function PerfectMatchFoodHero() {
   const radius = 250;
 
   return (
-    <div className="relative w-full h-screen bg-white overflow-hidden font-sans select-none flex flex-col justify-center">
+    <div className="relative w-full min-h-screen lg:h-screen bg-white overflow-hidden font-sans select-none flex flex-col justify-center py-12 lg:py-0">
       {/* Beige Background Shape Sweeping Top-Right */}
       <div
-        className="absolute rounded-full pointer-events-none z-0 transition-all duration-700"
+        className="absolute rounded-full pointer-events-none z-0 transition-all duration-700
+                   w-[600px] h-[600px] -top-[220px] -right-[150px]
+                   sm:w-[900px] sm:h-[900px] sm:-top-[300px] sm:-right-[200px]
+                   lg:w-[1250px] lg:h-[1050px] lg:-top-[420px] lg:-right-[200px]"
         style={{
-          width: "1250px",
-          height: "1050px",
           backgroundColor: "#f3e4d8",
-          top: "-420px",
-          right: "-200px",
         }}
       />
 
-      {/* Main Grid Framework Container (Without Header & Footer) */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-12 grid grid-cols-12 items-center h-full">
+      {/* Main Grid Framework Container */}
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center h-full">
+        
         {/* Left Content Area */}
-        <div className="col-span-5 flex flex-col justify-center space-y-6 z-10">
+        <div className="col-span-1 lg:col-span-5 flex flex-col justify-center text-center lg:text-left items-center lg:items-start space-y-6 z-10 order-2 lg:order-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeIndex}
@@ -96,36 +96,36 @@ export default function PerfectMatchFoodHero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.45, ease: "easeOut" }}
-              className="space-y-3"
+              className="space-y-3 flex flex-col items-center lg:items-start"
             >
-              <span className="block text-4xl font-bold text-[#000]">
+              <span className="block text-3xl sm:text-4xl font-bold text-[#000]">
                 {currentItem.price}
               </span>
-              <h1 className="text-[44px] font-bold text-gray-900 leading-[1.2] tracking-tight max-w-[400px]">
+              <h1 className="text-3xl sm:text-[44px] font-bold text-gray-900 leading-[1.2] tracking-tight max-w-[400px]">
                 {currentItem.name}
               </h1>
-              <p className="text-gray-400 text-[14px] leading-relaxed max-w-[380px] pt-2">
+              <p className="text-gray-400 text-xs sm:text-[14px] leading-relaxed max-w-[380px] pt-2">
                 {currentItem.description}
               </p>
             </motion.div>
           </AnimatePresence>
 
-          <div className="mb-8 md:mb-10">
+          <div className="mb-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-8 py-3.5 rounded-full font-black text-me uppercase text-white tracking-wider shadow-lg cursor-pointer transition-colors duration-500 shadow-black/10 flex gap-4 bg-[#E7000B]` }
-         
+              className="px-8 py-3.5 rounded-full font-black text-sm uppercase text-white tracking-wider shadow-lg cursor-pointer transition-colors duration-500 shadow-black/10 flex items-center gap-4 bg-[#E7000B]"
             >
-              <FaShoppingCart className="mt-1" /> Shop Now
+              <FaShoppingCart /> Shop Now
             </motion.button>
           </div>
         </div>
 
-        {/* Right Arena - Shifted upwards to partially hide behind the beige curve */}
-        <div className="col-span-7 relative w-full h-full flex items-center justify-center">
-          {/* Shifted Container Upwards from top-[42%] to top-[24%] */}
-          <div className="absolute top-[24%] left-[45%] w-[500px] h-[500px]">
+        {/* Right Arena */}
+        <div className="col-span-1 lg:col-span-7 relative w-full flex items-center justify-center order-1 lg:order-2 min-h-[380px] sm:min-h-[500px] lg:h-full">
+          {/* Responsive Scaling Container */}
+          <div className="absolute top-[5%] sm:top-[12%] lg:top-[24%] left-1/2 lg:left-[45%] transform -translate-x-1/2 lg:translate-x-0 w-[500px] h-[500px] scale-[0.65] sm:scale-[0.85] lg:scale-100 origin-center lg:origin-top-left">
+            
             {/* Dashed Semi-Circle SVG Arc */}
             <svg
               className="absolute inset-0 w-[600px] h-[600px] pointer-events-none z-0 transform -translate-x-12 -translate-y-12"
@@ -171,7 +171,9 @@ export default function PerfectMatchFoodHero() {
                   onClick={() => setActiveIndex(index)}
                 >
                   <div
-                    className={`w-[66px] h-[66px] rounded-full overflow-hidden border-2 bg-white shadow-md transition-all ${isActive ? "border-[#f4b004]" : "border-white"}`}
+                    className={`w-[66px] h-[66px] rounded-full overflow-hidden border-2 bg-white shadow-md transition-all ${
+                      isActive ? "border-[#f4b004]" : "border-white"
+                    }`}
                   >
                     <img
                       src={item.image}
@@ -183,7 +185,7 @@ export default function PerfectMatchFoodHero() {
               );
             })}
 
-            {/* Down-sized Central Main Big Plate (Shifted up with the parent) */}
+            {/* Central Main Big Plate */}
             <div className="absolute top-[68%] left-[58%] transform -translate-x-1/2 -translate-y-1/2 z-30">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -216,7 +218,7 @@ export default function PerfectMatchFoodHero() {
                   viewBox="0 0 24 24"
                   strokeWidth="2.5"
                   stroke="currentColor"
-                  className="w-5 h-5 text-orange-400/80"
+                  className="w-5 h-5 text-orange-400/80 transform rotate-90 lg:rotate-0"
                 >
                   <path
                     strokeLinecap="round"
@@ -239,7 +241,7 @@ export default function PerfectMatchFoodHero() {
                   viewBox="0 0 24 24"
                   strokeWidth="2.5"
                   stroke="currentColor"
-                  className="w-5 h-5 text-orange-400/80"
+                  className="w-5 h-5 text-orange-400/80 transform rotate-90 lg:rotate-0"
                 >
                   <path
                     strokeLinecap="round"

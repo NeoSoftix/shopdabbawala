@@ -130,10 +130,9 @@ export default function AddonsSection() {
     .join(", ");
 
   return (
-    <section className="relative w-full min-h-screen bg-[#FDFBF9] py-8 sm:px-8 lg:px-16 font-sans select-none pb-36">
-      
+<section className="relative w-full min-h-screen bg-[#FDFBF9] p-[15px] sm:p-8 lg:px-16 font-sans select-none pb-36">      
       {/* Top Main Heading Header Panel */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
         <div className="text-left">
           <span className="text-xs font-black tracking-widest text-red-600 uppercase block mb-1">
             CUSTOMIZE YOUR MEAL
@@ -147,7 +146,7 @@ export default function AddonsSection() {
         </div>
 
         {/* Categories Symmetrical Filtering Horizontal Grid Deck */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 max-w-full">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
           {CATEGORIES.map((tab) => {
             const isTabActive = activeTab === tab;
             return (

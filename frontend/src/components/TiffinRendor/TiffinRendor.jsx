@@ -188,7 +188,7 @@ export default function TiffinRender() {
             </p>
 
             {/* Premium Interactive Action Button Area */}
-            <div className="mb-8 md:mb-10">
+            <div className="mb-8 md:mb-10  flex justify-center md:justify-start">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
