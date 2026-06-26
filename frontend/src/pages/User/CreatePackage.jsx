@@ -11,6 +11,7 @@ export default function CreatePackage({ onClose, userData }) {
   const [totalMeals, setTotalMeals] = useState(16);
   const [showSuccess, setShowSuccess] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
+  const [quantity, setQuantity] = useState(1);
 
   // Red & White Theme Based Meal Plan State
   const [selectedPlan, setSelectedPlan] = useState("Regular");
@@ -109,7 +110,7 @@ export default function CreatePackage({ onClose, userData }) {
   const pricePerMeal = parseFloat(
     (basePricePerMeal * planMultiplier).toFixed(2),
   );
-  const subtotal = totalMeals * pricePerMeal;
+  const subtotal = totalMeals * pricePerMeal * quantity;
   const discount = subtotal * 0.2; // 20% Off
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
@@ -168,12 +169,75 @@ export default function CreatePackage({ onClose, userData }) {
                 )}
               </div>
 
+              {/* Pickup / Delivery selector for mobile/small screens, shown below header */}
+              <div className="lg:hidden px-2 mb-3">
+                <div className="bg-white p-1 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                  <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
+                    {/* Pickup Button */}
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMethod("Pickup")}
+                      className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                        deliveryMethod === "Pickup"
+                          ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                          : "text-gray-500 hover:text-gray-800"
+                      }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                        stroke="currentColor"
+                        className="w-3.5 h-3.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.5a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75v3.25c0 .414.336.75.75.75Z"
+                        />
+                      </svg>
+                      <span>Pickup</span>
+                    </button>
+
+                    {/* Delivery Button */}
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMethod("Delivery")}
+                      className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
+                        deliveryMethod === "Delivery"
+                          ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                          : "text-gray-500 hover:text-gray-800"
+                      }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                        stroke="currentColor"
+                        className="w-3.5 h-3.5"
+                      >
+                        <circle cx="6" cy="18" r="2.5" />
+                        <circle cx="18" cy="18" r="2.5" />
+                        <path
+                          d="M12 18V13H16L18 9M9 13H12M12 13L10 7H14"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Delivery</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Main Layout Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
                 {/* Left Configurator Side */}
-                <div className="lg:col-span-2 space-y-3">
+                <div className="lg:col-span-2 space-y-4">
                   {/* Row 1: Preference & Timing */}
-                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                  <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* ================= UPDATED MEAL PREFERENCE TOGGLE ================= */}
                       <div>
@@ -184,7 +248,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <button
                             type="button"
                             onClick={() => setPreference("Veg")}
-                            className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                            className={`w-1/2 py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
                               preference === "Veg"
                                 ? "bg-white text-gray-900 shadow-sm font-extrabold"
                                 : "text-gray-500 hover:text-gray-800"
@@ -216,7 +280,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <button
                             type="button"
                             onClick={() => setPreference("Non-Veg")}
-                            className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
+                            className={`w-1/2 py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 focus:outline-none ${
                               preference === "Non-Veg"
                                 ? "bg-white text-gray-900 shadow-sm font-extrabold"
                                 : "text-gray-500 hover:text-gray-800"
@@ -260,7 +324,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <select
                             value={timing}
                             onChange={(e) => setTiming(e.target.value)}
-                            className="w-full bg-white border border-gray-300 rounded-xl p-2 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
+                            className="w-full bg-white border border-gray-300 rounded-xl p-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
                           >
                             <option value="Lunch">Lunch</option>
                             <option value="Dinner">Dinner</option>
@@ -280,7 +344,7 @@ export default function CreatePackage({ onClose, userData }) {
                   </div>
 
                   {/* Row 2: Duration & Total Meals */}
-                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-2">
+                  <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-3">
                     <div>
                       <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                         <span>📅</span> Duration
@@ -292,7 +356,7 @@ export default function CreatePackage({ onClose, userData }) {
                               type="button"
                               key={d}
                               onClick={() => setDuration(d)}
-                              className={`py-1.5 rounded-xl text-xs font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
+                              className={`py-2 rounded-xl text-xs font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
                             >
                               {d}
                             </button>
@@ -314,7 +378,7 @@ export default function CreatePackage({ onClose, userData }) {
                               type="button"
                               key={option.count}
                               onClick={() => setTotalMeals(option.count)}
-                              className={`py-1 px-2 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
+                              className={`py-2 px-2 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
                                 isSelected
                                   ? "bg-white text-gray-900 shadow-md font-black"
                                   : "text-gray-500 hover:text-gray-800"
@@ -345,7 +409,7 @@ export default function CreatePackage({ onClose, userData }) {
                   </div>
 
                   {/* Meal Plan Selector */}
-                  <div className="bg-white p-1.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                  <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <label className="text-xs font-bold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                       <span>🍱</span> Select Your Meal Plan:
                     </label>
@@ -358,7 +422,11 @@ export default function CreatePackage({ onClose, userData }) {
                             <div
                               onMouseEnter={() => setHoveredPlan(planName)}
                               onMouseLeave={() => setHoveredPlan(null)}
-                              className="absolute top-2 right-2 z-30 w-4 h-4 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-[#dc2626] hover:bg-red-50 flex items-center justify-center text-[10px] font-serif font-black cursor-help transition-all shadow-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setHoveredPlan(hoveredPlan === planName ? null : planName);
+                              }}
+                              className="absolute top-2 right-2 z-30 w-4 h-4 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-[#dc2626] hover:bg-red-50 flex items-center justify-center text-[10px] font-serif font-black cursor-pointer sm:cursor-help transition-all shadow-sm"
                             >
                               i
                             </div>
@@ -366,7 +434,7 @@ export default function CreatePackage({ onClose, userData }) {
                             <button
                               type="button"
                               onClick={() => setSelectedPlan(planName)}
-                              className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[75px] focus:outline-none relative
+                              className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[90px] focus:outline-none relative
                                 ${
                                   isSelected
                                     ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black"
@@ -384,7 +452,13 @@ export default function CreatePackage({ onClose, userData }) {
                             </button>
 
                             {hoveredPlan === planName && (
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[350px] sm:w-[250px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left pointer-events-none border-t-4 border-t-[#dc2626] transition-all duration-200">
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setHoveredPlan(null);
+                                }}
+                                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[350px] sm:w-[250px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left cursor-pointer border-t-4 border-t-[#dc2626] transition-all duration-200 pointer-events-auto"
+                              >
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
 
                                 <div className="text-xs font-black text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wide">
@@ -433,7 +507,7 @@ export default function CreatePackage({ onClose, userData }) {
                 {/* Right Side Stack */}
                 <div className="space-y-3 lg:sticky lg:top-6 relative z-10">
                   {/* Fulfillment Mode Toggle Card */}
-                  <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                  <div className="hidden lg:block bg-white p-1.5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
                       {/* Pickup Button */}
                       <button
@@ -519,27 +593,49 @@ export default function CreatePackage({ onClose, userData }) {
 
                     <div className="py-2 space-y-1.5 text-xs font-bold border-b border-gray-100 text-slate-600 uppercase tracking-wide">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Meal Size / Tier</span>
+                        <span className="text-slate-700">Meal Size / Tier</span>
                         <span className="text-[#dc2626] font-extrabold uppercase">
                           {selectedPlan}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Meal preference</span>
+                        <span className="text-slate-700">Meal preference</span>
                         <span className="text-slate-900">{preference}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Delivery timing</span>
+                        <span className="text-slate-700">Delivery timing</span>
                         <span className="text-slate-900">{timing}</span>
                       </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-700">Tiffin Quantity</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-95"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-black text-slate-800 min-w-[14px] text-center">
+                            {quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(quantity + 1)}
+                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-95"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Duration</span>
+                        <span className="text-slate-700">Duration</span>
                         <span className="text-slate-900">
                           {duration === "Monthly" ? "1 month" : duration}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Fulfillment</span>
+                        <span className="text-slate-700">Fulfillment</span>
                         <span className="text-[#dc2626] font-extrabold">
                           {deliveryMethod}
                         </span>
