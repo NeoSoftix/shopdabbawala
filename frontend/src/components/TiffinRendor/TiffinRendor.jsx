@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaShoppingCart } from "react-icons/fa"
 
 const menuItems = [
   {
@@ -191,10 +192,11 @@ export default function TiffinRender() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`px-8 py-3.5 rounded-full font-black text-sm uppercase tracking-wider text-white shadow-lg cursor-pointer transition-colors duration-500 ${activeItem.btnBg} shadow-black/10`}
+                className={`px-8 py-3.5 rounded-full font-black text-me uppercase tracking-wider text-white shadow-lg cursor-pointer transition-colors duration-500 ${activeItem.btnBg} shadow-black/10 flex gap-4`}
                 onClick={scrollToPackages}
+
               >
-                Shop Now
+               <FaShoppingCart className="mt-1"/> Shop Now
               </motion.button>
             </div>
 

@@ -33,20 +33,19 @@ export default function HeroHeader() {
   }
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out">
+    <header className="fixed top-0 left-0 w-[100%] z-50 transition-all duration-500 ease-in-out">
       {/* Premium Minimal Progress Bar */}
       <div
         className="absolute top-0 left-0 h-[3px] bg-gradient-to-r from-red-500 via-rose-600 to-red-600 z-[999] transition-all duration-150 ease-out"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 md:mt-5">
+      <div className="">
         <div
           className={`
             flex items-center justify-between
-
             px-6 md:px-10 py-3.5 md:py-4
-            rounded-full transition-all duration-500 ease-in-out
+            transition-all duration-500 ease-in-out
             ${
               scrolled
                 ? "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_20px_40px_rgba(0,0,0,0.05)]"

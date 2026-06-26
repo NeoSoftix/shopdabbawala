@@ -12,7 +12,7 @@ import AddonsSection from "../../components/User/AddOnsSection";
 
 export default function UserDashboard() {
   return (
-    <div className="space-y-8 bg-[#f7f8fc] min-h-screen">
+    <div className="bg-[#f7f8fc] min-h-screen">
       <HeroHeader />
       <TiffinRendor />
       {/* <Hero /> */}
