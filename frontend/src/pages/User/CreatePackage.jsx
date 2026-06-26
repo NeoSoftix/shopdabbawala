@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ThankYouPage from "../../components/User/ThankyouPage";
 import vegIcon from "../../../public/spinach.svg";
+import VEGICOn from "../../../public/veg icon.svg";
 
 export default function CreatePackage({ onClose, userData }) {
   // Config States
@@ -191,13 +192,27 @@ export default function CreatePackage({ onClose, userData }) {
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
                           >
-                            <span className="flex items-center gap-2">
-                              <img
-                                src={vegIcon}
-                                alt="Veg"
-                                className="w-4 h-4"
-                              />
-                              Veg
+                            <span className="flex items-center gap-2 text-green-700 font-medium">
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <rect
+                                  x="2.5"
+                                  y="2.5"
+                                  width="19"
+                                  height="19"
+                                  rx="2"
+                                  fill="none"
+                                  stroke="#16A34A"
+                                  strokeWidth="2"
+                                />
+                                <circle cx="12" cy="12" r="4" fill="#16A34A" />
+                              </svg>
+
+                              <span>Veg</span>
                             </span>
                           </button>
                           <button
@@ -209,7 +224,31 @@ export default function CreatePackage({ onClose, userData }) {
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
                           >
-                            <span>Non-Veg</span>
+                            <span className="flex items-center gap-2 text-red-700 font-medium">
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <rect
+                                  x="2.5"
+                                  y="2.5"
+                                  width="19"
+                                  height="19"
+                                  rx="2"
+                                  fill="none"
+                                  stroke="#DC2626"
+                                  strokeWidth="2"
+                                />
+                                <path
+                                  d="M12 7L16.5 15H7.5L12 7Z"
+                                  fill="#DC2626"
+                                />
+                              </svg>
+
+                              <span>Non Veg</span>
+                            </span>
                           </button>
                         </div>
                       </div>

@@ -13,15 +13,15 @@ const steps = [
     title: "Choose Package",
     desc: "Select the perfect meal package that suits your needs and preferences.",
   },
-  {
-    icon: FaPlusCircle,
-    title: "Customize Meal",
-    desc: "Personalize your meal by choosing your preferred dishes, ingredients and add-ons.",
-  },
-  {
+   {
     icon: LuClipboardList,
     title: "Place Order",
     desc: "Review your selection and place your order securely with just a few clicks.",
+  },
+   {
+    icon: FaPlusCircle,
+    title: "Customize Meal",
+    desc: "Personalize your meal by choosing your preferred dishes, ingredients and add-ons.",
   },
   {
     icon: LuTruck,
