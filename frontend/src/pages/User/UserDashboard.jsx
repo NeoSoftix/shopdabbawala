@@ -10,6 +10,7 @@ import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
 import HeroHeader from "../../components/HeroHeader";
 import AddonsSection from "../../components/User/AddOnsSection";
 import FAQSection from "../../components/User/FAQSection";
+import Testimonials from "../../components/User/Testimonials";
 import WhyChooseUs from "../../components/User/WhyChooseUs";
 export default function UserDashboard() {
   return (
@@ -30,6 +31,7 @@ export default function UserDashboard() {
       <AddonsSection />
       <WhyChooseUs />
       <GettingStarted />
+      <Testimonials />
       <FAQSection />
       <Footer />
     </div>
