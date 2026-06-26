@@ -79,7 +79,7 @@ function App() {
         <Route path="notifications" element={<VendorNotifications />} />
       </Route>
 
-      <Route path="/user" element={<UserLayout />}>
+      <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
         <Route path="meal-planner" element={<MealPlanner />} />

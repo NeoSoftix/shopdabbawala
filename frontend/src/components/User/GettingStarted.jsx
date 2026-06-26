@@ -5,12 +5,18 @@ import {
   LuTruck,
   LuSmile,
 } from "react-icons/lu";
+import { FaPlusCircle } from "react-icons/fa"
 
 const steps = [
   {
     icon: LuPackageCheck,
     title: "Choose Package",
     desc: "Select your meals, duration & preferences",
+  },
+  {
+    icon: FaPlusCircle, // New icon for Create Package
+    title: "Create Package",
+    desc: "Customize and build your perfect meal plan",
   },
   {
     icon: LuClipboardList,
@@ -90,11 +96,11 @@ export default function GettingStarted() {
             <div
               className="
                 hidden
-                lg:block
+                xl:block
                 absolute
                 top-16
-                left-[12%]
-                right-[12%]
+                left-[10%]
+                right-[10%]
                 border-t-2
                 border-dashed
                 border-red-200
@@ -103,7 +109,8 @@ export default function GettingStarted() {
               "
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-6">
+            {/* Responsive structure optimized for 5 items (switched to xl:grid-cols-5) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-12 xl:gap-4">
               {steps.map((step, index) => {
                 const IconComponent = step.icon;
                 return (

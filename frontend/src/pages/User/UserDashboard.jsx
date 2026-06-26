@@ -8,27 +8,27 @@ import { DEMO_SLIDES } from "../../components/HeroCarousel/HeroCarousel.stories"
 import TiffinRendor from "../../components/TiffinRendor/TiffinRendor";
 import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
 import HeroHeader from "../../components/HeroHeader";
+import AddonsSection from "../../components/User/AddOnsSection";
 
 export default function UserDashboard() {
   return (
     <div className="space-y-8 bg-[#f7f8fc] min-h-screen">
-        <HeroHeader />
+      <HeroHeader />
       <TiffinRendor />
       {/* <Hero /> */}
       {/* <ThaliShowCase />*/}
       <PackageSection />
-
+      {/* 
       <HeroCarousel
         slides={DEMO_SLIDES}
         autoPlay={true}
         autoPlayInterval={3500}
         height="100vh"
-      />
+      /> */}
       <PerfectMatchFoodHero />
-
+      <AddonsSection />
       <GettingStarted />
       <Footer />
-
     </div>
   );
 }
