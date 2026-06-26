@@ -20,7 +20,7 @@ const menuItems = [
   },
   {
     id: "thali2",
-    name: "SPECIAL TIFFIN",
+    name: "VEGETARIAN THALI",
     description:
       "Fresh and healthy home-style tiffin with a variety of delicious curries, breads, and perfect flavors crafted for your daily cravings.",
 
@@ -34,7 +34,7 @@ const menuItems = [
   },
   {
     id: "thali3",
-    name: "EVENING SNACKS",
+    name: "NON-VEG THALI",
     description:
       "Delicious bite-sized treats crafted with fresh ingredients and bold flavors, perfect for a quick snack, light craving, or anytime enjoyment.",
 
