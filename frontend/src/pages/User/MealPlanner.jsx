@@ -2,19 +2,19 @@ import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { 
-  FaChevronRight, 
-  FaChevronLeft,
   FaCheck,
-  FaHeadset
+  FaTrashCan,
+  FaCalendarDays
 } from "react-icons/fa6";
-// To this:
+
 import {
   FiCoffee,
   FiCheckCircle,
   FiClock,
   FiCalendar,
   FiAlertCircle,
-} from "react-icons/fi"; // <-- Changed to react-icons/fi
+  FiLayers
+} from "react-icons/fi"; 
 
 import Header from "../../components/HeroHeader";
 import Footer from "../../components/Footer";
@@ -33,19 +33,14 @@ const StatCard = ({ title, value, growth, Icon }) => (
 );
 
 // Configuration Data
-const steps = [
-  { id: "01", title: "SELECT MEALS", desc: "Choose your meal" },
-  { id: "02", title: "SELECT CATEGORIES", desc: "Pick your categories" },
-  { id: "03", title: "SELECT ITEMS", desc: "Choose your items" },
-  { id: "04", title: "ADD ONS", desc: "Extras & add ons" },
-  { id: "05", title: "SELECT DATE", desc: "Pick your date" },
-  { id: "06", title: "PREVIEW & CONFIRM", desc: "Review your plan" },
-];
-
-const mealPlans = [
-  { id: "breakfast", name: "BREAKFAST", price: 80, image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=100&auto=format&fit=crop&q=80" },
-  { id: "lunch", name: "LUNCH", price: 120, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=80" },
-  { id: "dinner", name: "DINNER", price: 150, image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=100&auto=format&fit=crop&q=80" }
+const daysOfWeek = [
+  { id: "mon", name: "Monday" },
+  { id: "tue", name: "Tuesday" },
+  { id: "wed", name: "Wednesday" },
+  { id: "thu", name: "Thursday" },
+  { id: "fri", name: "Friday" },
+  { id: "sat", name: "Saturday" },
+  { id: "sun", name: "Sunday" },
 ];
 
 const categoriesData = [
@@ -56,18 +51,14 @@ const categoriesData = [
 ];
 
 const foodItems = [
-  { id: "dal", name: "DAL", price: 40 },
-  { id: "paneer", name: "PANEER SABZI", price: 40 },
-  { id: "mixveg", name: "MIX VEG", price: 40 },
-  { id: "rice", name: "JEERA RICE", price: 40 },
-  { id: "roti", name: "ROTI", price: 40 },
-  { id: "salad", name: "SALAD", price: 40 },
-];
-
-const addonsData = [
-  { id: "sweet", name: "Gulab Jamun", price: 30 },
-  { id: "curd", name: "Fresh Curd", price: 20 },
-  { id: "butter", name: "Extra Butter", price: 15 },
+  { id: "dal", name: "Makhani Dal", price: 40, category: "High Protein", image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80" },
+  { id: "paneer", name: "Paneer Tikka Masala", price: 50, category: "High Protein", image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=150&auto=format&fit=crop&q=80" },
+  { id: "chicken", name: "Grilled Herb Chicken", price: 90, category: "High Protein", image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=150&auto=format&fit=crop&q=80" },
+  { id: "mixveg", name: "Sautéed Mix Veggies", price: 40, category: "Low Carb", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150&auto=format&fit=crop&q=80" },
+  { id: "salad", name: "Avocado Green Salad", price: 30, category: "Low Carb", image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=150&auto=format&fit=crop&q=80" },
+  { id: "keto-bowl", name: "Keto Paneer Bowl", price: 70, category: "Keto Diet", image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=150&auto=format&fit=crop&q=80" },
+  { id: "roti", name: "Multigrain Roti (2 pcs)", price: 15, category: "Vegan", image: "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=150&auto=format&fit=crop&q=80" },
+  { id: "rice", name: "Organic Brown Rice", price: 40, category: "Vegan", image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=150&auto=format&fit=crop&q=80" },
 ];
 
 const statsData = [
@@ -80,346 +71,249 @@ const statsData = [
 
 // ================= COMPONENT: MEAL SCHEDULE =================
 const MealSchedule = () => {
-  const [currentStep, setCurrentStep] = useState(0); // App starts at step 0 now to see full flow
-  const [selectedMeal, setSelectedMeal] = useState(mealPlans[1]); // Default Lunch
-  const [selectedCategory, setSelectedCategory] = useState("High Protein");
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [selectedAddons, setSelectedAddons] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("High Protein"); 
+  const [selectedDay, setSelectedDay] = useState("Monday"); 
+  
+  // Weekly Plan State Structure: { "Monday": [items], "Tuesday": [], ... }
+  const [weeklyPlan, setWeeklyPlan] = useState({
+    Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
+  });
 
-  const toggleItem = (item) => {
-    setSelectedItems((prev) =>
-      prev.some(i => i.id === item.id)
-        ? prev.filter((i) => i.id !== item.id)
-        : [...prev, item]
-    );
+  // Filter food items based on selected category
+  const filteredFoodItems = useMemo(() => {
+    return foodItems.filter(item => item.category === selectedCategory);
+  }, [selectedCategory]);
+
+  // Toggle item dynamic insertion based on Selected Day
+  const toggleItemForDay = (item) => {
+    setWeeklyPlan((prev) => {
+      const currentDayItems = prev[selectedDay];
+      const exists = currentDayItems.some((i) => i.id === item.id);
+      
+      return {
+        ...prev,
+        [selectedDay]: exists
+          ? currentDayItems.filter((i) => i.id !== item.id)
+          : [...currentDayItems, item]
+      };
+    });
   };
 
-  const toggleAddon = (addon) => {
-    setSelectedAddons((prev) =>
-      prev.some(a => a.id === addon.id)
-        ? prev.filter((a) => a.id !== addon.id)
-        : [...prev, addon]
-    );
+  // Remove single item from a specific day
+  const removeItemFromDay = (day, itemId) => {
+    setWeeklyPlan((prev) => ({
+      ...prev,
+      [day]: prev[day].filter((item) => item.id !== itemId)
+    }));
   };
 
-  const calculatedSubtotal = useMemo(() => {
-    const baseMealPrice = selectedMeal ? selectedMeal.price : 120;
-    const itemTotal = selectedItems.reduce((acc, current) => acc + current.price, 0);
-    const addonTotal = selectedAddons.reduce((acc, current) => acc + current.price, 0);
-    return baseMealPrice + itemTotal + addonTotal;
-  }, [selectedItems, selectedMeal, selectedAddons]);
+  // Calculate Total Weekly Price
+  const totalWeeklyPrice = useMemo(() => {
+    return Object.values(weeklyPlan)
+      .flatMap(items => items)
+      .reduce((sum, item) => sum + item.price, 0);
+  }, [weeklyPlan]);
 
-  const nextStep = () => { if (currentStep < 5) setCurrentStep((prev) => prev + 1); };
-  const prevStep = () => { if (currentStep > 0) setCurrentStep((prev) => prev - 1); };
+  return (
+    <div className="w-full max-w-[1440px] mx-auto space-y-8">
+      
+      {/* 2 COLUMN MAIN WORKSPACE INTERFACE */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        
+        {/* LEFT SECTION: CATEGORIES & ITEMS MODULE */}
+        <div className="bg-white rounded-[32px] border border-[#E0E5F2]/50 shadow-[0_15px_50px_rgba(112,144,176,0.05)] flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-[#E0E5F2]/60">
+            <span className="text-[11px] font-extrabold text-[#FF4D4F] tracking-widest uppercase">STEP 01</span>
+            <h2 className="text-2xl font-black text-[#2B3674] tracking-tight mt-0.5">SELECT MEAL ITEMS</h2>
+            <p className="text-xs font-medium text-[#A3AED0] mt-1">Choose a category and select items to add to your active day.</p>
+            
+            {/* Category Wizard Tabs */}
+            <div className="flex flex-wrap gap-2 pt-4">
+              {categoriesData.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border ${
+                    selectedCategory === cat.name
+                      ? "bg-[#FF4D4F] text-white border-[#FF4D4F] shadow-md shadow-[#FF4D4F]/20"
+                      : "bg-white text-[#2B3674] border-[#E0E5F2] hover:bg-[#FAFBFE]"
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-  // Dynamic Content Renderer for all steps with Dummy Data
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {mealPlans.map((plan) => (
-              <div
-                key={plan.id}
-                onClick={() => setSelectedMeal(plan)}
-                className={`cursor-pointer rounded-[20px] p-5 border-2 flex flex-col items-center text-center bg-white transition-all duration-200 hover:shadow-sm ${
-                  selectedMeal?.id === plan.id ? "border-[#FF4D4F] bg-[#FFF1F2]/20" : "border-[#E0E5F2]/70"
-                }`}
-              >
-                <img src={plan.image} alt={plan.name} className="w-16 h-16 rounded-full object-cover mb-3" />
-                <span className="text-xs font-black text-[#2B3674]">{plan.name}</span>
-                <span className="text-xs font-black text-[#FF4D4F] mt-1">₹{plan.price}</span>
-              </div>
-            ))}
-          </div>
-        );
-      case 1:
-        return (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {categoriesData.map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                className={`cursor-pointer rounded-[20px] p-5 border-2 text-center bg-white transition-all duration-200 ${
-                  selectedCategory === cat.name ? "border-[#FF4D4F] bg-[#FFF1F2]/20" : "border-[#E0E5F2]/70"
-                }`}
-              >
-                <span className="text-2xl block mb-2">{cat.icon}</span>
-                <span className="text-xs font-bold text-[#2B3674]">{cat.name}</span>
-              </div>
-            ))}
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-5">
+          {/* Render Items by Category */}
+          <div className="p-6 bg-[#FAFBFE]/40 flex-1 overflow-y-auto max-h-[420px]">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {foodItems.map((item) => {
-                const isChecked = selectedItems.some(i => i.id === item.id);
+              {filteredFoodItems.map((item) => {
+                const isChecked = weeklyPlan[selectedDay]?.some(i => i.id === item.id);
                 return (
                   <div
                     key={item.id}
-                    onClick={() => toggleItem(item)}
-                    className={`cursor-pointer rounded-[20px] p-5 border-2 flex items-center justify-between bg-white transition-all duration-200 ${
-                      isChecked ? "border-[#FF4D4F]" : "border-[#E0E5F2]/70"
+                    onClick={() => toggleItemForDay(item)}
+                    className={`cursor-pointer rounded-[20px] p-3 border-2 flex items-center gap-4 bg-white transition-all duration-200 hover:shadow-sm ${
+                      isChecked ? "border-[#FF4D4F] bg-[#FFF1F2]/10" : "border-[#E0E5F2]/70"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <input type="checkbox" checked={isChecked} readOnly className="accent-[#FF4D4F] h-4 w-4 cursor-pointer" />
-                      <span className="text-xs font-black text-[#2B3674]">{item.name}</span>
+                    <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-[#2B3674] truncate">{item.name}</p>
+                      <p className="text-xs font-bold text-[#FF4D4F] mt-0.5">₹{item.price}</p>
                     </div>
-                    <span className="text-xs font-black text-[#FF4D4F]">₹{item.price}</span>
+                    <input 
+                      type="checkbox" 
+                      checked={isChecked || false} 
+                      readOnly 
+                      className="accent-[#FF4D4F] h-4 w-4 cursor-pointer mr-2 shrink-0" 
+                    />
                   </div>
                 );
               })}
             </div>
           </div>
-        );
-      case 3:
-        return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {addonsData.map((addon) => {
-              const isChecked = selectedAddons.some(a => a.id === addon.id);
-              return (
-                <div
-                  key={addon.id}
-                  onClick={() => toggleAddon(addon)}
-                  className={`cursor-pointer rounded-[20px] p-5 border-2 flex flex-col justify-between bg-white transition-all duration-200 ${
-                    isChecked ? "border-[#FF4D4F] bg-[#FFF1F2]/10" : "border-[#E0E5F2]/70"
-                  }`}
-                >
-                  <span className="text-xs font-black text-[#2B3674]">{addon.name}</span>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs font-black text-[#FF4D4F]">₹{addon.price}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isChecked ? 'bg-[#FF4D4F] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      {isChecked ? "Added" : "Add"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      case 4:
-        return (
-          <div className="max-w-xs mx-auto space-y-3 text-center">
-            <p className="text-xs font-bold text-[#2B3674] mb-2">Select Delivery Date</p>
-            <input 
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border-2 border-[#E0E5F2] p-3 rounded-xl text-xs font-bold text-[#2B3674] focus:outline-none focus:border-[#FF4D4F]"
-            />
-          </div>
-        );
-      case 5:
-        return (
-          <div className="bg-[#FAFBFE] rounded-2xl p-6 border border-[#E0E5F2] space-y-4">
-            <h4 className="text-sm font-black text-[#2B3674] border-b pb-2">Order Summary</h4>
-            <div className="space-y-2 text-xs font-bold text-[#2B3674] flex flex-col gap-1">
-              <div className="flex justify-between"><span>Plan Type:</span> <span className="text-[#FF4D4F]">{selectedMeal?.name || "Not Selected"}</span></div>
-              <div className="flex justify-between"><span>Category:</span> <span className="text-emerald-600">{selectedCategory}</span></div>
-              <div className="flex justify-between"><span>Selected Items:</span> <span>{selectedItems.length} Items</span></div>
-              <div className="flex justify-between"><span>Addons:</span> <span>{selectedAddons.length} Added</span></div>
-              <div className="flex justify-between"><span>Delivery Date:</span> <span className="text-blue-600">{selectedDate || "Tomorrow"}</span></div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+        </div>
 
-  return (
-    <div className="w-full max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-[260px_1fr_290px] gap-4 items-stretch">
-      
-      {/* COLUMN 1: PROGRESS BAR LAYOUT */}
-      <div className="flex flex-col justify-between h-full space-y-6">
-        <div className="bg-white rounded-[24px] p-6 border border-[#E0E5F2]/60 shadow-[0_12px_40px_rgba(112,144,176,0.04)] relative flex flex-col gap-1">
-          {steps.map((step, index) => {
-            const isCurrent = index === currentStep;
-            const isCompleted = index < currentStep;
-
-            return (
-              <div key={step.id} className="relative flex flex-col group">
-                
-                {/* Vertical Progress Line UI Connector */}
-                {index < steps.length - 1 && (
-                  <div className="absolute left-[19px] top-10 w-[1px] h-[calc(100%-12px)] z-0">
-                    <div className={`w-full h-full ${isCompleted ? "bg-[#FF4D4F]" : "bg-[#E0E5F2]"}`} />
-                  </div>
-                )}
-
-                {/* Active highlight background patch */}
-                {isCurrent && (
-                  <div className="absolute inset-0 -mx-3 bg-[#FFF1F2] border border-[#FFCCC7]/40 rounded-[16px] -z-0 pointer-events-none" />
-                )}
-
-                <div className="flex items-center gap-4 py-3 px-1 z-10 w-full transition-all duration-300">
-                  {/* Circle Indicator Style (Updated Fix to keep numbers always visible) */}
-                  <div
-                    className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center text-[20px] font-black transition-all duration-300 bg-white shadow-sm shrink-0 relative
-                    ${isCompleted ? "border-[#FF4D4F] text-[#FF4D4F]" : isCurrent ? "border-[#FF4D4F] bg-white text-[#FF4D4F] ring-4 ring-[#FF4D4F]/10" : "border-[#E0E5F2] text-[#A3AED0]"}`}
+        {/* RIGHT SECTION: 7 DAYS PLANNER MODULE */}
+        <div className="bg-white rounded-[32px] border border-[#E0E5F2]/50 shadow-[0_15px_50px_rgba(112,144,176,0.05)] flex flex-col justify-between overflow-hidden">
+          <div className="p-6 border-b border-[#E0E5F2]/60">
+            <span className="text-[11px] font-extrabold text-[#FF4D4F] tracking-widest uppercase">STEP 02</span>
+            <h2 className="text-2xl font-black text-[#2B3674] tracking-tight mt-0.5">CHOOSE DELIVERY DAY</h2>
+            <p className="text-xs font-medium text-[#A3AED0] mt-1">Select a target day wizard from the tier list to map items.</p>
+            
+            {/* 7 Days Grid Wizard */}
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 pt-4">
+              {daysOfWeek.map((day) => {
+                const isSelected = selectedDay === day.name;
+                const itemsCount = weeklyPlan[day.name]?.length || 0;
+                return (
+                  <button
+                    key={day.id}
+                    onClick={() => setSelectedDay(day.name)}
+                    className={`p-2 rounded-xl text-center border transition-all flex flex-col items-center justify-center ${
+                      isSelected
+                        ? "bg-[#2B3674] text-white border-[#2B3674] shadow-md"
+                        : "bg-white text-[#2B3674] border-[#E0E5F2] hover:border-[#2B3674]/40"
+                    }`}
                   >
-                    <span>{step.id}</span>
-                    {isCompleted && (
-                      <span className="absolute -top-1 -right-1 bg-[#FF4D4F] text-white rounded-full p-0.5 border border-white">
-                        <FaCheck size={6} />
+                    <span className="text-[10px] font-black uppercase tracking-wider">{day.name.substring(0, 3)}</span>
+                    {itemsCount > 0 && (
+                      <span className={`text-[9px] px-1.5 py-0.2 mt-1 rounded-full font-bold ${isSelected ? 'bg-[#FF4D4F] text-white' : 'bg-red-50 text-[#FF4D4F]'}`}>
+                        {itemsCount}
                       </span>
                     )}
-                  </div>
-
-                  {/* Step Content Labels */}
-                  <div className="flex flex-col">
-                    <span className={`text-[18px] font-extrabold tracking-wider ${isCurrent ? "text-[#FF4D4F]" : isCompleted ? "text-[#2B3674]" : "text-[#A3AED0]"}`}>
-                      {step.title}
-                    </span>
-                    <span className="text-[14px] font-medium text-[#A3AED0] mt-0.5">
-                      {step.desc}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Need Help Sidebar Footer Widget */}
-        <div className="bg-[#FFF1F2]/60 border border-[#FFCCC7]/40 rounded-[20px] p-4 flex flex-col gap-2 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#FF4D4F] border border-[#FFCCC7]/50 shadow-sm">
-              <FaHeadset size={13} />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#2B3674]">Need Help?</h4>
-              <p className="text-[10px] font-medium text-[#A3AED0]">We're here to help you</p>
-            </div>
-          </div>
-          <button className="text-[11px] font-bold text-[#FF4D4F] hover:underline self-start mt-1 flex items-center gap-1">
-            Chat with us →
-          </button>
-        </div>
-      </div>
-
-      {/* COLUMN 2: MAIN CENTRAL WORKSPACE MODULE */}
-      <div className="bg-white rounded-[32px] border border-[#E0E5F2]/50 shadow-[0_15px_50px_rgba(112,144,176,0.05)] flex flex-col justify-between overflow-hidden relative">
-        
-        {/* Header section styling with layout banner element */}
-        <div className="p-6 sm:p-10 pb-4 flex justify-between items-start relative min-h-[170px]">
-          <div className="space-y-1 max-w-[60%] z-10">
-            <span className="text-[11px] font-extrabold text-[#FF4D4F] tracking-widest uppercase">STEP {steps[currentStep].id}</span>
-            <h2 className="text-3xl font-black text-[#2B3674] tracking-tight mt-1">{steps[currentStep].title}</h2>
-            <p className="text-xs font-medium text-[#A3AED0] leading-relaxed mt-1">
-              {steps[currentStep].desc} dashboard integration interface view.
-            </p>
-          </div>
-          <div className="absolute right-0 top-0 h-full w-[45%] pointer-events-none flex items-center justify-end overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80" 
-              alt="culinary setup illustration" 
-              className="object-cover rounded-bl-full w-[200px] h-[170px] border-l-4 border-b-4 border-white shadow-md translate-x-5"
-            />
-          </div>
-        </div>
-
-        {/* Subtitle bar widget */}
-        <div className="px-6 sm:px-10 py-3 flex justify-between items-center bg-transparent border-t border-b border-dashed border-[#E0E5F2]/60">
-          <span className="text-[11px] font-black text-[#2B3674] tracking-wider uppercase">CONFIGURE YOUR SELECTION</span>
-          <div className="bg-[#FFF1F2] px-2.5 py-1 rounded-full border border-[#FFCCC7]/50 flex items-center gap-1.5">
-            <span className="text-[10px] font-black text-[#FF4D4F] tracking-wide">
-              ✨ Dynamic Configuration Mode
-            </span>
-          </div>
-        </div>
-
-        {/* Dynamic Step Content Rendering */}
-        <div className="p-6 sm:p-10 flex-1 bg-[#FAFBFE]/40">
-          {renderStepContent()}
-        </div>
-
-        {/* Action Footer Button Controllers Module */}
-        <div className="px-6 sm:px-10 py-6 border-t border-[#E0E5F2]/60 flex justify-between items-center bg-white">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className="px-6 h-[44px] text-xs font-black uppercase tracking-wider text-[#2B3674] border-2 border-[#E0E5F2] rounded-xl hover:bg-[#FAFBFE] disabled:opacity-0 transition-all cursor-pointer flex items-center gap-2 focus:outline-none"
-          >
-            <FaChevronLeft size={10} />
-            <span>PREVIOUS</span>
-          </button>
-
-          <button
-            onClick={nextStep}
-            disabled={currentStep === 5}
-            className="px-8 h-[44px] bg-[#FF4D4F] hover:bg-[#E03B3D] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-[#FF4D4F]/20 transition-all flex items-center gap-2 cursor-pointer focus:outline-none"
-          >
-            <span>{currentStep === 5 ? "CONFIRM" : "NEXT"}</span>
-            <FaChevronRight size={10} />
-          </button>
-        </div>
-      </div>
-
-      {/* COLUMN 3: RIGHT STICKY PREVIEW MODULE PANEL */}
-      <aside className="bg-white rounded-[28px] p-5 border border-[#E0E5F2]/60 shadow-[0_12px_40px_rgba(112,144,176,0.03)] lg:sticky lg:top-28 flex flex-col justify-between h-full space-y-6">
-        <div className="space-y-6">
-          <h3 className="font-black text-me tracking-widest uppercase text-[#FF4D4F] pb-4 border-b border-[#E0E5F2]/50 flex items-center gap-2">
-            🔒 <span>YOUR PLAN PREVIEW</span>
-          </h3>
-
-          <div className="space-y-2">
-            <span className="text-[20px] font-extrabold text-[#A3AED0] tracking-wider uppercase block">MEAL</span>
-            <div className="flex items-center gap-3.5 bg-[#FAFBFE] border border-[#E0E5F2]/70 p-3 rounded-[20px]">
-              <div className="w-10 h-10 rounded-full border border-[#E0E5F2] overflow-hidden flex-shrink-0 shadow-inner">
-                <img src={selectedMeal?.image} alt="selected platter" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <p className="font-black text-xs text-[#2B3674] tracking-wide uppercase">{selectedMeal?.name || "NONE"}</p>
-                <p className="text-[18px] font-black text-[#FF4D4F] mt-0.5">₹{selectedMeal?.price || 0}/meal</p>
-              </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {selectedCategory && (
-            <div className="space-y-2">
-              <span className="text-[20px] font-extrabold text-[#A3AED0] tracking-wider uppercase block">CATEGORIES</span>
-              <div>
-                <div className="inline-flex items-center gap-1.5 text-[18px] font-extrabold text-emerald-700 bg-[#E3FBE3] px-3 py-1.5 rounded-full border border-[#B7EB8F]/30">
-                  <span>🌱</span> {selectedCategory}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-[16px] font-extrabold text-[#A3AED0] tracking-wider uppercase">ITEMS SELECTED</span>
-              <span className="text-[14px] font-bold text-[#FF4D4F]">{selectedItems.length} items</span>
-            </div>
-            {selectedItems.length > 0 ? (
-              <div className="bg-[#FAFBFE] border border-[#E0E5F2]/70 p-3.5 rounded-[20px] space-y-2 max-h-[140px] overflow-y-auto">
-                {selectedItems.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center text-xs font-bold text-[#2B3674]">
-                    <span>{item.name}</span>
-                    <span className="text-[18px] font-extrabold px-1.5 bg-white border border-[#E0E5F2] rounded-md text-[#A3AED0]">Included</span>
+          {/* Selected Day's Real-time Added Items List */}
+          <div className="p-6 bg-[#FAFBFE]/40 flex-1 overflow-y-auto max-h-[300px]">
+            <h4 className="text-xs font-extrabold text-[#2B3674] mb-3 uppercase flex items-center gap-1.5">
+              <FaCalendarDays className="text-[#FF4D4F]" /> Items mapped for {selectedDay}
+            </h4>
+            {weeklyPlan[selectedDay]?.length > 0 ? (
+              <div className="space-y-2">
+                {weeklyPlan[selectedDay].map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 p-2 bg-white rounded-xl border border-[#E0E5F2]/60 shadow-2xs">
+                    <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-[#2B3674]">{item.name}</p>
+                      <p className="text-[10px] text-[#A3AED0] font-bold uppercase">{item.category}</p>
+                    </div>
+                    <span className="text-xs font-black text-[#FF4D4F] mr-2">₹{item.price}</span>
+                    <button 
+                      onClick={() => removeItemFromDay(selectedDay, item.id)}
+                      className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                    >
+                      <FaTrashCan size={12} />
+                    </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="bg-[#FFF1F2]/40 border border-dashed border-[#FFCCC7]/60 rounded-[20px] p-5 text-center">
-                <p className="text-[18px] font-medium text-[#A3AED0]">No items selected yet.</p>
+              <div className="h-full flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-[#E0E5F2] rounded-2xl bg-white/50">
+                <p className="text-xs font-medium text-[#A3AED0]">No items added to {selectedDay} yet.</p>
+                <p className="text-[10px] text-[#A3AED0]/70 mt-0.5">Select items from left panel to map them here.</p>
               </div>
             )}
           </div>
-        </div>
 
-        <div className="space-y-4 pt-4 border-t border-dashed border-[#E0E5F2]">
-          <div className="flex justify-between items-center">
-            <span className="font-extrabold text-[#2B3674] text-xs uppercase tracking-wider">SUBTOTAL</span>
-            <span className="font-black text-[#2B3674] text-2xl tracking-tight">₹{calculatedSubtotal}</span>
+          {/* Action Trigger Box */}
+          <div className="p-4 border-t border-[#E0E5F2]/60 bg-white flex justify-between items-center">
+            <div>
+              <span className="text-[10px] font-extrabold text-[#A3AED0] uppercase block">Weekly Total</span>
+              <span className="text-xl font-black text-[#2B3674]">₹{totalWeeklyPrice}</span>
+            </div>
+            <button
+              onClick={() => alert("Order Confirmed! Checkout logic here.")}
+              className="px-6 h-[40px] bg-[#FF4D4F] hover:bg-[#E03B3D] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md shadow-[#FF4D4F]/20 transition-all flex items-center gap-2 cursor-pointer focus:outline-none"
+            >
+              <span>PREVIEW & CONFIRM</span>
+            </button>
           </div>
         </div>
-      </aside>
+
+      </div>
+
+      {/* BOTTOM SECTION: GRANULAR WEEKLY PREVIEW & METRICS PANEL */}
+      <div className="bg-white rounded-3xl border border-[#E0E5F2] p-6 space-y-4 shadow-[0_10px_30px_rgba(0,0,0,0.01)]">
+        <div className="flex items-center gap-2 pb-3 border-b border-[#E0E5F2]">
+          <div className="w-7 h-7 rounded-full bg-red-50 text-[#FF4D4F] flex items-center justify-center font-bold text-xs">✓</div>
+          <div>
+            <h4 className="text-sm font-black text-[#2B3674]">Grand Custom Subscription Preview Matrix</h4>
+            <p className="text-[11px] text-[#A3AED0]">Review your fully customized 7-day culinary configuration breakdown items tier mapping.</p>
+          </div>
+        </div>
+
+        {/* 7-Day Matrix Output Blocks */}
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          {daysOfWeek.map((day) => {
+            const hasItems = weeklyPlan[day.name]?.length > 0;
+            return (
+              <div 
+                key={day.id} 
+                className={`rounded-2xl border p-3.5 flex flex-col justify-between min-h-[160px] transition-all ${
+                  hasItems ? 'border-emerald-200 bg-emerald-50/10' : 'border-gray-100 bg-[#FAFBFE]/50'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-center border-b pb-1.5 mb-2 border-gray-100">
+                    <span className="text-xs font-black text-[#2B3674]">{day.name}</span>
+                    <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full ${hasItems ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-400'}`}>
+                      {hasItems ? `${weeklyPlan[day.name].length} Meals` : 'Empty'}
+                    </span>
+                  </div>
+
+                  {hasItems ? (
+                    <div className="space-y-1 max-h-[110px] overflow-y-auto pr-0.5">
+                      {weeklyPlan[day.name].map((item) => (
+                        <div key={item.id} className="text-[10px] bg-white p-1 rounded-md border border-gray-100 flex justify-between items-center font-bold text-[#2B3674]">
+                          <span className="truncate max-w-[70%]">{item.name}</span>
+                          <span className="text-[#FF4D4F] shrink-0">₹{item.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] italic text-[#A3AED0] text-center mt-6">No active plans</p>
+                  )}
+                </div>
+
+                {hasItems && (
+                  <div className="pt-2 mt-2 border-t border-dashed border-gray-100 flex justify-between items-center text-[10px] font-black text-[#2B3674]">
+                    <span>SUBTOTAL:</span>
+                    <span className="text-emerald-700">₹{weeklyPlan[day.name].reduce((s, i) => s + i.price, 0)}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
     </div>
   );
@@ -430,7 +324,7 @@ const MealPlanner = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans antialiased">
       <Header />
-      <main className="flex-grow pt-28 pb-12 px-4 max-w-7xl mx-auto w-full space-y-10">
+      <main className="flex-grow pt-28 pb-12 px-4 max-w-7xl mx-auto w-full space-y-8">
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {statsData.map((stat, index) => (
             <StatCard key={index} title={stat.title} value={stat.value} growth={stat.growth} Icon={stat.Icon} />

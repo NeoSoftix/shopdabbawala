@@ -103,8 +103,7 @@ export default function CreatePackage({ onClose, userData }) {
 
   // Find base price based on selected total meals count
   const currentOptions = getMealOptions();
-  const matchedOption =
-    currentOptions.find((o) => o.count === totalMeals) || currentOptions[0];
+  const matchedOption =currentOptions.find((o) => o.count === totalMeals) || currentOptions[0];
   const basePricePerMeal = parseFloat(matchedOption.price.replace("$", ""));
 
   const pricePerMeal = parseFloat(

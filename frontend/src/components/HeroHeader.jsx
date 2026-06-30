@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+// Agar aap Vite ya standard React setup use kar rahe hain, toh logo ko aise import karein:
+import logoImg from "/logo.png"; // Apne folder structure ke hisaab se path sahi kar lein
 
 export default function HeroHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -22,15 +24,15 @@ export default function HeroHeader() {
   const navLinks = ["Home", "Plans", "Menu", "About", "Contact"];
 
   const scrollToPackages = () => {
-    const section = document.getElementById("plans")
+    const section = document.getElementById("plans");
 
-    if(section) {
+    if (section) {
       section.scrollIntoView({
-        behavior:"smooth",
-        block:"start"
-      })
+        behavior: "smooth",
+        block: "start",
+      });
     }
-  }
+  };
 
   return (
     <header className="fixed top-0 left-0 w-[100%] z-50 transition-all duration-500 ease-in-out">
@@ -40,11 +42,11 @@ export default function HeroHeader() {
         style={{ width: `${scrollProgress}%` }}
       />
 
-      <div className="">
+      <div>
         <div
           className={`
             flex items-center justify-between
-            px-6 md:px-10 py-3.5 md:py-4
+            px-6 md:px-10
             transition-all duration-500 ease-in-out
             ${
               scrolled
@@ -53,14 +55,13 @@ export default function HeroHeader() {
             }
           `}
         >
-          {/* Logo Brand Block */}
+          {/* Logo Brand Block (Updated with Image) */}
           <div className="flex items-center gap-2.5 cursor-pointer select-none group">
-            <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white font-serif font-black text-lg shadow-md transition-transform duration-300 group-hover:scale-110">
-              M
-            </div>
-            <h2 className={`text-xl md:text-2xl font-black tracking-tight transition-colors duration-500 ${scrolled ? "text-slate-900" : "text-white"}`}>
-              Meals<span className="text-red-500">.</span>
-            </h2>
+            <img 
+              src={logoImg} 
+              alt="Meals Logo" 
+              className="h-25 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
+            />
           </div>
 
           {/* Center Navigation Links */}
@@ -72,7 +73,7 @@ export default function HeroHeader() {
                 className={`
                   relative font-bold text-xs lg:text-sm uppercase tracking-widest transition-colors duration-300 group py-1
                   ${
-                    scrolled 
+                    scrolled
                       ? index === 0 ? "text-red-600" : "text-slate-600 hover:text-red-600"
                       : index === 0 ? "text-red-500" : "text-slate-800 md:text-slate-900 lg:text-slate-900 hover:text-red-500"
                   }
@@ -138,11 +139,14 @@ export default function HeroHeader() {
             ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
-          {/* Drawer Top Header Row */}
+          {/* Drawer Top Header Row (Updated with Image) */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-black text-sm">M</div>
-              <span className="font-black text-slate-900 text-lg uppercase tracking-wider">Meals.</span>
+              <img 
+                src={logoImg} 
+                alt="Meals Logo" 
+                className="h-8 w-auto object-contain" 
+              />
             </div>
             <button onClick={() => setIsMenuOpen(false)} className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-full transition-colors">
               <X size={20} strokeWidth={2.5} />

@@ -33,6 +33,10 @@ import "./react-calendar.css";
 import ServiceArea from "./pages/Vendor/ServiceArea";
 import CreatePackage from "./pages/User/CreatePackage";
 import MealPlanner from "./pages/User/MealPlanner";
+
+
+
+
 function App() {
   return (
     <Routes>
@@ -89,3 +93,11 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+

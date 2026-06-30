@@ -8,7 +8,7 @@ import 'swiper/css/pagination';
 
 const dummyUsers = [
   { id: 1, name: "Priya Sharma", role: "Working Professional", rating: 5, text: "The food is always fresh, hygienic and delivered on time. Feels like home-cooked meals every single day!", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" },
-  { id: 2, name: "Rahul Verma", role: "Software Engineer", rating: 5, text: "I've been with them for 3 months now. Great taste, perfect portions and excellent customer service.", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" },
+  { id: 2, name: "Rahul Verma", role: "Softw                                                                                                                                                                                                                                                                  are Engineer", rating: 5, text: "I've been with them for 3 months now. Great taste, perfect portions and excellent customer service.", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" },
   { id: 3, name: "Sneha Patil", role: "Student", rating: 5, text: "Best tiffin service in the city! The variety in the menu keeps me excited every single day.", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" },
   { id: 4, name: "Amit Desai", role: "Business Owner", rating: 5, text: "Very hygienic packing and super tasty food. Worth every penny. Highly recommended!", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" },
   { id: 5, name: "Ananya Iyer", role: "UI/UX Designer", rating: 5, text: "The packaging is leak-proof and the spices are very balanced. Ideal for daily office lunch.", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
@@ -22,7 +22,7 @@ const dummyUsers = [
 export default function TestimonialsSlider() {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
-  const [_, setInit] = useState(false); // रेण्डरिंग फोर्स करने के लिए ताकि DOM एलीमेंट्स मिल सकें
+  const [_, setInit] = useState(false); 
 
   return (
     <div className="w-full bg-[#FAF9F6] py-16 px-4 md:px-12 font-sans relative overflow-hidden">
@@ -41,10 +41,8 @@ export default function TestimonialsSlider() {
         </p>
       </div>
 
-      {/* मुख्य स्लाइडर सेक्शन */}
       <div className="relative max-w-7xl mx-auto flex items-center gap-4 px-2 md:px-6">
         
-        {/* कस्टम लेफ्ट एरो बटन */}
         <button 
           ref={prevRef} 
           className="hidden md:flex items-center justify-center min-w-[44px] h-11 rounded-full border border-gray-300 bg-white text-[#9E2A2B] hover:bg-gray-50 shadow-md transition z-20 cursor-pointer text-2xl disabled:opacity-40"
@@ -52,7 +50,6 @@ export default function TestimonialsSlider() {
           ‹
         </button>
 
-        {/* Swiper कंटेनर */}
         <div className="w-full overflow-hidden pb-12">
         <Swiper
   modules={[Navigation, Pagination, Autoplay]}
