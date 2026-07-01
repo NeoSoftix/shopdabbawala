@@ -1,18 +1,21 @@
 import React, { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // smooth animations के लिए
 
-// यहाँ FaRegClock को भी ऐड कर दिया है
 import { 
   FaCheck,
   FaTrashCan,
   FaRegCalendar,
   FaShieldHalved,
-  FaRegClock 
+  FaRegClock,
+  FaFileInvoice, 
+  FaRotateLeft, // फिक्स्ड आइकॉन
+  FaBowlFood,
+  FaCalendarDays,
+  FaCircleInfo
 } from "react-icons/fa6";
 
 import Header from "../../components/HeroHeader";
 import Footer from "../../components/Footer";
-import UserHistorydetails from "../../components/User/UserHistoryDetails"
+import UserHistorydetails from "../../components/User/UserHistoryDetails";
 
 // Configuration Data
 const daysOfWeek = [
@@ -44,12 +47,7 @@ const foodItems = [
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
 const MealPlanSummary = () => {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="w-full bg-white rounded-[24px] border border-gray-100 p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] relative"
-    >
+    <div className="w-full bg-white rounded-[24px] border border-gray-100 p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] relative opacity-100 transition-opacity duration-300">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-red-50/60 rounded-2xl flex items-center justify-center text-red-500 text-2xl shrink-0">
@@ -78,12 +76,7 @@ const MealPlanSummary = () => {
             <span className="text-xs font-bold text-[#D32F2F]">40% Used</span>
           </div>
           <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-6">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: "40%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="h-full bg-[#D32F2F] rounded-full"
-            />
+            <div className="h-full bg-[#D32F2F] rounded-full" style={{ width: "40%" }} />
           </div>
           <div className="grid grid-cols-2 text-center relative">
             <div>
@@ -124,7 +117,7 @@ const MealPlanSummary = () => {
         <FaShieldHalved className="text-[#D32F2F]" size={14} />
         <span>Your plan is active and ready to use.</span>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -133,21 +126,20 @@ const MealSchedule = () => {
   const [selectedCategory, setSelectedCategory] = useState("High Protein"); 
   const [selectedDay, setSelectedDay] = useState("Tuesday"); 
   
+  // यहाँ से .find() हटा दिया है ताकि कोई स्टेट इनिशियलाइजेशन क्रैश न हो
   const [weeklyPlan, setWeeklyPlan] = useState({
-    Monday: [foodItems.find(i => i.id === "roti")],
-    Tuesday: [foodItems.find(i => i.id === "mixveg")],
-    Wednesday: [foodItems.find(i => i.id === "keto-bowl")],
-    Thursday: [], Friday: [], Saturday: [], Sunday: []
+    Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
   });
 
   const filteredFoodItems = useMemo(() => {
-    return foodItems.filter(item => item.category === selectedCategory);
+    return foodItems.filter(item => item && item.category === selectedCategory);
   }, [selectedCategory]);
 
   const toggleItemForDay = (item) => {
+    if (!item) return;
     setWeeklyPlan((prev) => {
       const currentDayItems = prev[selectedDay] || [];
-      const exists = currentDayItems.some((i) => i.id === item.id);
+      const exists = currentDayItems.some((i) => i && i.id === item.id);
       
       if (!exists && currentDayItems.length >= 6) {
         alert("You can only add up to 6 meals per day in this plan.");
@@ -157,7 +149,7 @@ const MealSchedule = () => {
       return {
         ...prev,
         [selectedDay]: exists
-          ? currentDayItems.filter((i) => i.id !== item.id)
+          ? currentDayItems.filter((i) => i && i.id !== item.id)
           : [...currentDayItems, item]
       };
     });
@@ -166,7 +158,7 @@ const MealSchedule = () => {
   const removeItemFromDay = (day, itemId) => {
     setWeeklyPlan((prev) => ({
       ...prev,
-      [day]: prev[day].filter((item) => item.id !== itemId)
+      [day]: (prev[day] || []).filter((item) => item && item.id !== itemId)
     }));
   };
 
@@ -174,7 +166,7 @@ const MealSchedule = () => {
   const currentDayMeals = weeklyPlan[selectedDay] || [];
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
       <div className="text-center py-2">
         <h2 className="text-2xl font-black text-[#1B254B]">
           Build Your Custom Meal Plan in <span className="text-[#D32F2F]">2 Easy Steps</span>
@@ -195,10 +187,9 @@ const MealSchedule = () => {
 
           <div className="flex flex-wrap gap-2 py-1">
             {categoriesData.map((cat) => (
-              <motion.button
+              <button
                 key={cat.id}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                type="button"
                 onClick={() => setSelectedCategory(cat.name)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-150 border ${
                   selectedCategory === cat.name
@@ -208,48 +199,40 @@ const MealSchedule = () => {
               >
                 <span>{cat.icon}</span>
                 <span>{cat.name}</span>
-              </motion.button>
+              </button>
             ))}
           </div>
 
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-              {filteredFoodItems.map((item) => {
-                const isChecked = weeklyPlan[selectedDay]?.some(i => i.id === item.id);
-                return (
-                  <motion.div
-                    layout
-                    key={item.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                    onClick={() => toggleItemForDay(item)}
-                    className="bg-white rounded-xl border border-gray-100 p-2.5 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
-                  >
-                    <div className="absolute top-2.5 right-2.5 z-10">
-                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-[#D32F2F] border-[#D32F2F]' : 'border-gray-300 bg-white'}`}>
-                        {isChecked && <FaCheck className="text-white" size={8} />}
-                      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {filteredFoodItems.map((item) => {
+              const isChecked = currentDayMeals.some(i => i && i.id === item.id);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => toggleItemForDay(item)}
+                  className="bg-white rounded-xl border border-gray-100 p-2.5 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
+                >
+                  <div className="absolute top-2.5 right-2.5 z-10">
+                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-[#D32F2F] border-[#D32F2F]' : 'border-gray-300 bg-white'}`}>
+                      {isChecked && <FaCheck className="text-white" size={8} />}
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <img src={item.image} alt={item.name} className="w-full h-20 object-cover rounded-lg" />
-                      <div>
-                        <h4 className="text-xs font-black text-[#1B254B] leading-tight">{item.name}</h4>
-                        <p className="text-[10px] text-gray-400 font-medium mt-0.5 line-clamp-2 leading-tight">{item.desc}</p>
-                      </div>
+                  <div className="space-y-2">
+                    <img src={item.image} alt={item.name} className="w-full h-20 object-cover rounded-lg" />
+                    <div>
+                      <h4 className="text-xs font-black text-[#1B254B] leading-tight">{item.name}</h4>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5 line-clamp-2 leading-tight">{item.desc}</p>
                     </div>
+                  </div>
 
-                    <div className="mt-2 pt-1.5 border-t border-gray-50 flex items-center justify-end text-[10px] font-bold text-gray-500">
-                      <span>🔥 {item.cal}</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
-          <p className="text-[10px] text-gray-400 italic">ℹ️ You can add or remove items anytime before confirming your plan.</p>
+                  <div className="mt-2 pt-1.5 border-t border-gray-50 flex items-center justify-end text-[10px] font-bold text-gray-500">
+                    <span>🔥 {item.cal}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* RIGHT SECTION */}
@@ -271,6 +254,7 @@ const MealSchedule = () => {
                 return (
                   <button
                     key={day.id}
+                    type="button"
                     onClick={() => setSelectedDay(day.name)}
                     className="flex flex-col items-center py-1.5 text-center focus:outline-none group"
                   >
@@ -297,13 +281,12 @@ const MealSchedule = () => {
 
                   if (item) {
                     return (
-                      <motion.div 
+                      <div 
                         key={item.id} 
-                        initial={{ opacity: 0, scale: 0.85 }}
-                        animate={{ opacity: 1, scale: 1 }}
                         className="flex flex-col justify-between bg-white p-1.5 rounded-xl border border-gray-100 relative group min-h-[75px]"
                       >
                         <button 
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeItemFromDay(selectedDay, item.id);
@@ -320,7 +303,7 @@ const MealSchedule = () => {
                             <p className="text-[8px] text-gray-400 mt-0.5">{item.cal}</p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   } else {
                     return (
@@ -335,14 +318,13 @@ const MealSchedule = () => {
             </div>
 
             <div className="pt-3 border-t border-gray-100 flex items-center justify-end">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
+                type="button"
                 onClick={() => alert("Order Confirmed!")}
                 className="bg-[#D32F2F] hover:bg-red-700 text-white font-black text-xs px-5 py-2.5 rounded-xl tracking-wider shadow-sm transition-all flex items-center gap-2"
               >
                 PREVIEW & CONFIRM &gt;
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>
@@ -377,9 +359,9 @@ const MealSchedule = () => {
 
                   {hasItems ? (
                     <div className="space-y-0.5">
-                      {items.map((item) => (
-                        <div key={item?.id} className="flex justify-between items-center text-[9px] font-bold text-gray-500">
-                          <span className="truncate w-full text-center md:text-left">{item?.name}</span>
+                      {items.map((item, idx) => (
+                        <div key={item ? item.id : idx} className="flex justify-between items-center text-[9px] font-bold text-gray-500">
+                          <span className="truncate w-full text-left">{item ? item.name : ""}</span>
                         </div>
                       ))}
                     </div>
@@ -394,28 +376,100 @@ const MealSchedule = () => {
           })}
         </div>
       </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 text-center text-[11px] font-bold text-gray-500">
-        <div>🌱 100% Fresh & Healthy</div>
-        <div>👨‍🍳 Expert Nutritionists</div>
-        <div>🚚 On-Time Delivery</div>
-        <div>🛡️ No Commitment</div>
-      </div>
     </div>
   );
 };
 
-// ================= MAIN PARENT COMPONENT =================
+// ================= MAIN PARENT COMPONENT WITH WIZARD =================
 const MealPlanner = () => {
+  const [activeStep, setActiveStep] = useState(1);
+
+  const steps = [
+    { id: 1, label: "Plan Summary", icon: <FaCircleInfo size={16} /> },
+    { id: 2, label: "Build Custom Meal", icon: <FaBowlFood size={16} /> },
+    { id: 3, label: "My Orders", icon: <FaCalendarDays size={16} /> },
+
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFCFF] font-sans antialiased">
       <Header />
-      <main className="flex-grow pt-20 pb-12 px-4 max-w-7xl mx-auto w-full space-y-6">
-        <MealPlanSummary />
-        <MealSchedule />
-        {/* history section */}
-        <UserHistorydetails />
+      
+      <main className="flex-grow pt-24 pb-12 px-4 max-w-7xl mx-auto w-full space-y-8">
+        
+        {/* ================= WIZARD / TABS ================= */}
+        <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {steps.map((step) => {
+              const isActive = activeStep === step.id;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => setActiveStep(step.id)}
+                  className={`flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl text-xs font-black tracking-wide transition-all duration-200 ${
+                    isActive 
+                      ? "bg-[#D32F2F] text-white shadow-md shadow-red-100" 
+                      : "bg-gray-50/50 text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                  }`}
+                >
+                  <span className={isActive ? "text-white" : "text-gray-400"}>
+                    {step.icon}
+                  </span>
+                  <span>{step.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ================= DYNAMIC CONTENT AREA ================= */}
+        <div className="w-full min-h-[400px]">
+          {activeStep === 1 && (
+            <div className="fade-in">
+              <MealPlanSummary />
+            </div>
+          )}
+
+          {activeStep === 2 && (
+            <div className="fade-in">
+              <MealSchedule />
+            </div>
+          )}
+
+          {activeStep === 3 && (
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
+              <div className="mb-4">
+                <h3 className="text-lg font-black text-[#1B254B]">My Active Orders</h3>
+                <p className="text-xs text-gray-400">Track and manage your upcoming meal deliveries</p>
+              </div>
+              <UserHistorydetails /> 
+            </div>
+          )}
+
+          {activeStep === 4 && (
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
+              <div className="mb-4">
+                <h3 className="text-lg font-black text-[#1B254B]">Past Orders History</h3>
+                <p className="text-xs text-gray-400">View details of your previously delivered meals</p>
+              </div>
+              <UserHistorydetails />
+            </div>
+          )}
+
+          {activeStep === 5 && (
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
+              <div className="mb-4">
+                <h3 className="text-lg font-black text-[#1B254B]">Custom Orders</h3>
+                <p className="text-xs text-gray-400">Your specific special requests and tailored meal plans</p>
+              </div>
+              <UserHistorydetails />
+            </div>
+          )}
+        </div>
+
       </main>
+      
       <Footer />
     </div>
   );
