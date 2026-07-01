@@ -93,9 +93,9 @@ function App() {
         <Route
           path="meal-planner"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+           
               <MealPlanner />
-            </ProtectedRoute>
+            
           }
         />
       </Route>
