@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, ShieldCheck, Clock3 } from "lucide-react";
+// Eye aur EyeOff icons ko import kiya
+import { Mail, Lock, ShieldCheck, Clock3, Eye, EyeOff } from "lucide-react";
 import { login } from "../service/auth.service";
 import { useAuth } from "../context/AuthContext";
 
@@ -10,6 +11,9 @@ export default function Login() {
   const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Password visibility track karne ke liye state
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -34,7 +38,6 @@ export default function Login() {
       
       setUser(res.user); 
 
-      // Redirect runs automatically based on what the database returns for that email
       if (res.user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (res.user.role === "vendor") {
@@ -166,16 +169,26 @@ export default function Login() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                 />
 
+                {/* type ko dynamically badla: "text" ya "password" */}
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) =>
                     setPassword(e.target.value)
                   }
                   placeholder="Enter password"
-                  className="w-full h-14 border border-gray-300 rounded-xl pl-12 pr-4 outline-none focus:border-[#E23747]"
+                  className="w-full h-14 border border-gray-300 rounded-xl pl-12 pr-12 outline-none focus:border-[#E23747]"
                   required
                 />
+
+                {/* Show/Hide Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
