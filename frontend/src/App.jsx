@@ -36,7 +36,7 @@ import MealPlanner from "./pages/User/MealPlanner";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./components/NotFoundPage";
-
+import UserLogin from "./components/User/UserLogin";
 function App() {
   return (
     <Routes>
@@ -98,6 +98,7 @@ function App() {
             
           }
         />
+        <Route path="userlogin" element={<UserLogin />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
