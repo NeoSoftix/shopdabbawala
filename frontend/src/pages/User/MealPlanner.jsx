@@ -1,13 +1,10 @@
 import React, { useMemo, useState } from "react";
-
 import { 
   FaCheck,
   FaTrashCan,
   FaRegCalendar,
   FaShieldHalved,
   FaRegClock,
-  FaFileInvoice, 
-  FaRotateLeft, // फिक्स्ड आइकॉन
   FaBowlFood,
   FaCalendarDays,
   FaCircleInfo
@@ -47,89 +44,90 @@ const foodItems = [
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
 const MealPlanSummary = () => {
   return (
-    <div className="w-full bg-white rounded-[24px] border border-gray-100 p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] relative opacity-100 transition-opacity duration-300">
-      <div className="flex justify-between items-center mb-6">
+    <div className="w-full bg-white rounded-[32px] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50 flex flex-col gap-8">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-red-50/60 rounded-2xl flex items-center justify-center text-red-500 text-2xl shrink-0">
+          <div className="w-12 h-12 bg-[#FFF5F5] rounded-2xl flex items-center justify-center text-2xl shadow-sm">
             🍲
           </div>
           <div>
-            <h2 className="text-2xl font-black text-[#1B254B] tracking-tight">Meal Plan Summary</h2>
-            <p className="text-sm font-medium text-gray-400">Quick overview of your current plan</p>
+            <h2 className="text-2xl font-bold text-[#1B254B] tracking-tight">Meal Plan Summary</h2>
+            <p className="text-sm font-medium text-[#A3AED0] mt-0.5">Quick overview of your current plan</p>
           </div>
         </div>
         
-        <div className="bg-[#FFF5F5] text-[#D32F2F] font-bold text-xs px-4 py-2 rounded-full flex items-center gap-1.5">
+        <div className="bg-[#E6F9EE] text-[#05CD99] font-bold text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shadow-sm">
           <FaShieldHalved size={12} /> Active Plan
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-        <div className="md:col-span-3 bg-[#FFF5F5]/60 rounded-[20px] p-6 text-center flex flex-col justify-center items-center h-36 border border-red-50/50">
-          <span className="text-5xl font-black text-[#D32F2F] tracking-tight">60</span>
-          <span className="text-sm font-bold text-gray-500 mt-1">Total Meals</span>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        <div className="md:col-span-3 bg-gradient-to-b from-[#FF5E5E] to-[#E31A1A] rounded-[24px] p-6 text-center flex flex-col justify-center items-center h-44 shadow-lg shadow-red-100/40 relative overflow-hidden">
+          <span className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white mb-2 text-md">🍽️</span>
+          <span className="text-5xl font-black text-white tracking-tight">60</span>
+          <span className="text-xs font-bold text-white/80 mt-1 uppercase tracking-wider">Total Meals</span>
         </div>
 
-        <div className="md:col-span-5 px-4 flex flex-col justify-center h-36">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-base font-black text-[#1B254B]">Plan Usage</span>
-            <span className="text-xs font-bold text-[#D32F2F]">40% Used</span>
+        <div className="md:col-span-5 px-2 flex flex-col justify-center h-44">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-md font-bold text-[#1B254B]">Plan Usage</span>
+            <span className="text-xs font-bold text-[#E31A1A] bg-[#FFF5F5] px-2.5 py-1 rounded-md">40% Used</span>
           </div>
-          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-6">
-            <div className="h-full bg-[#D32F2F] rounded-full" style={{ width: "40%" }} />
+          <div className="w-full h-3 bg-[#F4F7FE] rounded-full overflow-hidden mb-6">
+            <div className="h-full bg-gradient-to-r from-[#FF5E5E] to-[#E31A1A] rounded-full" style={{ width: "40%" }} />
           </div>
           <div className="grid grid-cols-2 text-center relative">
-            <div>
-              <span className="block text-2xl font-black text-[#D32F2F]">24</span>
-              <span className="text-xs font-bold text-gray-400">Consumed</span>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-9 h-9 bg-[#FFF5F5] text-[#E31A1A] rounded-xl flex items-center justify-center text-sm">🚫</div>
+              <div className="text-left">
+                <span className="block text-2xl font-black text-[#E31A1A] leading-none">24</span>
+                <span className="text-xs font-semibold text-[#A3AED0] mt-0.5 block">Consumed</span>
+              </div>
             </div>
-            <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-[1px] h-8 bg-gray-100"></div>
-            <div>
-              <span className="block text-2xl font-black text-[#1B254B]">36</span>
-              <span className="text-xs font-bold text-gray-400">Remaining</span>
+            <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-[1px] h-10 bg-gray-100"></div>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-9 h-9 bg-[#F4F7FE] text-[#1B254B] rounded-xl flex items-center justify-center text-sm">🧺</div>
+              <div className="text-left">
+                <span className="block text-2xl font-black text-[#1B254B] leading-none">36</span>
+                <span className="text-xs font-semibold text-[#A3AED0] mt-0.5 block">Remaining</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="md:col-span-4 border-l border-gray-100 pl-8 space-y-4 flex flex-col justify-center h-36">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-50/50 rounded-full flex items-center justify-center text-[#D32F2F] shrink-0">
-              <FaRegCalendar size={16} />
+        <div className="md:col-span-4 border-l border-gray-100 pl-8 space-y-5 flex flex-col justify-center h-44">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 bg-[#FFF5F5] rounded-xl flex items-center justify-center text-[#E31A1A] shrink-0 shadow-sm">
+              <FaRegCalendar size={18} />
             </div>
             <div>
-              <span className="block text-xs font-medium text-gray-400 leading-tight">Valid Till</span>
-              <span className="text-base font-extrabold text-[#1B254B]">25 Jun 2026</span>
+              <span className="block text-xs font-medium text-[#A3AED0] leading-none mb-1">Valid Till</span>
+              <span className="text-md font-extrabold text-[#1B254B]">25 Jun 2026</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-50/50 rounded-full flex items-center justify-center text-[#D32F2F] shrink-0">
-              <FaRegClock size={16} />
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 bg-[#FFF5F5] rounded-xl flex items-center justify-center text-[#E31A1A] shrink-0 shadow-sm">
+              <FaRegClock size={18} />
             </div>
             <div>
-              <span className="block text-xs font-medium text-gray-400 leading-tight">Expires in</span>
-              <span className="text-base font-extrabold text-[#1B254B]">91 Days</span>
+              <span className="block text-xs font-medium text-[#A3AED0] leading-none mb-1">Expires in</span>
+              <span className="text-md font-extrabold text-[#1B254B]">91 Days</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 bg-[#FFF5F5]/40 rounded-xl px-4 py-3 border border-red-50/30 flex items-center gap-2.5 text-xs font-bold text-gray-600">
-        <FaShieldHalved className="text-[#D32F2F]" size={14} />
-        <span>Your plan is active and ready to use.</span>
+      <div className="mt-4 bg-[#E6F9EE]/60 rounded-2xl px-5 py-4 border border-[#05CD99]/10 flex items-center gap-3 text-xs font-bold text-[#05CD99]">
+        <div className="w-5 h-5 bg-[#05CD99] text-white rounded-full flex items-center justify-center text-[10px]">✔</div>
+        <span>Your plan is active and ready to use. Enjoy your meals and stay consistent!</span>
       </div>
     </div>
   );
 };
 
 // ================= COMPONENT: WORKSPACE INTERFACE =================
-const MealSchedule = () => {
+const MealSchedule = ({ selectedDay, setSelectedDay, weeklyPlan, setWeeklyPlan }) => {
   const [selectedCategory, setSelectedCategory] = useState("High Protein"); 
-  const [selectedDay, setSelectedDay] = useState("Tuesday"); 
-  
-  // यहाँ से .find() हटा दिया है ताकि कोई स्टेट इनिशियलाइजेशन क्रैश न हो
-  const [weeklyPlan, setWeeklyPlan] = useState({
-    Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
-  });
 
   const filteredFoodItems = useMemo(() => {
     return foodItems.filter(item => item && item.category === selectedCategory);
@@ -166,22 +164,22 @@ const MealSchedule = () => {
   const currentDayMeals = weeklyPlan[selectedDay] || [];
 
   return (
-    <div className="w-full space-y-8 bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+    <div className="w-full space-y-8 bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50">
       <div className="text-center py-2">
-        <h2 className="text-2xl font-black text-[#1B254B]">
-          Build Your Custom Meal Plan in <span className="text-[#D32F2F]">2 Easy Steps</span>
+        <h2 className="text-2xl font-bold text-[#1B254B]">
+          Build Your Custom Meal Plan in <span className="text-[#E31A1A]">2 Easy Steps</span>
         </h2>
-        <p className="text-xs font-medium text-gray-400 mt-0.5">Healthy meals, your way!</p>
+        <p className="text-xs font-medium text-[#A3AED0] mt-0.5">Healthy meals, your way!</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT SECTION */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-start gap-3">
-            <span className="w-6 h-6 bg-white border-2 border-[#D32F2F] text-[#D32F2F] rounded-full flex items-center justify-center font-bold text-xs shrink-0">1</span>
+            <span className="w-6 h-6 bg-white border-2 border-[#E31A1A] text-[#E31A1A] rounded-full flex items-center justify-center font-bold text-xs shrink-0">1</span>
             <div>
-              <h3 className="text-xs font-black text-[#1B254B] tracking-wider uppercase">CHOOSE YOUR MEALS</h3>
-              <p className="text-[11px] font-medium text-gray-400">Select your favorite meals and diet preference</p>
+              <h3 className="text-xs font-bold text-[#1B254B] tracking-wider uppercase">CHOOSE YOUR MEALS</h3>
+              <p className="text-[11px] font-medium text-[#A3AED0]">Select your favorite meals and diet preference</p>
             </div>
           </div>
 
@@ -191,10 +189,10 @@ const MealSchedule = () => {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.name)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-150 border ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
                   selectedCategory === cat.name
-                    ? "bg-[#D32F2F] text-white border-[#D32F2F] shadow-sm"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
+                    : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 <span>{cat.icon}</span>
@@ -213,7 +211,7 @@ const MealSchedule = () => {
                   className="bg-white rounded-xl border border-gray-100 p-2.5 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
                 >
                   <div className="absolute top-2.5 right-2.5 z-10">
-                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-[#D32F2F] border-[#D32F2F]' : 'border-gray-300 bg-white'}`}>
+                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-[#E31A1A] border-[#E31A1A]' : 'border-gray-300 bg-white'}`}>
                       {isChecked && <FaCheck className="text-white" size={8} />}
                     </div>
                   </div>
@@ -221,8 +219,8 @@ const MealSchedule = () => {
                   <div className="space-y-2">
                     <img src={item.image} alt={item.name} className="w-full h-20 object-cover rounded-lg" />
                     <div>
-                      <h4 className="text-xs font-black text-[#1B254B] leading-tight">{item.name}</h4>
-                      <p className="text-[10px] text-gray-400 font-medium mt-0.5 line-clamp-2 leading-tight">{item.desc}</p>
+                      <h4 className="text-xs font-bold text-[#1B254B] leading-tight">{item.name}</h4>
+                      <p className="text-[10px] text-[#A3AED0] font-medium mt-0.5 line-clamp-2 leading-tight">{item.desc}</p>
                     </div>
                   </div>
 
@@ -238,15 +236,15 @@ const MealSchedule = () => {
         {/* RIGHT SECTION */}
         <div className="lg:col-span-5 space-y-4">
           <div className="flex items-start gap-3">
-            <span className="w-6 h-6 bg-white border-2 border-[#D32F2F] text-[#D32F2F] rounded-full flex items-center justify-center font-bold text-xs shrink-0">2</span>
+            <span className="w-6 h-6 bg-white border-2 border-[#E31A1A] text-[#E31A1A] rounded-full flex items-center justify-center font-bold text-xs shrink-0">2</span>
             <div>
-              <h3 className="text-xs font-black text-[#1B254B] tracking-wider uppercase">PICK DELIVERY DAY</h3>
-              <p className="text-[11px] font-medium text-gray-400">Choose your target day to get started</p>
+              <h3 className="text-xs font-bold text-[#1B254B] tracking-wider uppercase">PICK DELIVERY DAY</h3>
+              <p className="text-[11px] font-medium text-[#A3AED0]">Choose your target day to get started</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-[20px] border border-gray-100 p-5 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
-            <span className="text-xs font-black text-[#1B254B] uppercase block tracking-wider">Select Delivery Day</span>
+          <div className="bg-white rounded-[24px] border border-gray-100 p-5 space-y-4 shadow-sm">
+            <span className="text-xs font-bold text-[#1B254B] uppercase block tracking-wider">Select Delivery Day</span>
             
             <div className="grid grid-cols-7 gap-1">
               {daysOfWeek.map((day) => {
@@ -258,9 +256,9 @@ const MealSchedule = () => {
                     onClick={() => setSelectedDay(day.name)}
                     className="flex flex-col items-center py-1.5 text-center focus:outline-none group"
                   >
-                    <span className="text-[9px] font-bold text-gray-400 uppercase mb-0.5">{day.label}</span>
-                    <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black transition-all ${
-                      isSelected ? 'bg-[#D32F2F] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                    <span className="text-[9px] font-bold text-[#A3AED0] uppercase mb-0.5">{day.label}</span>
+                    <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-bold transition-all ${
+                      isSelected ? 'bg-[#E31A1A] text-white shadow-sm' : 'text-[#1B254B] hover:bg-gray-100'
                     }`}>
                       {day.date}
                     </span>
@@ -271,7 +269,7 @@ const MealSchedule = () => {
 
             <div className="pt-1">
               <div className="flex justify-between items-center text-[11px] font-bold text-[#1B254B] border-b border-gray-100 pb-1.5 mb-2.5">
-                <span className="uppercase text-gray-400">Your Plan ({selectedDay})</span>
+                <span className="uppercase text-[#A3AED0]">Your Plan ({selectedDay})</span>
                 <span className="text-gray-500">{currentDayMeals.length} / {totalSlots} Items</span>
               </div>
 
@@ -300,7 +298,7 @@ const MealSchedule = () => {
                           <img src={item.image} alt="" className="w-8 h-8 rounded-md object-cover flex-shrink-0" />
                           <div className="w-full px-0.5">
                             <p className="text-[9px] font-bold text-[#1B254B] truncate leading-tight">{item.name}</p>
-                            <p className="text-[8px] text-gray-400 mt-0.5">{item.cal}</p>
+                            <p className="text-[8px] text-[#A3AED0] mt-0.5">{item.cal}</p>
                           </div>
                         </div>
                       </div>
@@ -309,7 +307,7 @@ const MealSchedule = () => {
                     return (
                       <div key={`empty-${index}`} className="flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-1.5 h-[75px] text-center">
                         <span className="text-gray-300 text-[12px] font-light">✕</span>
-                        <span className="text-gray-400 text-[8px] font-bold tracking-tight uppercase">Empty</span>
+                        <span className="text-[#A3AED0] text-[8px] font-bold tracking-tight uppercase">Empty</span>
                       </div>
                     );
                   }
@@ -321,7 +319,7 @@ const MealSchedule = () => {
               <button
                 type="button"
                 onClick={() => alert("Order Confirmed!")}
-                className="bg-[#D32F2F] hover:bg-red-700 text-white font-black text-xs px-5 py-2.5 rounded-xl tracking-wider shadow-sm transition-all flex items-center gap-2"
+                className="bg-[#E31A1A] hover:bg-red-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl tracking-wider shadow-sm transition-all"
               >
                 PREVIEW & CONFIRM &gt;
               </button>
@@ -330,13 +328,13 @@ const MealSchedule = () => {
         </div>
       </div>
 
-      {/* MATRIX */}
-      <div className="bg-white rounded-[20px] border border-gray-100 p-5 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+      {/* MATRIX WEEKLY VIEW */}
+      <div className="bg-white rounded-[24px] border border-gray-100 p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2 pb-1.5 border-b border-gray-100">
           <span className="text-md">📅</span>
           <div>
-            <h4 className="text-xs font-black text-[#1B254B] tracking-wider uppercase">YOUR WEEKLY PLAN</h4>
-            <p className="text-[11px] font-medium text-gray-400">Review your meals for the week</p>
+            <h4 className="text-xs font-bold text-[#1B254B] tracking-wider uppercase">YOUR WEEKLY PLAN</h4>
+            <p className="text-[11px] font-medium text-[#A3AED0]">Review your meals for the week</p>
           </div>
         </div>
 
@@ -349,7 +347,7 @@ const MealSchedule = () => {
               <div key={day.id} className="bg-white border border-gray-100 rounded-xl p-2.5 flex flex-col justify-between min-h-[110px]">
                 <div>
                   <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-gray-50">
-                    <span className="text-[11px] font-black text-[#1B254B]">{day.name}</span>
+                    <span className="text-[11px] font-bold text-[#1B254B]">{day.name}</span>
                     {hasItems && (
                       <span className="text-[8px] font-bold bg-green-50 text-green-600 px-1.5 py-0.2 rounded-full">
                         {items.length} M
@@ -360,7 +358,7 @@ const MealSchedule = () => {
                   {hasItems ? (
                     <div className="space-y-0.5">
                       {items.map((item, idx) => (
-                        <div key={item ? item.id : idx} className="flex justify-between items-center text-[9px] font-bold text-gray-500">
+                        <div key={item ? item.id : idx} className="flex justify-between items-center text-[9px] font-bold text-[#A3AED0]">
                           <span className="truncate w-full text-left">{item ? item.name : ""}</span>
                         </div>
                       ))}
@@ -380,51 +378,83 @@ const MealSchedule = () => {
   );
 };
 
-// ================= MAIN PARENT COMPONENT WITH WIZARD =================
+// ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================
 const MealPlanner = () => {
   const [activeStep, setActiveStep] = useState(1);
+  const [selectedDay, setSelectedDay] = useState("Tuesday"); 
+  const [weeklyPlan, setWeeklyPlan] = useState({
+    Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [], Sunday: []
+  });
 
-  const steps = [
-    { id: 1, label: "Plan Summary", icon: <FaCircleInfo size={16} /> },
-    { id: 2, label: "Build Custom Meal", icon: <FaBowlFood size={16} /> },
-    { id: 3, label: "My Orders", icon: <FaCalendarDays size={16} /> },
-
+  const sidebarItems = [
+    { id: 1, label: "Plan Summary", desc: "Overview of your current plan", icon: <FaCircleInfo size={14} /> },
+    { id: 2, label: "Build Custom Meal", desc: "Create your perfect plan", icon: <FaBowlFood size={14} /> },
+    { id: 3, label: "My Orders", desc: "Track your orders & history", icon: <FaCalendarDays size={14} /> },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFCFF] font-sans antialiased">
+    <div className="min-h-screen bg-[#F4F7FE] font-sans antialiased flex flex-col">
       <Header />
       
-      <main className="flex-grow pt-24 pb-12 px-4 max-w-7xl mx-auto w-full space-y-8">
+      {/* ================= MAIN CONTENT LAYOUT ================= */}
+      <main className="flex-grow max-w-[1440px] mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-24 pb-12">
         
-        {/* ================= WIZARD / TABS ================= */}
-        <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {steps.map((step) => {
-              const isActive = activeStep === step.id;
+        {/* ================= LEFT SIDEBAR ================= */}
+        <section className="lg:col-span-3 bg-white rounded-[30px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6 w-full">
+          {/* Dashboard Header Banner */}
+          <div className="bg-gradient-to-br from-[#FF4141] to-[#E31A1A] rounded-[24px] p-5 text-white relative overflow-hidden shadow-lg shadow-red-100 min-h-[110px] flex flex-col justify-center">
+            <h3 className="text-lg font-bold">Meal Plan</h3>
+            <p className="text-white/70 text-xs mt-0.5 font-medium">Dashboard</p>
+            <span className="absolute right-3 bottom-2 text-5xl opacity-80 filter drop-shadow-md">🍲</span>
+          </div>
+
+          {/* Navigation Sidebar Tabs */}
+          <div className="flex flex-col gap-2">
+            {sidebarItems.map((item) => {
+              const isActive = activeStep === item.id;
               return (
                 <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => setActiveStep(step.id)}
-                  className={`flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl text-xs font-black tracking-wide transition-all duration-200 ${
+                  key={item.id}
+                  onClick={() => setActiveStep(item.id)}
+                  className={`w-full flex items-center gap-4 p-4 rounded-[20px] transition-all duration-200 text-left ${
                     isActive 
-                      ? "bg-[#D32F2F] text-white shadow-md shadow-red-100" 
-                      : "bg-gray-50/50 text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                      ? "bg-[#FFF5F5] border border-red-100/50" 
+                      : "bg-transparent hover:bg-gray-50/80"
                   }`}
                 >
-                  <span className={isActive ? "text-white" : "text-gray-400"}>
-                    {step.icon}
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-md ${isActive ? "bg-white text-[#E31A1A] shadow-sm" : "bg-gray-50 text-[#A3AED0]"}`}>
+                    {item.icon}
                   </span>
-                  <span>{step.label}</span>
+                  <div>
+                    <span className={`block text-sm font-bold ${isActive ? "text-[#E31A1A]" : "text-[#1B254B]"}`}>
+                      {item.label}
+                    </span>
+                    <span className="block text-[11px] text-[#A3AED0] font-medium mt-0.5">
+                      {item.desc}
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
-        </div>
 
-        {/* ================= DYNAMIC CONTENT AREA ================= */}
-        <div className="w-full min-h-[400px]">
+          {/* Premium Upgrade Card */}
+          <div className="bg-[#FFFDF4] rounded-[24px] border border-[#FFEAB2]/40 p-5 text-center relative overflow-hidden flex flex-col items-center">
+            <div className="w-10 h-10 bg-[#FFF9E6] text-[#FFB800] rounded-full flex items-center justify-center text-lg shadow-sm mb-3">
+              👑
+            </div>
+            <h4 className="text-sm font-bold text-[#1B254B]">Upgrade to Premium</h4>
+            <p className="text-xs text-[#A3AED0] font-medium mt-1 max-w-[180px] mx-auto leading-relaxed">
+              Unlock exclusive meals and advanced features.
+            </p>
+            <button className="mt-4 w-full bg-white border border-[#FFEAB2] hover:bg-[#FFFDF4] text-[#E31A1A] text-xs font-black py-3 rounded-xl tracking-wider shadow-sm transition-all">
+              UPGRADE NOW <span>➔</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ================= RIGHT MAIN AREA (DYNAMIC CONTENT) ================= */}
+        <section className="lg:col-span-9 w-full">
           {activeStep === 1 && (
             <div className="fade-in">
               <MealPlanSummary />
@@ -433,41 +463,25 @@ const MealPlanner = () => {
 
           {activeStep === 2 && (
             <div className="fade-in">
-              <MealSchedule />
+              <MealSchedule 
+                selectedDay={selectedDay} 
+                setSelectedDay={setSelectedDay} 
+                weeklyPlan={weeklyPlan} 
+                setWeeklyPlan={setWeeklyPlan} 
+              />
             </div>
           )}
 
           {activeStep === 3 && (
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
               <div className="mb-4">
-                <h3 className="text-lg font-black text-[#1B254B]">My Active Orders</h3>
-                <p className="text-xs text-gray-400">Track and manage your upcoming meal deliveries</p>
+                <h3 className="text-lg font-bold text-[#1B254B]">My Active Orders</h3>
+                <p className="text-xs text-[#A3AED0]">Track and manage your upcoming meal deliveries</p>
               </div>
               <UserHistorydetails /> 
             </div>
           )}
-
-          {activeStep === 4 && (
-            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
-              <div className="mb-4">
-                <h3 className="text-lg font-black text-[#1B254B]">Past Orders History</h3>
-                <p className="text-xs text-gray-400">View details of your previously delivered meals</p>
-              </div>
-              <UserHistorydetails />
-            </div>
-          )}
-
-          {activeStep === 5 && (
-            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
-              <div className="mb-4">
-                <h3 className="text-lg font-black text-[#1B254B]">Custom Orders</h3>
-                <p className="text-xs text-gray-400">Your specific special requests and tailored meal plans</p>
-              </div>
-              <UserHistorydetails />
-            </div>
-          )}
-        </div>
-
+        </section>
       </main>
       
       <Footer />

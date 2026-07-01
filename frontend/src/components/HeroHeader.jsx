@@ -60,7 +60,7 @@ export default function HeroHeader() {
             <img 
               src={logoImg} 
               alt="Meals Logo" 
-              className="h-25 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
+              className="h-15 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
             />
           </div>
 
