@@ -12,6 +12,14 @@ export default function CreatePackage({ onClose, userData }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+
+
+  // FIXED: Added missing checkoutData state initialization
+  const [checkoutData, setCheckoutData] = useState({
+    name: "",
+    phone: "",
+  });
 
   // Red & White Theme Based Meal Plan State
   const [selectedPlan, setSelectedPlan] = useState("Regular");
@@ -114,10 +122,84 @@ export default function CreatePackage({ onClose, userData }) {
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
+    const handleFormSubmit = (e) => {
+    e.preventDefault();
+    if (!checkoutData.name || !checkoutData.phone) {
+      alert("Please fill all details");
+      return;
+    }
+    setShowCheckoutForm(false);
+    setShowSuccess(true);
+  };
+
   return (
     <div className={`bg-white rounded-[2.5rem] ${onClose ? "h-auto" : "h-screen"}`}>
       {showSuccess ? (
-        <ThankYouPage setShowSuccess={setShowSuccess} />
+       <ThankYouPage setShowSuccess={setShowSuccess} />
+      ) : showCheckoutForm ? (
+        /* ================= CHECKOUT FORM VIEW ================= */
+        <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-[500px] py-10 px-4 flex items-center justify-center relative rounded-[2.5rem]">
+          <button
+            type="button"
+            onClick={() => setShowCheckoutForm(false)}
+            className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-red-600 transition-colors"
+          >
+            ← Back to Summary
+          </button>
+
+          <div className="max-w-md w-full bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xl">
+            <h2 className="text-xl font-extrabold text-gray-900 tracking-tight uppercase mb-1">
+              Checkout Details
+            </h2>
+            <p className="text-gray-500 text-xs mb-5 leading-relaxed">
+              Please provide your information to complete the meal subscription booking.
+            </p>
+
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter your full name"
+                  value={checkoutData.name}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, name: e.target.value })}
+                  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="Enter phone number"
+                  value={checkoutData.phone}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, phone: e.target.value })}
+                  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                />
+              </div>
+
+              <div className="bg-[#f4f5f7] p-3 rounded-xl text-xs font-bold text-slate-600 mt-2">
+                <div className="flex justify-between">
+                  <span>Total Amount Payable:</span>
+                  <span className="text-[#dc2626] font-black text-sm">${(totalAmount || 0).toFixed(2)}</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none mt-2"
+              >
+                Submit & Complete Order
+              </button>
+            </form>
+          </div>
+        </div>
       ) : (
         <>
           <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased ${onClose ? "h-auto rounded-[2.5rem]" : "min-h-screen"} py-3 px-2 sm:px-4 lg:px-5 relative`}>
@@ -697,26 +779,12 @@ export default function CreatePackage({ onClose, userData }) {
                     </div>
 
                     <button
-                      type="button"
-                      className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black tracking-widest uppercase flex items-center justify-center space-x-2 shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none"
-                      onClick={() => setShowSuccess(true)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="2.5"
-                        stroke="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0zm12.75 0a.75 .75 0 11-1.5 0 .75 .75 0 011.5 0z"
-                        />
-                      </svg>
-                      <span>Proceed to Checkout</span>
-                    </button>
+                    type="button"
+                    className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#b91c1c] transition-all"
+                    onClick={() => setShowCheckoutForm(true)}
+                  >
+                    Proceed to Checkout
+                  </button>
                   </div>
                 </div>
               </div>
