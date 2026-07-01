@@ -87,7 +87,7 @@ export default function ThankYouPage({ setShowSuccess }) {
 
         {/* बटन अब लॉगिन पेज (/user/UserLogin) पर भेजेगा */}
         <button 
-          onClick={() => navigate("/userlogin")} 
+          onClick={() => navigate("/meal-planner")} 
           className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-colors duration-200 shadow-md shadow-red-200 mb-6 group"
         >
           <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

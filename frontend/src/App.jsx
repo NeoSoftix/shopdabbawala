@@ -36,7 +36,7 @@ import MealPlanner from "./pages/User/MealPlanner";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./components/NotFoundPage";
-import UserLogin from "./components/User/UserLogin";
+
 function App() {
   return (
     <Routes>
@@ -90,15 +90,7 @@ function App() {
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
 
-        <Route
-          path="meal-planner"
-          element={
-           
-              <MealPlanner />
-            
-          }
-        />
-        <Route path="userlogin" element={<UserLogin />} />
+        <Route path="meal-planner" element={<MealPlanner />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

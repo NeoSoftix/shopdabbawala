@@ -14,12 +14,19 @@ export default function CreatePackage({ onClose, userData }) {
   const [quantity, setQuantity] = useState(1);
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
 
-
-  // FIXED: Added missing checkoutData state initialization
+  // FIXED: Added missing checkoutData state initialization with Email and Address fields separately
   const [checkoutData, setCheckoutData] = useState({
     name: "",
     phone: "",
+    email: "", 
+    address: "", // Added address field separately
+    otp: "", 
   });
+
+  // OTP & Workflow States
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [showPaymentSuccessMsg, setShowPaymentSuccessMsg] = useState(false);
 
   // Red & White Theme Based Meal Plan State
   const [selectedPlan, setSelectedPlan] = useState("Regular");
@@ -122,9 +129,27 @@ export default function CreatePackage({ onClose, userData }) {
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
-    const handleFormSubmit = (e) => {
+  // OTP Actions
+  const handleSendOtp = () => {
+    if (!checkoutData.phone) {
+      alert("Please enter phone number");
+      return;
+    }
+    setIsOtpSent(true);
+  };
+
+  const handleVerifyOtp = () => {
+    if (!checkoutData.otp) {
+      alert("Please enter OTP");
+      return;
+    }
+    setIsOtpVerified(true);
+    setShowPaymentSuccessMsg(true);
+  };
+
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (!checkoutData.name || !checkoutData.phone) {
+    if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
       alert("Please fill all details");
       return;
     }
@@ -138,66 +163,164 @@ export default function CreatePackage({ onClose, userData }) {
        <ThankYouPage setShowSuccess={setShowSuccess} />
       ) : showCheckoutForm ? (
         /* ================= CHECKOUT FORM VIEW ================= */
-        <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-[500px] py-10 px-4 flex items-center justify-center relative rounded-[2.5rem]">
+        <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-[500px] py-10 px-4 flex flex-col items-center justify-center relative rounded-[2.5rem]">
           <button
             type="button"
-            onClick={() => setShowCheckoutForm(false)}
+            onClick={() => {
+              setShowCheckoutForm(false);
+              setIsOtpSent(false);
+              setIsOtpVerified(false);
+              setShowPaymentSuccessMsg(false);
+            }}
             className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-red-600 transition-colors"
           >
             ← Back to Summary
           </button>
 
-          <div className="max-w-md w-full bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xl">
-            <h2 className="text-xl font-extrabold text-gray-900 tracking-tight uppercase mb-1">
-              Checkout Details
-            </h2>
-            <p className="text-gray-500 text-xs mb-5 leading-relaxed">
-              Please provide your information to complete the meal subscription booking.
-            </p>
-
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter your full name"
-                  value={checkoutData.name}
-                  onChange={(e) => setCheckoutData({ ...checkoutData, name: e.target.value })}
-                  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                />
+          <div className="max-w-md w-full space-y-4">
+            {/* Green Success Message in English */}
+            {showPaymentSuccessMsg && (
+              <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-2xl text-xs font-bold text-center shadow-md">
+                🎉 Your payment has been successfully processed! Please provide your delivery and contact details below to proceed with your order.
               </div>
+            )}
 
-              <div>
-                <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Enter phone number"
-                  value={checkoutData.phone}
-                  onChange={(e) => setCheckoutData({ ...checkoutData, phone: e.target.value })}
-                  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                />
-              </div>
+            <div className="w-full bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xl">
+              <h2 className="text-xl font-extrabold text-gray-900 tracking-tight uppercase mb-1">
+                Checkout Details
+              </h2>
+              <p className="text-gray-500 text-xs mb-5 leading-relaxed">
+                Please provide your information to complete the meal subscription booking.
+              </p>
 
-              <div className="bg-[#f4f5f7] p-3 rounded-xl text-xs font-bold text-slate-600 mt-2">
-                <div className="flex justify-between">
-                  <span>Total Amount Payable:</span>
-                  <span className="text-[#dc2626] font-black text-sm">${(totalAmount || 0).toFixed(2)}</span>
+              {/* STEP 1: OTP and Phone verification */}
+              {!isOtpVerified ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                      Phone Number
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        required
+                        placeholder="Enter phone number"
+                        value={checkoutData.phone}
+                        onChange={(e) => setCheckoutData({ ...checkoutData, phone: e.target.value })}
+                        className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                      />
+                      {!isOtpSent && (
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          className="bg-[#dc2626] text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-[#b91c1c] transition-all"
+                        >
+                          Send OTP
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {isOtpSent && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                          Enter OTP
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Enter OTP"
+                          value={checkoutData.otp}
+                          onChange={(e) => setCheckoutData({ ...checkoutData, otp: e.target.value })}
+                          className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all"
+                      >
+                        Verify OTP
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                /* STEP 2: Name, Phone, Email & Address Details Form after verification */
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter your full name"
+                      value={checkoutData.name}
+                      onChange={(e) => setCheckoutData({ ...checkoutData, name: e.target.value })}
+                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                    />
+                  </div>
 
-              <button
-                type="submit"
-                className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none mt-2"
-              >
-                Submit & Complete Order
-              </button>
-            </form>
+                  <div>
+                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      readOnly
+                      placeholder="Enter phone number"
+                      value={checkoutData.phone}
+                      className="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-500 focus:outline-none cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      value={checkoutData.email || ""}
+                      onChange={(e) => setCheckoutData({ ...checkoutData, email: e.target.value })}
+                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
+                      Delivery Address
+                    </label>
+                    <textarea
+                      required
+                      rows="2"
+                      placeholder="Enter your complete delivery address"
+                      value={checkoutData.address || ""}
+                      onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })}
+                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] resize-none"
+                    />
+                  </div>
+
+                  <div className="bg-[#f4f5f7] p-3 rounded-xl text-xs font-bold text-slate-600 mt-2">
+                    <div className="flex justify-between">
+                      <span>Total Amount Paid:</span>
+                      <span className="text-[#dc2626] font-black text-sm">${(totalAmount || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none mt-2"
+                  >
+                    Submit & Complete Order
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -320,7 +443,7 @@ export default function CreatePackage({ onClose, userData }) {
                   {/* Row 1: Preference & Timing */}
                   <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* ================= UPDATED MEAL PREFERENCE TOGGLE ================= */}
+                      {/* Meal Preference Toggle */}
                       <div>
                         <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                           <span>🍴</span> Meal Preference
@@ -446,7 +569,7 @@ export default function CreatePackage({ onClose, userData }) {
                       </div>
                     </div>
 
-                    {/* ================= UPDATED TOTAL MEALS CONFIG SELECTION ================= */}
+                    {/* Total Meals config selection */}
                     <div>
                       <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                         <span>🍱</span> Total Meals
@@ -465,12 +588,6 @@ export default function CreatePackage({ onClose, userData }) {
                                   : "text-gray-500 hover:text-gray-800"
                               }`}
                             >
-                              {/* Selection Floating Tick Indicator */}
-                              {/* {isSelected && (
-                                <span className="absolute top-2 right-3 bg-green-500 text-white rounded-full flex items-center justify-center w-4 h-4 text-[10px]">
-                                  ✓
-                                </span>
-                              )}` */}
                               <div
                                 className={`text-xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}
                               >
@@ -693,7 +810,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <button
                             type="button"
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-95"
+                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-[0.98]"
                           >
                             -
                           </button>
@@ -703,7 +820,7 @@ export default function CreatePackage({ onClose, userData }) {
                           <button
                             type="button"
                             onClick={() => setQuantity(quantity + 1)}
-                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-95"
+                            className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-800 text-[10px] focus:outline-none transition-all active:scale-[0.98]"
                           >
                             +
                           </button>
@@ -779,12 +896,12 @@ export default function CreatePackage({ onClose, userData }) {
                     </div>
 
                     <button
-                    type="button"
-                    className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#b91c1c] transition-all"
-                    onClick={() => setShowCheckoutForm(true)}
-                  >
-                    Proceed to Checkout
-                  </button>
+                      type="button"
+                      className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#b91c1c] transition-all"
+                      onClick={() => setShowCheckoutForm(true)}
+                    >
+                      Proceed to Checkout
+                    </button>
                   </div>
                 </div>
               </div>
