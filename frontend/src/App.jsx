@@ -34,8 +34,8 @@ import ServiceArea from "./pages/Vendor/ServiceArea";
 import CreatePackage from "./pages/User/CreatePackage";
 import MealPlanner from "./pages/User/MealPlanner";
 
-
-
+import ProtectedRoute from "./routes/ProtectedRoute";
+import NotFoundPage from "./components/NotFoundPage";
 
 function App() {
   return (
@@ -44,60 +44,64 @@ function App() {
       <Route path="/login" element={<Login />} />
 
       {/* admin route */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="dashboard" element={<AdminDashboard />} />
-
         <Route path="categories" element={<Categories />} />
-
         <Route path="categories/add" element={<AddCategory />} />
-
         <Route path="meals" element={<Meal />} />
-
         <Route path="meals/add" element={<AddMeal />} />
-
         <Route path="items" element={<Item />} />
-
         <Route path="items/add" element={<AddItem />} />
-
         <Route path="users" element={<UsersList />} />
-
         <Route path="orders" element={<OrderList />} />
-
         <Route path="settings" element={<Settings />} />
-
         <Route path="vendors" element={<VendorList />} />
-
         <Route path="vendors/add" element={<AddVendor />} />
         <Route path="packages" element={<PackagesPage />} />
         <Route path="add-on" element={<AddOns />} />
-
         <Route path="add-on/add" element={<CreateAddOns />} />
       </Route>
 
       {/* Vendor layout route */}
-      <Route path="/vendor" element={<VendorLayout />}>
-        <Route path="dashboard" element={<VendorDashboard />}></Route>
+      <Route
+        path="/vendor"
+        element={
+          <ProtectedRoute allowedRoles={["vendor"]}>
+            <VendorLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<VendorDashboard />} />
         <Route path="orders" element={<VendorOrders />} />
-        <Route path ="service-area" element={< ServiceArea/>} />
+        <Route path="service-area" element={<ServiceArea />} />
         <Route path="profile" element={<VendorProfile />} />
         <Route path="notifications" element={<VendorNotifications />} />
       </Route>
 
+      {/* user route */}
       <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
-        <Route path="meal-planner" element={<MealPlanner />} />
+
+        <Route
+          path="meal-planner"
+          element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <MealPlanner />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
 
 export default App;
-
-
-
-
-
-
-
-

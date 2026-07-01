@@ -8,19 +8,29 @@ import { sendEmail } from "../utils/email/sendEmail.js";
 // SIGNUP
 export const signup = async (req, res) => {
   try {
-    const { name, phone, role } = req.body;
+    const { name, email, phone, password, role } = req.body;
 
-    const existingUser = await User.findOne({ phone });
-
-    if (existingUser) {
+    if (!name || !email || !phone || !password) {
       return res.status(400).json({
-        message: "User already exists",
+        message: "All fields are required",
       });
     }
 
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User with this email or phone already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     const user = await User.create({
       name,
+      email,
       phone,
+      password: hashedPassword,
       role: role || "user",
     });
 
@@ -28,6 +38,7 @@ export const signup = async (req, res) => {
       message: "User created successfully",
       user: {
         name: user.name,
+        email: user.email,
         phone: user.phone,
         role: user.role,
       },
@@ -41,12 +52,12 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password} = req.body;
 
-    if (!email || !password || !role) {
+    if (!email || !password ) {
       return res.status(400).json({
         success: false,
-        message: "Email, Password and Role are required",
+        message: "Email, Password are required",
       });
     }
 
@@ -64,14 +75,6 @@ export const login = async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid Email or Password",
-      });
-    }
-
-    // Role Validation
-    if (user.role !== role) {
       return res.status(401).json({
         success: false,
         message: "Invalid Email or Password",
@@ -113,9 +116,9 @@ export const login = async (req, res) => {
 };
 
 // get me controller
-
 export const getMe = async (req, res) => {
   try {
+  
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -124,7 +127,7 @@ export const getMe = async (req, res) => {
         message: "User not found",
       });
     }
-
+  
     return res.status(200).json({
       success: true,
       message: "Successfully get the user",
@@ -141,7 +144,6 @@ export const getMe = async (req, res) => {
 };
 
 // log out
-
 export const logout = async (req, res) => {
   try {
     res.clearCookie("token", {

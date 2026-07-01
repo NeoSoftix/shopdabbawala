@@ -39,7 +39,7 @@ app.use(
 );
 
 // auth routes
-app.use("/api/auth", authRoutes);
+  app.use("/api/auth", authRoutes);
 
 // meals route
 app.use("/api/meal", mealRoutes);

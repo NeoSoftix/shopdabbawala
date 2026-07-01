@@ -1,14 +1,13 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ShieldCheck, Clock3 } from "lucide-react";
-import RoleSelector from "../components/RoleSelector";
 import { login } from "../service/auth.service";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [role, setRole] = useState("admin");
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -17,7 +16,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
 
     try {
@@ -26,24 +24,27 @@ export default function Login() {
       const payload = {
         email,
         password,
-        role,
       };
-
-      console.log(payload);
-
       
       const res = await login(payload);
 
-      if (res.user.role === "admin") {
-        navigate("/admin/dashboard");
-      }
-
-      if (res.user.role === "vendor") {
-        navigate("/vendor/dashboard");
+      if (!res || !res.user) {
+        throw new Error("Invalid server response.");
       }
       
+      setUser(res.user); 
+
+      // Redirect runs automatically based on what the database returns for that email
+      if (res.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (res.user.role === "vendor") {
+        navigate("/vendor/dashboard");
+      } else {
+        setError("Unauthorized role type.");
+      }
 
     } catch (err) {
+      console.error(err);
       setError(
         err?.response?.data?.message ||
           "Invalid Email or Password"
@@ -116,21 +117,9 @@ export default function Login() {
             Login
           </h2>
 
-          <p className="text-center text-gray-500 mb-4">
+          <p className="text-center text-gray-500 mb-8">
             Enter your credentials to continue
           </p>
-
-          <p className="text-center text-sm text-gray-500 mb-8">
-            Logging in as{" "}
-            <span className="font-semibold text-[#E23747] capitalize">
-              {role}
-            </span>
-          </p>
-
-          <RoleSelector
-            role={role}
-            setRole={setRole}
-          />
 
           {error && (
             <div className="mb-5 bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm">
@@ -159,8 +148,9 @@ export default function Login() {
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
-                  placeholder={`Enter ${role} email`}
+                  placeholder="Enter your email address"
                   className="w-full h-14 border border-gray-300 rounded-xl pl-12 pr-4 outline-none focus:border-[#E23747]"
+                  required
                 />
               </div>
             </div>
@@ -184,19 +174,12 @@ export default function Login() {
                   }
                   placeholder="Enter password"
                   className="w-full h-14 border border-gray-300 rounded-xl pl-12 pr-4 outline-none focus:border-[#E23747]"
+                  required
                 />
               </div>
             </div>
 
             <div className="flex justify-between items-center text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="accent-[#E23747]"
-                />
-                Remember me
-              </label>
-
               <button
                 type="button"
                 className="text-[#E23747] font-medium"
@@ -218,4 +201,3 @@ export default function Login() {
     </div>
   );
 }
-
