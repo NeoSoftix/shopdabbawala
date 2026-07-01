@@ -4,10 +4,10 @@ import Package from "../models/package.model.js";
 // Create Package
 export const createPackage = async (req, res) => {
   try {
-    const { name, validityDays, totalMeals, price, description } = req.body;
+    const { name, validityDays, totalMeals, price, description, maxItemsPerMeal } = req.body;
 
     // Required Fields Validation
-    if (!name || !validityDays || !totalMeals || !price) {
+    if (!name || !validityDays || !totalMeals || !price || !maxItemsPerMeal) {
       return res.status(400).json({
         message: "Name, Validity Days, Total Tiffin and Price are required",
         success: false,
@@ -33,6 +33,7 @@ export const createPackage = async (req, res) => {
     const numericPrice = Number(price);
     const numericMeal = Number(totalMeals);
     const numericValidityDays = Number(validityDays);
+    const numericMaxItems = Number(maxItemsPerMeal)
 
     if (isNaN(numericPrice) || numericPrice <= 0) {
       return res.status(400).json({
@@ -55,6 +56,13 @@ export const createPackage = async (req, res) => {
       });
     }
 
+    if(isNaN(numericMaxItems) || numericMaxItems <= 0) {
+      return res.status(400).json({
+        message:"Max Itmes Must Be a Number",
+        success: false
+      })
+    }
+
     // Create Package
     const packageData = await Package.create({
       name: normalizedName,
@@ -62,6 +70,7 @@ export const createPackage = async (req, res) => {
       price: numericPrice,
       totalMeals: numericMeal,
       validityDays: numericValidityDays,
+      maxItemsPerMeal: numericMaxItems
     });
 
     return res.status(201).json({

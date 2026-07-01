@@ -11,7 +11,7 @@ import {
   createPackage,
   getAllPackages,
   deletePackage,
-  updatePackage
+  updatePackage,
 } from "../../service/package.service.js";
 
 const PackagesPage = () => {
@@ -28,6 +28,7 @@ const PackagesPage = () => {
     totalMeals: "",
     validityDays: "",
     description: "",
+    maxItemsPerMeal: "",
   });
 
   const toggleForm = () => {
@@ -45,6 +46,7 @@ const PackagesPage = () => {
       totalMeals: "",
       validityDays: "",
       description: "",
+      maxItemsPerMeal: "",
     });
     setEditId(null);
   };
@@ -85,7 +87,8 @@ const PackagesPage = () => {
       !formData.name ||
       !formData.price ||
       !formData.totalMeals ||
-      !formData.validityDays
+      !formData.validityDays ||
+      !formData.maxItemsPerMeal 
     ) {
       setError("Please fill all required fields.");
       return;
@@ -102,7 +105,11 @@ const PackagesPage = () => {
       }
 
       if (res && res.success) {
-        setSuccess(editId ? "Package updated successfully!" : "Package added successfully!");
+        setSuccess(
+          editId
+            ? "Package updated successfully!"
+            : "Package added successfully!",
+        );
         resetForm();
         setShowForm(false);
         fetchPackages();
@@ -146,6 +153,7 @@ const PackagesPage = () => {
       totalMeals: p.totalMeals || "",
       validityDays: p.validityDays || "",
       description: p.description || "",
+      maxItemsPerMeal: p.maxItemsPerMeal || "",
     });
     setShowForm(true); // Open form section
   };
@@ -292,6 +300,7 @@ const PackagesPage = () => {
                   <th className="py-3 px-4">Price</th>
                   <th className="py-3 px-4">Meals</th>
                   <th className="py-3 px-4">Validity</th>
+                  <th className="py-3 px-4">Max Items</th>
                   <th className="py-3 px-4">Description</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
@@ -318,6 +327,7 @@ const PackagesPage = () => {
                     <td className="py-3.5 px-4 text-sm text-gray-500">
                       {p.validityDays} Days
                     </td>
+                    <td className="py-3.5 px-4 text-sm">{p.maxItemsPerMeal}</td>
                     <td
                       className="py-3.5 px-4 text-sm text-gray-400 max-w-[180px] truncate"
                       title={p.description}
@@ -338,7 +348,7 @@ const PackagesPage = () => {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {/* 👇 Edit Button Connected */}
-                        <button 
+                        <button
                           onClick={() => handleEditClick(p)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
                         >
@@ -382,7 +392,10 @@ const PackagesPage = () => {
               </h2>
               <button
                 type="button"
-                onClick={() => { setShowForm(false); resetForm(); }}
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                }}
                 className="text-xs font-semibold text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cancel
@@ -448,6 +461,21 @@ const PackagesPage = () => {
                     placeholder="Validity (Days)"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                  Max Items Per Meal *
+                </label>
+
+                <input
+                  type="number"
+                  name="maxItemsPerMeal"
+                  value={formData.maxItemsPerMeal}
+                  onChange={handleChange}
+                  placeholder="e.g. 6"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                />
               </div>
 
               <div>

@@ -38,6 +38,12 @@ const packageSchema = new mongoose.Schema(
       default: true,
     },
 
+    maxItemsPerMeal:{
+      type: Number,
+      required: true,
+      min:1
+    },
+    
     isActive: {
       type: Boolean,
       default: true,
