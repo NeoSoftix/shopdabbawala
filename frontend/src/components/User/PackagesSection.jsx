@@ -282,7 +282,7 @@ export default function PackagesSection() {
                     </div>
 
                     <button
-                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm
+                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm cursor-pointer
                         ${isActive
                           ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
                           : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
@@ -331,7 +331,7 @@ export default function PackagesSection() {
           </div>
 
           <button
-            className="relative z-10 w-full md:w-auto bg-white text-slate-950 font-black text-[10px] sm:text-xs tracking-widest uppercase px-7 sm:px-9 py-3.5 rounded-xl shadow-md transition-all duration-300 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-1.5 group whitespace-nowrap focus:outline-none"
+            className="relative z-10 w-full md:w-auto bg-white text-slate-950 font-black text-[10px] sm:text-xs tracking-widest uppercase px-7 sm:px-9 py-3.5 rounded-xl shadow-md transition-all duration-300 hover:bg-red-50 hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-1.5 group whitespace-nowrap focus:outline-none cursor-pointer"
             onClick={() => setIsPopupOpen(true)}
           >
             Customize Now

@@ -12,6 +12,7 @@ import {
 
 import Header from "../../components/HeroHeader";
 import Footer from "../../components/Footer";
+import UserHistorydetails from "../../components/User/UserHistoryDetails"
 
 // Configuration Data
 const daysOfWeek = [
@@ -429,6 +430,8 @@ const MealPlanner = () => {
         
         {/* Step 2 Selection Module */}
         <MealSchedule />
+        {/* history section */}
+        <UserHistorydetails />
       </main>
       <Footer />
     </div>
