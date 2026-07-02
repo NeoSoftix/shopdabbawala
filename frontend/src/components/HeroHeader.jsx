@@ -46,7 +46,7 @@ export default function HeroHeader() {
         <div
           className={`
             flex items-center justify-between
-            px-6 md:px-10
+            py-2 md:py-2 px-6 md:px-10
             transition-all duration-500 ease-in-out
             ${
               scrolled
@@ -60,7 +60,7 @@ export default function HeroHeader() {
             <img 
               src={logoImg} 
               alt="Meals Logo" 
-              className="h-15 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
+              className="h-10 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
             />
           </div>
 
