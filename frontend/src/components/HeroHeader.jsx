@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 // Agar aap Vite ya standard React setup use kar rahe hain, toh logo ko aise import karein:
-import logoImg from "/logo.png"; // Apne folder structure ke hisaab se path sahi kar lein
+import logoImg from "/logo.jpg"; // Apne folder structure ke hisaab se path sahi kar lein
 
 export default function HeroHeader() {
   const [scrolled, setScrolled] = useState(false);

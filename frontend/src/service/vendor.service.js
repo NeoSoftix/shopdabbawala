@@ -92,3 +92,17 @@ export const getVendorProfile = async () => {
     throw error
   }
 }
+
+// Check Service Availability By Pincode
+export const checkServiceAvailability = async (pincode) => {
+  try {
+    const res = await API.get("/vendor/service-availability", {
+      params: { pincode },
+    });
+
+    return res.data;
+  } catch (error) {
+    console.error("Check Service Availability Error:", error);
+    throw error;
+  }
+};
