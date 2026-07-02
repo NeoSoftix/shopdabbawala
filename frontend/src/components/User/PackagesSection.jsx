@@ -2,17 +2,21 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 
-// यहाँ उन Pincodes को डालें जहाँ आपकी सर्विस उपलब्ध है
+// Aapki service file se function import karein
+// Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
+import { getActivePackages } from "../../service/package.service"; 
+
+// Serviceable Pincodes list
 const SERVICEABLE_PINCODES = ["110001", "400001", "560001", "144001", "144002"];
 
-// Backend से आने वाले Images के Fallback के लिए Default Images (अगर DB में Image न हो)
+// Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
   "https://images.unsplash.com/photo-1547592180-85f173990554?w=1200",
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200",
 ];
 
-// Gradients array ताकि आपके DB से आने वाले पैकेजेस को अलग-अलग सुंदर Background मिल सके
+// Gradients array
 const GRADIENTS = [
   "from-[#F3FBF7] via-white to-[#FFF5F5]",
   "from-[#FFF5F5] via-white to-[#FFF0F5]",
@@ -42,47 +46,42 @@ export default function PackagesSection() {
   });
   const [checkoutError, setCheckoutError] = useState("");
 
-  // --- FETCH ACTIVE PACKAGES FROM BACKEND ---
+  // --- DYNAMIC DATA FETCHING VIA SERVICE ---
   useEffect(() => {
-    const fetchActivePackages = async () => {
+    const fetchPackagesData = async () => {
       try {
         setLoading(true);
-        // ⚠️ अपने actual backend URL के हिसाब से इस endpoint को चेंज कर लें
-        const response = await fetch("http://localhost:5000/api/packages/active"); 
-        const result = await response.json();
+        // Custom API Service hit
+        const result = await getActivePackages();
 
-        if (result.success) {
-          // Backend Schema के डेटा को Frontend Carousel के अनुसार Format करना
+        if (result.success && result.data) {
           const formattedPackages = result.data.map((pkg, index) => ({
             ...pkg,
-            // DB के 'name' को uppercase में दिखाना (जैसे STARTER, PRO)
-            title: pkg.name.toUpperCase(),
-            price: `$${pkg.price}`,
-            meals: `${pkg.totalMeals} Meals / ${pkg.validityDays} Days`,
-            // Frontend के लिए Mock Image और Gradient Assign करना (अगर backend से नहीं आ रहे हैं)
-            image: pkg.image || DEFAULT_IMAGES[index % DEFAULT_IMAGES.length],
+            title: pkg.name ? pkg.name.toUpperCase() : "PLAN",
+            price: pkg.price ? `₹${pkg.price}` : "₹0",
+            meals: `${pkg.totalMeals || 0} Meals / ${pkg.validityDays || 0} Days`,
+            image: pkg.image?.url || pkg.image || DEFAULT_IMAGES[index % DEFAULT_IMAGES.length],
             gradient: GRADIENTS[index % GRADIENTS.length],
-            // Features को description से split करके दिखाना (या fallback features देना)
             features: pkg.description 
               ? pkg.description.split(", ") 
-              : ["Healthy Meals", "Fresh Ingredients", `Max Items: ${pkg.maxItemsPerMeal}`, "Macro-Friendly Plan"],
-            popular: index === 1, // Second package को popular choice बना दिया
+              : ["Healthy Meals", "Fresh Ingredients", `Max Items: ${pkg.maxItemsPerMeal || 3}`, "Macro-Friendly Plan"],
+            popular: index === 1, 
           }));
 
           setPackages(formattedPackages);
           setError(null);
         } else {
-          setError(result.message || "Failed to fetch packages");
+          setError(result.message || "Failed to fetch active packages");
         }
       } catch (err) {
-        console.error("Error fetching packages:", err);
+        console.error("Error fetching packages via service:", err);
         setError("Unable to load packages. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchActivePackages();
+    fetchPackagesData();
   }, []);
 
   const getResponsiveOffset = () => {
@@ -194,14 +193,14 @@ export default function PackagesSection() {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
         <p className="text-red-500 font-black text-xl mb-2">⚠️ {error || "No Active Packages Found"}</p>
-        <p className="text-slate-400 text-sm">Please make sure your backend server is running and active packages exist.</p>
+        <p className="text-slate-400 text-sm">Please make sure your admin server has activated packages configured.</p>
       </div>
     );
   }
 
   return (
     <section
-      className={`relative min-h-screen w-full py-12 md:py-16 flex flex-col justify-between bg-gradient-to-br ${packages[active]?.gradient} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
+      className={`relative min-h-screen w-full py-12 md:py-16 flex flex-col justify-between bg-gradient-to-br ${packages[active]?.gradient || "from-slate-50 to-white"} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
       id="plans"
     >
       {/* Background Glow Blobs */}
@@ -251,23 +250,32 @@ export default function PackagesSection() {
         <div className="relative h-[480px] sm:h-[510px] md:h-[550px] w-full flex items-center justify-center overflow-visible mx-2 md:mx-4">
           {packages.map((pkg, index) => {
             const isActive = index === active;
+            const offsetWidth = getResponsiveOffset();
+            let distance = index - active;
+
+            // Carousel Bound Logic for infinite loop
+            if (distance > 1 && active === 0 && index === packages.length - 1) {
+              distance = -1;
+            } else if (distance < -1 && active === packages.length - 1 && index === 0) {
+              distance = 1;
+            }
+
             let xPosition = 0;
             let shouldRender = false;
-            const distance = index - active;
-            const offsetWidth = getResponsiveOffset();
 
             if (distance === 0) {
               xPosition = 0;
               shouldRender = true;
-            } else if (distance === 1 || (active === packages.length - 1 && index === 0)) {
+            } else if (distance === 1) {
               xPosition = offsetWidth;
               shouldRender = true;
-            } else if (distance === -1 || (active === 0 && index === packages.length - 1)) {
+            } else if (distance === -1) {
               xPosition = -offsetWidth;
               shouldRender = true;
             }
 
-            if (!shouldRender) return null;
+            // Agar active package 1 se zyaada door hai array me, toh skip render
+            if (!shouldRender && packages.length > 2) return null;
 
             const visibleFeatures = pkg.features.slice(0, 3);
 
@@ -379,7 +387,7 @@ export default function PackagesSection() {
                           ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
                           : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
                         }`}
-                        onClick={() => openCheckoutModal(pkg)}
+                      onClick={() => openCheckoutModal(pkg)}
                     >
                       Choose Plan
                     </button>
@@ -636,7 +644,6 @@ export default function PackagesSection() {
         )}
       </AnimatePresence>
 
-
       {/* ================= CHOOSE PLAN CHECKOUT STEPPER MODAL ================= */}
       <AnimatePresence>
         {checkoutPlan && (
@@ -742,7 +749,7 @@ export default function PackagesSection() {
                 </form>
               )}
 
-              {/* STEP 4: SUCCESS & PERSONAL FULL DETAILS */}
+              {/* STEP 4: SUCCESS & PERSONAL DETAILS */}
               {checkoutStep === 4 && (
                 <form onSubmit={handleFinalDetailsSubmit} className="space-y-4">
                   <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center mb-1">
