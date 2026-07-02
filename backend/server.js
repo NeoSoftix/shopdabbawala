@@ -11,6 +11,7 @@ import itemRoutes from "./src/routes/item.routes.js";
 import addOnRoutes from "./src/routes/addOns.routes.js";
 import vendorRoutes from "./src/routes/vendor.routes.js";
 import packageRoutes from "./src/routes/package.routes.js"
+import subscriptionRoutes from "./src/routes/subcription.routes.js"
 
 const app = express();
 
@@ -58,6 +59,9 @@ app.use("/api/vendor", vendorRoutes);
 
 // package routes
 app.use("/api/packages", packageRoutes)
+
+// custom package user
+app.use("/api/subscriptions", subscriptionRoutes)
 
 app.listen(5000, () => {
   console.log("Server running on 5000");

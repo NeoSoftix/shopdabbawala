@@ -8,7 +8,7 @@ import { getActivePackages } from "../../service/package.service";
 import {
   sendOtp,
   verifyOtp,
-} from "../../service/auth.service";
+} from "../../service/auth.service.js";
 
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [

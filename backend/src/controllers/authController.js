@@ -371,12 +371,12 @@ export const sendOtp = async (req, res) => {
       });
     }
 
-    // if (!/^[6-9]\d{9}$/.test(phone)) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid phone number",
-    //   });
-    // }
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid phone number",
+      });
+    }
 
     // Generate 6-digit OTP
     const generatedOtp = Math.floor(
@@ -392,11 +392,13 @@ export const sendOtp = async (req, res) => {
       otp: generatedOtp,
     });
 
-    console.log("Generated OTP:", generatedOtp);
+    // TODO: Implement a real SMS sending service here (e.g., Twilio, Fast2SMS)
+    // For now, the OTP is logged to the console for testing purposes.
+    console.log(`OTP for ${phone} is: ${generatedOtp}`);
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully",
+      message: "OTP sent successfully (check console)",
     });
 
   } catch (error) {

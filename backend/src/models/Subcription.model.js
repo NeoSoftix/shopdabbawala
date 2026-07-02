@@ -5,7 +5,7 @@ const subscriptionSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
 
     package: {
@@ -50,6 +50,12 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
     },
 
+    duration: {
+  type: String,
+  enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
+  required: true,
+},
+
     meals: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Meal",
@@ -73,10 +79,10 @@ const subscriptionSchema = new mongoose.Schema(
       default: "active",
     },
 
-    startDate: {
-      type: Date,
-      default: Date.now,
-    },
+   startDate: {
+  type: Date,
+  required: true,
+},
 
     endDate: {
       type: Date,
