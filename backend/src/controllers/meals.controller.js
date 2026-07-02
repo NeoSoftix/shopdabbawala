@@ -300,7 +300,7 @@ export const deleteMeal = async (req, res) => {
 
 export const getActiveMeal = async (req, res) => {
   try {
-    const meals = (await Meal.find({ isActive: true })).toSorted({
+    const meals = await Meal.find({ isActive: true }).sort({
       createdAt: -1,
     });
 

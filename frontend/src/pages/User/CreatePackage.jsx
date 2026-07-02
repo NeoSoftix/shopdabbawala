@@ -6,6 +6,9 @@ import {
   sendOtp,
   verifyOtp,
 } from "../../service/auth.service";
+
+import { createSubscription } from "../../service/subscription.service";
+import { getActiveMeal } from "../../service/meal.service";
 export default function CreatePackage({ onClose, userData }) {
   // Config States
   const [preference, setPreference] = useState("Veg");
@@ -15,11 +18,12 @@ export default function CreatePackage({ onClose, userData }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
+  const [mealSize, setMealSize] = useState("Basic");
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
 const [isSendingOtp, setIsSendingOtp] = useState(false);
 const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-
-
+const [mealOptions, setMealOptions] = useState([]);
+const [meals, setMeals] = useState("");
 // Start Date & Calendar States
 const [startDate, setStartDate] = useState("");
 const [showCalendar, setShowCalendar] = useState(false);
@@ -42,7 +46,7 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const [showPaymentSuccessMsg, setShowPaymentSuccessMsg] = useState(false);
 
   // Red & White Theme Based Meal Plan State
-  const [selectedPlan, setSelectedPlan] = useState("Regular");
+  const [selectedPlan, setSelectedPlan] = useState("Basic");
   const [hoveredPlan, setHoveredPlan] = useState(null);
 
   // Dynamic Meals adjustment based on Duration selection
@@ -57,11 +61,27 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       setTotalMeals(48); // Default quarterly meals
     }
   }, [duration]);
+useEffect(() => {
+  const fetchMeals = async () => {
+    try {
+      const res = await getActiveMeal();
+      setMealOptions(res.data);
 
+      if (res.data.length > 0) {
+        setTiming(res.data[0].name);
+        // FIX: Default meals ID set karein
+        setMeals(res.data[0]._id); 
+      }
+    } catch (error) {
+      console.error("Error fetching meals:", error);
+    }
+  };
+  fetchMeals();
+}, []);
   // Meal Plan Details Data
   const planDetails = {
-    Regular: {
-      title: "Regular Plan Includes:",
+    Basic: {
+      title: "Basic Plan Includes:",
       description: "Standard portion for one person",
       indian: [
         "Dal (8 oz) - choose 1 from 2 options",
@@ -72,9 +92,9 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       global:
         "A Veg/Non-Veg Continental Dish (24 oz) - choose 1 from 2 options",
     },
-    Large: {
-      title: "Large Plan Includes:",
-      description: "Extra portion for hearty appetite",
+    Medium: {
+      title: "Medium Plan Includes:",
+      description: "Moderate portion for balanced appetite",
       indian: [
         "Dal (12 oz) - premium selection",
         "Veg / Non-Veg Curry (12 oz) - richer portions",
@@ -84,8 +104,8 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       global:
         "A Veg/Non-Veg Continental Dish (32 oz) - customized chef options",
     },
-    "Large Premium": {
-      title: "Large Premium Plan Includes:",
+    "Premium": {
+      title: "Premium Plan Includes:",
       description: "Premium ingredients + extra sides",
       indian: [
         "Dal (12 oz) - organic premium collection",
@@ -127,7 +147,7 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   // Price Calculation Logic
   const planMultiplier =
-    selectedPlan === "Regular" ? 1 : selectedPlan === "Large" ? 1.2 : 1.4;
+    selectedPlan === "Basic" ? 1 : selectedPlan === "Medium" ? 1.2 : 1.4;
 
   // Find base price based on selected total meals count
   const currentOptions = getMealOptions();
@@ -213,16 +233,42 @@ const handleVerifyOtp = async () => {
   }
 };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
-      alert("Please fill all details");
-      return;
-    }
+ const handleFormSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
+    alert("Please fill all details");
+    return;
+  }
+
+  try {
+   await createSubscription({
+      mealSize: selectedPlan, // FIX: state ka naam 'selectedPlan' tha aapke paas
+      preference,
+      duration,
+      meals,                  // Ab isme dropdown se real ID chali jaayegi
+      quantity,
+      deliveryMethod,
+      startDate,
+    });
+
+      console.log("Payload:", {
+      mealSize,
+      preference,
+      duration,
+      meals,
+      quantity,
+      deliveryMethod,
+      startDate,
+    });
+
     setShowCheckoutForm(false);
     setShowSuccess(true);
-  };
-
+  } catch (error) {
+    console.error("Create Subscription Error:", error);
+    alert(error?.response?.data?.message || "Failed to create subscription");
+  }
+};
   return (
     <div className={`bg-white rounded-[2.5rem] ${onClose ? "h-auto" : "h-screen"}`}>
       {showSuccess ? (
@@ -591,15 +637,29 @@ const handleVerifyOtp = async () => {
                           <span>🕒</span> Meal Timing
                         </label>
                         <div className="relative">
-                          <select
-                            value={timing}
-                            onChange={(e) => setTiming(e.target.value)}
-                            className="w-full bg-white border border-gray-300 rounded-xl p-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
-                          >
-                            <option value="Lunch">Lunch</option>
-                            <option value="Dinner">Dinner</option>
-                            <option value="Both">Both</option>
-                          </select>
+                       <select
+ value={timing}
+  onChange={(e) => {
+    const selectedName = e.target.value;
+    setTiming(selectedName); // Input text ke liye
+    
+    // Array se check karein ki kaunsi meal match ho rahi hai aur uski ID set karein
+    const matchedMeal = mealOptions.find(m => m.name === selectedName);
+    if (matchedMeal) {
+      setMeals(matchedMeal._id); // Backend payload ke liye ID save karein
+    }
+  }}
+  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
+>
+  {mealOptions.map((meal) => (
+    <option
+      key={meal._id}
+      value={meal.name} // ya meal.mealName
+    >
+      {meal.name}
+    </option>
+  ))}
+</select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-500">
                             <svg
                               className="fill-current h-4 w-4"
