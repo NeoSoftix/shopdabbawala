@@ -4,13 +4,48 @@ import Package from "../models/package.model.js";
 // Create Package
 export const createPackage = async (req, res) => {
   try {
-    const { name, validityDays, totalMeals, price, description, maxItemsPerMeal } = req.body;
+    const {
+      name,
+      validityDays,
+      totalMeals,
+      price,
+      description,
+      maxItemsPerMeal,
+      features,
+    } = req.body;
 
     // Required Fields Validation
-    if (!name || !validityDays || !totalMeals || !price || !maxItemsPerMeal) {
+    if (
+      !name ||
+      !validityDays ||
+      !totalMeals ||
+      !price ||
+      !maxItemsPerMeal ||
+      !features
+    ) {
       return res.status(400).json({
-        message: "Name, Validity Days, Total Tiffin and Price are required",
         success: false,
+        message:
+          "Name, Price, Total Meals, Validity Days, Max Items Per Meal and Features are required.",
+      });
+    }
+
+    // Features Validation
+    if (!Array.isArray(features)) {
+      return res.status(400).json({
+        success: false,
+        message: "Features must be an array.",
+      });
+    }
+
+    const cleanedFeatures = features
+      .map((feature) => feature.trim())
+      .filter((feature) => feature.length > 0);
+
+    if (cleanedFeatures.length < 1 || cleanedFeatures.length > 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Features must contain between 1 and 10 items.",
       });
     }
 
@@ -23,67 +58,76 @@ export const createPackage = async (req, res) => {
     });
 
     if (existingPackage) {
-      return res.status(400).json({
-        message: "Package name already exists",
+      return res.status(409).json({
         success: false,
+        message: "Package already exists.",
       });
     }
 
-    // Numeric Validation
+    // Convert Numbers
     const numericPrice = Number(price);
-    const numericMeal = Number(totalMeals);
+    const numericMeals = Number(totalMeals);
     const numericValidityDays = Number(validityDays);
-    const numericMaxItems = Number(maxItemsPerMeal)
+    const numericMaxItems = Number(maxItemsPerMeal);
 
+    // Numeric Validations
     if (isNaN(numericPrice) || numericPrice <= 0) {
       return res.status(400).json({
-        message: "Price must be greater than 0",
         success: false,
+        message: "Price must be greater than 0.",
       });
     }
 
-    if (isNaN(numericMeal) || numericMeal <= 0) {
+    if (isNaN(numericMeals) || numericMeals <= 0) {
       return res.status(400).json({
-        message: "Total tiffins must be greater than 0",
         success: false,
+        message: "Total meals must be greater than 0.",
       });
     }
 
     if (isNaN(numericValidityDays) || numericValidityDays <= 0) {
       return res.status(400).json({
-        message: "Validity days must be greater than 0",
         success: false,
+        message: "Validity days must be greater than 0.",
       });
     }
 
-    if(isNaN(numericMaxItems) || numericMaxItems <= 0) {
+    if (isNaN(numericMaxItems) || numericMaxItems <= 0) {
       return res.status(400).json({
-        message:"Max Itmes Must Be a Number",
-        success: false
-      })
+        success: false,
+        message: "Max items per meal must be greater than 0.",
+      });
     }
 
     // Create Package
     const packageData = await Package.create({
       name: normalizedName,
-      description,
+      description: description?.trim(),
       price: numericPrice,
-      totalMeals: numericMeal,
+      totalMeals: numericMeals,
       validityDays: numericValidityDays,
-      maxItemsPerMeal: numericMaxItems
+      maxItemsPerMeal: numericMaxItems,
+      features: cleanedFeatures,
     });
 
     return res.status(201).json({
-      message: "Package created successfully",
-      data: packageData,
       success: true,
+      message: "Package created successfully.",
+      data: packageData,
     });
   } catch (error) {
     console.error("Create Package Error:", error);
 
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Package already exists.",
+      });
+    }
+
     return res.status(500).json({
-      message: "Internal Server Error",
       success: false,
+      message: "Internal Server Error.",
     });
   }
 };
@@ -110,7 +154,6 @@ export const getAllPackage = async (req, res) => {
 };
 
 // get one package
-
 export const getOnePackage = async (req, res) => {
   try {
     const { id } = req.params;
@@ -147,7 +190,6 @@ export const getOnePackage = async (req, res) => {
 };
 
 // get active package
-
 export const getActivePackage = async (req, res) => {
   try {
     const packages = await Package.find({
@@ -184,6 +226,7 @@ export const updatePackage = async (req, res) => {
       totalMeals,
       validityDays,
       isAddOnAllowed,
+      features
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -280,6 +323,29 @@ export const updatePackage = async (req, res) => {
       packageData.isAddOnAllowed = isAddOnAllowed;
     }
 
+    // update faetures
+        if (features !== undefined) {
+      if (!Array.isArray(features)) {
+        return res.status(400).json({
+          success: false,
+          message: "Features must be an array",
+        });
+      }
+
+      const cleanedFeatures = features
+        .map((feature) => feature.trim())
+        .filter((feature) => feature.length > 0);
+
+      if (cleanedFeatures.length < 1 || cleanedFeatures.length > 10) {
+        return res.status(400).json({
+          success: false,
+          message: "Features must contain between 1 and 10 items",
+        });
+      }
+
+      packageData.features = cleanedFeatures;
+    }
+
     await packageData.save();
 
     return res.status(200).json({
@@ -297,8 +363,8 @@ export const updatePackage = async (req, res) => {
   }
 };
 
-// toggle status of package
 
+// toggle status of package
 export const toggleStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -341,7 +407,6 @@ export const toggleStatus = async (req, res) => {
 };
 
 // delete the package
-
 export const deletePackage = async (req, res) => {
   try {
     const { id } = req.params;
