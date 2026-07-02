@@ -10,7 +10,6 @@ import { removeLocalFile } from "../middleware/upload.middleware.js";
 import Category from "../models/category.model.js";
 
 // contoller for create Vendor
-
 export const createVendor = async (req, res) => {
   try {
     const {
@@ -136,7 +135,6 @@ export const createVendor = async (req, res) => {
 };
 
 // contoller for get all vendor
-
 export const getAllVendors = async (req, res) => {
   try {
     const vendors = await Vendor.find()
@@ -160,7 +158,6 @@ export const getAllVendors = async (req, res) => {
 };
 
 // get One Vendor by ID
-
 export const getOneVendor = async (req, res) => {
   try {
     const { id } = req.params;
@@ -651,5 +648,47 @@ export const vendorProfile = async (req, res) => {
       message:"Internal Server error",
       success:false
     })
+  }
+}
+
+// get vendor by pincode
+export const checkServiceAvailability = async (req, res) => {
+  try {
+    const {pincode}= req.query
+
+    if(!pincode) {
+      return res.status(404).json({
+        success:false,
+        message:"Pincode not Found"
+      })
+    }
+
+    const vendor = await Vendor.findOne({
+      isActive: true,
+      $or: [
+        { pincode: pincode.trim() },
+        { "serviceZones.area": { $regex: `^${pincode.trim()}$`, $options: "i" } },
+      ],
+    })
+
+    if(!vendor) {
+      return res.status(404).json({
+        message:"Sorry! Service is not available in your area.",
+        success:false
+      })
+    }
+
+    return res.status(200).json({
+      message:"Service is aviable",
+      success:true
+    })
+
+  } catch (error) {
+      console.error("Check Service Availability Error:", error) 
+      
+      return res.status(500).json({
+        message:"Internal Server error",
+        success:false
+      })
   }
 }

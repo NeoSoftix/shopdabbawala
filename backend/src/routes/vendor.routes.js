@@ -1,5 +1,6 @@
 import express from "express";
 import { 
+  checkServiceAvailability,
   createVendor, 
   deleteVendor, 
   getAllVendors, 
@@ -25,6 +26,9 @@ router.get("/me", verifyToken, allowedRoles("vendor"), vendorProfile);
 // Get All Vendors
 router.get("/", verifyToken, allowedRoles("admin"), getAllVendors);
 
+// get vendor by pincode 
+router.get("/service-availability", checkServiceAvailability)
+
 // Select Area & Category
 router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory);
 
@@ -42,6 +46,8 @@ router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStat
 
 // Get One Vendor
 router.get("/:id",allowedRoles("admin"), getOneVendor);
+
+
 
 // Delete Vendor
 router.delete("/:id", verifyToken, allowedRoles("admin"), deleteVendor);

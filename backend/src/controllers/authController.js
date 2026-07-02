@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
+import OTP from "../models/otp.model.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -50,11 +51,12 @@ export const signup = async (req, res) => {
   }
 };
 
+// login
 export const login = async (req, res) => {
   try {
-    const { email, password} = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password ) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email, Password are required",
@@ -118,7 +120,6 @@ export const login = async (req, res) => {
 // get me controller
 export const getMe = async (req, res) => {
   try {
-  
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -127,7 +128,7 @@ export const getMe = async (req, res) => {
         message: "User not found",
       });
     }
-  
+
     return res.status(200).json({
       success: true,
       message: "Successfully get the user",
@@ -336,25 +337,110 @@ export const changedPassword = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         message: "Old password does not match",
-        success: false, 
+        success: false,
       });
     }
 
     user.password = await bcrypt.hash(newPassword, 12);
 
-    await user.save(); 
+    await user.save();
 
     return res.status(200).json({
       success: true,
       message: "Password changed successfully",
     });
-    
   } catch (error) {
     console.error("Changed password error:", error);
 
     return res.status(500).json({
       message: "Internal Server Error",
-      success: false
+      success: false,
+    });
+  }
+};
+// SEND OTP
+export const sendOtp = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    // Phone Validation
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // if (!/^[6-9]\d{9}$/.test(phone)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid phone number",
+    //   });
+    // }
+
+    // Generate 6-digit OTP
+    const generatedOtp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    // Delete old OTP
+    await OTP.deleteOne({ phone });
+
+    // Save new OTP
+    await OTP.create({
+      phone,
+      otp: generatedOtp,
+    });
+
+    console.log("Generated OTP:", generatedOtp);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+
+  } catch (error) {
+    console.error("Send OTP Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send OTP",
+    });
+  }
+};
+
+// verfiy otp 
+export const verifyOtp = async (req, res) => {
+  try {
+    const { phone, otp: enteredOtp } = req.body;
+
+    if (!phone || !enteredOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number and OTP are required.",
+      });
+    }
+
+    const otpRecord = await OTP.findOne({ phone, otp: enteredOtp });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP.",
+      });
+    }
+
+    await OTP.deleteMany({ phone });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP Verified successfully.",
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error.",
     });
   }
 };
