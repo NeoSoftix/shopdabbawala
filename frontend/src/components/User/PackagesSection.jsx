@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
-
+import { checkServiceAvailability } from "../../service/vendor.service";
 // Aapki service file se function import karein
 // Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
 import { getActivePackages } from "../../service/package.service"; 
-
-// Serviceable Pincodes list
-const SERVICEABLE_PINCODES = ["110001", "400001", "560001", "144001", "144002"];
+import {
+  sendOtp,
+  verifyOtp,
+} from "../../service/auth.service";
 
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
@@ -37,7 +38,7 @@ export default function PackagesSection() {
   
   const [featureModalData, setFeatureModalData] = useState(null);
   const [isViewAllOpen, setIsViewAllOpen] = useState(false);
-
+const [leadError, setLeadError] = useState("");
   // --- CHECKOUT MODAL STATES ---
   const [checkoutPlan, setCheckoutPlan] = useState(null); 
   const [checkoutStep, setCheckoutStep] = useState(1); 
@@ -110,11 +111,26 @@ export default function PackagesSection() {
     }
   };
 
-  const handleLeadSubmit = (e) => {
-    e.preventDefault();
-    setPopupStep(2); 
-  };
+  const handleLeadSubmit = async (e) => {
+  e.preventDefault();
 
+  try {
+    setLeadError("");
+
+    const res = await checkServiceAvailability(formData.pincode.trim());
+
+    if (res.success) {
+      setPopupStep(2);
+    } else {
+      setLeadError(res.message);
+    }
+  } catch (error) {
+    setLeadError(
+      error.response?.data?.message ||
+        "Sorry! Service is not available in your area."
+    );
+  }
+};
   const closePopup = () => {
     setIsPopupOpen(false);
     setPopupStep(1); 
@@ -144,35 +160,95 @@ export default function PackagesSection() {
     setCheckoutError("");
   };
 
-  const handlePincodeSubmit = (e) => {
-    e.preventDefault();
-    if (SERVICEABLE_PINCODES.includes(checkoutData.pincode.trim())) {
-      setCheckoutError("");
-      setCheckoutStep(2); 
-    } else {
-      setCheckoutError("❌ Sorry! We do not deliver to this location yet.");
-    }
-  };
+ const handlePincodeSubmit = async (e) => {
+  e.preventDefault();
 
-  const handlePhoneSubmit = (e) => {
-    e.preventDefault();
-    if (checkoutData.phone.length >= 10) {
-      setCheckoutError("");
-      setCheckoutStep(3); 
-    } else {
-      setCheckoutError("⚠️ Please enter a valid 10-digit phone number.");
-    }
-  };
+  try {
+    setCheckoutError("");
 
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
-    if (checkoutData.otp.length === 4) {
-      setCheckoutError("");
-      setCheckoutStep(4); 
+    const res = await checkServiceAvailability(
+      checkoutData.pincode.trim()
+    );
+
+    if (res.success) {
+      setCheckoutStep(2);
     } else {
-      setCheckoutError("❌ Invalid OTP. Please try again.");
+      setCheckoutError(res.message);
     }
-  };
+  } catch (error) {
+    setCheckoutError(
+      error.response?.data?.message ||
+        "Sorry! Service is not available in your area."
+    );
+  }
+};
+
+const handlePhoneSubmit = async (e) => {
+  e.preventDefault();
+
+  // 1. Phone number validation (Frontend boundary)
+  if (!checkoutData.phone || checkoutData.phone.length !== 10) {
+    setCheckoutError("Please enter a valid 10 digit phone number.");
+    return;
+  }
+
+  try {
+    setCheckoutError("");
+
+    // Backend ko exact wahi object chahiye jo usne req.body me manga hai
+    const res = await sendOtp({
+      phone: checkoutData.phone.trim(),
+    });
+
+    // Backend return karta hai: { success: true, message: "OTP sent successfully" }
+    if (res && res.success) {
+      alert(res.message || "OTP Sent Successfully");
+      setCheckoutStep(3); // Agle step (OTP Enter karne) par bhejein
+    } else {
+      setCheckoutError(res?.message || "Failed to send OTP.");
+    }
+ 
+  } catch (error) {
+    console.error("Frontend Send OTP Error:", error);
+    // Agar backend status(400) ya (500) dega toh axios catch me bhejega
+    setCheckoutError(
+      error.response?.data?.message || "Something went wrong. Failed to send OTP."
+    );
+  }
+};
+
+const handleOtpSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!checkoutData.otp) {
+    setCheckoutError("Please enter OTP.");
+    return;
+  }
+
+  try {
+    setCheckoutError("");
+
+    // Backend me key check karo: const { phone, otp: enteredOtp } = req.body;
+    // Isliye frontend se hum 'phone' aur 'otp' dono bhejenge
+    const res = await verifyOtp({
+      phone: checkoutData.phone.trim(),
+      otp: checkoutData.otp.trim(),
+    });
+
+    // Backend return karta hai: { success: true, message: "OTP Verified successfully." }
+    if (res && res.success) {
+      alert(res.message || "OTP Verified Successfully");
+      setCheckoutStep(4); // User details step par le jayein
+    } else {
+      setCheckoutError(res?.message || "Verification failed.");
+    }
+  } catch (error) {
+    console.error("Frontend Verify OTP Error:", error);
+    setCheckoutError(
+      error.response?.data?.message || "Invalid OTP or Server Error."
+    );
+  }
+};
 
   const handleFinalDetailsSubmit = (e) => {
     e.preventDefault();
@@ -625,6 +701,11 @@ export default function PackagesSection() {
                         onChange={(e) => setFormData({...formData, pincode: e.target.value})}
                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white"
                       />
+                      {leadError && (
+  <p className="text-red-500 text-xs font-semibold mt-2">
+    {leadError}
+  </p>
+)}
                     </div>
                     <button type="submit" className="w-full mt-2 bg-red-600 text-white font-black text-xs tracking-widest uppercase py-4 rounded-xl shadow-md transition-all duration-300 hover:bg-red-700">
                       Continue to Customize →
@@ -737,7 +818,7 @@ export default function PackagesSection() {
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Enter OTP</label>
                     <input 
-                      type="text" required placeholder="Enter 4 digit OTP code" maxLength="4"
+                      type="text" required placeholder="Enter 6 digit OTP code" maxLength="6"
                       value={checkoutData.otp}
                       onChange={(e) => setCheckoutData({...checkoutData, otp: e.target.value})}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg tracking-widest font-black text-slate-800 focus:outline-none focus:border-red-500"

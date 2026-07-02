@@ -55,3 +55,24 @@ export const logout = async () => {
         throw error
     }
 }
+
+
+export const sendOtp = async (data) => {
+    try {
+        const res = await API.post("/auth/send-otp", data)
+        return res.data 
+    } catch (error) {
+        console.log("Send OTP error", error)
+        throw error
+    }
+}
+
+export const verifyOtp = async (data) => {
+    try {
+        const res = await API.post("/auth/verify-otp", data)
+        return res.data 
+    } catch (error) {
+        console.log("Verify OTP error", error)
+        throw error
+    }
+}
