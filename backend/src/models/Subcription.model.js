@@ -11,7 +11,7 @@ const subscriptionSchema = new mongoose.Schema(
     package: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Package",
-      required: false, 
+      required: false,
     },
 
     mealSize: {
@@ -67,15 +67,6 @@ const subscriptionSchema = new mongoose.Schema(
       enum: ["Delivery", "Pickup"],
       required: true,
     },
-
-    deliveryAddress: {
-      type: String,
-      trim: true,
-      required: function () {
-        return this.deliveryMethod === "Delivery";
-      },
-    },
-
     status: {
       type: String,
       enum: ["active", "expired", "cancelled"],
@@ -96,7 +87,7 @@ const subscriptionSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Virtual field for calculation
