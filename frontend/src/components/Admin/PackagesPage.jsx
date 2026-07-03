@@ -12,7 +12,7 @@ import {
   getAllPackages,
   deletePackage,
   updatePackage,
-} from "../../service/package.service.js";
+} from "../../services/package.service.js";
 
 const PackagesPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -88,7 +88,7 @@ const PackagesPage = () => {
       !formData.price ||
       !formData.totalMeals ||
       !formData.validityDays ||
-      !formData.maxItemsPerMeal 
+      !formData.maxItemsPerMeal
     ) {
       setError("Please fill all required fields.");
       return;

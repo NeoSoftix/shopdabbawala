@@ -1,86 +1,79 @@
 import { useEffect, useState } from "react";
-import {
-  FiUsers,
-  FiShoppingBag,
-  FiShoppingCart,
-} from "react-icons/fi";
+import { FiUsers, FiShoppingBag, FiShoppingCart } from "react-icons/fi";
 
-import {
-  MdRestaurantMenu,
-  MdFastfood,
-} from "react-icons/md";
+import { MdRestaurantMenu, MdFastfood } from "react-icons/md";
 
-import { FaRupeeSign } from "react-icons/fa"; 
+import { FaRupeeSign } from "react-icons/fa";
 
-import DashboardPieChart from "../../components/Admin/DashboardPieChart";
-import DashboardLineChart from "../../components/Admin/DashboardLineChart";
-import OrdersTable from "../../components/Admin/OrdersTable";
-import StatCard from "../../components/Admin/StatsCards";
+import DashboardPieChart from "../../components/shared/DashboardPieChart";
+import DashboardLineChart from "../../components/shared/DashboardLineChart";
+import OrdersTable from "../../components/shared/OrdersTable";
+import StatCard from "../../components/shared/StatCard";
 
-import { getAllVendors } from "../../service/vendor.service";
-import { getAllMeals } from "../../service/meal.service";
-import { getAllItems } from "../../service/items.service";
+import { getAllVendors } from "../../services/vendor.service";
+import { getAllMeals } from "../../services/meal.service";
+import { getAllItems } from "../../services/items.service";
 
 export default function AdminDashboard() {
   const [vendorCount, setVendorCount] = useState(0);
   const [mealCount, setMealCount] = useState(0);
-const [itemCount, setItemCount] = useState(0);
+  const [itemCount, setItemCount] = useState(0);
 
-useEffect(() => {
-  fetchVendorCount();
-  fetchMealCount();
-  fetchItemCount();
-}, []);
+  useEffect(() => {
+    fetchVendorCount();
+    fetchMealCount();
+    fetchItemCount();
+  }, []);
 
-const fetchVendorCount = async () => {
-  try {
-    const res = await getAllVendors();
+  const fetchVendorCount = async () => {
+    try {
+      const res = await getAllVendors();
 
-    console.log("Vendor Response:", res);
+      console.log("Vendor Response:", res);
 
-    if (res.success) {
-      setVendorCount(res.count);
+      if (res.success) {
+        setVendorCount(res.count);
+      }
+    } catch (error) {
+      console.error("Vendor Count Error:", error);
     }
-  } catch (error) {
-    console.error("Vendor Count Error:", error);
-  }
-};
+  };
 
-const fetchMealCount = async () => {
-  try {
-    const res = await getAllMeals();
+  const fetchMealCount = async () => {
+    try {
+      const res = await getAllMeals();
 
-    console.log("Meals Response:", res);
+      console.log("Meals Response:", res);
 
-    if (res.success) {
-      setMealCount(res.count || 0);
+      if (res.success) {
+        setMealCount(res.count || 0);
+      }
+    } catch (error) {
+      console.error("Meal Count Error:", error);
     }
-  } catch (error) {
-    console.error("Meal Count Error:", error);
-  }
-};
+  };
 
-const fetchItemCount = async () => {
-  try {
-    const res = await getAllItems();
+  const fetchItemCount = async () => {
+    try {
+      const res = await getAllItems();
 
-    console.log("Items Response:", res);
+      console.log("Items Response:", res);
 
-    if (res.success) {
-      setItemCount(res.count || 0);
+      if (res.success) {
+        setItemCount(res.count || 0);
+      }
+    } catch (error) {
+      console.error("Item Count Error:", error);
     }
-  } catch (error) {
-    console.error("Item Count Error:", error);
-  }
-};
-const dashboardStats = {
-  users: 40,
-  vendors: vendorCount,
-  meals: mealCount,
-  items: itemCount,
-  orders: 60,
-  revenue: 10000,
-};
+  };
+  const dashboardStats = {
+    users: 40,
+    vendors: vendorCount,
+    meals: mealCount,
+    items: itemCount,
+    orders: 60,
+    revenue: 10000,
+  };
 
   const pieData = [
     { name: "Users", value: dashboardStats.users },
@@ -105,7 +98,6 @@ const dashboardStats = {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-5">
-
         <StatCard
           title="Total Users"
           value={dashboardStats.users}
@@ -147,21 +139,12 @@ const dashboardStats = {
           growth="0%"
           Icon={FaRupeeSign}
         />
-
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardPieChart data={pieData} title="Platform Overview" />
 
-        <DashboardPieChart
-          data={pieData}
-          title="Platform Overview"
-        />
-
-        <DashboardLineChart
-          data={lineData}
-          title="Orders Trend"
-        />
-
+        <DashboardLineChart data={lineData} title="Orders Trend" />
       </div>
 
       <OrdersTable orders={recentOrders} />

@@ -5,8 +5,8 @@ import {
   getAllCategories,
   updateCategory,
   deleteCategory,
-} from "../../service/category.service.js";
-import { getAllMeals } from "../../service/meal.service.js";
+} from "../../services/category.service.js";
+import { getAllMeals } from "../../services/meal.service.js";
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -47,7 +47,9 @@ const Categories = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this category?",
+    );
     if (!confirmDelete) return;
 
     try {
@@ -77,7 +79,10 @@ const Categories = () => {
 
       const formData = new FormData();
       formData.append("name", selectedCategory.name);
-      formData.append("meal", selectedCategory.meal?._id || selectedCategory.meal || "");
+      formData.append(
+        "meal",
+        selectedCategory.meal?._id || selectedCategory.meal || "",
+      );
       formData.append("foodType", selectedCategory.foodType);
 
       if (selectedCategory.imageFile) {
@@ -139,7 +144,10 @@ const Categories = () => {
 
           <tbody>
             {categories.map((category, index) => (
-              <tr key={category._id} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              <tr
+                key={category._id}
+                className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+              >
                 <td className="px-4 py-4 align-middle">
                   {category.image?.url ? (
                     <img
@@ -200,7 +208,10 @@ const Categories = () => {
 
             {loading && (
               <tr>
-                <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="5"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   Loading categories...
                 </td>
               </tr>
@@ -208,7 +219,10 @@ const Categories = () => {
 
             {!loading && categories.length === 0 && (
               <tr>
-                <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="5"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   No categories found. Create one to get started.
                 </td>
               </tr>
@@ -240,7 +254,9 @@ const Categories = () => {
             <div className="mb-3">
               <label className="block mb-2">Meal</label>
               <select
-                value={selectedCategory.meal?._id || selectedCategory.meal || ""}
+                value={
+                  selectedCategory.meal?._id || selectedCategory.meal || ""
+                }
                 onChange={(e) =>
                   setSelectedCategory({
                     ...selectedCategory,
@@ -294,9 +310,13 @@ const Categories = () => {
               />
 
               <div className="mb-3">
-                {(selectedCategory.previewImage || selectedCategory.image?.url) && (
+                {(selectedCategory.previewImage ||
+                  selectedCategory.image?.url) && (
                   <img
-                    src={selectedCategory.previewImage || selectedCategory.image?.url}
+                    src={
+                      selectedCategory.previewImage ||
+                      selectedCategory.image?.url
+                    }
                     alt="Preview"
                     className="w-24 h-24 object-cover rounded"
                   />

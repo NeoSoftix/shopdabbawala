@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createVendor } from "../../service/vendor.service.js";
+import { createVendor } from "../../services/vendor.service.js";
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const AddVendor = () => {
   });
 
   const [preview, setPreview] = useState(
-    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
   );
 
   const [loading, setLoading] = useState(false);
@@ -37,15 +37,15 @@ const AddVendor = () => {
   // पिनकोड चेंज होने पर काम करने वाला फंक्शन
   const handlePincodeChange = async (e) => {
     const pincodeVal = e.target.value;
-    
+
     // सिर्फ नंबर्स एलाओ करने के लिए
     if (/[^0-9]/.test(pincodeVal)) return;
 
-    setFormData((prev) => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       pincode: pincodeVal,
-      city: "",  // पुराना डेटा क्लियर करने के लिए
-      state: "" 
+      city: "", // पुराना डेटा क्लियर करने के लिए
+      state: "",
     }));
     setAreas([]); // पुराना एरिया लिस्ट क्लियर करें
 
@@ -53,19 +53,21 @@ const AddVendor = () => {
     if (pincodeVal.length === 6) {
       try {
         setFetchingLocation(true);
-        const res = await fetch(`https://api.postalpincode.in/pincode/${pincodeVal}`);
+        const res = await fetch(
+          `https://api.postalpincode.in/pincode/${pincodeVal}`,
+        );
         const data = await res.json();
 
         if (data[0].Status === "Success") {
           const postOffices = data[0].PostOffice;
           setAreas(postOffices); // सारे इलाकों की लिस्ट सेट करें
-          
+
           // डिफ़ॉल्ट रूप से पहले वाले पोस्ट ऑफिस के आधार पर City/State सेट करें
           setFormData((prev) => ({
             ...prev,
             city: postOffices[0].District,
             state: postOffices[0].State,
-            address: postOffices[0].Name + ", " // शुरुआत में पहला एरिया एड्रेस में डाल सकते हैं
+            address: postOffices[0].Name + ", ", // शुरुआत में पहला एरिया एड्रेस में डाल सकते हैं
           }));
         } else {
           alert("Invalid Pincode. Please check again.");
@@ -83,7 +85,7 @@ const AddVendor = () => {
     const selectedAreaName = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      address: selectedAreaName + ", "
+      address: selectedAreaName + ", ",
     }));
   };
 
@@ -167,7 +169,9 @@ const AddVendor = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Vendor Name */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Vendor Name</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Vendor Name
+            </label>
             <input
               type="text"
               name="name"
@@ -182,7 +186,9 @@ const AddVendor = () => {
           {/* Email & Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -194,7 +200,9 @@ const AddVendor = () => {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
               <input
                 type="text"
                 name="phone"
@@ -209,7 +217,9 @@ const AddVendor = () => {
 
           {/* Organization Name */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Organization Name</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Organization Name
+            </label>
             <input
               type="text"
               name="organizationName"
@@ -224,7 +234,12 @@ const AddVendor = () => {
           {/* Pincode Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Pincode {fetchingLocation && <span className="text-xs text-[#e61e2d] animate-pulse">(Fetching Areas...)</span>}
+              Pincode{" "}
+              {fetchingLocation && (
+                <span className="text-xs text-[#e61e2d] animate-pulse">
+                  (Fetching Areas...)
+                </span>
+              )}
             </label>
             <input
               type="text"
@@ -241,7 +256,9 @@ const AddVendor = () => {
           {/* Specific Area Select Dropdown (बिना Sub Post Office शब्द के) */}
           {areas.length > 0 && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Select Specific Area</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Select Specific Area
+              </label>
               <select
                 onChange={handleAreaChange}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white"
@@ -259,7 +276,9 @@ const AddVendor = () => {
           {/* City and State (यूज़र इन्हें डायरेक्ट एडिट न करे इसलिए readOnly किया है) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">City / District</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                City / District
+              </label>
               <input
                 type="text"
                 name="city"
@@ -273,7 +292,9 @@ const AddVendor = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">State</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                State
+              </label>
               <input
                 type="text"
                 name="state"
@@ -289,7 +310,9 @@ const AddVendor = () => {
 
           {/* Address */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Detailed Address</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Detailed Address
+            </label>
             <textarea
               name="address"
               value={formData.address}
@@ -303,7 +326,9 @@ const AddVendor = () => {
 
           {/* Description */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Description</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Description
+            </label>
             <textarea
               name="description"
               value={formData.description}

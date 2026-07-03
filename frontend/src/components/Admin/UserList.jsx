@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FiEye, FiEdit } from "react-icons/fi";
+import { useState } from "react";
+import { FiEye } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
 
 const Users = () => {

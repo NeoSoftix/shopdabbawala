@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getAllMeals, updateMeal, deleteMeal } from "../../service/meal.service";
+import {
+  getAllMeals,
+  updateMeal,
+  deleteMeal,
+} from "../../services/meal.service";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
@@ -93,7 +97,10 @@ const Meal = () => {
 
           <tbody>
             {meals.map((meal, index) => (
-              <tr key={meal._id} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              <tr
+                key={meal._id}
+                className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+              >
                 <td className="px-4 py-4 align-middle">
                   {meal.image?.url ? (
                     <img
@@ -139,7 +146,10 @@ const Meal = () => {
 
             {loading && (
               <tr>
-                <td colSpan="3" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="3"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   Loading meals...
                 </td>
               </tr>
@@ -147,7 +157,10 @@ const Meal = () => {
 
             {!loading && meals.length === 0 && (
               <tr>
-                <td colSpan="3" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="3"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   No meals found. Create one to get started.
                 </td>
               </tr>
@@ -197,7 +210,11 @@ const Meal = () => {
 
               <div className="mb-3">
                 <img
-                  src={selectedMeal.file ? selectedMeal.image : selectedMeal.image?.url}
+                  src={
+                    selectedMeal.file
+                      ? selectedMeal.image
+                      : selectedMeal.image?.url
+                  }
                   alt="preview"
                   className="w-24 h-24 object-cover rounded"
                 />
