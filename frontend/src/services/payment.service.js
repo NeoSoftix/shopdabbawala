@@ -1,13 +1,9 @@
 import API from "./api";
 
-// Create Stripe Checkout Session
-export const createPackageCheckout = async (data) => {
-  try {
-    const res = await API.post("/payment/package-checkout", data);
+export const createPackageCheckout = async (packageId) => {
+  const res = await API.post("/payment/package-checkout", {
+    packageId,
+  });
 
-    return res.data;
-  } catch (error) {
-    console.log("Create Package Checkout Error:", error);
-    throw error;
-  }
+  return res.data;
 };

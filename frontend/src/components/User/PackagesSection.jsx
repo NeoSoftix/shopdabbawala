@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 import { checkServiceAvailability } from "../../services/vendor.service";
-import { createPackageCheckout } from "../../services/payment.service";
 // Aapki service file se function import karein
 // Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
 import { getActivePackages } from "../../services/package.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service.js";
-
+import { createPackageCheckout } from "../../services/payment.service";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -247,9 +246,7 @@ const handlePhoneSubmit = async (e) => {
       if (res && res.success) {
   alert(res.message || "OTP Verified Successfully");
 
-  const checkoutRes = await createPackageCheckout({
-    packageId: checkoutPlan._id,
-  });
+  const checkoutRes = await createPackageCheckout(checkoutPlan._id);
 
   if (checkoutRes.success) {
     window.location.href = checkoutRes.checkoutUrl;
@@ -1058,12 +1055,12 @@ const handlePhoneSubmit = async (e) => {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg tracking-widest font-black text-slate-800 focus:outline-none focus:border-red-500"
                     />
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-slate-950 hover:bg-slate-900 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md"
-                  >
-                    Verify Code & Pay
-                  </button>
+             <button
+  type="submit"
+  className="w-full bg-red-600 text-white py-3 rounded-xl"
+>
+  Verify Code & Pay
+</button>
                 </form>
               )}
 
