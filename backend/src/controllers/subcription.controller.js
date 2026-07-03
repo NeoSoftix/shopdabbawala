@@ -1,6 +1,12 @@
 import Subscription from "../models/Subcription.model.js";
 import Meal from "../models/meals.model.js"
 import mongoose from "mongoose";
+import stripe from "../config/stripe.js";
+import Payment from "../models/payment.model.js";
+
+
+
+// cretae custom subscrition
 
 export const createSubscription = async (req, res) => {
   try {
@@ -9,7 +15,7 @@ export const createSubscription = async (req, res) => {
       preference,
       duration,
       meals,
-      quantity,
+      quantity = 1,
       deliveryMethod,
       startDate,
     } = req.body;
@@ -112,29 +118,84 @@ export const createSubscription = async (req, res) => {
         });
     }
 
-    const subscription = await Subscription.create({
-      mealSize,
-      price: selectedPlan.price,
-      totalMeals: selectedPlan.totalMeals,
-      mealsUsed: 0,
-      maxItemsPerMeal: selectedPlan.maxItemsPerMeal,
-      preference,
-      duration,
-      meals: meal._id,
-      quantity: quantity || 1,
-      deliveryMethod,
-      startDate: calculatedStartDate,
-      endDate,
+    // Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+
+      payment_method_types: ["card"],
+
+      line_items: [
+        {
+          price_data: {
+            currency: "inr",
+
+            product_data: {
+              name: `${mealSize} Custom Package`,
+              description: `${duration} Plan`,
+            },
+
+            unit_amount: selectedPlan.price * quantity * 100,
+          },
+
+          quantity: 1,
+        },
+      ],
+
+      metadata: {
+        userId: req.user.id,
+        paymentType: "CUSTOM_PACKAGE",
+
+        mealSize,
+        preference,
+        duration,
+
+        meals: meal._id.toString(),
+
+        quantity: quantity.toString(),
+
+        deliveryMethod,
+
+        price: selectedPlan.price.toString(),
+
+        totalMeals: selectedPlan.totalMeals.toString(),
+
+        maxItemsPerMeal:
+          selectedPlan.maxItemsPerMeal.toString(),
+
+        startDate: calculatedStartDate.toISOString(),
+
+        endDate: endDate.toISOString(),
+      },
+
+      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+
+      cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
     });
 
-    return res.status(201).json({
+    // Save Pending Payment
+    await Payment.create({
+      user: req.user.id,
+
+      paymentType: "CUSTOM_PACKAGE",
+
+      stripeSessionId: session.id,
+
+      amount: selectedPlan.price * quantity,
+
+      currency: "inr",
+
+      status: "pending",
+
+      metadata: session.metadata,
+    });
+
+    return res.status(200).json({
       success: true,
-      message: "Custom package created successfully.",
-      subscription,
+      checkoutUrl: session.url,
     });
 
   } catch (error) {
-    console.error("Create Subscription Error:", error);
+    console.error("Create Custom Checkout Error:", error);
 
     return res.status(500).json({
       success: false,
