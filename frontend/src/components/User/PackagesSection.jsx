@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 import { checkServiceAvailability } from "../../services/vendor.service";
+import { createPackageCheckout } from "../../services/payment.service";
 // Aapki service file se function import karein
 // Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
 import { getActivePackages } from "../../services/package.service";
@@ -242,12 +243,22 @@ const handlePhoneSubmit = async (e) => {
       });
 
       // Backend return karta hai: { success: true, message: "OTP Verified successfully." }
+    
       if (res && res.success) {
-        alert(res.message || "OTP Verified Successfully");
-        setCheckoutStep(4); // User details step par le jayein
-      } else {
-        setCheckoutError(res?.message || "Verification failed.");
-      }
+  alert(res.message || "OTP Verified Successfully");
+
+  const checkoutRes = await createPackageCheckout({
+    packageId: checkoutPlan._id,
+  });
+
+  if (checkoutRes.success) {
+    window.location.href = checkoutRes.checkoutUrl;
+  } else {
+    setCheckoutError("Failed to start payment.");
+  }
+} else {
+  setCheckoutError(res?.message || "Verification failed.");
+} 
     } catch (error) {
       console.error("Frontend Verify OTP Error:", error);
       setCheckoutError(
