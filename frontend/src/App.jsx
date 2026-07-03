@@ -37,6 +37,7 @@ import MealPlanner from "./pages/User/MealPlanner";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./components/shared/NotFoundPage";
 
+import PaymentSuccess from "./components/shared/PaymentSuccess";
 function App() {
   return (
     <Routes>
@@ -91,6 +92,7 @@ function App() {
         <Route path="meal-planner" element={<MealPlanner />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
     </Routes>
   );
 }

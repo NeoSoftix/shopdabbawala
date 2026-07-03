@@ -6,7 +6,7 @@ import { checkServiceAvailability } from "../../services/vendor.service";
 // Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
 import { getActivePackages } from "../../services/package.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service.js";
-
+import { createPackageCheckout } from "../../services/payment.service";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -242,12 +242,20 @@ const handlePhoneSubmit = async (e) => {
       });
 
       // Backend return karta hai: { success: true, message: "OTP Verified successfully." }
+    
       if (res && res.success) {
-        alert(res.message || "OTP Verified Successfully");
-        setCheckoutStep(4); // User details step par le jayein
-      } else {
-        setCheckoutError(res?.message || "Verification failed.");
-      }
+  alert(res.message || "OTP Verified Successfully");
+
+  const checkoutRes = await createPackageCheckout(checkoutPlan._id);
+
+  if (checkoutRes.success) {
+    window.location.href = checkoutRes.checkoutUrl;
+  } else {
+    setCheckoutError("Failed to start payment.");
+  }
+} else {
+  setCheckoutError(res?.message || "Verification failed.");
+} 
     } catch (error) {
       console.error("Frontend Verify OTP Error:", error);
       setCheckoutError(
@@ -1047,12 +1055,12 @@ const handlePhoneSubmit = async (e) => {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg tracking-widest font-black text-slate-800 focus:outline-none focus:border-red-500"
                     />
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-slate-950 hover:bg-slate-900 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md"
-                  >
-                    Verify Code & Pay
-                  </button>
+             <button
+  type="submit"
+  className="w-full bg-red-600 text-white py-3 rounded-xl"
+>
+  Verify Code & Pay
+</button>
                 </form>
               )}
 

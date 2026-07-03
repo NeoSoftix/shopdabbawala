@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import ThankYouPage from "../../components/User/ThankyouPage";
 import vegIcon from "../../../public/spinach.svg";
 import VEGICOn from "../../../public/veg icon.svg";
+
+// FIXED IMPORT: Is tarah import karne se component collapse nahi hoga aur direct use ho jayega
+import PhoneInputPkg from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+const PhoneInput = PhoneInputPkg.default ? PhoneInputPkg.default : PhoneInputPkg;
+
 import {
   sendOtp,
   verifyOtp,
@@ -9,6 +15,7 @@ import {
 
 import { createSubscription } from "../../services/subscription.service";
 import { getActiveMeal } from "../../services/meal.service";
+
 export default function CreatePackage({ onClose, userData }) {
   // Config States
   const [preference, setPreference] = useState("Veg");
@@ -20,23 +27,25 @@ export default function CreatePackage({ onClose, userData }) {
   const [quantity, setQuantity] = useState(1);
   const [mealSize, setMealSize] = useState("Basic");
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
-const [isSendingOtp, setIsSendingOtp] = useState(false);
-const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-const [mealOptions, setMealOptions] = useState([]);
-const [meals, setMeals] = useState("");
-// Start Date & Calendar States
-const [startDate, setStartDate] = useState("");
-const [showCalendar, setShowCalendar] = useState(false);
-const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [mealOptions, setMealOptions] = useState([]);
+  const [meals, setMeals] = useState("");
+  
+  // Start Date & Calendar States
+  const [startDate, setStartDate] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-  // FIXED: Added missing checkoutData state initialization with Email and Address fields separately
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  
+  // CHECKOUT DATA STATE
   const [checkoutData, setCheckoutData] = useState({
     name: "",
     phone: "",
     email: "", 
-    address: "", // Added address field separately
+    address: "", 
     otp: "", 
   });
 
@@ -54,30 +63,31 @@ const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
     if (duration === "1 Meal") {
       setTotalMeals(1);
     } else if (duration === "Weekly") {
-      setTotalMeals(4); // Default weekly meals
+      setTotalMeals(4); 
     } else if (duration === "Monthly") {
-      setTotalMeals(16); // Default monthly meals
+      setTotalMeals(16); 
     } else if (duration === "Quarterly") {
-      setTotalMeals(48); // Default quarterly meals
+      setTotalMeals(48); 
     }
   }, [duration]);
-useEffect(() => {
-  const fetchMeals = async () => {
-    try {
-      const res = await getActiveMeal();
-      setMealOptions(res.data);
 
-      if (res.data.length > 0) {
-        setTiming(res.data[0].name);
-        // FIX: Default meals ID set karein
-        setMeals(res.data[0]._id); 
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const res = await getActiveMeal();
+        setMealOptions(res.data);
+
+        if (res.data.length > 0) {
+          setTiming(res.data[0].name);
+          setMeals(res.data[0]._id); 
+        }
+      } catch (error) {
+        console.error("Error fetching meals:", error);
       }
-    } catch (error) {
-      console.error("Error fetching meals:", error);
-    }
-  };
-  fetchMeals();
-}, []);
+    };
+    fetchMeals();
+  }, []);
+
   // Meal Plan Details Data
   const planDetails = {
     Basic: {
@@ -89,8 +99,7 @@ useEffect(() => {
         "Choice of Sides: 4 Rotis OR 2 Rotis + Rice",
         "Salad / Achar / Dessert (2x Weekly) (optional)",
       ],
-      global:
-        "A Veg/Non-Veg Continental Dish (24 oz) - choose 1 from 2 options",
+      global: "A Veg/Non-Veg Continental Dish (24 oz) - choose 1 from 2 options",
     },
     Medium: {
       title: "Medium Plan Includes:",
@@ -101,10 +110,9 @@ useEffect(() => {
         "Choice of Sides: 6 Rotis OR 4 Rotis + Rice",
         "Salad / Achar / Dessert (Included Daily)",
       ],
-      global:
-        "A Veg/Non-Veg Continental Dish (32 oz) - customized chef options",
+      global: "A Veg/Non-Veg Continental Dish (32 oz) - customized chef options",
     },
-    "Premium": {
+    Premium: {
       title: "Premium Plan Includes:",
       description: "Premium ingredients + extra sides",
       indian: [
@@ -113,13 +121,12 @@ useEffect(() => {
         "Choice of Sides: Unlimited Rotis OR Premium Basmati Rice Choice",
         "Appetizer + Salad + Complete Premium Dessert Platter Daily",
       ],
-      global:
-        "Premium Gourmet Continental Platter (36 oz) with extra side assortments",
+      global: "Premium Gourmet Continental Platter (36 oz) with extra side assortments",
     },
   };
 
   // Dynamic Meal Pricing Options Data Array
-  const getMealOptions = () => {
+  const getMealOptionsData = () => {
     if (duration === "1 Meal") {
       return [{ count: 1, price: "$15.00", label: "Single Tiffin" }];
     }
@@ -137,7 +144,6 @@ useEffect(() => {
         { count: 72, price: "$9.95", label: "6 Meals / Week" },
       ];
     }
-    // Default "Monthly" options
     return [
       { count: 16, price: "$11.95", label: "4 Meals / Week" },
       { count: 20, price: "$11.50", label: "5 Meals / Week" },
@@ -146,133 +152,102 @@ useEffect(() => {
   };
 
   // Price Calculation Logic
-  const planMultiplier =
-    selectedPlan === "Basic" ? 1 : selectedPlan === "Medium" ? 1.2 : 1.4;
-
-  // Find base price based on selected total meals count
-  const currentOptions = getMealOptions();
-  const matchedOption =currentOptions.find((o) => o.count === totalMeals) || currentOptions[0];
+  const planMultiplier = selectedPlan === "Basic" ? 1 : selectedPlan === "Medium" ? 1.2 : 1.4;
+  const currentOptions = getMealOptionsData();
+  const matchedOption = currentOptions.find((o) => o.count === totalMeals) || currentOptions[0];
   const basePricePerMeal = parseFloat(matchedOption.price.replace("$", ""));
 
-  const pricePerMeal = parseFloat(
-    (basePricePerMeal * planMultiplier).toFixed(2),
-  );
+  const pricePerMeal = parseFloat((basePricePerMeal * planMultiplier).toFixed(2));
   const subtotal = totalMeals * pricePerMeal * quantity;
-  const discount = subtotal * 0.2; // 20% Off
+  const discount = subtotal * 0.2; 
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
-
   const getDaysInMonth = (date) => {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const firstDayIndex = new Date(year, month, 1).getDay();
-  const totalDays = new Date(year, month + 1, 0).getDate();
-  
-  const days = [];
-  // Previous month ke blank spaces
-  for (let i = 0; i < firstDayIndex; i++) {
-    days.push(null);
-  }
-  // Current month ke saare din
-  for (let d = 1; d <= totalDays; d++) {
-    days.push(new Date(year, month, d));
-  }
-  return days;
-};
-
-
-
-// OTP Actions with API Integration
-const handleSendOtp = async () => {
-  if (!checkoutData.phone) {
-    alert("Please enter phone number");
-    return;
-  }
-
-  try {
-    // Agar loader state banayi hai toh yahan true karein: setIsSendingOtp(true);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
     
-    // API call sendOtp function ko use karke
-    // Note: Aapke backend payload requirements ke hisab se phone object bhejein
-    const response = await sendOtp({ phone: checkoutData.phone }); 
-    
-    alert("OTP sent successfully!");
-    setIsOtpSent(true);
-  } catch (error) {
-    alert(error?.response?.data?.message || "Failed to send OTP. Please try again.");
-    console.error("Error in handleSendOtp:", error);
-  } finally {
-    // setIsSendingOtp(false);
-  }
-};
+    const days = [];
+    for (let i = 0; i < firstDayIndex; i++) {
+      days.push(null);
+    }
+    for (let d = 1; d <= totalDays; d++) {
+      days.push(new Date(year, month, d));
+    }
+    return days;
+  };
 
-const handleVerifyOtp = async () => {
-  if (!checkoutData.otp) {
-    alert("Please enter OTP");
-    return;
-  }
+  // OTP Actions with API Integration
+  const handleSendOtp = async () => {
+    if (!checkoutData.phone) {
+      alert("Please enter phone number");
+      return;
+    }
 
-  try {
-    // Agar loader state banayi hai toh yahan true karein: setIsVerifyingOtp(true);
+    try {
+      const response = await sendOtp({ phone: checkoutData.phone }); 
+      alert("OTP sent successfully!");
+      setIsOtpSent(true);
+    } catch (error) {
+      alert(error?.response?.data?.message || "Failed to send OTP. Please try again.");
+      console.error("Error in handleSendOtp:", error);
+    }
+  };
 
-    // API call verifyOtp function ko use karke
-    const response = await verifyOtp({ 
-      phone: checkoutData.phone, 
-      otp: checkoutData.otp 
-    });
+  const handleVerifyOtp = async () => {
+    if (!checkoutData.otp) {
+      alert("Please enter OTP");
+      return;
+    }
 
-    alert("OTP Verified Successfully!");
-    setIsOtpVerified(true);
-    setShowPaymentSuccessMsg(true);
-  } catch (error) {
-    alert(error?.response?.data?.message || "Invalid OTP. Please try again.");
-    console.error("Error in handleVerifyOtp:", error);
-  } finally {
-    // setIsVerifyingOtp(false);
-  }
-};
+    try {
+      const response = await verifyOtp({ 
+        phone: checkoutData.phone, 
+        otp: checkoutData.otp 
+      });
 
- const handleFormSubmit = async (e) => {
-  e.preventDefault();
+      alert("OTP Verified Successfully!");
+      setIsOtpVerified(true);
+      setShowPaymentSuccessMsg(true);
+    } catch (error) {
+      alert(error?.response?.data?.message || "Invalid OTP. Please try again.");
+      console.error("Error in handleVerifyOtp:", error);
+    }
+  };
 
-  if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
-    alert("Please fill all details");
-    return;
-  }
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-   await createSubscription({
-      mealSize: selectedPlan, // FIX: state ka naam 'selectedPlan' tha aapke paas
-      preference,
-      duration,
-      meals,                  // Ab isme dropdown se real ID chali jaayegi
-      quantity,
-      deliveryMethod,
-      startDate,
-    });
+    if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
+      alert("Please fill all details");
+      return;
+    }
 
-      console.log("Payload:", {
-      mealSize,
-      preference,
-      duration,
-      meals,
-      quantity,
-      deliveryMethod,
-      startDate,
-    });
+    try {
+      await createSubscription({
+        mealSize: selectedPlan, 
+        preference,
+        duration,
+        meals,                  
+        quantity,
+        deliveryMethod,
+        startDate,
+      });
 
-    setShowCheckoutForm(false);
-    setShowSuccess(true);
-  } catch (error) {
-    console.error("Create Subscription Error:", error);
-    alert(error?.response?.data?.message || "Failed to create subscription");
-  }
-};
+      setShowCheckoutForm(false);
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Create Subscription Error:", error);
+      alert(error?.response?.data?.message || "Failed to create subscription");
+    }
+  };
+
   return (
     <div className={`bg-white rounded-[2.5rem] ${onClose ? "h-auto" : "h-screen"}`}>
       {showSuccess ? (
-       <ThankYouPage setShowSuccess={setShowSuccess} />
+        <ThankYouPage setShowSuccess={setShowSuccess} />
       ) : showCheckoutForm ? (
         /* ================= CHECKOUT FORM VIEW ================= */
         <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-[500px] py-10 px-4 flex flex-col items-center justify-center relative rounded-[2.5rem]">
@@ -286,11 +261,10 @@ const handleVerifyOtp = async () => {
             }}
             className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-red-600 transition-colors"
           >
-            ← Back to Summary
+            &larr; Back to Summary
           </button>
 
           <div className="max-w-md w-full space-y-4">
-            {/* Green Success Message in English */}
             {showPaymentSuccessMsg && (
               <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-2xl text-xs font-bold text-center shadow-md">
                 🎉 Your payment has been successfully processed! Please provide your delivery and contact details below to proceed with your order.
@@ -305,27 +279,42 @@ const handleVerifyOtp = async () => {
                 Please provide your information to complete the meal subscription booking.
               </p>
 
-              {/* STEP 1: OTP and Phone verification */}
               {!isOtpVerified ? (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
                       Phone Number
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="tel"
-                        required
-                        placeholder="Enter phone number"
-                        value={checkoutData.phone}
-                        onChange={(e) => setCheckoutData({ ...checkoutData, phone: e.target.value })}
-                        className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                      />
+                    <div className="flex gap-2 items-center relative phone-input-fix">
+                      <div className="w-full">
+                        <PhoneInput
+                          country={"in"} 
+                          enableSearch={true}
+                          value={checkoutData.phone}
+                          onChange={(phone) => setCheckoutData({ ...checkoutData, phone: "+" + phone })}
+                          inputStyle={{
+                            width: "100%",
+                            height: "38px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            color: "#374151",
+                            borderRadius: "0.75rem",
+                            border: "1px solid #d1d5db",
+                            backgroundColor: "#fff",
+                          }}
+                          buttonStyle={{
+                            borderRadius: "0.75rem 0 0 0.75rem",
+                            border: "1px solid #d1d5db",
+                            borderRight: "none",
+                            backgroundColor: "#fff",
+                          }}
+                        />
+                      </div>
                       {!isOtpSent && (
                         <button
                           type="button"
                           onClick={handleSendOtp}
-                          className="bg-[#dc2626] text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-[#b91c1c] transition-all"
+                          className="bg-[#dc2626] text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-[#b91c1c] transition-all h-[38px] flex items-center justify-center"
                         >
                           Send OTP
                         </button>
@@ -359,7 +348,6 @@ const handleVerifyOtp = async () => {
                   )}
                 </div>
               ) : (
-                /* STEP 2: Name, Phone, Email & Address Details Form after verification */
                 <form onSubmit={handleFormSubmit} className="space-y-4">
                   <div>
                     <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
@@ -485,11 +473,10 @@ const handleVerifyOtp = async () => {
                 )}
               </div>
 
-              {/* Pickup / Delivery selector for mobile/small screens, shown below header */}
+              {/* Pickup / Delivery selector for mobile/small screens */}
               <div className="lg:hidden px-2 mb-3">
                 <div className="bg-white p-1 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                   <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
-                    {/* Pickup Button */}
                     <button
                       type="button"
                       onClick={() => setDeliveryMethod("Pickup")}
@@ -516,7 +503,6 @@ const handleVerifyOtp = async () => {
                       <span>Pickup</span>
                     </button>
 
-                    {/* Delivery Button */}
                     <button
                       type="button"
                       onClick={() => setDeliveryMethod("Delivery")}
@@ -550,12 +536,10 @@ const handleVerifyOtp = async () => {
 
               {/* Main Layout Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
-                {/* Left Configurator Side */}
                 <div className="lg:col-span-2 space-y-4">
                   {/* Row 1: Preference & Timing */}
                   <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Meal Preference Toggle */}
                       <div>
                         <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                           <span>🍴</span> Meal Preference
@@ -589,7 +573,6 @@ const handleVerifyOtp = async () => {
                                 />
                                 <circle cx="12" cy="12" r="4" fill="#16A34A" />
                               </svg>
-
                               <span>Veg</span>
                             </span>
                           </button>
@@ -624,47 +607,37 @@ const handleVerifyOtp = async () => {
                                   fill="#DC2626"
                                 />
                               </svg>
-
                               <span>Non Veg</span>
                             </span>
                           </button>
                         </div>
                       </div>
 
-                      {/* Meal Timing */}
                       <div>
                         <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                           <span>🕒</span> Meal Timing
                         </label>
                         <div className="relative">
-                       <select
- value={timing}
-  onChange={(e) => {
-    const selectedName = e.target.value;
-    setTiming(selectedName); // Input text ke liye
-    
-    // Array se check karein ki kaunsi meal match ho rahi hai aur uski ID set karein
-    const matchedMeal = mealOptions.find(m => m.name === selectedName);
-    if (matchedMeal) {
-      setMeals(matchedMeal._id); // Backend payload ke liye ID save karein
-    }
-  }}
-  className="w-full bg-white border border-gray-300 rounded-xl p-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
->
-  {mealOptions.map((meal) => (
-    <option
-      key={meal._id}
-      value={meal.name} // ya meal.mealName
-    >
-      {meal.name}
-    </option>
-  ))}
-</select>
+                          <select
+                            value={timing}
+                            onChange={(e) => {
+                              const selectedName = e.target.value;
+                              setTiming(selectedName); 
+                              const matchedMeal = mealOptions.find(m => m.name === selectedName);
+                              if (matchedMeal) {
+                                setMeals(matchedMeal._id); 
+                              }
+                            }}
+                            className="w-full bg-white border border-gray-300 rounded-xl p-2.5 pr-10 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] appearance-none"
+                          >
+                            {mealOptions.map((meal) => (
+                              <option key={meal._id} value={meal.name}>
+                                {meal.name}
+                              </option>
+                            ))}
+                          </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-500">
-                            <svg
-                              className="fill-current h-4 w-4"
-                              viewBox="0 0 20 20"
-                            >
+                            <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
                               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                             </svg>
                           </div>
@@ -680,28 +653,25 @@ const handleVerifyOtp = async () => {
                         <span>📅</span> Duration
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {["1 Meal", "Weekly", "Monthly", "Quarterly"].map(
-                          (d) => (
-                            <button
-                              type="button"
-                              key={d}
-                              onClick={() => setDuration(d)}
-                              className={`py-2 rounded-xl text-xs font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
-                            >
-                              {d}
-                            </button>
-                          ),
-                        )}
+                        {["1 Meal", "Weekly", "Monthly", "Quarterly"].map((d) => (
+                          <button
+                            type="button"
+                            key={d}
+                            onClick={() => setDuration(d)}
+                            className={`py-2 rounded-xl text-xs font-bold border text-center transition-all focus:outline-none ${duration === d ? "border-2 border-[#dc2626] text-[#dc2626] bg-red-50/20 font-black" : "border-gray-200 text-gray-400 bg-white hover:border-[#dc2626] hover:text-slate-800"}`}
+                          >
+                            {d}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Total Meals config selection */}
                     <div>
                       <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                         <span>🍱</span> Total Meals
                       </label>
                       <div className="bg-[#f3f1f1] p-1 rounded-3xl border border-gray-200/40 grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                        {getMealOptions().map((option) => {
+                        {getMealOptionsData().map((option) => {
                           const isSelected = totalMeals === option.count;
                           return (
                             <button
@@ -709,14 +679,10 @@ const handleVerifyOtp = async () => {
                               key={option.count}
                               onClick={() => setTotalMeals(option.count)}
                               className={`py-2 px-2 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center focus:outline-none relative ${
-                                isSelected
-                                  ? "bg-white text-gray-900 shadow-md font-black"
-                                  : "text-gray-500 hover:text-gray-800"
+                                isSelected ? "bg-white text-gray-900 shadow-md font-black" : "text-gray-500 hover:text-gray-800"
                               }`}
                             >
-                              <div
-                                className={`text-xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}
-                              >
+                              <div className={`text-xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
                                 {option.count}
                               </div>
                               <div className="text-[11px] font-bold mt-0.5 opacity-90">
@@ -732,99 +698,85 @@ const handleVerifyOtp = async () => {
                     </div>
                   </div>
 
+                  {/* START DATE SECTION */}
+                  <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative">
+                    <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
+                      <span>📅</span> Start Date
+                    </label>
+                    <div 
+                      onClick={() => setShowCalendar(!showCalendar)}
+                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 flex items-center justify-between text-xs font-medium text-gray-700 cursor-pointer hover:border-[#dc2626] transition-all"
+                    >
+                      <span className={startDate ? "text-gray-900 font-bold" : "text-gray-400"}>
+                        {startDate ? startDate : "Select Delivery Start Date"}
+                      </span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#dc2626]">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>
+                    </div>
 
-{/* satrt date calendar */}
+                    {showCalendar && (
+                      <div className="absolute left-0 bottom-full mb-2 z-50 w-[300px] bg-white border border-red-100 shadow-2xl rounded-2xl p-4 border-t-4 border-t-[#dc2626]">
+                        <div className="flex items-center justify-between mb-3">
+                          <button 
+                            type="button"
+                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                            className="p-1 hover:bg-red-50 rounded-lg text-[#dc2626]"
+                          >
+                            &larr;
+                          </button>
+                          <span className="text-xs font-black text-gray-800 uppercase tracking-wide">
+                            {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                          </span>
+                          <button 
+                            type="button"
+                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                            className="p-1 hover:bg-red-50 rounded-lg text-[#dc2626]"
+                          >
+                            &rarr;
+                          </button>
+                        </div>
 
-{/* START DATE SECTION */}
-{/* START DATE SECTION */}
-<div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative">
-  <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-    <span>📅</span> Start Date
-  </label>
-  
-  {/* Customized Attractive Input trigger */}
-  <div 
-    onClick={() => setShowCalendar(!showCalendar)}
-    className="w-full bg-white border border-gray-300 rounded-xl p-2.5 flex items-center justify-between text-xs font-medium text-gray-700 cursor-pointer hover:border-[#dc2626] transition-all"
-  >
-    <span className={startDate ? "text-gray-900 font-bold" : "text-gray-400"}>
-      {startDate ? startDate : "Select Delivery Start Date"}
-    </span>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#dc2626]">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-    </svg>
-  </div>
+                        <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                          {daysOfWeek.map(day => (
+                            <span key={day} className="text-[10px] font-bold text-gray-400 uppercase">{day}</span>
+                          ))}
+                        </div>
 
-  {/* FIXED: Open Calendar ABOVE using 'bottom-full mb-2' */}
-  {showCalendar && (
-    <div className="absolute left-0 bottom-full mb-2 z-50 w-[300px] bg-white border border-red-100 shadow-2xl rounded-2xl p-4 border-t-4 border-t-[#dc2626]">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-3">
-        <button 
-          type="button"
-          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-          className="p-1 hover:bg-red-50 rounded-lg text-[#dc2626]"
-        >
-          &larr;
-        </button>
-        <span className="text-xs font-black text-gray-800 uppercase tracking-wide">
-          {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-        </span>
-        <button 
-          type="button"
-          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-          className="p-1 hover:bg-red-50 rounded-lg text-[#dc2626]"
-        >
-          &rarr;
-        </button>
-      </div>
+                        <div className="grid grid-cols-7 gap-1 text-center">
+                          {getDaysInMonth(currentMonth).map((date, idx) => {
+                            if (!date) return <div key={`empty-${idx}`} />;
+                            
+                            const dayStr = String(date.getDate()).padStart(2, '0');
+                            const monthStr = date.toLocaleDateString('en-US', { month: 'short' }); 
+                            const yearStr = date.getFullYear();
+                            const formattedDate = `${dayStr} ${monthStr} ${yearStr}`;
 
-      {/* Week Days Headers */}
-      <div className="grid grid-cols-7 gap-1 text-center mb-1">
-        {daysOfWeek.map(day => (
-          <span key={day} className="text-[10px] font-bold text-gray-400 uppercase">{day}</span>
-        ))}
-      </div>
+                            const isSelected = startDate === formattedDate;
+                            const isPast = date < new Date().setHours(0,0,0,0);
 
-      {/* Grid Days */}
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {getDaysInMonth(currentMonth).map((date, idx) => {
-          if (!date) return <div key={`empty-${idx}`} />;
-          
-          // FIXED: Format Date to exact "DD Month YYYY" (e.g., 01 May 2027)
-          const dayStr = String(date.getDate()).padStart(2, '0');
-          const monthStr = date.toLocaleDateString('en-US', { month: 'short' }); // "May"
-          const yearStr = date.getFullYear();
-          const formattedDate = `${dayStr} ${monthStr} ${yearStr}`;
-
-          const isSelected = startDate === formattedDate;
-          const isPast = date < new Date().setHours(0,0,0,0);
-
-          return (
-            <button
-              key={idx}
-              type="button"
-              disabled={isPast}
-              onClick={() => {
-                setStartDate(formattedDate);
-                setShowCalendar(false);
-              }}
-              className={`text-[11px] p-1.5 rounded-lg font-bold transition-all focus:outline-none
-                ${isPast ? "text-gray-200 cursor-not-allowed" : "text-gray-700 hover:bg-red-50 hover:text-[#dc2626]"}
-                ${isSelected ? "bg-[#dc2626] !text-white shadow-md shadow-red-600/20" : ""}
-              `}
-            >
-              {date.getDate()}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  )}
-</div>
-
-
-
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                disabled={isPast}
+                                onClick={() => {
+                                  setStartDate(formattedDate);
+                                  setShowCalendar(false);
+                                }}
+                                className={`text-[11px] p-1.5 rounded-lg font-bold transition-all focus:outline-none
+                                  ${isPast ? "text-gray-200 cursor-not-allowed" : "text-gray-700 hover:bg-red-50 hover:text-[#dc2626]"}
+                                  ${isSelected ? "bg-[#dc2626] !text-white shadow-md shadow-red-600/20" : ""}
+                                `}
+                              >
+                                {date.getDate()}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Meal Plan Selector */}
                   <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
@@ -853,18 +805,12 @@ const handleVerifyOtp = async () => {
                               type="button"
                               onClick={() => setSelectedPlan(planName)}
                               className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[90px] focus:outline-none relative
-                                ${
-                                  isSelected
-                                    ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black"
-                                    : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"
-                                }`}
+                                ${isSelected ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black" : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"}`}
                             >
                               <span className="text-sm font-black tracking-tight">
                                 {planName}
                               </span>
-                              <span
-                                className={`text-[10px] font-medium mt-0.5 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}
-                              >
+                              <span className={`text-[10px] font-medium mt-0.5 leading-tight max-w-[170px] ${isSelected ? "text-white/90" : "text-gray-400"}`}>
                                 {planDetails[planName].description}
                               </span>
                             </button>
@@ -878,30 +824,21 @@ const handleVerifyOtp = async () => {
                                 className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 w-[350px] sm:w-[250px] bg-white/95 backdrop-blur-md border border-red-100 shadow-2xl rounded-2xl p-5 text-left cursor-pointer border-t-4 border-t-[#dc2626] transition-all duration-200 pointer-events-auto"
                               >
                                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
-
                                 <div className="text-xs font-black text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wide">
                                   <span>ℹ️</span> {planDetails[planName].title}
                                 </div>
-
                                 <div className="space-y-3.5">
                                   <div className="text-[11px]">
                                     <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">
                                       🚩 Indian Option
                                     </span>
                                     <ul className="list-none space-y-1.5 font-semibold text-slate-600">
-                                      {planDetails[planName].indian.map(
-                                        (item, idx) => (
-                                          <li
-                                            key={idx}
-                                            className="flex items-start gap-1.5"
-                                          >
-                                            <span className="text-[#dc2626] mt-0.5">
-                                              •
-                                            </span>
-                                            <span>{item}</span>
-                                          </li>
-                                        ),
-                                      )}
+                                      {planDetails[planName].indian.map((item, idx) => (
+                                        <li key={idx} className="flex items-start gap-1.5">
+                                          <span className="text-[#dc2626] mt-0.5">•</span>
+                                          <span>{item}</span>
+                                        </li>
+                                      ))}
                                     </ul>
                                   </div>
                                   <div className="text-[11px] pt-2 border-t border-slate-100">
@@ -924,17 +861,13 @@ const handleVerifyOtp = async () => {
 
                 {/* Right Side Stack */}
                 <div className="space-y-3 lg:sticky lg:top-6 relative z-10">
-                  {/* Fulfillment Mode Toggle Card */}
                   <div className="hidden lg:block bg-white p-1.5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                     <div className="bg-[#f3f1f1] p-1 rounded-full flex border border-gray-200/40">
-                      {/* Pickup Button */}
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("Pickup")}
                         className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
-                          deliveryMethod === "Pickup"
-                            ? "bg-white text-gray-900 shadow-sm font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                          deliveryMethod === "Pickup" ? "bg-white text-gray-900 shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
                         }`}
                       >
                         <svg
@@ -954,14 +887,11 @@ const handleVerifyOtp = async () => {
                         <span>Pickup</span>
                       </button>
 
-                      {/* Delivery Button */}
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("Delivery")}
                         className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
-                          deliveryMethod === "Delivery"
-                            ? "bg-white text-gray-900 shadow-sm font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                          deliveryMethod === "Delivery" ? "bg-white text-gray-900 shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
                         }`}
                       >
                         <svg
@@ -978,12 +908,12 @@ const handleVerifyOtp = async () => {
                             d="M12 18V13H16L18 9M9 13H12M12 13L10 7H14"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>Delivery</span>
-                      </button>
-                    </div>
+                        />
+                      </svg>
+                      <span>Delivery</span>
+                    </button>
                   </div>
+                </div>
 
                   {/* Plan Summary Card */}
                   <div className="bg-white p-3 rounded-2xl border border-gray-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
@@ -1060,7 +990,6 @@ const handleVerifyOtp = async () => {
                       </div>
                     </div>
 
-                    {/* Computations Box */}
                     <div className="bg-[#f4f5f7] p-2.5 rounded-xl my-2 space-y-1.5">
                       <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
                         <span>Subtotal ({totalMeals} meals)</span>
@@ -1074,16 +1003,8 @@ const handleVerifyOtp = async () => {
                       </div>
                       <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
                         <span>{deliveryMethod} Charges</span>
-                        <span
-                          className={
-                            deliveryCharges === 0
-                              ? "text-green-600 font-black"
-                              : "text-slate-700"
-                          }
-                        >
-                          {deliveryCharges === 0
-                            ? "FREE"
-                            : `$${deliveryCharges.toFixed(2)}`}
+                        <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
+                          {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
                         </span>
                       </div>
                       <hr className="border-gray-200" />
