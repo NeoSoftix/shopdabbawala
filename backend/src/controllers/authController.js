@@ -359,6 +359,7 @@ export const changedPassword = async (req, res) => {
     });
   }
 };
+
 // // SEND OTP
 // export const sendOtp = async (req, res) => {
 //   try {
@@ -448,8 +449,6 @@ export const changedPassword = async (req, res) => {
 //   }
 // };
 
-
-
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -481,8 +480,6 @@ export const sendOtp = async (req, res) => {
     });
   }
 };
-
-
 
 export const verifyOtp = async (req, res) => {
   try {
