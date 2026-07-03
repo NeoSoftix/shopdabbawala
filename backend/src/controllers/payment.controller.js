@@ -65,9 +65,9 @@ export const createPackageCheckout = async (req, res) => {
         paymentType: "ADMIN_PACKAGE",
       },
 
-      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
     });
 
     await Payment.create({
