@@ -217,6 +217,14 @@ export default function CreatePackage({ onClose, userData }) {
     }
   };
 
+  const handleProceedToCheckout = () => {
+    if (!startDate) {
+      alert("Please select a delivery start date first.");
+      return;
+    }
+    setShowCheckoutForm(true);
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -225,8 +233,13 @@ export default function CreatePackage({ onClose, userData }) {
       return;
     }
 
+    if (!startDate) {
+      alert("Please select a delivery start date");
+      return;
+    }
+
     try {
-      await createSubscription({
+      const response = await createSubscription({
         mealSize: selectedPlan, 
         preference,
         duration,
@@ -236,8 +249,12 @@ export default function CreatePackage({ onClose, userData }) {
         startDate,
       });
 
-      setShowCheckoutForm(false);
-      setShowSuccess(true);
+      if (response && response.success && response.checkoutUrl) {
+        // Redirect to Stripe checkout page
+        window.location.href = response.checkoutUrl;
+      } else {
+        alert("Failed to start payment checkout session.");
+      }
     } catch (error) {
       console.error("Create Subscription Error:", error);
       alert(error?.response?.data?.message || "Failed to create subscription");
@@ -1039,7 +1056,7 @@ export default function CreatePackage({ onClose, userData }) {
                     <button
                       type="button"
                       className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#b91c1c] transition-all"
-                      onClick={() => setShowCheckoutForm(true)}
+                      onClick={handleProceedToCheckout}
                     >
                       Proceed to Checkout
                     </button>

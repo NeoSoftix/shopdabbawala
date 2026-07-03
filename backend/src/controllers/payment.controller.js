@@ -38,7 +38,7 @@ export const createPackageCheckout = async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
 
       payment_method_types: ["card"],
 

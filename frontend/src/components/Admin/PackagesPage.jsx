@@ -29,6 +29,7 @@ const PackagesPage = () => {
     validityDays: "",
     description: "",
     maxItemsPerMeal: "",
+    features:""
   });
 
   const toggleForm = () => {
@@ -47,6 +48,7 @@ const PackagesPage = () => {
       validityDays: "",
       description: "",
       maxItemsPerMeal: "",
+      features:""
     });
     setEditId(null);
   };

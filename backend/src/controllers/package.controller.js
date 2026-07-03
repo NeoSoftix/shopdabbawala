@@ -1,8 +1,164 @@
 import mongoose from "mongoose";
 import Package from "../models/package.model.js";
+import stripe from "../config/stripe.js";
+
+
+// // Create Package
+// export const createPackage = async (req, res) => {
+//   try {
+//     const {
+//       name,
+//       validityDays,
+//       totalMeals,
+//       price,
+//       description,
+//       maxItemsPerMeal,
+//       features,
+//     } = req.body;
+
+//     // Required Fields Validation
+//     if (
+//       !name ||
+//       !validityDays ||
+//       !totalMeals ||
+//       !price ||
+//       !maxItemsPerMeal ||
+//       !features
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message:
+//           "Name, Price, Total Meals, Validity Days, Max Items Per Meal and Features are required.",
+//       });
+//     }
+
+//     // Features Validation
+//     if (!Array.isArray(features)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Features must be an array.",
+//       });
+//     }
+
+//     const cleanedFeatures = features
+//       .map((feature) => feature.trim())
+//       .filter((feature) => feature.length > 0);
+
+//     if (cleanedFeatures.length < 1 || cleanedFeatures.length > 10) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Features must contain between 1 and 10 items.",
+//       });
+//     }
+
+//     // Normalize Name
+//     const normalizedName = name.trim().toLowerCase();
+
+//     // Check Existing Package
+//     const existingPackage = await Package.findOne({
+//       name: normalizedName,
+//     });
+
+//     if (existingPackage) {
+//       return res.status(409).json({
+//         success: false,
+//         message: "Package already exists.",
+//       });
+//     }
+
+//     // Convert Numbers
+//     const numericPrice = Number(price);
+//     const numericMeals = Number(totalMeals);
+//     const numericValidityDays = Number(validityDays);
+//     const numericMaxItems = Number(maxItemsPerMeal);
+
+//     // Numeric Validations
+//     if (isNaN(numericPrice) || numericPrice <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Price must be greater than 0.",
+//       });
+//     }
+
+//     if (isNaN(numericMeals) || numericMeals <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Total meals must be greater than 0.",
+//       });
+//     }
+
+//     if (isNaN(numericValidityDays) || numericValidityDays <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Validity days must be greater than 0.",
+//       });
+//     }
+
+//     if (isNaN(numericMaxItems) || numericMaxItems <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Max items per meal must be greater than 0.",
+//       });
+//     }
+
+//       // Create Product on Stripe
+// const stripeProduct = await stripe.products.create({
+//   name: normalizedName,
+//   description: description?.trim() || "",
+//   metadata: {
+//     validityDays: numericValidityDays.toString(),
+//     totalMeals: numericMeals.toString(),
+//     maxItemsPerMeal: numericMaxItems.toString(),
+//     features: JSON.stringify(cleanedFeatures),
+//   },
+// });
+
+// // Create Price on Stripe
+// const stripePrice = await stripe.prices.create({
+//   product: stripeProduct.id,
+//   unit_amount: numericPrice * 100,
+//   currency: "inr",
+// });
+//     // Create Package
+//     const packageData = await Package.create({
+//       name: normalizedName,
+//       description: description?.trim(),
+//       price: numericPrice,
+//       totalMeals: numericMeals,
+//       validityDays: numericValidityDays,
+//       maxItemsPerMeal: numericMaxItems,
+//       features: cleanedFeatures,
+//        stripeProductId: stripeProduct.id,
+//   stripePriceId: stripePrice.id,
+//     });
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Package created successfully.",
+//       data: packageData,
+//     });
+//   } catch (error) {
+//     console.error("Create Package Error:", error);
+
+//     if (error.code === 11000) {
+//       return res.status(409).json({
+//         success: false,
+//         message: "Package already exists.",
+//       });
+//     }
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error.",
+//     });
+//   }
+// };
+
 
 // Create Package
 export const createPackage = async (req, res) => {
+  let stripeProduct = null;
+
   try {
     const {
       name,
@@ -99,6 +255,45 @@ export const createPackage = async (req, res) => {
       });
     }
 
+    // Recurring Mapping
+    const recurringMap = {
+      7: { interval: "week", interval_count: 1 },
+      15: { interval: "day", interval_count: 15 },
+      30: { interval: "month", interval_count: 1 },
+      90: { interval: "month", interval_count: 3 },
+      180: { interval: "month", interval_count: 6 },
+      365: { interval: "year", interval_count: 1 },
+    };
+
+    const recurring = recurringMap[numericValidityDays];
+
+    if (!recurring) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported validity period.",
+      });
+    }
+
+    // Create Product on Stripe
+    stripeProduct = await stripe.products.create({
+      name: normalizedName,
+      description: description?.trim() || "",
+      metadata: {
+        validityDays: numericValidityDays.toString(),
+        totalMeals: numericMeals.toString(),
+        maxItemsPerMeal: numericMaxItems.toString(),
+        features: JSON.stringify(cleanedFeatures),
+      },
+    });
+
+    // Create Recurring Price on Stripe
+    const stripePrice = await stripe.prices.create({
+      product: stripeProduct.id,
+      unit_amount: numericPrice * 100,
+      currency: "inr",
+      recurring,
+    });
+
     // Create Package
     const packageData = await Package.create({
       name: normalizedName,
@@ -108,6 +303,8 @@ export const createPackage = async (req, res) => {
       validityDays: numericValidityDays,
       maxItemsPerMeal: numericMaxItems,
       features: cleanedFeatures,
+      stripeProductId: stripeProduct.id,
+      stripePriceId: stripePrice.id,
     });
 
     return res.status(201).json({
@@ -118,6 +315,17 @@ export const createPackage = async (req, res) => {
   } catch (error) {
     console.error("Create Package Error:", error);
 
+    // Cleanup Stripe Product if MongoDB save fails
+    if (stripeProduct) {
+      try {
+        await stripe.products.update(stripeProduct.id, {
+          active: false,
+        });
+      } catch (cleanupError) {
+        console.error("Stripe Cleanup Error:", cleanupError.message);
+      }
+    }
+
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -127,11 +335,10 @@ export const createPackage = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error.",
+      message: error.message || "Internal Server Error.",
     });
   }
 };
-
 // get all package
 export const getAllPackage = async (req, res) => {
   try {

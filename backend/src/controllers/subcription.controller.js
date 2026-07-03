@@ -1,12 +1,8 @@
-import Subscription from "../models/Subcription.model.js";
-import Meal from "../models/meals.model.js"
-import mongoose from "mongoose";
+import mongoose from "mongoose"
 import stripe from "../config/stripe.js";
+import Subscription from "../models/Subcription.model.js";
+import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
-
-
-
-// cretae custom subscrition
 
 export const createSubscription = async (req, res) => {
   try {
@@ -43,7 +39,6 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Check Meal Exists
     const meal = await Meal.findById(meals);
 
     if (!meal) {
@@ -53,7 +48,7 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Meal Plan Configuration
+    // Meal Plans
     const mealPlans = {
       Basic: {
         price: 299,
@@ -81,7 +76,6 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Validate Start Date
     const calculatedStartDate = new Date(startDate);
 
     if (isNaN(calculatedStartDate.getTime())) {
@@ -91,7 +85,6 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Calculate End Date
     const endDate = new Date(calculatedStartDate);
 
     switch (duration) {
@@ -118,9 +111,31 @@ export const createSubscription = async (req, res) => {
         });
     }
 
-    // Stripe Checkout Session
+    // Recurring Mapping
+    const recurringMap = {
+      Trial: {
+        interval: "day",
+        interval_count: 1,
+      },
+      Weekly: {
+        interval: "week",
+        interval_count: 1,
+      },
+      Monthly: {
+        interval: "month",
+        interval_count: 1,
+      },
+      Quarterly: {
+        interval: "month",
+        interval_count: 3,
+      },
+    };
+
+    const recurring = recurringMap[duration];
+
+    // Checkout Session with inline subscription price_data (does not create catalog products)
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
 
       payment_method_types: ["card"],
 
@@ -128,16 +143,17 @@ export const createSubscription = async (req, res) => {
         {
           price_data: {
             currency: "inr",
-
             product_data: {
               name: `${mealSize} Custom Package`,
               description: `${duration} Plan`,
             },
-
-            unit_amount: selectedPlan.price * quantity * 100,
+            unit_amount: selectedPlan.price * 100,
+            recurring: {
+              interval: recurring.interval,
+              interval_count: recurring.interval_count,
+            },
           },
-
-          quantity: 1,
+          quantity,
         },
       ],
 
@@ -172,7 +188,6 @@ export const createSubscription = async (req, res) => {
       cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
     });
 
-    // Save Pending Payment
     await Payment.create({
       user: req.user.id,
 
@@ -195,11 +210,11 @@ export const createSubscription = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Create Custom Checkout Error:", error);
+    console.error(error);
 
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error.",
+      message: error.message,
     });
   }
 };

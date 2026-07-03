@@ -59,6 +59,14 @@ const packageSchema = new mongoose.Schema(
       ],
     },
 
+    stripeProductId: {
+  type: String,
+},
+
+stripePriceId: {
+  type: String,
+},
+
     isActive: {
       type: Boolean,
       default: true,
