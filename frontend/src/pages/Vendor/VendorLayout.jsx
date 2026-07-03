@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
 
-import { vendorMenu } from "../../constants/vendorMenu.js";
+import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
 
 export default function VendorLayout() {
