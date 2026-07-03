@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
-import OTP from "../models/otp.model.js";
+import client from "../config/twilio.js";
+
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -358,12 +359,101 @@ export const changedPassword = async (req, res) => {
     });
   }
 };
-// SEND OTP
+// // SEND OTP
+// export const sendOtp = async (req, res) => {
+//   try {
+//     const { phone } = req.body;
+
+//     // Phone Validation
+//     if (!phone) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Phone number is required",
+//       });
+//     }
+
+//     if (!/^[6-9]\d{9}$/.test(phone)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid phone number",
+//       });
+//     }
+
+//     // Generate 6-digit OTP
+//     const generatedOtp = Math.floor(
+//       100000 + Math.random() * 900000
+//     ).toString();
+
+//     // Delete old OTP
+//     await OTP.deleteOne({ phone });
+
+//     // Save new OTP
+//     await OTP.create({
+//       phone,
+//       otp: generatedOtp,
+//     });
+
+//     // TODO: Implement a real SMS sending service here (e.g., Twilio, Fast2SMS)
+//     // For now, the OTP is logged to the console for testing purposes.
+//     console.log(`OTP for ${phone} is: ${generatedOtp}`);
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "OTP sent successfully (check console)",
+//     });
+
+//   } catch (error) {
+//     console.error("Send OTP Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to send OTP",
+//     });
+//   }
+// };
+
+// // verfiy otp 
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const { phone, otp: enteredOtp } = req.body;
+
+//     if (!phone || !enteredOtp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Phone number and OTP are required.",
+//       });
+//     }
+
+//     const otpRecord = await OTP.findOne({ phone, otp: enteredOtp });
+
+//     if (!otpRecord) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid or expired OTP.",
+//       });
+//     }
+
+//     await OTP.deleteMany({ phone });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "OTP Verified successfully.",
+//     });
+//   } catch (error) {
+//     console.error("Verify OTP Error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error.",
+//     });
+//   }
+// };
+
+
+
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
 
-    // Phone Validation
     if (!phone) {
       return res.status(400).json({
         success: false,
@@ -371,78 +461,57 @@ export const sendOtp = async (req, res) => {
       });
     }
 
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid phone number",
+    await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({
+        to: phone,
+        channel: "sms",
       });
-    }
-
-    // Generate 6-digit OTP
-    const generatedOtp = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-
-    // Delete old OTP
-    await OTP.deleteOne({ phone });
-
-    // Save new OTP
-    await OTP.create({
-      phone,
-      otp: generatedOtp,
-    });
-
-    // TODO: Implement a real SMS sending service here (e.g., Twilio, Fast2SMS)
-    // For now, the OTP is logged to the console for testing purposes.
-    console.log(`OTP for ${phone} is: ${generatedOtp}`);
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully (check console)",
+      message: "OTP sent successfully",
     });
-
-  } catch (error) {
-    console.error("Send OTP Error:", error);
+  } catch (err) {
+    console.log(err);
 
     return res.status(500).json({
       success: false,
-      message: "Failed to send OTP",
+      message: err.message,
     });
   }
 };
 
-// verfiy otp 
+
+
 export const verifyOtp = async (req, res) => {
   try {
-    const { phone, otp: enteredOtp } = req.body;
+    const { phone, otp } = req.body;
 
-    if (!phone || !enteredOtp) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number and OTP are required.",
+    const verificationCheck = await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verificationChecks.create({
+        to: phone,
+        code: otp,
+      });
+
+    if (verificationCheck.status === "approved") {
+      return res.status(200).json({
+        success: true,
+        message: "OTP Verified",
       });
     }
 
-    const otpRecord = await OTP.findOne({ phone, otp: enteredOtp });
-
-    if (!otpRecord) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP.",
-      });
-    }
-
-    await OTP.deleteMany({ phone });
-
-    return res.status(200).json({
-      success: true,
-      message: "OTP Verified successfully.",
+    return res.status(400).json({
+      success: false,
+      message: "Invalid OTP",
     });
-  } catch (error) {
-    console.error("Verify OTP Error:", error);
+  } catch (err) {
+    console.log(err);
+
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error.",
+      message: err.message,
     });
   }
 };
