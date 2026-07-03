@@ -186,33 +186,25 @@ const [leadError, setLeadError] = useState("");
 const handlePhoneSubmit = async (e) => {
   e.preventDefault();
 
-  // 1. Phone number validation (Frontend boundary)
-  if (!checkoutData.phone || checkoutData.phone.length !== 10) {
-    setCheckoutError("Please enter a valid 10 digit phone number.");
-    return;
-  }
-
   try {
     setCheckoutError("");
 
-    // Backend ko exact wahi object chahiye jo usne req.body me manga hai
     const res = await sendOtp({
       phone: checkoutData.phone.trim(),
     });
 
-    // Backend return karta hai: { success: true, message: "OTP sent successfully" }
     if (res && res.success) {
       alert(res.message || "OTP Sent Successfully");
-      setCheckoutStep(3); // Agle step (OTP Enter karne) par bhejein
+      setCheckoutStep(3);
     } else {
       setCheckoutError(res?.message || "Failed to send OTP.");
     }
- 
   } catch (error) {
     console.error("Frontend Send OTP Error:", error);
-    // Agar backend status(400) ya (500) dega toh axios catch me bhejega
+
     setCheckoutError(
-      error.response?.data?.message || "Something went wrong. Failed to send OTP."
+      error.response?.data?.message ||
+      "Something went wrong. Failed to send OTP."
     );
   }
 };
@@ -795,12 +787,15 @@ const handleOtpSubmit = async (e) => {
                   </div>
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Contact Number</label>
-                    <input 
-                      type="tel" required placeholder="Enter 10 digit mobile" maxLength="10"
-                      value={checkoutData.phone}
-                      onChange={(e) => setCheckoutData({...checkoutData, phone: e.target.value})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-red-500"
-                    />
+               <input
+  type="text"
+  required
+  placeholder="Enter mobile number"
+  value={checkoutData.phone}
+  onChange={(e) =>
+    setCheckoutData({ ...checkoutData, phone: e.target.value })
+  }
+/>
                   </div>
                   <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md">
                     Send Verification OTP →
@@ -900,7 +895,7 @@ const handleOtpSubmit = async (e) => {
                   </p>
                   <div className="pt-3">
                     <button 
-                      onClick={closeCheckoutModal}
+                      onClick={() => (window.location.href = "/meal-planner")}
                       className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs tracking-widest uppercase px-8 py-3 rounded-xl transition-all shadow-md"
                     >
                       Go to Dashboard
