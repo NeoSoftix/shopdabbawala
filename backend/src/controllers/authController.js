@@ -6,7 +6,6 @@ import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import client from "../config/twilio.js";
 
-
 // SIGNUP
 export const signup = async (req, res) => {
   try {
@@ -449,6 +448,8 @@ export const changedPassword = async (req, res) => {
 //   }
 // };
 
+
+// send otp 
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -463,7 +464,7 @@ export const sendOtp = async (req, res) => {
     await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verifications.create({
-        to: phone,
+        to: `+91${phone}`,
         channel: "sms",
       });
 
@@ -481,6 +482,7 @@ export const sendOtp = async (req, res) => {
   }
 };
 
+// verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
@@ -488,21 +490,54 @@ export const verifyOtp = async (req, res) => {
     const verificationCheck = await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verificationChecks.create({
-        to: phone,
+        to: `+91${phone}`,
         code: otp,
       });
 
-    if (verificationCheck.status === "approved") {
-      return res.status(200).json({
-        success: true,
-        message: "OTP Verified",
+    if (verificationCheck.status !== "approved") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
       });
     }
 
-    return res.status(400).json({
-      success: false,
-      message: "Invalid OTP",
+    // Find existing user
+    let user = await User.findOne({ phone });
+
+    // Create user if not exists
+    if (!user) {
+      user = await User.create({
+        phone,
+      });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    // Save JWT in cookie
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user,
+    });
+
   } catch (err) {
     console.log(err);
 

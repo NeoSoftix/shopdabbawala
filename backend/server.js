@@ -12,14 +12,15 @@ import addOnRoutes from "./src/routes/addOns.routes.js";
 import vendorRoutes from "./src/routes/vendor.routes.js";
 import packageRoutes from "./src/routes/package.routes.js"
 import subscriptionRoutes from "./src/routes/subcription.routes.js"
+import paymentRoutes from "./src/routes/payment.routes.js"
 
 const app = express();
 
-app.use(express.json());
 
 app.use(cookieParser());
 connectDB();
 
+app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -39,8 +40,9 @@ app.use(
   }),
 );
 
+
 // auth routes
-  app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // meals route
 app.use("/api/meal", mealRoutes);
@@ -62,6 +64,9 @@ app.use("/api/packages", packageRoutes)
 
 // custom package user
 app.use("/api/subscriptions", subscriptionRoutes)
+
+// payments routes
+app.use("/api/payment", paymentRoutes);
 
 app.listen(5000, () => {
   console.log("Server running on 5000");
