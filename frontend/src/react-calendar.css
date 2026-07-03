@@ -2,30 +2,6 @@
   width: 100% !important;
   border: none !important;
   background: transparent !important;
-}
-
-.react-calendar__tile {
-  border-radius: 14px;
-  height: 50px;
-}
-
-.react-calendar__tile--active {
-  background: #e23747 !important;
-  color: white !important;
-}
-
-.react-calendar__tile:hover {
-  background: #ffe5e8 !important;
-}
-
-.react-calendar__navigation button {
-  font-weight: 700;
-  font-size: 18px;
-}
-.react-calendar {
-  width: 100%;
-  border: none !important;
-  background: transparent !important;
   font-family: inherit;
 }
 

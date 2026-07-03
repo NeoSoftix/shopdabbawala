@@ -2,12 +2,18 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Saare icons Font Awesome (fa) se import kiye gaye hain
 // 'react-icons/fa' (Font Awesome Standard v5) ka use karein
-import { FaHeart, FaRegHeart, FaTrash, FaArrowRight, FaCheckCircle } from "react-icons/fa";
+import {
+  FaHeart,
+  FaRegHeart,
+  FaTrash,
+  FaArrowRight,
+  FaCheckCircle,
+} from "react-icons/fa";
 // Kuch versions mein Shopping bag aur X mark ka naam alag hota hai, isliye inko 'fa' ke compatible names se replace kiya:
 import { FaShoppingBasket, FaTimes } from "react-icons/fa";
 
 // Path ko apne folder structure ke according adjust karlein
-import { getActiveAddOns } from "../../service/addOn.service"; 
+import { getActiveAddOns } from "../../services/addOn.service";
 
 export default function AddonsSection() {
   const [addonsData, setAddonsData] = useState([]);
@@ -30,7 +36,13 @@ export default function AddonsSection() {
   const [otpError, setOtpError] = useState("");
 
   // Sample deliverable pincodes list
-  const DELIVERABLE_PINCODES = ["110001", "400001", "700001", "600001", "144001"]; 
+  const DELIVERABLE_PINCODES = [
+    "110001",
+    "400001",
+    "700001",
+    "600001",
+    "144001",
+  ];
 
   useEffect(() => {
     const fetchActiveAddons = async () => {
@@ -42,9 +54,13 @@ export default function AddonsSection() {
           setAddonsData(result.data);
           const dynamicCategories = result.data
             .map((item) => item.category)
-            .filter((category) => category); 
-          
-          const uniqueCategories = ["All", "Recommended", ...new Set(dynamicCategories)];
+            .filter((category) => category);
+
+          const uniqueCategories = [
+            "All",
+            "Recommended",
+            ...new Set(dynamicCategories),
+          ];
           setCategories(uniqueCategories);
         } else {
           setError(result.message || "Failed to fetch active add-ons");
@@ -119,7 +135,9 @@ export default function AddonsSection() {
     }
 
     try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const res = await fetch(
+        `https://api.postalpincode.in/pincode/${pincode}`,
+      );
       const data = await res.json();
 
       if (data[0].Status === "Success") {
@@ -145,7 +163,7 @@ export default function AddonsSection() {
 
   const handleOtpVerify = (e) => {
     e.preventDefault();
-    if (otp === "1234") { 
+    if (otp === "1234") {
       setModalStep(5);
     } else {
       setOtpError("Invalid OTP. Enter '1234' for testing.");
@@ -160,11 +178,13 @@ export default function AddonsSection() {
   const filteredItems = addonsData.filter((item) => {
     if (activeTab === "All") return true;
     if (activeTab === "Recommended") return item.tag && item.tag !== "";
-    return item.category && item.category.toLowerCase() === activeTab.toLowerCase();
+    return (
+      item.category && item.category.toLowerCase() === activeTab.toLowerCase()
+    );
   });
 
   const cartItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
-  
+
   const totalCartAmount = Object.entries(cart).reduce((sum, [id, qty]) => {
     const item = addonsData.find((f) => f._id === id);
     return sum + (item ? item.price * qty : 0);
@@ -192,7 +212,7 @@ export default function AddonsSection() {
   }
 
   return (
-    <section className="relative w-full min-h-screen bg-[#FDFBF9] p-[15px] sm:p-8 lg:px-16 font-sans select-none pb-36">      
+    <section className="relative w-full min-h-screen bg-[#FDFBF9] p-[15px] sm:p-8 lg:px-16 font-sans select-none pb-36">
       {/* Header Info Banner */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
         <div className="text-left">
@@ -216,9 +236,11 @@ export default function AddonsSection() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap border transition-all cursor-pointer focus:outline-none
-                  ${isTabActive 
-                    ? "bg-red-600 border-red-600 text-white shadow-md shadow-red-500/10 scale-105" 
-                    : "bg-white border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50"}`}
+                  ${
+                    isTabActive
+                      ? "bg-red-600 border-red-600 text-white shadow-md shadow-red-500/10 scale-105"
+                      : "bg-white border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
               >
                 {tab}
               </button>
@@ -243,15 +265,19 @@ export default function AddonsSection() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 className={`relative flex flex-col justify-between bg-white rounded-3xl p-5 border transition-all duration-300 group
-                  ${qtyInCart > 0 
-                    ? "border-red-500 shadow-[0_20px_40px_rgba(231,0,11,0.05)] scale-[1.01]" 
-                    : "border-slate-100 shadow-[0_15px_35px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.05)] hover:border-slate-300"}`}
+                  ${
+                    qtyInCart > 0
+                      ? "border-red-500 shadow-[0_20px_40px_rgba(231,0,11,0.05)] scale-[1.01]"
+                      : "border-slate-100 shadow-[0_15px_35px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.05)] hover:border-slate-300"
+                  }`}
               >
                 {/* Badge Tags & Favorites */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
                   {item.tag ? (
-                    <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full text-white shadow-sm
-                      ${item.tag === "BEST SELLER" || item.tag === "POPULAR" ? "bg-red-600" : "bg-amber-500"}`}>
+                    <span
+                      className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full text-white shadow-sm
+                      ${item.tag === "BEST SELLER" || item.tag === "POPULAR" ? "bg-red-600" : "bg-amber-500"}`}
+                    >
                       🔥 {item.tag}
                     </span>
                   ) : (
@@ -273,24 +299,31 @@ export default function AddonsSection() {
                 {/* Image */}
                 <div className="text-center mt-4">
                   <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-slate-50 border-4 border-slate-50 shadow-inner flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-105">
-                    <img 
-                      src={item.image?.url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover rounded-full" 
+                    <img
+                      src={
+                        item.image?.url ||
+                        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
+                      }
+                      alt={item.name}
+                      className="w-full h-full object-cover rounded-full"
                     />
                   </div>
 
-                  <h3 className={`text-lg font-black tracking-tight leading-tight uppercase transition-colors duration-300 
-                    ${qtyInCart > 0 ? "text-red-600" : "text-slate-900 group-hover:text-red-600"}`}>
+                  <h3
+                    className={`text-lg font-black tracking-tight leading-tight uppercase transition-colors duration-300 
+                    ${qtyInCart > 0 ? "text-red-600" : "text-slate-900 group-hover:text-red-600"}`}
+                  >
                     {item.name}
                   </h3>
-                  
+
                   <p className="text-gray-400 group-hover:text-gray-500 transition-colors duration-300 text-xs font-semibold mt-1 max-w-[200px] mx-auto min-h-[32px]">
                     {item.description || "Freshly prepared add-on option"}
                   </p>
-                  
-                  <div className={`font-black text-lg mt-2 transition-colors duration-300 
-                    ${qtyInCart > 0 ? "text-red-600" : "text-[#111625] group-hover:text-red-600"}`}>
+
+                  <div
+                    className={`font-black text-lg mt-2 transition-colors duration-300 
+                    ${qtyInCart > 0 ? "text-red-600" : "text-[#111625] group-hover:text-red-600"}`}
+                  >
                     ₹{item.price}
                   </div>
                 </div>
@@ -324,7 +357,6 @@ export default function AddonsSection() {
                     </button>
                   )}
                 </div>
-
               </motion.div>
             );
           })}
@@ -340,8 +372,12 @@ export default function AddonsSection() {
             exit={{ opacity: 0, y: 20, x: "-50%" }}
             className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white rounded-2xl px-5 py-3 shadow-xl flex items-center gap-3 border border-slate-800"
           >
-            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] text-white">✓</div>
-            <span className="text-xs font-bold uppercase tracking-wider">{toastMessage} successfully!</span>
+            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] text-white">
+              ✓
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider">
+              {toastMessage} successfully!
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -357,7 +393,6 @@ export default function AddonsSection() {
             className="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] z-40 p-4 sm:p-5"
           >
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-              
               <div className="flex items-center gap-4 text-center sm:text-left">
                 <div className="relative w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600 shadow-inner">
                   <FaShoppingBasket size={18} />
@@ -377,7 +412,9 @@ export default function AddonsSection() {
 
               <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="text-left sm:text-right">
-                  <span className="text-[10px] font-black text-gray-400 tracking-widest block uppercase">Total Amount</span>
+                  <span className="text-[10px] font-black text-gray-400 tracking-widest block uppercase">
+                    Total Amount
+                  </span>
                   <span className="text-2xl font-black text-slate-900 tracking-tight">
                     ₹{totalCartAmount}
                   </span>
@@ -391,17 +428,19 @@ export default function AddonsSection() {
                   >
                     <FaTrash size={16} />
                   </button>
-                  
+
                   <button
                     onClick={handleOpenCheckout}
                     className="px-7 py-3.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-md shadow-red-500/20 transition-all active:scale-[0.98] flex items-center gap-2 group focus:outline-none cursor-pointer"
                   >
                     <span>Checkout Order</span>
-                    <FaArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    <FaArrowRight
+                      size={12}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
                   </button>
                 </div>
               </div>
-
             </div>
           </motion.div>
         )}
@@ -440,32 +479,50 @@ export default function AddonsSection() {
               {/* STEP 1: PREVIEW */}
               {modalStep === 1 && (
                 <div>
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-4">Order Preview</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-4">
+                    Order Preview
+                  </h3>
                   <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto mb-6 pr-2">
                     {Object.entries(cart).map(([id, qty]) => {
                       const item = addonsData.find((f) => f._id === id);
                       if (!item) return null;
                       return (
-                        <div key={id} className="flex items-center justify-between py-3">
+                        <div
+                          key={id}
+                          className="flex items-center justify-between py-3"
+                        >
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={item.image?.url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"} 
-                              alt={item.name} 
-                              className="w-12 h-12 rounded-full object-cover bg-slate-100" 
+                            <img
+                              src={
+                                item.image?.url ||
+                                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
+                              }
+                              alt={item.name}
+                              className="w-12 h-12 rounded-full object-cover bg-slate-100"
                             />
                             <div>
-                              <h5 className="font-bold text-slate-900 text-sm uppercase">{item.name}</h5>
-                              <span className="text-xs font-semibold text-gray-400">₹{item.price} x {qty}</span>
+                              <h5 className="font-bold text-slate-900 text-sm uppercase">
+                                {item.name}
+                              </h5>
+                              <span className="text-xs font-semibold text-gray-400">
+                                ₹{item.price} x {qty}
+                              </span>
                             </div>
                           </div>
-                          <span className="font-black text-slate-900 text-sm">₹{item.price * qty}</span>
+                          <span className="font-black text-slate-900 text-sm">
+                            ₹{item.price * qty}
+                          </span>
                         </div>
                       );
                     })}
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-200 pt-4 mb-6">
-                    <span className="font-black text-slate-900 uppercase text-xs tracking-wider">Grand Total:</span>
-                    <span className="text-2xl font-black text-red-600">₹{totalCartAmount}</span>
+                    <span className="font-black text-slate-900 uppercase text-xs tracking-wider">
+                      Grand Total:
+                    </span>
+                    <span className="text-2xl font-black text-red-600">
+                      ₹{totalCartAmount}
+                    </span>
                   </div>
                   <button
                     onClick={() => setModalStep(2)}
@@ -480,19 +537,30 @@ export default function AddonsSection() {
               {modalStep === 2 && (
                 <form onSubmit={handlePincodeSubmit}>
                   {/* ... Same content unchanged ... */}
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Check Availability</h3>
-                  <p className="text-xs font-medium text-gray-400 mb-6">Please enter your 6-digit pincode to check deliverability status.</p>
-                  
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">
+                    Check Availability
+                  </h3>
+                  <p className="text-xs font-medium text-gray-400 mb-6">
+                    Please enter your 6-digit pincode to check deliverability
+                    status.
+                  </p>
+
                   <div className="mb-4">
                     <input
                       type="text"
                       maxLength={6}
                       placeholder="Enter Pincode (Try: 144001 or 110001)"
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) =>
+                        setPincode(e.target.value.replace(/\D/g, ""))
+                      }
                       className="w-full px-5 py-4 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50"
                     />
-                    {pincodeError && <p className="text-red-500 font-bold text-xs mt-2 pl-1">⚠️ {pincodeError}</p>}
+                    {pincodeError && (
+                      <p className="text-red-500 font-bold text-xs mt-2 pl-1">
+                        ⚠️ {pincodeError}
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -508,9 +576,12 @@ export default function AddonsSection() {
               {modalStep === 3 && (
                 <form onSubmit={handleUserDetailsSubmit}>
                   {/* ... Same content unchanged ... */}
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">Contact Details</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">
+                    Contact Details
+                  </h3>
                   <div className="bg-emerald-50 text-emerald-700 rounded-xl p-2.5 mb-5 text-[11px] font-bold flex gap-1.5 items-center">
-                    <span>✓</span> Available in: {addressData.city}, {addressData.state}
+                    <span>✓</span> Available in: {addressData.city},{" "}
+                    {addressData.state}
                   </div>
 
                   <div className="space-y-4 mb-6">
@@ -519,7 +590,9 @@ export default function AddonsSection() {
                       required
                       placeholder="Your Full Name"
                       value={userData.name}
-                      onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({ ...userData, name: e.target.value })
+                      }
                       className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
                     />
                     <input
@@ -527,7 +600,9 @@ export default function AddonsSection() {
                       required
                       placeholder="Email Address"
                       value={userData.email}
-                      onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({ ...userData, email: e.target.value })
+                      }
                       className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
                     />
                     <input
@@ -536,7 +611,12 @@ export default function AddonsSection() {
                       maxLength={10}
                       placeholder="Phone Number"
                       value={userData.phone}
-                      onChange={(e) => setUserData({ ...userData, phone: e.target.value.replace(/\D/g, "") })}
+                      onChange={(e) =>
+                        setUserData({
+                          ...userData,
+                          phone: e.target.value.replace(/\D/g, ""),
+                        })
+                      }
                       className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
                     />
                   </div>
@@ -554,8 +634,13 @@ export default function AddonsSection() {
               {modalStep === 4 && (
                 <form onSubmit={handleOtpVerify}>
                   {/* ... Same content unchanged ... */}
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Phone Verification</h3>
-                  <p className="text-xs font-medium text-gray-400 mb-6">Enter OTP sent to +91 {userData.phone}. Use master bypass code <b>1234</b>.</p>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">
+                    Phone Verification
+                  </h3>
+                  <p className="text-xs font-medium text-gray-400 mb-6">
+                    Enter OTP sent to +91 {userData.phone}. Use master bypass
+                    code <b>1234</b>.
+                  </p>
 
                   <div className="mb-4">
                     <input
@@ -563,10 +648,16 @@ export default function AddonsSection() {
                       maxLength={4}
                       placeholder="••••"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) =>
+                        setOtp(e.target.value.replace(/\D/g, ""))
+                      }
                       className="w-full px-5 py-4 border border-slate-200 rounded-2xl font-black text-center tracking-widest text-slate-900 text-xl focus:outline-none focus:border-red-500 bg-slate-50/50"
                     />
-                    {otpError && <p className="text-red-500 font-bold text-xs mt-2 text-center">⚠️ {otpError}</p>}
+                    {otpError && (
+                      <p className="text-red-500 font-bold text-xs mt-2 text-center">
+                        ⚠️ {otpError}
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -589,9 +680,12 @@ export default function AddonsSection() {
                     {/* FaCheckCircle used here to replace FaCircleCheck */}
                     <FaCheckCircle size={64} className="text-emerald-500" />
                   </motion.div>
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Order Success!</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">
+                    Order Success!
+                  </h3>
                   <p className="text-sm font-semibold text-gray-500 max-w-xs mx-auto mb-6">
-                    Awesome, {userData.name}! Payment received, your custom add-on list has been booked successfully!
+                    Awesome, {userData.name}! Payment received, your custom
+                    add-on list has been booked successfully!
                   </p>
                   <button
                     onClick={handleFinalDone}
@@ -601,12 +695,10 @@ export default function AddonsSection() {
                   </button>
                 </div>
               )}
-
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
     </section>
   );
 }

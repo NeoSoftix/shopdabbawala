@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllCategories } from "../../service/category.service";
+import { getAllCategories } from "../../services/category.service";
 
 const AddItem = () => {
   const navigate = useNavigate();
@@ -17,18 +17,18 @@ const AddItem = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchCategories()
-  }, [categories])
+    fetchCategories();
+  }, [categories]);
 
   const fetchCategories = async () => {
     try {
-      const res = await getAllCategories()
+      const res = await getAllCategories();
 
-      setCategories(res.data)
+      setCategories(res.data);
     } catch (error) {
-      console.log("Fetch categories error", error)
+      console.log("Fetch categories error", error);
     }
-  }
+  };
 
   const handleChange = (e) => {
     setItemData({

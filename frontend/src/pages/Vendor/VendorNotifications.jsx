@@ -1,18 +1,14 @@
-import NotificationCard from "../../components/NotificationCard";
-import NotificationFilters from "../../components/NotificationFilters";
-import NotificationSummary from "../../components/NotificationSummary";
-import NotificationSettings from "../../components/NotificationSettings";
+import NotificationCard from "../../components/vendor/NotificationCard";
+import NotificationFilters from "../../components/vendor/NotificationFilters";
+import NotificationSummary from "../../components/vendor/NotificationSummary";
+import NotificationSettings from "../../components/vendor/NotificationSettings";
 
 export default function VendorNotifications() {
   return (
     <div className="grid lg:grid-cols-3 gap-6">
-
       <div className="lg:col-span-2 space-y-5">
-
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">
-            Notifications
-          </h1>
+          <h1 className="text-3xl font-bold">Notifications</h1>
 
           <button className="text-[#E23747] font-medium">
             Mark all as read
@@ -42,14 +38,12 @@ export default function VendorNotifications() {
           time="3 hours ago"
           type="system"
         />
-
       </div>
 
       <div className="space-y-6">
         <NotificationSummary />
         <NotificationSettings />
       </div>
-
     </div>
   );
 }

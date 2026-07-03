@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdDelete, MdEdit } from "react-icons/md";
-import { deleteItem, getAllItems, updateItem } from "../../service/items.service";
-import { getAllCategories } from "../../service/category.service";
+import {
+  deleteItem,
+  getAllItems,
+  updateItem,
+} from "../../services/items.service";
+import { getAllCategories } from "../../services/category.service";
 
 const Item = () => {
   const navigate = useNavigate();
@@ -37,7 +41,9 @@ const Item = () => {
     } catch (error) {
       console.log("Fetch items error");
       setError(
-        error?.response?.data?.message || error.message || "Something went wrong"
+        error?.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
       );
     } finally {
       setLoading(false);
@@ -45,7 +51,9 @@ const Item = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this item?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this item?",
+    );
     if (!confirmDelete) return;
 
     try {
@@ -63,7 +71,10 @@ const Item = () => {
       const formData = new FormData();
       formData.append("name", selectedItem.name);
       formData.append("description", selectedItem.description);
-      formData.append("category", selectedItem.category._id || selectedItem.category);
+      formData.append(
+        "category",
+        selectedItem.category._id || selectedItem.category,
+      );
       formData.append("allergies", selectedItem.allergies.join(","));
 
       if (selectedItem.imageFile) {
@@ -125,7 +136,10 @@ const Item = () => {
 
           <tbody>
             {items.map((item, index) => (
-              <tr key={item._id} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              <tr
+                key={item._id}
+                className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+              >
                 <td className="px-4 py-4 align-middle">
                   {item.image?.url ? (
                     <img
@@ -189,7 +203,10 @@ const Item = () => {
 
             {loading && (
               <tr>
-                <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="7"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   Loading items...
                 </td>
               </tr>
@@ -197,7 +214,10 @@ const Item = () => {
 
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan="7"
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   No items found. Create one to get started.
                 </td>
               </tr>
@@ -229,7 +249,9 @@ const Item = () => {
             <div className="mb-3">
               <label className="block mb-2">Category</label>
               <select
-                value={selectedItem.category?._id || selectedItem.category || ""}
+                value={
+                  selectedItem.category?._id || selectedItem.category || ""
+                }
                 onChange={(e) =>
                   setSelectedItem({
                     ...selectedItem,

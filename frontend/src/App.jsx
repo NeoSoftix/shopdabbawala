@@ -1,46 +1,45 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Login from "./pages/Login";
 
-import AddCategory from "../src/components/Admin/AddCategory";
-import Categories from "../src/components/Admin/Categries";
-import AddMeal from "../src/components/Admin/AddMeal";
-import Meal from "../src/components/Admin/Meal";
-import UsersList from "../src/components/Admin/UserList";
+import AddCategory from "./components/Admin/AddCategory";
+import Categories from "./components/Admin/Categories";
+import AddMeal from "./components/Admin/AddMeal";
+import Meal from "./components/Admin/Meal";
+import UsersList from "./components/Admin/UserList";
 
 import "./index.css";
-import OrderList from "../src/components/OrderList";
-import Settings from "../src/components/Admin/Settings";
-import AddItem from "../src/components/Admin/AddItem";
-import Item from "../src/components/Admin/Item";
-import VendorList from "../src/components/Admin/Vendor";
-import AddVendor from "../src/components/Admin/AddVendor";
-import CreateAddOns from "../src/components/Admin/CreateAddOns";
-import AddOns from "../src/components/Admin/AddOns";
-import PackagesPage from "../src/components/Admin/PackagesPage";
+import OrderList from "./components/shared/OrderList";
+import Settings from "./components/Admin/Settings";
+import AddItem from "./components/Admin/AddItem";
+import Item from "./components/Admin/Item";
+import VendorList from "./components/Admin/Vendor";
+import AddVendor from "./components/Admin/AddVendor";
+import CreateAddOns from "./components/Admin/CreateAddOns";
+import AddOns from "./components/Admin/AddOns";
+import PackagesPage from "./components/Admin/PackagesPage";
 
-import VendorLayout from "../src/pages/Vendor/VendorLayout";
-import VendorDashboard from "../src/pages/Vendor/VendorDashboard";
-import VendorOrders from "../src/pages/Vendor/OrdersPage";
-import VendorProfile from "../src/pages/Vendor/VendorProfilePage";
-import VendorNotifications from "../src/pages/Vendor/VendorNotifications";
+import VendorLayout from "./pages/Vendor/VendorLayout";
+import VendorDashboard from "./pages/Vendor/VendorDashboard";
+import VendorOrders from "./pages/Vendor/OrdersPage";
+import VendorProfile from "./pages/Vendor/VendorProfilePage";
+import VendorNotifications from "./pages/Vendor/VendorNotifications";
 
-import UserLayout from "../src/pages/User/UserLayout";
-import UserDashboard from "../src/pages/User/UserDashboard";
+import UserLayout from "./pages/User/UserLayout";
+import UserDashboard from "./pages/User/UserDashboard";
 import "./react-calendar.css";
 import ServiceArea from "./pages/Vendor/ServiceArea";
 import CreatePackage from "./pages/User/CreatePackage";
 import MealPlanner from "./pages/User/MealPlanner";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
-import NotFoundPage from "./components/NotFoundPage";
+import NotFoundPage from "./components/shared/NotFoundPage";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/" />} />
       <Route path="/login" element={<Login />} />
 
       {/* admin route */}
@@ -89,7 +88,6 @@ function App() {
       <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
-
         <Route path="meal-planner" element={<MealPlanner />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />

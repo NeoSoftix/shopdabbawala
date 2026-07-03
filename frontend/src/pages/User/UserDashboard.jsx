@@ -1,17 +1,14 @@
 import PackageSection from "../../components/User/PackagesSection";
 import GettingStarted from "../../components/User/GettingStarted";
-import Footer from "../../components/Footer";
-// import Hero from "../../components/Hero";
-import HeroCarousel from "../../components/HeroCarousel/HeroCarousel";
-// import ThaliShowCase from "../../components/ThaliShowCase";
-import { DEMO_SLIDES } from "../../components/HeroCarousel/HeroCarousel.stories";
-import TiffinRendor from "../../components/TiffinRendor/TiffinRendor";
+import Footer from "../../components/shared/Footer";
+import TiffinRendor from "../../components/User/TiffinRendor";
 import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
-import HeroHeader from "../../components/HeroHeader";
+import HeroHeader from "../../components/User/HeroHeader";
 import AddonsSection from "../../components/User/AddOnsSection";
 import FAQSection from "../../components/User/FAQSection";
 import Testimonials from "../../components/User/Testimonials";
 import WhyChooseUs from "../../components/User/WhyChooseUs";
+
 export default function UserDashboard() {
   return (
     <div className="bg-[#f7f8fc] min-h-screen">

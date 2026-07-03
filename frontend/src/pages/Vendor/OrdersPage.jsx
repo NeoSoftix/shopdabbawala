@@ -5,9 +5,9 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 
-import StatCard from "../../components/Admin/StatsCards";
-import NotificationFilters from "../../components/NotificationFilters";
-import OrdersTable from "../../components/Admin/OrdersTable";
+import StatCard from "../../components/shared/StatCard";
+import NotificationFilters from "../../components/vendor/NotificationFilters";
+import OrdersTable from "../../components/shared/OrdersTable";
 
 export default function OrdersPage() {
   const stats = [
@@ -41,17 +41,12 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">
-        Orders
-      </h1>
+      <h1 className="text-3xl font-bold">Orders</h1>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         {stats.map((item) => (
-          <StatCard
-            key={item.title}
-            {...item}
-          />
+          <StatCard key={item.title} {...item} />
         ))}
       </div>
 

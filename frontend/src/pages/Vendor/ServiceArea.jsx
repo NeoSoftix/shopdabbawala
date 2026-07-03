@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { MdDelete } from "react-icons/md";
-import { getActiveCategory } from "../../service/category.service";
+import { getActiveCategory } from "../../services/category.service";
 import {
   addServiceArea,
   getServiceArea,
   removeServiceArea
-} from "../../service/serviceArea.service";
+} from "../../services/serviceArea.service";
 
 const ServiceArea = () => {
   const [serviceArea, setServiceArea] = useState([]);
