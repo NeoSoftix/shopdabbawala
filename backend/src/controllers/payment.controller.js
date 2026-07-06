@@ -105,6 +105,101 @@ export const createPackageCheckout = async (req, res) => {
 }
 
 // weeb hook 
+// -------- FULFILL ORDER HELPER --------
+const fulfillOrder = async (session, payment) => {
+  payment.status = "paid";
+  payment.paymentIntentId = session.payment_intent;
+  payment.paidAt = new Date();
+
+  await payment.save();
+
+  // -------- ADMIN PACKAGE --------
+  if (session.metadata?.paymentType === "ADMIN_PACKAGE") {
+    const pkg = await Package.findById(session.metadata.packageId);
+
+    if (pkg) {
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+      const subscription = await Subscription.create({
+        user: session.metadata.userId,
+        package: pkg._id,
+        mealSize: pkg.name,
+        price: pkg.price,
+        totalMeals: pkg.totalMeals,
+        mealsUsed: 0,
+        maxItemsPerMeal: pkg.maxItemsPerMeal,
+        preference: "Veg",
+        duration: "Monthly",
+        quantity: 1,
+        deliveryMethod: "Delivery",
+        startDate,
+        endDate,
+      });
+
+      payment.subscription = subscription._id;
+      await payment.save();
+    }
+  }
+
+  // -------- CUSTOM PACKAGE --------
+  if (session.metadata?.paymentType === "CUSTOM_PACKAGE") {
+    const subscription = await Subscription.create({
+      user: session.metadata.userId,
+      stripeSubscriptionId: session.subscription,
+
+      mealSize: session.metadata.mealSize,
+      preference: session.metadata.preference,
+      duration: session.metadata.duration,
+      meals: session.metadata.meals,
+      quantity: Number(session.metadata.quantity),
+      deliveryMethod: session.metadata.deliveryMethod,
+      price: Number(session.metadata.price),
+      totalMeals: Number(session.metadata.totalMeals),
+      mealsUsed: 0,
+      maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
+      startDate: new Date(session.metadata.startDate),
+      endDate: new Date(session.metadata.endDate),
+    });
+
+    payment.subscription = subscription._id;
+    await payment.save();
+  }
+
+  // -------- RENEWAL --------
+  if (session.metadata?.paymentType === "RENEWAL") {
+    const subId = session.metadata.subscriptionId;
+    const duration = session.metadata.duration;
+
+    const newStartDate = new Date();
+    const newEndDate = new Date(newStartDate);
+
+    if (duration === "Trial") newEndDate.setDate(newEndDate.getDate() + 1);
+    else if (duration === "Weekly") newEndDate.setDate(newEndDate.getDate() + 7);
+    else if (duration === "Monthly") newEndDate.setMonth(newEndDate.getMonth() + 1);
+    else if (duration === "Quarterly") newEndDate.setMonth(newEndDate.getMonth() + 3);
+
+    const subscription = await Subscription.findByIdAndUpdate(
+      subId,
+      {
+        status: "active",
+        startDate: newStartDate,
+        endDate: newEndDate,
+        mealsUsed: 0,
+        cancelAtPeriodEnd: false,
+        stripeSubscriptionId: session.subscription,
+      },
+      { new: true }
+    );
+
+    if (subscription) {
+      payment.subscription = subscription._id;
+      await payment.save();
+    }
+  }
+};
+
 export const stripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
 
@@ -143,121 +238,7 @@ export const stripeWebhook = async (req, res) => {
           return res.json({ received: true });
         }
 
-        payment.status = "paid";
-        payment.paymentIntentId = session.payment_intent;
-        payment.paidAt = new Date();
-
-        await payment.save();
-
-        // -------- ADMIN PACKAGE --------
-        if (session.metadata.paymentType === "ADMIN_PACKAGE") {
-          const pkg = await Package.findById(session.metadata.packageId);
-
-          if (!pkg) {
-            return res.status(404).json({
-              success: false,
-              message: "Package not found",
-            });
-          }
-
-          const startDate = new Date();
-
-          const endDate = new Date(startDate);
-          endDate.setDate(endDate.getDate() + pkg.validityDays);
-
-          const subscription = await Subscription.create({
-            user: session.metadata.userId,
-            package: pkg._id,
-
-            mealSize: pkg.name,
-            price: pkg.price,
-
-            totalMeals: pkg.totalMeals,
-            mealsUsed: 0,
-
-            maxItemsPerMeal: pkg.maxItemsPerMeal,
-
-            preference: "Veg",
-
-            duration: "Monthly",
-
-            quantity: 1,
-
-            deliveryMethod: "Delivery",
-
-            startDate,
-            endDate,
-          });
-
-          payment.subscription = subscription._id;
-          await payment.save();
-        }
-
-        // -------- CUSTOM PACKAGE --------
-        if (session.metadata.paymentType === "CUSTOM_PACKAGE") {
-          const subscription = await Subscription.create({
-            user: session.metadata.userId,
-            stripeSubscriptionId: session.subscription,
-
-            mealSize: session.metadata.mealSize,
-            preference: session.metadata.preference,
-            duration: session.metadata.duration,
-
-            meals: session.metadata.meals,
-
-            quantity: Number(session.metadata.quantity),
-
-            deliveryMethod: session.metadata.deliveryMethod,
-
-            price: Number(session.metadata.price),
-
-            totalMeals: Number(session.metadata.totalMeals),
-
-            mealsUsed: 0,
-
-            maxItemsPerMeal: Number(
-              session.metadata.maxItemsPerMeal
-            ),
-
-            startDate: new Date(session.metadata.startDate),
-
-            endDate: new Date(session.metadata.endDate),
-          });
-
-          payment.subscription = subscription._id;
-
-          await payment.save();
-        }
-
-        // -------- RENEWAL --------
-        if (session.metadata.paymentType === "RENEWAL") {
-          const subId = session.metadata.subscriptionId;
-          const duration = session.metadata.duration;
-
-          const newStartDate = new Date();
-          const newEndDate = new Date(newStartDate);
-
-          if (duration === "Trial") newEndDate.setDate(newEndDate.getDate() + 1);
-          else if (duration === "Weekly") newEndDate.setDate(newEndDate.getDate() + 7);
-          else if (duration === "Monthly") newEndDate.setMonth(newEndDate.getMonth() + 1);
-          else if (duration === "Quarterly") newEndDate.setMonth(newEndDate.getMonth() + 3);
-
-          const subscription = await Subscription.findByIdAndUpdate(
-            subId,
-            {
-              status: "active",
-              startDate: newStartDate,
-              endDate: newEndDate,
-              mealsUsed: 0,
-              cancelAtPeriodEnd: false,
-              stripeSubscriptionId: session.subscription,
-            },
-            { new: true }
-          );
-
-          payment.subscription = subscription._id;
-          await payment.save();
-        }
+        await fulfillOrder(session, payment);
 
         break;
       }
@@ -327,17 +308,32 @@ export const saveCheckoutDetails = async (req, res) => {
       return res.status(404).json({ success: false, message: "Payment not found." });
     }
 
+    let finalPayment = payment;
+    // FULFILL ORDER INSTANTLY IF NOT PROCESSED YET
+    if (payment.status !== "paid") {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session.payment_status === "paid") {
+          await fulfillOrder(session, payment);
+          // Re-fetch to get the newly created subscription details for the email if needed
+          finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
+        }
+      } catch (stripeErr) {
+        console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr);
+      }
+    }
+
     // Determine plan name and total meals
     let planName = "Custom Subscription";
     let totalMeals = "Varies";
-    let amount = payment.amount;
+    let amount = finalPayment.amount;
 
-    if (payment.paymentType === "ADMIN_PACKAGE" && payment.package) {
-      planName = payment.package.name;
-      totalMeals = payment.package.totalMeals || "Pre-defined";
-    } else if (payment.paymentType === "CUSTOM_PACKAGE" && payment.subscription) {
-      planName = `Custom ${payment.subscription.duration} Plan`;
-      totalMeals = payment.subscription.totalMeals;
+    if (finalPayment.paymentType === "ADMIN_PACKAGE" && finalPayment.package) {
+      planName = finalPayment.package.name;
+      totalMeals = finalPayment.package.totalMeals || "Pre-defined";
+    } else if (finalPayment.paymentType === "CUSTOM_PACKAGE" && finalPayment.subscription) {
+      planName = `Custom ${finalPayment.subscription.duration} Plan`;
+      totalMeals = finalPayment.subscription.totalMeals;
     }
 
     // Send the email in the background to prevent blocking the response
