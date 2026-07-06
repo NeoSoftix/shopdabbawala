@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { saveCheckoutDetails } from "../../services/payment.service";
+import { saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
+import { useEffect } from "react";
 
 export default function PaymentSuccess() {
   const location = useLocation();
@@ -11,7 +12,24 @@ export default function PaymentSuccess() {
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
+
+  useEffect(() => {
+    if (sessionId) {
+      getSessionDetails(sessionId)
+        .then(res => {
+          if (res.success && res.customer_details) {
+            setFormData(prev => ({
+              ...prev,
+              name: res.customer_details.name || prev.name,
+              email: res.customer_details.email || prev.email,
+              phone: res.customer_details.phone || prev.phone,
+            }));
+          }
+        })
+        .catch(err => console.error("Failed to fetch session", err));
+    }
+  }, [sessionId]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -76,11 +94,7 @@ export default function PaymentSuccess() {
               <p className="text-slate-500 text-sm font-medium leading-relaxed mb-2">
                 Your payment has been processed successfully. 🎉
               </p>
-              {sessionId && (
-                <p className="text-[11px] text-slate-400 font-mono bg-slate-50 px-3 py-1.5 rounded-lg inline-block mb-6">
-                  Session: {sessionId.slice(0, 24)}...
-                </p>
-              )}
+              {/* Removed session ID display as requested */}
 
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-6 text-left">
                 <div className="flex items-start gap-3">
@@ -153,6 +167,36 @@ export default function PaymentSuccess() {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    required
+                    placeholder="+91 98765 43210"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                    Delivery Address
+                  </label>
+                  <textarea
+                    name="address"
+                    required
+                    placeholder="123 Health Street, Fitness City..."
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
                   />
                 </div>
 

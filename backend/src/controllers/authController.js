@@ -385,167 +385,39 @@ const formatPhoneNumber = (phone) => {
   return `+91${cleaned}`;
 };
 
-// // send otp 
-// export const sendOtp = async (req, res) => {
-//   try {
-//     const { phone } = req.body;
-
-//     if (!phone) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Phone number is required",
-//       });
-//     }
-
-//     const formattedPhone = formatPhoneNumber(phone);
-
-//     await client.verify.v2
-//       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-//       .verifications.create({
-//         to: formattedPhone,
-//         channel: "sms",
-//       });
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "OTP sent successfully",
-//     });
-//   } catch (err) {
-//     console.log("Send OTP Error:", err);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: err.status === 404 
-//         ? "Verification service not found. Please verify your Twilio settings."
-//         : err.message,
-//     });
-//   }
-// };
-
-// // verfiy otp 
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const { phone, otp } = req.body;
-
-//     if (!phone || !otp) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Phone number and OTP are required",
-//       });
-//     }
-
-//     const formattedPhone = formatPhoneNumber(phone);
-
-//     let verificationCheck;
-//     try {
-//       verificationCheck = await client.verify.v2
-//         .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-//         .verificationChecks.create({
-//           to: formattedPhone,
-//           code: otp,
-//         });
-//     } catch (twilioErr) {
-//       console.log("Twilio Verify OTP Error:", twilioErr);
-//       // Catch 404 (Resource not found) or similar Twilio errors
-//       if (twilioErr.status === 404) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "OTP has expired or was already verified. Please request a new OTP.",
-//         });
-//       }
-//       throw twilioErr;
-//     }
-
-//     if (verificationCheck.status !== "approved") {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid OTP",
-//       });
-//     }
-
-//     // Find existing user (using raw phone to remain consistent with db records)
-//     let user = await User.findOne({ phone });
-
-//     // Create user if not exists
-//     if (!user) {
-//       user = await User.create({
-//         phone,
-//       });
-//     }
-
-//     // Generate JWT
-//     const token = jwt.sign(
-//       {
-//         id: user._id,
-//         role: user.role,
-//       },
-//       process.env.JWT_SECRET,
-//       {
-//         expiresIn: "7d",
-//       }
-//     );
-
-//     // Save JWT in cookie
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//     });
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "OTP verify",
-//       token,
-//       user,
-//     });
-
-//   } catch (err) {
-//     console.log("Verify OTP Error:", err);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: err.message,
-//     });
-//   }
-// };
-
-// send otp (Bypassed Twilio - Logs to Console)
+// send otp 
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
- 
+
     if (!phone) {
       return res.status(400).json({
         success: false,
-        message: "Phone number is required",
+        message: 'Phone number is required',
       });
     }
 
-    // 1. Generate 6-digit random OTP
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const formattedPhone = formatPhoneNumber(phone);
 
-    // 2. Database (OTP Collection) me save/update karein (5 mins expiry)
-    await OTP.findOneAndUpdate(
-      { phone },
-      { otp: generatedOtp, createdAt: new Date() },
-      { upsert: true, new: true }
-    );
-
-    // 3. Server Console par print karein (Taaki aap yahan se dekh kar Postman me daal sakein)
-    console.log("====================================");
-    console.log(`[TESTING OTP] Phone: ${phone} | OTP: ${generatedOtp}`);
-    console.log("====================================");
+    await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({
+        to: formattedPhone,
+        channel: 'sms',
+      });
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully (Check backend server console for OTP)",
+      message: 'OTP sent successfully',
     });
   } catch (err) {
-    console.log("Send OTP Error:", err);
+    console.log('Send OTP Error:', err);
+
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: err.status === 404 
+        ? 'Verification service not found. Please verify your Twilio settings.'
+        : err.message,
     });
   }
 };
@@ -554,35 +426,50 @@ export const sendOtp = async (req, res) => {
 export const verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
- 
+
     if (!phone || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Phone number and OTP are required",
+        message: 'Phone number and OTP are required',
       });
     }
 
-    // 1. Database me check karein ki is phone number ke liye ye OTP saved hai ya nahi
-    const otpRecord = await OTP.findOne({ phone, otp });
+    const formattedPhone = formatPhoneNumber(phone);
 
-    if (!otpRecord) {
+    let verificationCheck;
+    try {
+      verificationCheck = await client.verify.v2
+        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+        .verificationChecks.create({
+          to: formattedPhone,
+          code: otp,
+        });
+    } catch (twilioErr) {
+      console.log('Twilio Verify OTP Error:', twilioErr);
+      if (twilioErr.status === 404) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP has expired or was already verified. Please request a new OTP.',
+        });
+      }
+      throw twilioErr;
+    }
+
+    if (verificationCheck.status !== 'approved') {
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP or OTP has expired",
+        message: 'Invalid OTP',
       });
     }
 
-    // Find existing user (using raw phone to remain consistent with db records)
     let user = await User.findOne({ phone });
  
-    // Create user if not exists
     if (!user) {
       user = await User.create({
         phone,
       });
     }
 
-    // 4. Generate JWT
     const token = jwt.sign(
       {
         id: user._id,
@@ -590,31 +477,30 @@ export const verifyOtp = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "7d",
+        expiresIn: '7d',
       }
     );
 
-    // Save JWT in cookie
-    res.cookie("token", token, {
+    res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
  
     return res.status(200).json({
       success: true,
-      message: "OTP verified successfully",
+      message: 'OTP verified successfully',
       token,
       user,
     });
 
   } catch (err) {
-    console.log("Verify OTP Error:", err);
+    console.log('Verify OTP Error:', err);
 
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
