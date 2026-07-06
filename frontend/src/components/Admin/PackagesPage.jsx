@@ -19,7 +19,7 @@ const PackagesPage = () => {
   const [packages, setPackages] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [editId, setEditId] = useState(null); // New state to track if we are editing
+  const [editId, setEditId] = useState(null);
 
   // Single State for Form
   const [formData, setFormData] = useState({
@@ -29,12 +29,11 @@ const PackagesPage = () => {
     validityDays: "",
     description: "",
     maxItemsPerMeal: "",
-    features:""
+    features: "" // UI में यह string की तरह रहेगा
   });
 
   const toggleForm = () => {
     setShowForm((prev) => !prev);
-    // Form close hote hi edit state reset karein
     if (showForm) {
       resetForm();
     }
@@ -48,7 +47,7 @@ const PackagesPage = () => {
       validityDays: "",
       description: "",
       maxItemsPerMeal: "",
-      features:""
+      features: ""
     });
     setEditId(null);
   };
@@ -96,21 +95,30 @@ const PackagesPage = () => {
       return;
     }
 
+    // 💡 Backend के लिए features string को Array में कन्वर्ट कर रहे हैं
+    // कॉमा (,) से अलग करेगा और एक्स्ट्रा स्पेस हटा देगा
+    const parsedFeatures = formData.features
+      ? formData.features.split(",").map((item) => item.trim()).filter(Boolean)
+      : [];
+
+    const dataToSend = {
+      ...formData,
+      features: parsedFeatures // Backend को Array फॉर्मेट मिलेगा
+    };
+
     try {
       let res;
       if (editId) {
-        // 👇 Dynamic Update API Call
-        res = await updatePackage(editId, formData);
+        res = await updatePackage(editId, dataToSend);
       } else {
-        // 👇 Create API Call
-        res = await createPackage(formData);
+        res = await createPackage(dataToSend);
       }
 
       if (res && res.success) {
         setSuccess(
           editId
             ? "Package updated successfully!"
-            : "Package added successfully!",
+            : "Package added successfully!"
         );
         resetForm();
         setShowForm(false);
@@ -125,7 +133,7 @@ const PackagesPage = () => {
   // 4. DELETE PACKAGE API CALL
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this package?",
+      "Are you sure you want to delete this package?"
     );
 
     if (!confirmed) return;
@@ -148,7 +156,13 @@ const PackagesPage = () => {
 
   // 5. FILL FORM FOR EDITING
   const handleEditClick = (p) => {
-    setEditId(p._id); // Set active package id
+    setEditId(p._id);
+    
+    // 💡 Backend से आये Features Array को UI इनपुट के लिए String में कन्वर्ट किया (कॉमा से सेपरेटेड)
+    const featuresString = Array.isArray(p.features) 
+      ? p.features.join(", ") 
+      : p.features || "";
+
     setFormData({
       name: p.name || "",
       price: p.price || "",
@@ -156,8 +170,9 @@ const PackagesPage = () => {
       validityDays: p.validityDays || "",
       description: p.description || "",
       maxItemsPerMeal: p.maxItemsPerMeal || "",
+      features: featuresString // ✅ अब एडिट करते समय फॉर्म में डेटा दिखेगा
     });
-    setShowForm(true); // Open form section
+    setShowForm(true);
   };
 
   useEffect(() => {
@@ -174,7 +189,6 @@ const PackagesPage = () => {
     }
   }, [error]);
 
-  // Dynamically calculate stats based on backend data keys
   const stats = [
     {
       title: "Total Packages",
@@ -292,7 +306,6 @@ const PackagesPage = () => {
             </h2>
           </div>
 
-          {/* TABLE WRAPPER */}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px] lg:min-w-0">
               <thead>
@@ -349,7 +362,6 @@ const PackagesPage = () => {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {/* 👇 Edit Button Connected */}
                         <button
                           onClick={() => handleEditClick(p)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
@@ -369,7 +381,7 @@ const PackagesPage = () => {
                 {packages.length === 0 && (
                   <tr>
                     <td
-                      colSpan="8"
+                      colSpan="9"
                       className="text-center py-8 text-sm text-gray-400"
                     >
                       No packages found.
@@ -388,7 +400,6 @@ const PackagesPage = () => {
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 sticky top-6"
           >
             <div className="flex items-center justify-between pb-4 border-b border-gray-50 mb-5">
-              {/* Dynamic Heading based on Mode */}
               <h2 className="font-bold text-gray-800 text-base sm:text-lg">
                 {editId ? "Edit Package" : "Add Package"}
               </h2>
@@ -463,20 +474,34 @@ const PackagesPage = () => {
                     placeholder="Validity (Days)"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                    Max Items Per Meal *
+                  </label>
+                  <input
+                    type="number"
+                    name="maxItemsPerMeal"
+                    value={formData.maxItemsPerMeal}
+                    onChange={handleChange}
+                    placeholder="e.g. 6"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  />
+                </div>
               </div>
 
+              {/* 💡 यहाँ NEW Features UI Input Field ऐड कर दी गई है */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-                  Max Items Per Meal *
+                  Features (comma separated)
                 </label>
-
                 <input
-                  type="number"
-                  name="maxItemsPerMeal"
-                  value={formData.maxItemsPerMeal}
+                  type="text"
+                  name="features"
+                  value={formData.features}
                   onChange={handleChange}
-                  placeholder="e.g. 6"
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  placeholder="Free Delivery, Extra Rice, Sweet Included"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
                 />
               </div>
 
