@@ -16,7 +16,6 @@ const subscriptionSchema = new mongoose.Schema(
 
     mealSize: {
       type: String,
-      enum: ["Basic", "Medium", "Premium"],
       required: true,
     },
 
@@ -59,7 +58,7 @@ const subscriptionSchema = new mongoose.Schema(
     meals: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Meal",
-      required: true,
+      required: false,
     },
 
     quantity: {

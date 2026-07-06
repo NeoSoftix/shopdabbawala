@@ -12,6 +12,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
+import { getActiveCategory } from "../../services/category.service";
+import { getAllItems } from "../../services/items.service";
 
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
@@ -27,70 +29,6 @@ const daysOfWeek = [
   { id: "fri", name: "Friday", label: "FRI", date: "5" },
   { id: "sat", name: "Saturday", label: "SAT", date: "6" },
   { id: "sun", name: "Sunday", label: "SUN", date: "7" },
-];
-
-const categoriesData = [
-  { id: "high-protein", name: "High Protein", icon: "❤️" },
-  { id: "low-carb", name: "Low Carb", icon: "🌱" },
-  { id: "keto", name: "Keto Diet", icon: "🥑" },
-  { id: "vegan", name: "Vegan", icon: "🌿" },
-];
-
-const foodItems = [
-  {
-    id: "dal",
-    name: "Makhani Dal",
-    category: "High Protein",
-    cal: "320 Cal",
-    desc: "Rich & creamy slow-cooked black lentils.",
-    image:
-      "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "paneer",
-    name: "Paneer Tikka Masala",
-    category: "High Protein",
-    cal: "380 Cal",
-    desc: "Spiced cottage cheese cubes in rich gravy.",
-    image:
-      "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "chicken",
-    name: "Grilled Herb Chicken",
-    category: "High Protein",
-    cal: "450 Cal",
-    desc: "Lean chicken breast grilled with fresh herbs.",
-    image:
-      "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "mixveg",
-    name: "Sautéed Mix Veggies",
-    category: "Low Carb",
-    cal: "180 Cal",
-    desc: "Crunchy seasonal vegetables lightly tossed.",
-    image:
-      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "keto-bowl",
-    name: "Keto Paneer Bowl",
-    category: "Keto Diet",
-    cal: "290 Cal",
-    desc: "High fat, low carb paneer and greens layout.",
-    image:
-      "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "roti",
-    name: "Multigrain Roti Box",
-    category: "Vegan",
-    cal: "120 Cal",
-    desc: "Fiber-rich flatbreads served warm.",
-    image:
-      "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=150&auto=format&fit=crop&q=80",
-  },
 ];
 
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
@@ -253,26 +191,44 @@ const MealPlanSummary = ({ subscription, loading }) => {
   );
 };
 
-// ================= COMPONENT: WORKSPACE INTERFACE =================
 const MealSchedule = ({
   selectedDay,
   setSelectedDay,
   weeklyPlan,
   setWeeklyPlan,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState("High Protein");
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  useEffect(() => {
+    Promise.all([getActiveCategory(), getAllItems()])
+      .then(([catsRes, itemsRes]) => {
+        if (catsRes.success) {
+          const cats = catsRes.data || [];
+          setCategories(cats);
+          if (cats.length > 0) setSelectedCategory(cats[0].name);
+        }
+        if (itemsRes.success) {
+          setItems(itemsRes.data || []);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch custom meal data", err))
+      .finally(() => setLoadingData(false));
+  }, []);
 
   const filteredFoodItems = useMemo(() => {
-    return foodItems.filter(
-      (item) => item && item.category === selectedCategory,
+    return items.filter(
+      (item) => item && item.category?.name === selectedCategory,
     );
-  }, [selectedCategory]);
+  }, [selectedCategory, items]);
 
   const toggleItemForDay = (item) => {
     if (!item) return;
     setWeeklyPlan((prev) => {
       const currentDayItems = prev[selectedDay] || [];
-      const exists = currentDayItems.some((i) => i && i.id === item.id);
+      const exists = currentDayItems.some((i) => i && i._id === item._id);
 
       if (!exists && currentDayItems.length >= 6) {
         toast.error("You can only add up to 6 meals per day in this plan.");
@@ -282,7 +238,7 @@ const MealSchedule = ({
       return {
         ...prev,
         [selectedDay]: exists
-          ? currentDayItems.filter((i) => i && i.id !== item.id)
+          ? currentDayItems.filter((i) => i && i._id !== item._id)
           : [...currentDayItems, item],
       };
     });
@@ -291,7 +247,7 @@ const MealSchedule = ({
   const removeItemFromDay = (day, itemId) => {
     setWeeklyPlan((prev) => ({
       ...prev,
-      [day]: (prev[day] || []).filter((item) => item && item.id !== itemId),
+      [day]: (prev[day] || []).filter((item) => item && item._id !== itemId),
     }));
   };
 
@@ -328,9 +284,9 @@ const MealSchedule = ({
           </div>
 
           <div className="flex flex-wrap gap-2.5 py-1">
-            {categoriesData.map((cat) => (
+            {categories.map((cat) => (
               <button
-                key={cat.id}
+                key={cat._id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.name)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedCategory === cat.name
@@ -338,53 +294,59 @@ const MealSchedule = ({
                     : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
                   }`}
               >
-                <span>{cat.icon}</span>
+                {cat.image?.url ? (
+                  <img src={cat.image.url} alt={cat.name} className="w-5 h-5 object-cover rounded-full" />
+                ) : (
+                  <span>{cat.icon || "🍲"}</span>
+                )}
                 <span>{cat.name}</span>
               </button>
             ))}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredFoodItems.map((item) => {
-              const isChecked = currentDayMeals.some(
-                (i) => i && i.id === item.id,
-              );
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => toggleItemForDay(item)}
-                  className="bg-white rounded-xl border border-gray-100 p-3 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
-                >
-                  <div className="absolute top-3 right-3 z-10">
-                    <div
-                      className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isChecked ? "bg-[#E31A1A] border-[#E31A1A]" : "border-gray-300 bg-white"}`}
-                    >
-                      {isChecked && <FaCheck className="text-white" size={9} />}
+            {loadingData ? (
+              <div className="col-span-full py-8 text-center text-sm text-gray-500 font-bold">Loading items...</div>
+            ) : filteredFoodItems.length === 0 ? (
+              <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items found for this category.</div>
+            ) : (
+              filteredFoodItems.map((item) => {
+                const isChecked = currentDayMeals.some(
+                  (i) => i && i._id === item._id,
+                );
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => toggleItemForDay(item)}
+                    className="bg-white rounded-xl border border-gray-100 p-3 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
+                  >
+                    <div className="absolute top-3 right-3 z-10">
+                      <div
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isChecked ? "bg-[#E31A1A] border-[#E31A1A]" : "border-gray-300 bg-white"}`}
+                      >
+                        {isChecked && <FaCheck className="text-white" size={9} />}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <img
+                        src={item.image?.url || "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"}
+                        alt={item.name}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <div>
+                        <h4 className="text-sm font-bold text-[#1B254B] leading-tight">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-[#A3AED0] font-medium mt-1 line-clamp-2 leading-normal">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-24 object-cover rounded-lg"
-                    />
-                    <div>
-                      <h4 className="text-sm font-bold text-[#1B254B] leading-tight">
-                        {item.name}
-                      </h4>
-                      <p className="text-xs text-[#A3AED0] font-medium mt-1 line-clamp-2 leading-normal">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-end text-xs font-bold text-gray-500">
-                    <span>🔥 {item.cal}</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -452,14 +414,14 @@ const MealSchedule = ({
                   if (item) {
                     return (
                       <div
-                        key={item.id}
+                        key={item._id}
                         className="flex flex-col justify-between bg-white p-2 rounded-xl border border-gray-100 relative group min-h-[90px] sm:min-h-[110px]"
                       >
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeItemFromDay(selectedDay, item.id);
+                            removeItemFromDay(selectedDay, item._id);
                           }}
                           className="absolute top-1 right-1 text-gray-300 hover:text-red-500 p-1 z-10 bg-white rounded-full shadow-sm"
                         >
@@ -468,7 +430,7 @@ const MealSchedule = ({
 
                         <div className="space-y-1.5 text-center mt-2 flex flex-col items-center">
                           <img
-                            src={item.image}
+                            src={item.image?.url || "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"}
                             alt=""
                             className="w-10 h-10 rounded-md object-cover flex-shrink-0"
                           />
@@ -555,7 +517,7 @@ const MealSchedule = ({
                     <div className="space-y-1">
                       {items.map((item, idx) => (
                         <div
-                          key={item ? item.id : idx}
+                          key={item ? item._id : idx}
                           className="flex justify-between items-center text-xs font-bold text-[#A3AED0]"
                         >
                           <span className="truncate w-full text-left">

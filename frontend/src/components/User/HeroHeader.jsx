@@ -60,13 +60,13 @@ export default function HeroHeader() {
           `}
         >
           {/* Logo Brand Block (Updated with Image) */}
-          <div className="flex items-center gap-2.5 cursor-pointer select-none group">
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
             <img 
               src={logoImg} 
               alt="Meals Logo" 
               className="h-10 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
             />
-          </div>
+          </Link>
 
           {/* Center Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 lg:gap-9">
