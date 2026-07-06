@@ -72,7 +72,7 @@ export default function CheckoutFlowModal({
   const [pincode, setPincode] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -97,7 +97,7 @@ export default function CheckoutFlowModal({
     setOtp("");
     setError("");
     setLoading(false);
-    setFormData({ name: "", email: "", address: "" });
+    setFormData({ name: "", email: "" });
     if (paymentSuccess) {
       searchParams.delete("payment_success");
       searchParams.delete("session_id");
@@ -223,7 +223,7 @@ export default function CheckoutFlowModal({
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.address) {
+    if (!formData.name || !formData.email) {
       setError("Please fill all details.");
       return;
     }
@@ -453,10 +453,6 @@ export default function CheckoutFlowModal({
                     </div>
                     <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                     <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                    <div>
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">Delivery Address</label>
-                      <textarea required placeholder="House No, Street, City..." rows="2" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none" />
-                    </div>
                     <div className="mt-2">
                       {error && (
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">

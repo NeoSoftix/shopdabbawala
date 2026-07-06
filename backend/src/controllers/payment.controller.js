@@ -268,7 +268,7 @@ export const saveCheckoutDetails = async (req, res) => {
 
     if (payment.paymentType === "ADMIN_PACKAGE" && payment.package) {
       planName = payment.package.name;
-      totalMeals = payment.package.meals ? payment.package.meals.length : "Pre-defined";
+      totalMeals = payment.package.totalMeals || "Pre-defined";
     } else if (payment.paymentType === "CUSTOM_PACKAGE" && payment.subscription) {
       planName = `Custom ${payment.subscription.duration} Plan`;
       totalMeals = payment.subscription.totalMeals;
