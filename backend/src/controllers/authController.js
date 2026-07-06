@@ -96,7 +96,7 @@ export const login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -514,7 +514,7 @@ const formatPhoneNumber = (phone) => {
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
-
+ 
     if (!phone) {
       return res.status(400).json({
         success: false,
@@ -550,11 +550,11 @@ export const sendOtp = async (req, res) => {
   }
 };
 
-// verify otp (Bypassed Twilio - Matches with Database)
+// verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
-
+ 
     if (!phone || !otp) {
       return res.status(400).json({
         success: false,
@@ -572,12 +572,9 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // 2. OTP valid hai, to verify hone ke baad db se delete kar dein (One-time use)
-    await OTP.deleteOne({ _id: otpRecord._id });
-
-    // 3. Find existing user (using raw phone to remain consistent with db records)
+    // Find existing user (using raw phone to remain consistent with db records)
     let user = await User.findOne({ phone });
-
+ 
     // Create user if not exists
     if (!user) {
       user = await User.create({
@@ -601,10 +598,10 @@ export const verifyOtp = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
+ 
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",
@@ -614,9 +611,10 @@ export const verifyOtp = async (req, res) => {
 
   } catch (err) {
     console.log("Verify OTP Error:", err);
+
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal Server Error",
     });
   }
 };

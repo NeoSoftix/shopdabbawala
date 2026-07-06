@@ -1,6 +1,7 @@
 import StatCard from "../../components/shared/StatCard";
 import OrderBanner from "../../components/shared/OrderBanner";
 import OrdersTable from "../../components/shared/OrdersTable";
+import OrdersCalendar from "../../components/shared/OrdersCalendar";
 
 import {
   MdShoppingCart,
@@ -67,6 +68,11 @@ export default function VendorDashboard() {
       </div>
 
       <OrderBanner totalOrders={156} pendingOrders={18} />
+      
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Delivery Schedule</h2>
+        <OrdersCalendar />
+      </div>
 
       <OrdersTable orders={orders} />
     </div>

@@ -149,7 +149,7 @@ export const createSubscription = async (req, res) => {
               name: `${mealSize} Custom Package`,
               description: `${duration} Plan`,
             },
-            unit_amount: selectedPlan.price * 100,
+            unit_amount: Math.max(selectedPlan.price * 100, 4000),
             recurring: {
               interval: recurring.interval,
               interval_count: recurring.interval_count,

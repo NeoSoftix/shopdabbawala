@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { saveCheckoutDetails } from "../../services/payment.service";
 
 export default function PaymentSuccess() {
   const location = useLocation();
@@ -10,7 +11,7 @@ export default function PaymentSuccess() {
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
-  const [formData, setFormData] = useState({ name: "", email: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -19,14 +20,15 @@ export default function PaymentSuccess() {
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.address) {
+    if (!formData.name || !formData.email) {
       toast.error("Please fill in all fields.");
       return;
     }
     setLoading(true);
     try {
-      // Future: API call to save details with sessionId
-      // await API.post("/payment/save-details", { sessionId, ...formData });
+      if (sessionId) {
+        await saveCheckoutDetails({ ...formData, sessionId });
+      }
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
@@ -154,20 +156,6 @@ export default function PaymentSuccess() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
-                    Delivery Address
-                  </label>
-                  <textarea
-                    name="address"
-                    required
-                    rows="3"
-                    placeholder="Flat/House No, Building, Street Name, City..."
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
-                  />
-                </div>
 
                 <button
                   type="submit"

@@ -8,6 +8,7 @@ import { FaRupeeSign } from "react-icons/fa";
 import DashboardPieChart from "../../components/shared/DashboardPieChart";
 import DashboardLineChart from "../../components/shared/DashboardLineChart";
 import OrdersTable from "../../components/shared/OrdersTable";
+import OrdersCalendar from "../../components/shared/OrdersCalendar";
 import StatCard from "../../components/shared/StatCard";
 
 import { getAllVendors } from "../../services/vendor.service";
@@ -155,12 +156,16 @@ export default function AdminDashboard() {
           Icon={FaRupeeSign}
         />
       </div>
-
+ <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Delivery Schedule</h2>
+        <OrdersCalendar />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardPieChart data={pieData} title="Platform Overview" />
-
         <DashboardLineChart data={lineData} title="Orders Trend" />
       </div>
+
+     
 
       <OrdersTable orders={recentOrders} />
     </div>

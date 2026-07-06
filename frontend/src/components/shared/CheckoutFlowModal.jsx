@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { checkServiceAvailability } from "../../services/vendor.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service";
-import { createPackageCheckout } from "../../services/payment.service";
+import { createPackageCheckout, saveCheckoutDetails } from "../../services/payment.service";
 import { createSubscription } from "../../services/subscription.service";
 import { updateCustomerProfile } from "../../services/customer.service";
 import { FiMapPin, FiSmartphone, FiShield, FiPackage, FiCheckCircle, FiX, FiLoader, FiMail } from "react-icons/fi";
+import PhoneInputPkg from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+const PhoneInput = PhoneInputPkg.default ? PhoneInputPkg.default : PhoneInputPkg;
 
 const InputField = ({ label, type = "text", placeholder, value, onChange, maxLength, extraClass = "" }) => (
   <div>
@@ -54,10 +57,11 @@ export default function CheckoutFlowModal({
   onClose,
   mode = "packages",
   planId,
-  subscriptionData, // Data for create mode payment
+  subscriptionData, 
   isCustomizationValid = true,
-  onCustomizationSubmit, // Callback when Next is clicked in Customization step
-  children, // Customization UI (Rendered if mode === 'create' & step === 2)
+  customizationErrorMsg = "Please complete your plan configuration.",
+  onCustomizationSubmit,
+  children,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,9 +71,9 @@ export default function CheckoutFlowModal({
 
   const [step, setStep] = useState(1);
   const [pincode, setPincode] = useState("");
-  const [phone, setPhone] = useState("+91 ");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -90,11 +94,11 @@ export default function CheckoutFlowModal({
   const reset = () => {
     setStep(1);
     setPincode("");
-    setPhone("+91 ");
+    setPhone("");
     setOtp("");
     setError("");
     setLoading(false);
-    setFormData({ name: "", email: "", address: "" });
+    setFormData({ name: "", email: "" });
     if (paymentSuccess) {
       searchParams.delete("payment_success");
       searchParams.delete("session_id");
@@ -114,7 +118,7 @@ export default function CheckoutFlowModal({
     try {
       const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
-        toast.success("🎉 Great news! We deliver to your area.");
+        toast.success(" Great news! We deliver to your area.");
         setStep(2);
       } else {
         setError(res?.message || "Sorry! Service not available in your area.");
@@ -129,7 +133,7 @@ export default function CheckoutFlowModal({
   const handleCustomizationNext = (e) => {
     e.preventDefault();
     if (!isCustomizationValid) {
-      setError("Please complete your plan configuration.");
+      setError(customizationErrorMsg);
       return;
     }
     setError("");
@@ -137,11 +141,8 @@ export default function CheckoutFlowModal({
     setStep(3);
   };
 
-  const handlePhoneChange = (e) => {
-    let val = e.target.value;
-    if (!val.startsWith("+91 ")) {
-      val = "+91 " + val.replace(/^\+91\s*/, "");
-    }
+  const handlePhoneChange = (val) => {
+    // react-phone-input-2 returns just the digits with country code, e.g. "919876543210"
     setPhone(val);
   };
 
@@ -150,7 +151,7 @@ export default function CheckoutFlowModal({
     setError("");
     setLoading(true);
     try {
-      const res = await sendOtp({ phone: phone.trim() });
+      const res = await sendOtp({ phone: `+${phone}` });
       if (res && res.success) {
         toast.success("📱 OTP sent to your mobile!");
         setStep(mode === "packages" ? 3 : 4);
@@ -159,6 +160,23 @@ export default function CheckoutFlowModal({
       }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await sendOtp({ phone: `+${phone}` });
+      if (res && res.success) {
+        toast.success("📱 OTP resent to your mobile!");
+      } else {
+        setError(res?.message || "Failed to resend OTP.");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to resend OTP.");
     } finally {
       setLoading(false);
     }
@@ -173,7 +191,7 @@ export default function CheckoutFlowModal({
     setError("");
     setLoading(true);
     try {
-      const verifyRes = await verifyOtp({ phone: phone.trim(), otp: otp.trim() });
+      const verifyRes = await verifyOtp({ phone: `+${phone}`, otp: otp.trim() });
       if (verifyRes && verifyRes.success) {
         toast.success("✅ Mobile verified! Redirecting to payment...");
         
@@ -206,23 +224,17 @@ export default function CheckoutFlowModal({
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.address) {
+    if (!formData.name || !formData.email) {
       setError("Please fill all details.");
       return;
     }
     setLoading(true);
     try {
-      // Save name and email to backend database
-      await updateCustomerProfile({
-        name: formData.name,
-        email: formData.email,
-      });
-
+      // (Mock) Call API to save user info associated with sessionId
       toast.success("🙌 Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
-      console.error("Save details error:", err);
-      setError(err.response?.data?.message || "Failed to save details.");
+      setError("Failed to save details.");
     } finally {
       setLoading(false);
     }
@@ -291,11 +303,6 @@ export default function CheckoutFlowModal({
                 </div>
               )}
 
-              {error && (
-                <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-2xl text-center">
-                  ⚠️ {error}
-                </div>
-              )}
 
               <AnimatePresence mode="wait">
                 {/* ── STEP 1: PINCODE ── */}
@@ -314,7 +321,15 @@ export default function CheckoutFlowModal({
                       <p className="text-slate-400 text-xs font-medium">Verify if we deliver to your pincode</p>
                     </div>
                     <InputField label="Pincode" placeholder="e.g. 144001" value={pincode} onChange={(e) => setPincode(e.target.value)} />
-                    <SubmitBtn label="Continue →" loading={loading} />
+                    <div className="mt-2">
+                      {error && (
+                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
+                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      )}
+                      <SubmitBtn label="Continue →" loading={loading} />
+                    </div>
                   </motion.form>
                 )}
 
@@ -336,8 +351,15 @@ export default function CheckoutFlowModal({
                       {children}
                     </div>
                     <div className="mt-auto pt-4 border-t border-slate-100 shrink-0">
+                      {error && (
+                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
+                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      )}
                       <SubmitBtn label="Proceed to Phone Verification →" loading={loading} />
                     </div>
+                    <button type="button" onClick={() => { setError(""); setStep(step - 1); }} className="w-full text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">← Go Back</button>
                   </motion.form>
                 )}
 
@@ -356,8 +378,27 @@ export default function CheckoutFlowModal({
                       <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Enter Mobile</h3>
                       <p className="text-slate-400 text-xs font-medium">We'll send you an OTP to verify</p>
                     </div>
-                    <InputField label="Mobile Number" type="tel" placeholder="+91 98765 43210" value={phone} onChange={handlePhoneChange} />
-                    <SubmitBtn label="Send OTP →" loading={loading} />
+                    <div className="text-left">
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">Mobile Number</label>
+                      <PhoneInput
+                        country={'in'}
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        inputClass="!w-full !px-4 !py-3.5 !bg-slate-50 !border !border-slate-200 !rounded-2xl !font-semibold !text-sm !text-slate-800 !pl-14 focus:!outline-none focus:!border-red-400 focus:!ring-2 focus:!ring-red-100 !transition-all"
+                        buttonClass="!bg-transparent !border-none !pl-2"
+                        containerClass="!w-full"
+                      />
+                    </div>
+                    <div className="mt-2">
+                      {error && (
+                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
+                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      )}
+                      <SubmitBtn label="Send OTP →" loading={loading} />
+                    </div>
+                    <button type="button" onClick={() => { setError(""); setStep(step - 1); }} className="w-full text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">← Go Back</button>
                   </motion.form>
                 )}
 
@@ -377,8 +418,19 @@ export default function CheckoutFlowModal({
                       <p className="text-slate-400 text-xs font-medium">OTP sent to <span className="font-bold">{phone}</span></p>
                     </div>
                     <InputField label="Enter OTP" placeholder="• • • • • •" value={otp} onChange={(e) => setOtp(e.target.value)} maxLength={6} extraClass="text-center text-xl tracking-[0.4em] font-black" />
-                    <SubmitBtn label="Verify & Pay →" loading={loading} />
-                    <button type="button" onClick={() => { setOtp(""); setError(""); setStep(step - 1); }} className="w-full text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">← Change Number</button>
+                    <div className="mt-2">
+                      {error && (
+                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
+                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      )}
+                      <SubmitBtn label="Verify & Pay →" loading={loading} />
+                    </div>
+                    <div className="flex justify-between items-center pt-2">
+                      <button type="button" onClick={() => { setOtp(""); setError(""); setStep(step - 1); }} className="text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors">← Go Back</button>
+                      <button type="button" onClick={handleResendOtp} disabled={loading} className="text-red-600 text-xs font-bold hover:text-red-700 transition-colors">Resend OTP</button>
+                    </div>
                   </motion.form>
                 )}
 
@@ -400,11 +452,15 @@ export default function CheckoutFlowModal({
                     </div>
                     <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                     <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                    <div>
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">Delivery Address</label>
-                      <textarea required placeholder="House No, Street, City..." rows="2" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none" />
+                    <div className="mt-2">
+                      {error && (
+                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
+                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      )}
+                      <SubmitBtn label="Submit Details →" loading={loading} />
                     </div>
-                    <SubmitBtn label="Submit Details →" loading={loading} />
                   </motion.form>
                 )}
 

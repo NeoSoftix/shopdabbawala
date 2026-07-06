@@ -39,6 +39,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFoundPage from "./components/shared/NotFoundPage";
 
 import PaymentSuccess from "./components/shared/PaymentSuccess";
+import PaymentFailed from "./components/shared/PaymentFailed";
 function App() {
   return (
     <>
@@ -132,6 +133,7 @@ function App() {
       </Route>
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-cancel" element={<PaymentFailed />} />
     </Routes>
     </>
   );
