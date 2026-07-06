@@ -13,6 +13,7 @@ import vendorRoutes from "./src/routes/vendor.routes.js";
 import packageRoutes from "./src/routes/package.routes.js"
 import subscriptionRoutes from "./src/routes/subcription.routes.js"
 import paymentRoutes from "./src/routes/payment.routes.js"
+import customerRoutes from "./src/routes/customer.routes.js";
 
 const app = express();
 
@@ -68,6 +69,9 @@ app.use("/api/subscriptions", subscriptionRoutes)
 
 // payments routes
 app.use("/api/payment", paymentRoutes);
+
+// customer routes
+app.use("/api/customer", customerRoutes);
 
 app.listen(5000, () => {
   console.log("Server running on 5000");

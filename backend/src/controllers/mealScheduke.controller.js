@@ -3,11 +3,11 @@ import MealPlan from "../models/mealSchedule.model.js";
 import Subscription from "../models/Subcription.model.js"; // corrected model file name
 import Meal from "../models/meals.model.js"; // corrected model file name
 
-// ➤ Initialize Meal Plan
+//Initialize Meal Plan
 export const initializeMealPlan = async (req, res) => {
   try {
     const { subscriptionId, address } = req.body;
-    const userId = req.user.id; // verifyToken middleware provides this
+    const userId = req.user.id; 
 
     // 1. Required fields validation
     if (!subscriptionId) {
