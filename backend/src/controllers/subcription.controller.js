@@ -368,7 +368,9 @@ export const cancelSubscription = async (req, res) => {
       message: error.message,
     });
   }
-};// Get My Subscriptions
+};
+
+// Get My Subscriptions
 export const getMySubscriptions = async (req, res) => {
   try {
     const userId = req.user.id;

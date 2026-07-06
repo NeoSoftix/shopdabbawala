@@ -292,7 +292,6 @@ export const stripeWebhook = async (req, res) => {
   }
 };
 
-
 // save check out detilas 
 export const saveCheckoutDetails = async (req, res) => {
   try {
@@ -351,7 +350,7 @@ export const saveCheckoutDetails = async (req, res) => {
 export const getCheckoutSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    
+
     if (!sessionId) {
       return res.status(400).json({ success: false, message: "Session ID is required" });
     }
