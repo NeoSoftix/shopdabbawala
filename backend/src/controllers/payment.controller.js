@@ -256,7 +256,8 @@ export const saveCheckoutDetails = async (req, res) => {
     }
 
     const payment = await Payment.findOne({ stripeSessionId: sessionId }).populate("package").populate("subscription");
-
+    console.log(payment);
+    return res.status(400).json({ success: true, message: payment });
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment not found." });
     }
@@ -273,6 +274,14 @@ export const saveCheckoutDetails = async (req, res) => {
       planName = `Custom ${payment.subscription.duration} Plan`;
       totalMeals = payment.subscription.totalMeals;
     }
+
+    const customer = await stripe.customers.create({
+      email: email,
+      name: name,
+    });
+    console.log("Created Customer ID:", customer.id);
+
+
 
     // Send the email
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);

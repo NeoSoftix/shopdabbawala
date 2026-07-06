@@ -364,23 +364,23 @@ export const changedPassword = async (req, res) => {
 const formatPhoneNumber = (phone) => {
   if (!phone) return "";
   let cleaned = phone.trim();
-  
+
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, "");
-  
+
   // If it already starts with '+', keep it
   if (cleaned.startsWith("+")) {
     return cleaned;
   }
-  
+
   // Strip leading zero(s)
   cleaned = cleaned.replace(/^0+/, "");
-  
+
   // If it has 12 digits and starts with 91, add '+'
   if (cleaned.startsWith("91") && cleaned.length === 12) {
     return `+${cleaned}`;
   }
-  
+
   // Otherwise, default to prepending +91 (India)
   return `+91${cleaned}`;
 };
@@ -389,7 +389,7 @@ const formatPhoneNumber = (phone) => {
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
- 
+
     if (!phone) {
       return res.status(400).json({
         success: false,
@@ -397,14 +397,14 @@ export const sendOtp = async (req, res) => {
       });
     }
 
-    const formattedPhone = formatPhoneNumber(phone);
+    // const formattedPhone = formatPhoneNumber(phone);
 
-    await client.verify.v2
-      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-      .verifications.create({
-        to: formattedPhone,
-        channel: "sms",
-      });
+    // await client.verify.v2
+    //   .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+    //   .verifications.create({
+    //     to: formattedPhone,
+    //     channel: "sms",
+    //   });
 
     return res.status(200).json({
       success: true,
@@ -415,18 +415,18 @@ export const sendOtp = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: err.status === 404 
+      message: err.status === 404
         ? "Verification service not found. Please verify your Twilio settings."
         : err.message,
     });
   }
 };
- 
+
 // verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
- 
+
     if (!phone || !otp) {
       return res.status(400).json({
         success: false,
@@ -434,38 +434,38 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    const formattedPhone = formatPhoneNumber(phone);
+    // const formattedPhone = formatPhoneNumber(phone);
 
-    let verificationCheck;
-    try {
-      verificationCheck = await client.verify.v2
-        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-        .verificationChecks.create({
-          to: formattedPhone,
-          code: otp,
-        });
-    } catch (twilioErr) {
-      console.log("Twilio Verify OTP Error:", twilioErr);
-      // Catch 404 (Resource not found) or similar Twilio errors
-      if (twilioErr.status === 404) {
-        return res.status(400).json({
-          success: false,
-          message: "OTP has expired or was already verified. Please request a new OTP.",
-        });
-      }
-      throw twilioErr;
-    }
+    // let verificationCheck;
+    // try {
+    //   verificationCheck = await client.verify.v2
+    //     .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+    //     .verificationChecks.create({
+    //       to: formattedPhone,
+    //       code: otp,
+    //     });
+    // } catch (twilioErr) {
+    //   console.log("Twilio Verify OTP Error:", twilioErr);
+    //   // Catch 404 (Resource not found) or similar Twilio errors
+    //   if (twilioErr.status === 404) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "OTP has expired or was already verified. Please request a new OTP.",
+    //     });
+    //   }
+    //   throw twilioErr;
+    // }
 
-    if (verificationCheck.status !== "approved") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-    }
+    // if (verificationCheck.status !== "approved") {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid OTP",
+    //   });
+    // }
 
     // Find existing user
     let user = await User.findOne({ phone });
- 
+
     // Create user if not exists
     if (!user) {
       user = await User.create({
@@ -492,7 +492,7 @@ export const verifyOtp = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
- 
+
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",

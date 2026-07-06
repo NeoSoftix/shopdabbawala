@@ -15,6 +15,7 @@ export const createSubscription = async (req, res) => {
       meals,
       quantity = 1,
       deliveryMethod,
+      totalMeals,
       startDate,
     } = req.body;
 
@@ -25,6 +26,7 @@ export const createSubscription = async (req, res) => {
       !duration ||
       !meals ||
       !deliveryMethod ||
+      !totalMeals ||
       !startDate
     ) {
       return res.status(400).json({
@@ -52,24 +54,37 @@ export const createSubscription = async (req, res) => {
 
     // Meal Plans
     const mealPlans = {
-      Basic: {
-        price: 299,
-        totalMeals: 15,
-        maxItemsPerMeal: 4,
-      },
-      Medium: {
-        price: 499,
-        totalMeals: 30,
-        maxItemsPerMeal: 8,
-      },
-      Premium: {
-        price: 799,
-        totalMeals: 30,
-        maxItemsPerMeal: 10,
-      },
+      "1 Meal": [
+        { totalMeals: 1, price: 15.00, label: "Single Tiffin", productId: "" },
+      ],
+      Weekly: [
+        { totalMeals: 4, price: 12.50, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 5, price: 12.00, label: "5 Meals / Week", productId: "prod_Upn1WgmC4FTua8" },
+        { totalMeals: 6, price: 11.50, label: "6 Meals / Week", productId: "prod_Upn2jDR5ogDcV9" },
+      ],
+      Monthly: [
+        { totalMeals: 16, price: 11.95, label: "4 Meals / Week", productId: "prod_Upn5c9rZHfivsw" },
+        { totalMeals: 20, price: 11.50, label: "5 Meals / Week", productId: "prod_Upn6dyzCoMEwyc" },
+        { totalMeals: 24, price: 10.95, label: "6 Meals / Week", productId: "prod_Upn728ftQwP04L" },
+      ],
+      Quarterly: [
+        { totalMeals: 48, price: 10.95, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 60, price: 10.50, label: "5 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 72, price: 9.95, label: "6 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+      ],
     };
 
-    const selectedPlan = mealPlans[mealSize];
+    const plans = mealPlans[duration] || mealPlans["1 Meal"];
+
+    if (!plans) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid duration.",
+      });
+    }
+    const selectedPlan = plans.find(
+      plan => plan.totalMeals === Number(totalMeals)
+    );
 
     if (!selectedPlan) {
       return res.status(400).json({
@@ -77,6 +92,11 @@ export const createSubscription = async (req, res) => {
         message: "Invalid meal size.",
       });
     }
+
+    const subtotal = selectedPlan.totalMeals * selectedPlan.price * quantity;
+    const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
+    const discount = subtotal * 0.2;
+    const totalAmount = subtotal - discount + deliveryCharges;
 
     const calculatedStartDate = new Date(startDate);
 
@@ -144,12 +164,12 @@ export const createSubscription = async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: "inr",
+            currency: "usd",
             product_data: {
               name: `${mealSize} Custom Package`,
               description: `${duration} Plan`,
             },
-            unit_amount: Math.max(selectedPlan.price * 100, 4000),
+            unit_amount: Math.round(totalAmount * 100),
             recurring: {
               interval: recurring.interval,
               interval_count: recurring.interval_count,
@@ -173,12 +193,12 @@ export const createSubscription = async (req, res) => {
 
         deliveryMethod,
 
-        price: selectedPlan.price.toString(),
+        price: Math.round(totalAmount * 100),
 
         totalMeals: selectedPlan.totalMeals.toString(),
 
         maxItemsPerMeal:
-          selectedPlan.maxItemsPerMeal.toString(),
+          selectedPlan.totalMeals.toString(),
 
         startDate: calculatedStartDate.toISOString(),
 
@@ -197,9 +217,9 @@ export const createSubscription = async (req, res) => {
 
       stripeSessionId: session.id,
 
-      amount: selectedPlan.price * quantity,
+      amount: Math.round(totalAmount * 100),
 
-      currency: "inr",
+      currency: "usd",
 
       status: "pending",
 
