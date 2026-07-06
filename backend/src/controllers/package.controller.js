@@ -4,6 +4,7 @@ import stripe from "../config/stripe.js";
 
 
 // // Create Package
+
 // export const createPackage = async (req, res) => {
 //   try {
 //     const {
@@ -156,6 +157,8 @@ import stripe from "../config/stripe.js";
 
 
 // Create Package
+
+
 export const createPackage = async (req, res) => {
   let stripeProduct = null;
 
