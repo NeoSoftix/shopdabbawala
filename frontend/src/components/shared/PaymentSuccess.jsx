@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
 import { useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function PaymentSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
   const sessionId = new URLSearchParams(location.search).get("session_id");
+  const { user, setUser } = useAuth();
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
@@ -21,15 +23,23 @@ export default function PaymentSuccess() {
           if (res.success && res.customer_details) {
             setFormData(prev => ({
               ...prev,
-              name: res.customer_details.name || prev.name,
-              email: res.customer_details.email || prev.email,
-              phone: res.customer_details.phone || prev.phone,
+              name: user?.name || res.customer_details.name || prev.name,
+              email: user?.email || res.customer_details.email || prev.email,
+              phone: user?.phone || res.customer_details.phone || prev.phone,
             }));
           }
         })
         .catch(err => console.error("Failed to fetch session", err));
+    } else if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+      }));
     }
-  }, [sessionId]);
+  }, [sessionId, user]);
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -47,6 +57,11 @@ export default function PaymentSuccess() {
       if (sessionId) {
         await saveCheckoutDetails({ ...formData, sessionId });
       }
+      
+      if (setUser) {
+        setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone }) : null);
+      }
+      
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {

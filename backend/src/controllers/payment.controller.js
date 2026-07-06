@@ -4,6 +4,7 @@ import Payment from "../models/payment.model.js"
 import Subscription from "../models/Subcription.model.js"
 import { sendEmail } from "../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../utils/email/purchaseSuccessTemplate.js"
+import User from "../models/User.model.js"
 
 export const createPackageCheckout = async (req, res) => {
   try {
@@ -317,6 +318,16 @@ export const saveCheckoutDetails = async (req, res) => {
           await fulfillOrder(session, payment);
           // Re-fetch to get the newly created subscription details for the email if needed
           finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
+          
+          // Also update User profile if name/phone is provided and missing
+          if (name || req.body.phone) {
+            await User.findByIdAndUpdate(payment.user, {
+              $set: {
+                ...(name && { name }),
+                ...(req.body.phone && { phone: req.body.phone }),
+              }
+            });
+          }
         }
       } catch (stripeErr) {
         console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr);
