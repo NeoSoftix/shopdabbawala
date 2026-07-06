@@ -485,7 +485,7 @@ export const verifyOtp = async (req, res) => {
     );
 
     // Save JWT in cookie
-    res.cookie("accessToken", token, {
+    res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
