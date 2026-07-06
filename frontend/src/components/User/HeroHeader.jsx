@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 // Agar aap Vite ya standard React setup use kar rahe hain, toh logo ko aise import karein:
 import logoImg from "/logo.png"; // Apne folder structure ke hisaab se path sahi kar lein
 
 export default function HeroHeader() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -93,23 +97,51 @@ export default function HeroHeader() {
 
           {/* Right Action Trigger Deck */}
           <div className="hidden md:flex items-center gap-5 lg:gap-7">
-            <button className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
-              Login
-            </button>
-            <button
-              className="
-                px-6 lg:px-8 py-2.5 lg:py-3
-                text-xs lg:text-sm uppercase tracking-widest font-black
-                rounded-full bg-red-600 text-white
-                shadow-md shadow-red-600/10
-                hover:bg-red-700 hover:scale-[1.04] hover:shadow-lg hover:shadow-red-600/20
-                active:scale-[0.98]
-                transition-all duration-300
-              "
-              onClick={scrollToPackages}
-            >
-              Get Started
-            </button>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <Link to="/meal-planner" className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold shadow-sm">
+                    {user.name ? user.name.charAt(0).toUpperCase() : <User size={18} />}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className={`text-xs font-bold ${scrolled ? "text-slate-800" : "text-slate-900"}`}>
+                      {user.name?.split(" ")[0] || "User"}
+                    </span>
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Dashboard</span>
+                  </div>
+                </Link>
+                <button 
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                  }}
+                  className={`p-2 rounded-full transition-colors ${scrolled ? "hover:bg-slate-100 text-slate-600 hover:text-red-600" : "hover:bg-black/5 text-slate-800 hover:text-red-500"}`}
+                  title="Logout"
+                >
+                  <LogOut size={18} strokeWidth={2.5} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
+                  Login
+                </Link>
+                <button
+                  className="
+                    px-6 lg:px-8 py-2.5 lg:py-3
+                    text-xs lg:text-sm uppercase tracking-widest font-black
+                    rounded-full bg-red-600 text-white
+                    shadow-md shadow-red-600/10
+                    hover:bg-red-700 hover:scale-[1.04] hover:shadow-lg hover:shadow-red-600/20
+                    active:scale-[0.98]
+                    transition-all duration-300
+                  "
+                  onClick={scrollToPackages}
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Hamburguer Control Icon */}
@@ -172,12 +204,36 @@ export default function HeroHeader() {
 
           {/* Bottom Call to Action Triggers */}
           <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
-            <button className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 transition-all">
-              Login
-            </button>
-            <button className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-black bg-red-600 text-white shadow-md shadow-red-600/10 hover:bg-red-700 transition-all" onClick={scrollToPackages}>
-              Get Started
-            </button>
+            {user ? (
+              <>
+                <Link
+                  to="/meal-planner"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold bg-slate-50 text-slate-800 border border-slate-200 transition-all flex items-center justify-center gap-2"
+                >
+                  <User size={16} /> My Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    logout();
+                    navigate("/");
+                  }}
+                  className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-black bg-red-50 text-red-600 shadow-sm hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                >
+                  <LogOut size={16} /> Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="w-full py-3.5 rounded-xl text-xs text-center uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 transition-all block">
+                  Login
+                </Link>
+                <button className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-black bg-red-600 text-white shadow-md shadow-red-600/10 hover:bg-red-700 transition-all" onClick={scrollToPackages}>
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

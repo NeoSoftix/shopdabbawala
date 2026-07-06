@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FaCheck,
   FaTrashCan,
@@ -9,6 +9,9 @@ import {
   FaCalendarDays,
   FaCircleInfo,
 } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getMySubscriptions } from "../../services/subscription.service";
 
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
@@ -91,7 +94,41 @@ const foodItems = [
 ];
 
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
-const MealPlanSummary = () => {
+const MealPlanSummary = ({ subscription, loading }) => {
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500 font-bold">Loading your plan...</div>;
+  }
+
+  if (!subscription) {
+    return (
+      <div className="w-full bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-16 h-16 bg-[#FFF5F5] rounded-2xl flex items-center justify-center text-4xl mb-4">
+          😞
+        </div>
+        <h2 className="text-xl font-bold text-[#1B254B] mb-2">No Active Plan</h2>
+        <p className="text-sm text-[#A3AED0]">You don't have any active meal subscription.</p>
+      </div>
+    );
+  }
+
+  const {
+    mealSize = "Basic",
+    preference = "Veg",
+    totalMeals = 0,
+    mealsUsed = 0,
+    endDate,
+  } = subscription;
+
+  const remaining = totalMeals - mealsUsed;
+  const usagePercentage = totalMeals > 0 ? Math.round((mealsUsed / totalMeals) * 100) : 0;
+  
+  // Calculate remaining days
+  const today = new Date();
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end - today);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const validTillStr = end.toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' });
+
   return (
     <div className="w-full bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50 flex flex-col gap-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -101,7 +138,7 @@ const MealPlanSummary = () => {
           </div>
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#1B254B] tracking-tight">
-              Meal Plan Summary
+              {mealSize} Plan ({preference})
             </h2>
             <p className="text-sm font-medium text-[#A3AED0] mt-0.5">
               Quick overview of your current plan
@@ -120,7 +157,7 @@ const MealPlanSummary = () => {
             🍽️
           </span>
           <span className="text-5xl font-black text-white tracking-tight">
-            60
+            {totalMeals}
           </span>
           <span className="text-sm font-bold text-white/80 mt-1 uppercase tracking-wider">
             Total Meals
@@ -133,13 +170,13 @@ const MealPlanSummary = () => {
               Plan Usage
             </span>
             <span className="text-xs font-bold text-[#E31A1A] bg-[#FFF5F5] px-2.5 py-1 rounded-md">
-              40% Used
+              {usagePercentage}% Used
             </span>
           </div>
           <div className="w-full h-3 bg-[#F4F7FE] rounded-full overflow-hidden mb-6">
             <div
               className="h-full bg-gradient-to-r from-[#FF5E5E] to-[#E31A1A] rounded-full"
-              style={{ width: "40%" }}
+              style={{ width: `${usagePercentage}%` }}
             />
           </div>
           <div className="grid grid-cols-2 text-center relative">
@@ -149,7 +186,7 @@ const MealPlanSummary = () => {
               </div>
               <div className="text-left">
                 <span className="block text-2xl font-black text-[#E31A1A] leading-none">
-                  24
+                  {mealsUsed}
                 </span>
                 <span className="text-xs font-semibold text-[#A3AED0] mt-1 block">
                   Consumed
@@ -163,7 +200,7 @@ const MealPlanSummary = () => {
               </div>
               <div className="text-left">
                 <span className="block text-2xl font-black text-[#1B254B] leading-none">
-                  36
+                  {remaining}
                 </span>
                 <span className="text-xs font-semibold text-[#A3AED0] mt-1 block">
                   Remaining
@@ -183,7 +220,7 @@ const MealPlanSummary = () => {
                 Valid Till
               </span>
               <span className="text-base font-extrabold text-[#1B254B]">
-                25 Jun 2026
+                {validTillStr}
               </span>
             </div>
           </div>
@@ -196,7 +233,7 @@ const MealPlanSummary = () => {
                 Expires in
               </span>
               <span className="text-base font-extrabold text-[#1B254B]">
-                91 Days
+                {diffDays} Days
               </span>
             </div>
           </div>
@@ -544,6 +581,11 @@ const MealSchedule = ({
 
 // ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================
 const MealPlanner = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [activeSubscription, setActiveSubscription] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(true);
+
   const [activeStep, setActiveStep] = useState(1);
   const [selectedDay, setSelectedDay] = useState("Tuesday");
   const [weeklyPlan, setWeeklyPlan] = useState({
@@ -555,6 +597,29 @@ const MealPlanner = () => {
     Saturday: [],
     Sunday: [],
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/");
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      getMySubscriptions()
+        .then((res) => {
+          if (res.success && res.subscriptions?.length > 0) {
+            // Find active subscription or use the latest one
+            const active = res.subscriptions.find(sub => sub.status === "active") || res.subscriptions[0];
+            setActiveSubscription(active);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch subscriptions:", err))
+        .finally(() => setLoadingPlan(false));
+    } else if (!loading) {
+      setLoadingPlan(false);
+    }
+  }, [user, loading]);
 
   const sidebarItems = [
     {
@@ -650,7 +715,7 @@ const MealPlanner = () => {
         <section className="lg:col-span-9 w-full">
           {activeStep === 1 && (
             <div className="fade-in">
-              <MealPlanSummary />
+              <MealPlanSummary subscription={activeSubscription} loading={loadingPlan} />
             </div>
           )}
 

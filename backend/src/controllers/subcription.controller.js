@@ -368,8 +368,24 @@ export const cancelSubscription = async (req, res) => {
       message: error.message,
     });
   }
+};// Get My Subscriptions
+export const getMySubscriptions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const subscriptions = await Subscription.find({ user: userId })
+      .populate("package")
+      .populate("meals")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      subscriptions,
+    });
+  } catch (error) {
+    console.error("Get My Subscriptions Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
-
-
-
-

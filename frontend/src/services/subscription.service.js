@@ -13,3 +13,13 @@ export const createSubscription = async (data) => {
     throw error;
   }
 };
+
+export const getMySubscriptions = async () => {
+  try {
+    const res = await API.get("/subscriptions/my-subscriptions");
+    return res.data;
+  } catch (error) {
+    console.log("Get My Subscriptions Error", error);
+    throw error;
+  }
+};
