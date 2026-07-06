@@ -361,28 +361,24 @@ export const changedPassword = async (req, res) => {
 };
 
 // Helper to format/normalize phone number for Twilio Verify (E.164 format)
-const formatPhoneNumber = (phone) => {
+const formatPhoneNumber = (phone, countryCode) => {
   if (!phone) return "";
+
   let cleaned = phone.trim();
-  
+
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, "");
-  
-  // If it already starts with '+', keep it
+
+  // If already in E.164 format
   if (cleaned.startsWith("+")) {
     return cleaned;
   }
-  
-  // Strip leading zero(s)
+
+  // Remove leading zero(s)
   cleaned = cleaned.replace(/^0+/, "");
-  
-  // If it has 12 digits and starts with 91, add '+'
-  if (cleaned.startsWith("91") && cleaned.length === 12) {
-    return `+${cleaned}`;
-  }
-  
-  // Otherwise, default to prepending +91 (India)
-  return `+91${cleaned}`;
+
+  // Use country code from frontend
+  return `${countryCode}${cleaned}`;
 };
 
 // // send otp 
@@ -509,6 +505,7 @@ const formatPhoneNumber = (phone) => {
 //     });
 //   }
 // };
+
 
 // send otp (Bypassed Twilio - Logs to Console)
 export const sendOtp = async (req, res) => {
