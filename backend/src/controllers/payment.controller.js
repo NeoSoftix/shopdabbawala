@@ -194,6 +194,7 @@ export const stripeWebhook = async (req, res) => {
         if (session.metadata.paymentType === "CUSTOM_PACKAGE") {
           const subscription = await Subscription.create({
             user: session.metadata.userId,
+            stripeSubscriptionId: session.subscription,
 
             mealSize: session.metadata.mealSize,
             preference: session.metadata.preference,
@@ -225,6 +226,68 @@ export const stripeWebhook = async (req, res) => {
           await payment.save();
         }
 
+        // -------- RENEWAL --------
+        if (session.metadata.paymentType === "RENEWAL") {
+          const subId = session.metadata.subscriptionId;
+          const duration = session.metadata.duration;
+
+          const newStartDate = new Date();
+          const newEndDate = new Date(newStartDate);
+
+          if (duration === "Trial") newEndDate.setDate(newEndDate.getDate() + 1);
+          else if (duration === "Weekly") newEndDate.setDate(newEndDate.getDate() + 7);
+          else if (duration === "Monthly") newEndDate.setMonth(newEndDate.getMonth() + 1);
+          else if (duration === "Quarterly") newEndDate.setMonth(newEndDate.getMonth() + 3);
+
+          const subscription = await Subscription.findByIdAndUpdate(
+            subId,
+            {
+              status: "active",
+              startDate: newStartDate,
+              endDate: newEndDate,
+              mealsUsed: 0,
+              cancelAtPeriodEnd: false,
+              stripeSubscriptionId: session.subscription,
+            },
+            { new: true }
+          );
+
+          payment.subscription = subscription._id;
+          await payment.save();
+        }
+
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const stripeSub = event.data.object;
+
+        await Subscription.findOneAndUpdate(
+          { stripeSubscriptionId: stripeSub.id },
+          { status: "expired", cancelAtPeriodEnd: false }
+        );
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const stripeSubId = invoice.subscription;
+          const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+
+          const newStartDate = new Date(stripeSub.current_period_start * 1000);
+          const newEndDate = new Date(stripeSub.current_period_end * 1000);
+
+          await Subscription.findOneAndUpdate(
+            { stripeSubscriptionId: stripeSubId },
+            {
+              status: "active",
+              startDate: newStartDate,
+              endDate: newEndDate,
+              mealsUsed: 0
+            }
+          );
+        }
         break;
       }
 

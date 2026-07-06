@@ -296,11 +296,10 @@ const MealSchedule = ({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.name)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${
-                  selectedCategory === cat.name
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedCategory === cat.name
                     ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
                     : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <span>{cat.icon}</span>
                 <span>{cat.name}</span>
@@ -387,11 +386,10 @@ const MealSchedule = ({
                       {day.label}
                     </span>
                     <span
-                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
-                        isSelected
+                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${isSelected
                           ? "bg-[#E31A1A] text-white shadow-sm"
                           : "text-[#1B254B] hover:bg-gray-100"
-                      }`}
+                        }`}
                     >
                       {day.date}
                     </span>
@@ -606,11 +604,10 @@ const MealPlanner = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveStep(item.id)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-[20px] transition-all duration-200 text-left ${
-                    isActive
+                  className={`w-full flex items-center gap-4 p-4 rounded-[20px] transition-all duration-200 text-left ${isActive
                       ? "bg-[#FFF5F5] border border-red-100/50"
                       : "bg-transparent hover:bg-gray-50/80"
-                  }`}
+                    }`}
                 >
                   <span
                     className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 ${isActive ? "bg-white text-[#E31A1A] shadow-sm" : "bg-gray-50 text-[#A3AED0]"}`}

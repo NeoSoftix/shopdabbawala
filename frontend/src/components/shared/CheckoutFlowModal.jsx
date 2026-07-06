@@ -6,6 +6,7 @@ import { checkServiceAvailability } from "../../services/vendor.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service";
 import { createPackageCheckout } from "../../services/payment.service";
 import { createSubscription } from "../../services/subscription.service";
+import { updateCustomerProfile } from "../../services/customer.service";
 import { FiMapPin, FiSmartphone, FiShield, FiPackage, FiCheckCircle, FiX, FiLoader, FiMail } from "react-icons/fi";
 
 const InputField = ({ label, type = "text", placeholder, value, onChange, maxLength, extraClass = "" }) => (
@@ -211,11 +212,17 @@ export default function CheckoutFlowModal({
     }
     setLoading(true);
     try {
-      // (Mock) Call API to save user info associated with sessionId
+      // Save name and email to backend database
+      await updateCustomerProfile({
+        name: formData.name,
+        email: formData.email,
+      });
+
       toast.success("🙌 Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
-      setError("Failed to save details.");
+      console.error("Save details error:", err);
+      setError(err.response?.data?.message || "Failed to save details.");
     } finally {
       setLoading(false);
     }

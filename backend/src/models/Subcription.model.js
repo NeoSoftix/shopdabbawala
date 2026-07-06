@@ -51,10 +51,10 @@ const subscriptionSchema = new mongoose.Schema(
     },
 
     duration: {
-  type: String,
-  enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
-  required: true,
-},
+      type: String,
+      enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
+      required: true,
+    },
 
     meals: {
       type: mongoose.Schema.Types.ObjectId,
@@ -79,10 +79,19 @@ const subscriptionSchema = new mongoose.Schema(
       default: "active",
     },
 
-   startDate: {
-  type: Date,
-  required: true,
-},
+    stripeSubscriptionId: {
+      type: String,
+      default: null,
+    },
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false,
+    },
+
+    startDate: {
+      type: Date,
+      required: true,
+    },
 
     endDate: {
       type: Date,

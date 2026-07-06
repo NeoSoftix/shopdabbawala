@@ -220,3 +220,154 @@ export const createSubscription = async (req, res) => {
     });
   }
 };
+
+export const renewSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    const userId = req.user.id;
+
+    if (!subscriptionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Subscription ID is required for renewal",
+      });
+    }
+
+    // 1. Purani subscription fetch karein
+    const oldSubscription = await Subscription.findOne({
+      _id: subscriptionId,
+      user: userId,
+    });
+
+    if (!oldSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscription not found",
+      });
+    }
+
+    // 2. Duration mapping (Trial, Weekly, Monthly, Quarterly handles dynamically)
+    const recurringMap = {
+      Trial: { interval: "day", interval_count: 1 },
+      Weekly: { interval: "week", interval_count: 1 },
+      Monthly: { interval: "month", interval_count: 1 },
+      Quarterly: { interval: "month", interval_count: 3 },
+    };
+
+    const recurring = recurringMap[oldSubscription.duration] || { interval: "month", interval_count: 1 };
+
+    // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "inr",
+            product_data: {
+              name: `${oldSubscription.mealSize} Custom Package Renewal`,
+              description: `Renewal for ${oldSubscription.duration} Plan`,
+            },
+            unit_amount: oldSubscription.price * 100, // Per-unit cost in paisa
+            recurring: {
+              interval: recurring.interval,
+              interval_count: recurring.interval_count,
+            },
+          },
+          quantity: oldSubscription.quantity,
+        },
+      ],
+      metadata: {
+        userId: userId,
+        paymentType: "RENEWAL",
+        subscriptionId: oldSubscription._id.toString(),
+        duration: oldSubscription.duration,
+      },
+      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+    });
+
+    // 4. Payment record me Total Amount (price * quantity) save karein
+    await Payment.create({
+      user: userId,
+      paymentType: "RENEWAL",
+      stripeSessionId: session.id,
+      amount: oldSubscription.price * oldSubscription.quantity, // Total price calculation
+      currency: "inr",
+      status: "pending",
+      metadata: session.metadata,
+    });
+
+    return res.status(200).json({
+      success: true,
+      checkoutUrl: session.url,
+    });
+
+  } catch (error) {
+    console.error("Renew Subscription Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Cancel Subscription (Option 2 Logic)
+export const cancelSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    const userId = req.user.id;
+
+    if (!subscriptionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Subscription ID is required",
+      });
+    }
+
+    const subscription = await Subscription.findOne({
+      _id: subscriptionId,
+      user: userId,
+      status: "active",
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "No active subscription found for this user",
+      });
+    }
+
+    if (!subscription.stripeSubscriptionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel this subscription through Stripe (Stripe ID missing)",
+      });
+    }
+
+    // Stripe me cancel_at_period_end trigger karein
+    await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+
+    // DB update
+    subscription.cancelAtPeriodEnd = true;
+    await subscription.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Subscription renewal cancelled. Plan remains active until current billing period ends.",
+      cancelAtPeriodEnd: true,
+    });
+  } catch (error) {
+    console.error("Cancel Subscription Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+
