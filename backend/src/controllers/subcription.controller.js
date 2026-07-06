@@ -138,6 +138,7 @@ export const createSubscription = async (req, res) => {
     // Checkout Session with inline subscription price_data (does not create catalog products)
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      phone_number_collection: { enabled: true },
 
       payment_method_types: ["card"],
 
@@ -185,9 +186,9 @@ export const createSubscription = async (req, res) => {
         endDate: endDate.toISOString(),
       },
 
-      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
     });
 
     await Payment.create({
@@ -259,6 +260,7 @@ export const renewSubscription = async (req, res) => {
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      phone_number_collection: { enabled: true },
       payment_method_types: ["card"],
       line_items: [
         {
@@ -283,8 +285,8 @@ export const renewSubscription = async (req, res) => {
         subscriptionId: oldSubscription._id.toString(),
         duration: oldSubscription.duration,
       },
-      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
     });
 
     // 4. Payment record me Total Amount (price * quantity) save karein

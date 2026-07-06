@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { checkServiceAvailability } from "../../services/vendor.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service";
-import { createPackageCheckout, saveCheckoutDetails } from "../../services/payment.service";
+import { createPackageCheckout, saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
 import { createSubscription } from "../../services/subscription.service";
 import { updateCustomerProfile } from "../../services/customer.service";
 import { FiMapPin, FiSmartphone, FiShield, FiPackage, FiCheckCircle, FiX, FiLoader, FiMail } from "react-icons/fi";
@@ -73,7 +73,7 @@ export default function CheckoutFlowModal({
   const [pincode, setPincode] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", address: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -81,8 +81,20 @@ export default function CheckoutFlowModal({
   useEffect(() => {
     if (paymentSuccess === "true" && isOpen) {
       setStep(mode === "packages" ? 4 : 5); // Jump to Details step
+      if (sessionId) {
+        getSessionDetails(sessionId).then(res => {
+          if (res.success && res.customer_details) {
+            setFormData(prev => ({
+              ...prev,
+              name: res.customer_details.name || prev.name,
+              email: res.customer_details.email || prev.email,
+            }));
+            // phone can also be updated if needed, though phone might already be present
+          }
+        }).catch(err => console.error("Failed to fetch session", err));
+      }
     }
-  }, [paymentSuccess, isOpen, mode]);
+  }, [paymentSuccess, isOpen, mode, sessionId]);
 
   const stepLabels =
     mode === "packages"
@@ -98,7 +110,7 @@ export default function CheckoutFlowModal({
     setOtp("");
     setError("");
     setLoading(false);
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", address: "" });
     if (paymentSuccess) {
       searchParams.delete("payment_success");
       searchParams.delete("session_id");
@@ -230,7 +242,9 @@ export default function CheckoutFlowModal({
     }
     setLoading(true);
     try {
-      // (Mock) Call API to save user info associated with sessionId
+      if (sessionId) {
+        await saveCheckoutDetails({ ...formData, sessionId });
+      }
       toast.success("🙌 Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
@@ -452,6 +466,7 @@ export default function CheckoutFlowModal({
                     </div>
                     <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                     <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                    <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
                     <div className="mt-2">
                       {error && (
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
@@ -478,7 +493,9 @@ export default function CheckoutFlowModal({
                     <p className="text-slate-400 text-xs mb-6">We're excited to fuel your journey to better health! 🌿</p>
                     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-2.5 mb-6">
                       <div className="flex gap-2 items-center"><FiMail className="text-sm text-red-500" /><span className="text-xs font-semibold">{formData.email}</span></div>
-                      <div className="flex gap-2 items-start"><FiMapPin className="text-sm mt-0.5 text-red-500" /><span className="text-xs font-semibold">{formData.address}</span></div>
+                      {formData.address && (
+                        <div className="flex gap-2 items-start"><FiMapPin className="text-sm text-red-500 mt-0.5" /><span className="text-xs font-semibold">{formData.address}</span></div>
+                      )}
                     </div>
                     <button onClick={handleClose} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg">Go to Dashboard</button>
                   </motion.div>

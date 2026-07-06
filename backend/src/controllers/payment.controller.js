@@ -41,6 +41,7 @@ export const createPackageCheckout = async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      phone_number_collection: { enabled: true },
 
       payment_method_types: ["card"],
 
@@ -67,9 +68,9 @@ export const createPackageCheckout = async (req, res) => {
         paymentType: "ADMIN_PACKAGE",
       },
 
-      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
     });
 
     await Payment.create({
@@ -339,13 +340,37 @@ export const saveCheckoutDetails = async (req, res) => {
       totalMeals = payment.subscription.totalMeals;
     }
 
-    // Send the email
+    // Send the email in the background to prevent blocking the response
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
-    await sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml);
+    sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml)
+      .catch(err => console.error("Background email sending failed:", err));
 
-    return res.status(200).json({ success: true, message: "Details saved and email sent." });
+    return res.status(200).json({ success: true, message: "Details saved and email processing." });
   } catch (error) {
     console.error("saveCheckoutDetails error:", error);
     return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+export const getCheckoutSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    if (!sessionId) {
+      return res.status(400).json({ success: false, message: "Session ID is required" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    return res.status(200).json({
+      success: true,
+      customer_details: session.customer_details,
+    });
+  } catch (error) {
+    console.error("Get Session Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
