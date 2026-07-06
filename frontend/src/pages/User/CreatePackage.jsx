@@ -160,12 +160,20 @@ export default function CreatePackage({ isOpen, onClose }) {
     return days;
   };
 
+  const getCustomizationError = () => {
+    if (!startDate) return "Please select a Delivery Start Date from the calendar above.";
+    if (!meals) return "Please select a valid Meal Timing.";
+    return "";
+  };
+  const validationError = getCustomizationError();
+
   return (
     <CheckoutFlowModal
       isOpen={isOpen !== undefined ? isOpen : true}
       onClose={onClose || (() => window.history.back())}
       mode="create"
-      isCustomizationValid={!!startDate}
+      isCustomizationValid={!validationError}
+      customizationErrorMsg={validationError}
       subscriptionData={{
         mealSize: selectedPlan,
         preference,
@@ -199,7 +207,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                       onClick={() => setDeliveryMethod("Pickup")}
                       className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
                         deliveryMethod === "Pickup"
-                          ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                          ? "bg-red-600 text-white shadow-sm font-extrabold"
                           : "text-gray-500 hover:text-gray-800"
                       }`}
                     >
@@ -225,7 +233,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                       onClick={() => setDeliveryMethod("Delivery")}
                       className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
                         deliveryMethod === "Delivery"
-                          ? "bg-white text-gray-900 shadow-sm font-extrabold"
+                          ? "bg-red-600 text-white shadow-sm font-extrabold"
                           : "text-gray-500 hover:text-gray-800"
                       }`}
                     >
@@ -584,7 +592,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                         type="button"
                         onClick={() => setDeliveryMethod("Pickup")}
                         className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
-                          deliveryMethod === "Pickup" ? "bg-white text-gray-900 shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
+                          deliveryMethod === "Pickup" ? "bg-red-600 text-white shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
                         }`}
                       >
                         <svg
@@ -608,7 +616,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                         type="button"
                         onClick={() => setDeliveryMethod("Delivery")}
                         className={`w-1/2 py-1.5 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${
-                          deliveryMethod === "Delivery" ? "bg-white text-gray-900 shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
+                          deliveryMethod === "Delivery" ? "bg-red-600 text-white shadow-sm font-extrabold" : "text-gray-500 hover:text-gray-800"
                         }`}
                       >
                         <svg

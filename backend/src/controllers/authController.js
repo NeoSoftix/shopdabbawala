@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import client from "../config/twilio.js";
+import OTP from "../models/otp.model.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -388,7 +389,7 @@ const formatPhoneNumber = (phone) => {
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
-
+ 
     if (!phone) {
       return res.status(400).json({
         success: false,
@@ -420,12 +421,12 @@ export const sendOtp = async (req, res) => {
     });
   }
 };
-
+ 
 // verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
-
+ 
     if (!phone || !otp) {
       return res.status(400).json({
         success: false,
@@ -462,9 +463,9 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // Find existing user (using raw phone to remain consistent with db records)
+    // Find existing user
     let user = await User.findOne({ phone });
-
+ 
     // Create user if not exists
     if (!user) {
       user = await User.create({
@@ -491,20 +492,18 @@ export const verifyOtp = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
+ 
     return res.status(200).json({
       success: true,
-      message: "OTP verify",
+      message: "OTP verified successfully",
       token,
       user,
     });
-
-  } catch (err) {
-    console.log("Verify OTP Error:", err);
-
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal Server Error",
     });
   }
 };

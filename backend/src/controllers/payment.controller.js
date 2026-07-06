@@ -2,6 +2,8 @@ import stripe from "../config/stripe.js"
 import Package from "../models/package.model.js"
 import Payment from "../models/payment.model.js"
 import Subscription from "../models/Subcription.model.js"
+import { sendEmail } from "../utils/email/sendEmail.js"
+import { purchaseSuccessTemplate } from "../utils/email/purchaseSuccessTemplate.js"
 
 export const createPackageCheckout = async (req, res) => {
   try {
@@ -38,7 +40,7 @@ export const createPackageCheckout = async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: "payment",
 
       payment_method_types: ["card"],
 
@@ -52,7 +54,7 @@ export const createPackageCheckout = async (req, res) => {
               description: pkg.description,
             },
 
-            unit_amount: pkg.price * 100,
+            unit_amount: Math.max(pkg.price * 100, 4000), // Stripe requires minimum 50 cents / 40 INR
           },
 
           quantity: 1,
@@ -242,5 +244,43 @@ export const stripeWebhook = async (req, res) => {
       success: false,
       message: "Internal Server Error",
     });
+  }
+};
+
+export const saveCheckoutDetails = async (req, res) => {
+  try {
+    const { name, email, address, sessionId } = req.body;
+
+    if (!email || !sessionId) {
+      return res.status(400).json({ success: false, message: "Email and session ID are required." });
+    }
+
+    const payment = await Payment.findOne({ stripeSessionId: sessionId }).populate("package").populate("subscription");
+
+    if (!payment) {
+      return res.status(404).json({ success: false, message: "Payment not found." });
+    }
+
+    // Determine plan name and total meals
+    let planName = "Custom Subscription";
+    let totalMeals = "Varies";
+    let amount = payment.amount;
+
+    if (payment.paymentType === "ADMIN_PACKAGE" && payment.package) {
+      planName = payment.package.name;
+      totalMeals = payment.package.meals ? payment.package.meals.length : "Pre-defined";
+    } else if (payment.paymentType === "CUSTOM_PACKAGE" && payment.subscription) {
+      planName = `Custom ${payment.subscription.duration} Plan`;
+      totalMeals = payment.subscription.totalMeals;
+    }
+
+    // Send the email
+    const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
+    await sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml);
+
+    return res.status(200).json({ success: true, message: "Details saved and email sent." });
+  } catch (error) {
+    console.error("saveCheckoutDetails error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };

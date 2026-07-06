@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { saveCheckoutDetails } from "../../services/payment.service";
 
 export default function PaymentSuccess() {
   const location = useLocation();
@@ -25,8 +26,9 @@ export default function PaymentSuccess() {
     }
     setLoading(true);
     try {
-      // Future: API call to save details with sessionId
-      // await API.post("/payment/save-details", { sessionId, ...formData });
+      if (sessionId) {
+        await saveCheckoutDetails({ ...formData, sessionId });
+      }
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
