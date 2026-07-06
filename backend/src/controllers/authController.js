@@ -361,31 +361,152 @@ export const changedPassword = async (req, res) => {
 };
 
 // Helper to format/normalize phone number for Twilio Verify (E.164 format)
-const formatPhoneNumber = (phone) => {
+const formatPhoneNumber = (phone, countryCode) => {
   if (!phone) return "";
+
   let cleaned = phone.trim();
-  
+
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, "");
-  
-  // If it already starts with '+', keep it
+
+  // If already in E.164 format
   if (cleaned.startsWith("+")) {
     return cleaned;
   }
-  
-  // Strip leading zero(s)
+
+  // Remove leading zero(s)
   cleaned = cleaned.replace(/^0+/, "");
-  
-  // If it has 12 digits and starts with 91, add '+'
-  if (cleaned.startsWith("91") && cleaned.length === 12) {
-    return `+${cleaned}`;
-  }
-  
-  // Otherwise, default to prepending +91 (India)
-  return `+91${cleaned}`;
+
+  // Use country code from frontend
+  return `${countryCode}${cleaned}`;
 };
 
-// send otp 
+// // send otp 
+// export const sendOtp = async (req, res) => {
+//   try {
+//     const { phone } = req.body;
+
+//     if (!phone) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Phone number is required",
+//       });
+//     }
+
+//     const formattedPhone = formatPhoneNumber(phone);
+
+//     await client.verify.v2
+//       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+//       .verifications.create({
+//         to: formattedPhone,
+//         channel: "sms",
+//       });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "OTP sent successfully",
+//     });
+//   } catch (err) {
+//     console.log("Send OTP Error:", err);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: err.status === 404 
+//         ? "Verification service not found. Please verify your Twilio settings."
+//         : err.message,
+//     });
+//   }
+// };
+
+// // verfiy otp 
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const { phone, otp } = req.body;
+
+//     if (!phone || !otp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Phone number and OTP are required",
+//       });
+//     }
+
+//     const formattedPhone = formatPhoneNumber(phone);
+
+//     let verificationCheck;
+//     try {
+//       verificationCheck = await client.verify.v2
+//         .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+//         .verificationChecks.create({
+//           to: formattedPhone,
+//           code: otp,
+//         });
+//     } catch (twilioErr) {
+//       console.log("Twilio Verify OTP Error:", twilioErr);
+//       // Catch 404 (Resource not found) or similar Twilio errors
+//       if (twilioErr.status === 404) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "OTP has expired or was already verified. Please request a new OTP.",
+//         });
+//       }
+//       throw twilioErr;
+//     }
+
+//     if (verificationCheck.status !== "approved") {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid OTP",
+//       });
+//     }
+
+//     // Find existing user (using raw phone to remain consistent with db records)
+//     let user = await User.findOne({ phone });
+
+//     // Create user if not exists
+//     if (!user) {
+//       user = await User.create({
+//         phone,
+//       });
+//     }
+
+//     // Generate JWT
+//     const token = jwt.sign(
+//       {
+//         id: user._id,
+//         role: user.role,
+//       },
+//       process.env.JWT_SECRET,
+//       {
+//         expiresIn: "7d",
+//       }
+//     );
+
+//     // Save JWT in cookie
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "OTP verify",
+//       token,
+//       user,
+//     });
+
+//   } catch (err) {
+//     console.log("Verify OTP Error:", err);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: err.message,
+//     });
+//   }
+// };
+
+// send otp (Bypassed Twilio - Logs to Console)
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;

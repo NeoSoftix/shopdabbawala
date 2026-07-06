@@ -311,6 +311,8 @@ export const stripeWebhook = async (req, res) => {
   }
 };
 
+
+// save check out detilas 
 export const saveCheckoutDetails = async (req, res) => {
   try {
     const { name, email, address, sessionId } = req.body;
