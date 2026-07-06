@@ -338,11 +338,12 @@ export const saveCheckoutDetails = async (req, res) => {
       totalMeals = payment.subscription.totalMeals;
     }
 
-    // Send the email
+    // Send the email in the background to prevent blocking the response
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
-    await sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml);
+    sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml)
+      .catch(err => console.error("Background email sending failed:", err));
 
-    return res.status(200).json({ success: true, message: "Details saved and email sent." });
+    return res.status(200).json({ success: true, message: "Details saved and email processing." });
   } catch (error) {
     console.error("saveCheckoutDetails error:", error);
     return res.status(500).json({ success: false, message: "Internal server error." });
