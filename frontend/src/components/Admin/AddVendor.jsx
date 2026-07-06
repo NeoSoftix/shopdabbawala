@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createVendor } from "../../services/vendor.service.js";
+import { toast } from "react-hot-toast";
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const AddVendor = () => {
             address: postOffices[0].Name + ", ", // शुरुआत में पहला एरिया एड्रेस में डाल सकते हैं
           }));
         } else {
-          alert("Invalid Pincode. Please check again.");
+          toast.error("Invalid Pincode. Please check again.");
         }
       } catch (error) {
         console.error("Error fetching location:", error);
@@ -112,11 +113,11 @@ const AddVendor = () => {
 
       const response = await createVendor(data);
 
-      alert(response?.message || "Vendor Added Successfully");
+      toast.success(response?.message || "Vendor Added Successfully");
       navigate("/admin/vendors");
     } catch (error) {
       console.log(error);
-      alert(error?.response?.data?.message || "Failed to create vendor");
+      toast.error(error?.response?.data?.message || "Failed to create vendor");
     } finally {
       setLoading(false);
     }

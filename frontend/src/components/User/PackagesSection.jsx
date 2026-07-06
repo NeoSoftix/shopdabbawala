@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 import { checkServiceAvailability } from "../../services/vendor.service";
-// Aapki service file se function import karein
-// Path ko apne folder structure ke according check kar lein (e.g., "../../services/packageService")
 import { getActivePackages } from "../../services/package.service";
-import { sendOtp, verifyOtp } from "../../services/auth.service.js";
-import { createPackageCheckout } from "../../services/payment.service";
+import { toast } from "react-hot-toast";
+import CheckoutFlowModal from "../shared/CheckoutFlowModal";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -23,6 +22,7 @@ const GRADIENTS = [
 ];
 
 export default function PackagesSection() {
+  const location = useLocation();
   // --- BACKEND DATA STATES ---
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,16 +38,6 @@ export default function PackagesSection() {
   const [leadError, setLeadError] = useState("");
   // --- CHECKOUT MODAL STATES ---
   const [checkoutPlan, setCheckoutPlan] = useState(null);
-  const [checkoutStep, setCheckoutStep] = useState(1);
-  const [checkoutData, setCheckoutData] = useState({
-    pincode: "",
-    phone: "",
-    otp: "",
-    name: "",
-    email: "",
-    address: "",
-  });
-  const [checkoutError, setCheckoutError] = useState("");
 
   // --- DYNAMIC DATA FETCHING VIA SERVICE ---
   useEffect(() => {
@@ -159,114 +149,10 @@ export default function PackagesSection() {
 
   const openCheckoutModal = (pkg) => {
     setCheckoutPlan(pkg);
-    setCheckoutStep(1);
-    setCheckoutError("");
-    setCheckoutData({
-      pincode: "",
-      phone: "",
-      otp: "",
-      name: "",
-      email: "",
-      address: "",
-    });
   };
 
   const closeCheckoutModal = () => {
     setCheckoutPlan(null);
-    setCheckoutStep(1);
-    setCheckoutError("");
-  };
-
-  const handlePincodeSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      setCheckoutError("");
-
-      const res = await checkServiceAvailability(checkoutData.pincode.trim());
-
-      if (res.success) {
-        setCheckoutStep(2);
-      } else {
-        setCheckoutError(res.message);
-      }
-    } catch (error) {
-      setCheckoutError(
-        error.response?.data?.message ||
-          "Sorry! Service is not available in your area.",
-      );
-    }
-  };
-
-const handlePhoneSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    setCheckoutError("");
-
-    const res = await sendOtp({
-      phone: checkoutData.phone.trim(),
-    });
-
-    if (res && res.success) {
-      alert(res.message || "OTP Sent Successfully");
-      setCheckoutStep(3);
-    } else {
-      setCheckoutError(res?.message || "Failed to send OTP.");
-    }
-  } catch (error) {
-    console.error("Frontend Send OTP Error:", error);
-
-    setCheckoutError(
-      error.response?.data?.message ||
-      "Something went wrong. Failed to send OTP."
-    );
-  }
-};
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!checkoutData.otp) {
-      setCheckoutError("Please enter OTP.");
-      return;
-    }
-
-    try {
-      setCheckoutError("");
-
-      // Backend me key check karo: const { phone, otp: enteredOtp } = req.body;
-      // Isliye frontend se hum 'phone' aur 'otp' dono bhejenge
-      const res = await verifyOtp({
-        phone: checkoutData.phone.trim(),
-        otp: checkoutData.otp.trim(),
-      });
-
-      // Backend return karta hai: { success: true, message: "OTP Verified successfully." }
-    
-      if (res && res.success) {
-  alert(res.message || "OTP Verified Successfully");
-
-  const checkoutRes = await createPackageCheckout(checkoutPlan._id);
-
-  if (checkoutRes.success) {
-    window.location.href = checkoutRes.checkoutUrl;
-  } else {
-    setCheckoutError("Failed to start payment.");
-  }
-} else {
-  setCheckoutError(res?.message || "Verification failed.");
-} 
-    } catch (error) {
-      console.error("Frontend Verify OTP Error:", error);
-      setCheckoutError(
-        error.response?.data?.message || "Invalid OTP or Server Error.",
-      );
-    }
-  };
-
-  const handleFinalDetailsSubmit = (e) => {
-    e.preventDefault();
-    setCheckoutStep(5);
   };
 
   // --- LOADING & ERROR STATES UI ---
@@ -803,6 +689,7 @@ const handlePhoneSubmit = async (e) => {
                       Choose Plan
                     </button>
                   </div>
+
                 ))}
               </div>
             </motion.div>
@@ -813,406 +700,17 @@ const handlePhoneSubmit = async (e) => {
       {/* ================= CUSTOMIZE POPUP LEAD MODAL ================= */}
       <AnimatePresence>
         {isPopupOpen && (
-          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4 md:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closePopup}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
-            />
-            {popupStep === 1 ? (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className="relative bg-white w-full max-w-5xl min-h-[92vh] rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 overflow-hidden pointer-events-auto flex flex-col justify-center items-center p-6"
-              >
-                <button
-                  onClick={closePopup}
-                  className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors z-20"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-
-                <div className="w-full max-w-md mx-auto bg-white border border-slate-100 rounded-[2rem] p-6 sm:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] flex flex-col space-y-6">
-                  <div className="text-center">
-                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
-                      Enter Details
-                    </h3>
-                    <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1.5">
-                      Please share your info to customize your meal plan
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleLeadSubmit} className="space-y-5">
-                    <div className="flex flex-col space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-1">
-                        Area Pincode
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="110001"
-                        value={formData.pincode}
-                        onChange={(e) =>
-                          setFormData({ ...formData, pincode: e.target.value })
-                        }
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white"
-                      />
-                      {leadError && (
-                        <p className="text-red-500 text-xs font-semibold mt-2">
-                          {leadError}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full mt-2 bg-red-600 text-white font-black text-xs tracking-widest uppercase py-4 rounded-xl shadow-md transition-all duration-300 hover:bg-red-700"
-                    >
-                      Continue to Customize →
-                    </button>
-                  </form>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 30 }}
-                className="relative bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 max-h-[92vh] overflow-y-auto pointer-events-auto"
-              >
-                <CreatePackage onClose={closePopup} userData={formData} />
-              </motion.div>
-            )}
-          </div>
+          <CreatePackage isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
         )}
       </AnimatePresence>
 
-      {/* ================= CHOOSE PLAN CHECKOUT STEPPER MODAL ================= */}
-      <AnimatePresence>
-        {checkoutPlan && (
-          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4 sm:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeCheckoutModal}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-            />
-
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl z-10 border border-slate-100 p-6 sm:p-8 pointer-events-auto flex flex-col justify-between max-h-[95vh] overflow-y-auto"
-            >
-              {checkoutStep !== 5 && (
-                <button
-                  onClick={closeCheckoutModal}
-                  className="absolute top-5 right-5 w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors focus:outline-none shadow-sm"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-
-              {checkoutStep < 5 && (
-                <div className="mb-4 text-left">
-                  <span className="bg-red-50 text-red-600 font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full">
-                    Plan: {checkoutPlan.title} ({checkoutPlan.price})
-                  </span>
-                </div>
-              )}
-
-              {checkoutError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-xl text-center">
-                  {checkoutError}
-                </div>
-              )}
-
-              {/* STEP 1: PINCODE CHECK */}
-              {checkoutStep === 1 && (
-                <form onSubmit={handlePincodeSubmit} className="space-y-4">
-                  <div className="text-center mb-2">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
-                      Check Availability
-                    </h3>
-                    <p className="text-slate-400 text-xs font-semibold mt-1">
-                      Please enter your delivery area pincode
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1.5">
-                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                      Pincode
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 144001"
-                      value={checkoutData.pincode}
-                      onChange={(e) =>
-                        setCheckoutData({
-                          ...checkoutData,
-                          pincode: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md"
-                  >
-                    Verify Area →
-                  </button>
-                </form>
-              )}
-
-              {/* STEP 2: PHONE NUMBER */}
-              {checkoutStep === 2 && (
-                <form onSubmit={handlePhoneSubmit} className="space-y-4">
-                  <div className="text-center mb-2">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
-                      Great News! 🚚
-                    </h3>
-                    <p className="text-slate-400 text-xs font-semibold mt-1">
-                      We serve your area. Enter phone to continue.
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1.5">
-                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Contact Number</label>
-                 <input
-  type="text"
-  required
-  placeholder="Enter mobile number"
-  value={checkoutData.phone}
-  onChange={(e) =>
-    setCheckoutData({ ...checkoutData, phone: e.target.value })
-  }
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md"
-                  >
-                    Send Verification OTP →
-                  </button>
-                </form>
-              )}
-
-              {/* STEP 3: OTP VERIFICATION */}
-              {checkoutStep === 3 && (
-                <form onSubmit={handleOtpSubmit} className="space-y-4">
-                  <div className="text-center mb-2">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
-                      Verify Mobile
-                    </h3>
-                    <p className="text-slate-400 text-xs font-semibold mt-1">
-                      We sent a code to +91 {checkoutData.phone}
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1.5">
-                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                      Enter OTP
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Enter 6 digit OTP code"
-                      maxLength="6"
-                      value={checkoutData.otp}
-                      onChange={(e) =>
-                        setCheckoutData({
-                          ...checkoutData,
-                          otp: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg tracking-widest font-black text-slate-800 focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-             <button
-  type="submit"
-  className="w-full bg-red-600 text-white py-3 rounded-xl"
->
-  Verify Code & Pay
-</button>
-                </form>
-              )}
-
-              {/* STEP 4: SUCCESS & PERSONAL DETAILS */}
-              {checkoutStep === 4 && (
-                <form onSubmit={handleFinalDetailsSubmit} className="space-y-4">
-                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center mb-1">
-                    <div className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-lg shadow-sm">
-                      ✓
-                    </div>
-                    <h4 className="text-emerald-800 font-black text-sm uppercase tracking-wide">
-                      Payment Successfully Submitted!
-                    </h4>
-                    <p className="text-emerald-600/95 font-medium text-[11px] mt-0.5">
-                      Please enter your full details below to complete setting
-                      up your profile.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 opacity-60">
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-slate-500">
-                        Pincode
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={checkoutData.pincode}
-                        className="w-full px-3 py-2 bg-slate-100 border rounded-xl font-bold text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-slate-500">
-                        Phone
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={checkoutData.phone}
-                        className="w-full px-3 py-2 bg-slate-100 border rounded-xl font-bold text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="John Doe"
-                        value={checkoutData.name}
-                        onChange={(e) =>
-                          setCheckoutData({
-                            ...checkoutData,
-                            name: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-red-500"
-                      />
-                    </div>
-
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        placeholder="john@example.com"
-                        value={checkoutData.email}
-                        onChange={(e) =>
-                          setCheckoutData({
-                            ...checkoutData,
-                            email: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-red-500"
-                      />
-                    </div>
-
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                        Full Delivery Address
-                      </label>
-                      <textarea
-                        required
-                        placeholder="Flat/House No, Building, Street Name..."
-                        rows="2"
-                        value={checkoutData.address}
-                        onChange={(e) =>
-                          setCheckoutData({
-                            ...checkoutData,
-                            address: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-red-500 resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl transition-all shadow-md"
-                  >
-                    Submit Onboarding Data →
-                  </button>
-                </form>
-              )}
-
-              {/* STEP 5: THANK YOU PAGE */}
-              {checkoutStep === 5 && (
-                <div className="text-center py-6 space-y-4">
-                  <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                    <span className="text-3xl animate-bounce">🎉</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                      Thank You, {checkoutData.name}!
-                    </h3>
-                    <p className="text-red-600 text-xs font-black uppercase tracking-widest mt-1">
-                      Your Subscription is Live
-                    </p>
-                  </div>
-                  <p className="text-slate-500 font-semibold text-xs leading-relaxed max-w-sm mx-auto px-2">
-                    We have mapped your{" "}
-                    <span className="text-slate-800 font-extrabold">
-                      {checkoutPlan.title}
-                    </span>{" "}
-                    plan bundle. A detailed configuration email containing
-                    delivery calendars has been sent to{" "}
-                    <span className="text-slate-800 font-bold break-all">
-                      {checkoutData.email}
-                    </span>
-                    .
-                  </p>
-                  <div className="pt-3">
-                    <button 
-                      onClick={closeCheckoutModal}
-                      className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs tracking-widest uppercase px-8 py-3 rounded-xl transition-all shadow-md"
-                    >
-                      Go to Dashboard
-                    </button>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* ================= SHARED CHECKOUT FLOW MODAL ================= */}
+      <CheckoutFlowModal
+        isOpen={!!checkoutPlan || new URLSearchParams(location.search).get("payment_success") === "true"}
+        onClose={closeCheckoutModal}
+        mode="packages"
+        planId={checkoutPlan?._id}
+      />
     </section>
   );
 }

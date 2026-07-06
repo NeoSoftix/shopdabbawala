@@ -13,6 +13,7 @@ import {
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
 import UserHistorydetails from "../../components/User/UserHistoryDetails";
+import { toast } from "react-hot-toast";
 
 // Configuration Data
 const daysOfWeek = [
@@ -237,7 +238,7 @@ const MealSchedule = ({
       const exists = currentDayItems.some((i) => i && i.id === item.id);
 
       if (!exists && currentDayItems.length >= 6) {
-        alert("You can only add up to 6 meals per day in this plan.");
+        toast.error("You can only add up to 6 meals per day in this plan.");
         return prev;
       }
 
@@ -469,7 +470,7 @@ const MealSchedule = ({
             <div className="pt-3 border-t border-gray-100 flex items-center justify-end">
               <button
                 type="button"
-                onClick={() => alert("Order Confirmed!")}
+                onClick={() => toast.success("Order Confirmed!")}
                 className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all"
               >
                 PREVIEW & CONFIRM &gt;

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Bell, Menu, ChevronDown, User, X, Camera } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 
 const Header = ({
   title = "Dashboard",
@@ -7,6 +9,7 @@ const Header = ({
   userRole = "Super Admin",
   onMenuClick, 
 }) => {
+  const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); 
@@ -31,7 +34,8 @@ const Header = ({
   const handleOptionClick = (type) => {
     setIsDropdownOpen(false); 
     if (type === "logout") {
-      alert("Logging out...");
+      toast.success("Logging out...");
+      logout();
     } else {
       setModalType(type);
       setIsModalOpen(true); 
