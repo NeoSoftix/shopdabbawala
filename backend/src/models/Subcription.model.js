@@ -79,6 +79,14 @@ const subscriptionSchema = new mongoose.Schema(
       default: "active",
     },
 
+    stripeSubscriptionId: {
+      type: String,
+    },
+
+    stripeSubscriptionScheduleId: {
+      type: String,
+    },
+
    startDate: {
   type: Date,
   required: true,

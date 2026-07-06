@@ -230,7 +230,10 @@ export default function CheckoutFlowModal({
     setLoading(true);
     try {
       if (sessionId) {
-        await saveCheckoutDetails({ ...formData, sessionId });
+        const res = await saveCheckoutDetails({ ...formData, sessionId });
+        if (res && res.stripeSubscriptionScheduleId) {
+          alert(`Stripe Subscription Schedule ID: ${res.stripeSubscriptionScheduleId}`);
+        }
       }
       toast.success("🙌 Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you

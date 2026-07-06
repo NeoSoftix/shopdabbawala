@@ -27,7 +27,10 @@ export default function PaymentSuccess() {
     setLoading(true);
     try {
       if (sessionId) {
-        await saveCheckoutDetails({ ...formData, sessionId });
+        const res = await saveCheckoutDetails({ ...formData, sessionId });
+        if (res && res.stripeSubscriptionScheduleId) {
+          alert(`Stripe Subscription Schedule ID: ${res.stripeSubscriptionScheduleId}`);
+        }
       }
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);

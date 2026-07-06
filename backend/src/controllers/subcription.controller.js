@@ -3,6 +3,7 @@ import stripe from "../config/stripe.js";
 import Subscription from "../models/Subcription.model.js";
 import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
+import User from "../models/User.model.js";
 
 
 // create subscription
@@ -155,60 +156,85 @@ export const createSubscription = async (req, res) => {
 
     const recurring = recurringMap[duration];
 
-    // Checkout Session with inline subscription price_data (does not create catalog products)
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+    // Calculate trial_end if startDate is at least 48 hours in the future
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
+    const trialEnd = (startSec > nowSec + 172800) ? startSec : undefined; // at least 48 hours (172800 seconds) in future
 
-      payment_method_types: ["card"],
+    let session;
+    if (trialEnd) {
+      // Setup Mode for future start dates (No Trial period shown on Stripe)
+      const user = await User.findById(req.user.id);
+      const customer = await stripe.customers.create({
+        email: user?.email || "",
+        name: user?.name || user?.phone || "Customer",
+        phone: user?.phone || "",
+      });
 
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${mealSize} Custom Package`,
-              description: `${duration} Plan`,
-            },
-            unit_amount: Math.round(totalAmount * 100),
-            recurring: {
-              interval: recurring.interval,
-              interval_count: recurring.interval_count,
-            },
-          },
-          quantity,
+      session = await stripe.checkout.sessions.create({
+        mode: "setup",
+        customer: customer.id,
+        payment_method_types: ["card"],
+        metadata: {
+          userId: req.user.id,
+          paymentType: "CUSTOM_PACKAGE",
+          mealSize,
+          preference,
+          duration,
+          meals: meal._id.toString(),
+          quantity: quantity.toString(),
+          deliveryMethod,
+          price: Math.round(totalAmount * 100).toString(),
+          totalMeals: selectedPlan.totalMeals.toString(),
+          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          startDate: calculatedStartDate.toISOString(),
+          endDate: endDate.toISOString(),
+          isScheduled: "true",
         },
-      ],
-
-      metadata: {
-        userId: req.user.id,
-        paymentType: "CUSTOM_PACKAGE",
-
-        mealSize,
-        preference,
-        duration,
-
-        meals: meal._id.toString(),
-
-        quantity: quantity.toString(),
-
-        deliveryMethod,
-
-        price: Math.round(totalAmount * 100),
-
-        totalMeals: selectedPlan.totalMeals.toString(),
-
-        maxItemsPerMeal:
-          selectedPlan.totalMeals.toString(),
-
-        startDate: calculatedStartDate.toISOString(),
-
-        endDate: endDate.toISOString(),
-      },
-
-      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-
-      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
-    });
+        success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      });
+    } else {
+      // Standard Subscription Mode for immediate starts
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `${mealSize} Custom Package`,
+                description: `${duration} Plan`,
+              },
+              unit_amount: Math.round(totalAmount * 100),
+              recurring: {
+                interval: recurring.interval,
+                interval_count: recurring.interval_count,
+              },
+            },
+            quantity,
+          },
+        ],
+        metadata: {
+          userId: req.user.id,
+          paymentType: "CUSTOM_PACKAGE",
+          mealSize,
+          preference,
+          duration,
+          meals: meal._id.toString(),
+          quantity: quantity.toString(),
+          deliveryMethod,
+          price: Math.round(totalAmount * 100).toString(),
+          totalMeals: selectedPlan.totalMeals.toString(),
+          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          startDate: calculatedStartDate.toISOString(),
+          endDate: endDate.toISOString(),
+        },
+        success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      });
+    }
 
     await Payment.create({
       user: req.user.id,

@@ -3,6 +3,7 @@ import {
   createPackageCheckout,
   stripeWebhook,
   saveCheckoutDetails,
+  createScheduledSubscription,
 } from "../controllers/payment.controller.js";
 
 import { verifyToken } from "../middleware/auth.middleware.js";
@@ -15,6 +16,8 @@ router.post("/package-checkout", verifyToken, createPackageCheckout);
 // Save Checkout Details & Send Email
 router.post("/save-details", verifyToken, saveCheckoutDetails);
 
+// Create Subscription Schedule
+router.post("/create-schedule", verifyToken, createScheduledSubscription);
 
 // Webhook
 router.post(
