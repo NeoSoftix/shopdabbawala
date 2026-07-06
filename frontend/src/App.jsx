@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -40,8 +41,46 @@ import NotFoundPage from "./components/shared/NotFoundPage";
 import PaymentSuccess from "./components/shared/PaymentSuccess";
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
+    <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            fontSize: "14px",
+            fontWeight: "500",
+            borderRadius: "14px",
+            padding: "12px 20px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+            fontFamily: "'Outfit', 'Inter', sans-serif",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#FFFFFF",
+            },
+            style: {
+              background: "#ECFDF5",
+              color: "#065F46",
+              border: "1px solid #A7F3D0",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#FFFFFF",
+            },
+            style: {
+              background: "#FEF2F2",
+              color: "#991B1B",
+              border: "1px solid #FEE2E2",
+            },
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
       {/* admin route */}
       <Route
@@ -94,6 +133,7 @@ function App() {
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
     </Routes>
+    </>
   );
 }
 

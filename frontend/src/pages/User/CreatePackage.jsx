@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ThankYouPage from "../../components/User/ThankyouPage";
+
 import vegIcon from "../../../public/spinach.svg";
 import VEGICOn from "../../../public/veg icon.svg";
 
@@ -8,27 +8,22 @@ import PhoneInputPkg from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 const PhoneInput = PhoneInputPkg.default ? PhoneInputPkg.default : PhoneInputPkg;
 
-import {
-  sendOtp,
-  verifyOtp,
-} from "../../services/auth.service";
+import CheckoutFlowModal from "../../components/shared/CheckoutFlowModal";
+import { toast } from "react-hot-toast";
 
 import { createSubscription } from "../../services/subscription.service";
 import { getActiveMeal } from "../../services/meal.service";
 
-export default function CreatePackage({ onClose, userData }) {
+export default function CreatePackage({ isOpen, onClose }) {
   // Config States
   const [preference, setPreference] = useState("Veg");
   const [timing, setTiming] = useState("Lunch");
   const [duration, setDuration] = useState("Monthly");
   const [totalMeals, setTotalMeals] = useState(16);
-  const [showSuccess, setShowSuccess] = useState(false);
+
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
   const [mealSize, setMealSize] = useState("Basic");
-  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [mealOptions, setMealOptions] = useState([]);
   const [meals, setMeals] = useState("");
   
@@ -40,20 +35,6 @@ export default function CreatePackage({ onClose, userData }) {
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   
-  // CHECKOUT DATA STATE
-  const [checkoutData, setCheckoutData] = useState({
-    name: "",
-    phone: "",
-    email: "", 
-    address: "", 
-    otp: "", 
-  });
-
-  // OTP & Workflow States
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
-  const [showPaymentSuccessMsg, setShowPaymentSuccessMsg] = useState(false);
-
   // Red & White Theme Based Meal Plan State
   const [selectedPlan, setSelectedPlan] = useState("Basic");
   const [hoveredPlan, setHoveredPlan] = useState(null);
@@ -179,291 +160,23 @@ export default function CreatePackage({ onClose, userData }) {
     return days;
   };
 
-  // OTP Actions with API Integration
-  const handleSendOtp = async () => {
-    if (!checkoutData.phone) {
-      alert("Please enter phone number");
-      return;
-    }
-
-    try {
-      const response = await sendOtp({ phone: checkoutData.phone }); 
-      alert("OTP sent successfully!");
-      setIsOtpSent(true);
-    } catch (error) {
-      alert(error?.response?.data?.message || "Failed to send OTP. Please try again.");
-      console.error("Error in handleSendOtp:", error);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!checkoutData.otp) {
-      alert("Please enter OTP");
-      return;
-    }
-
-    try {
-      const response = await verifyOtp({ 
-        phone: checkoutData.phone, 
-        otp: checkoutData.otp 
-      });
-
-      alert("OTP Verified Successfully!");
-      setIsOtpVerified(true);
-      setShowPaymentSuccessMsg(true);
-    } catch (error) {
-      alert(error?.response?.data?.message || "Invalid OTP. Please try again.");
-      console.error("Error in handleVerifyOtp:", error);
-    }
-  };
-
-  const handleProceedToCheckout = () => {
-    if (!startDate) {
-      alert("Please select a delivery start date first.");
-      return;
-    }
-    setShowCheckoutForm(true);
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!checkoutData.name || !checkoutData.phone || !checkoutData.email || !checkoutData.address) {
-      alert("Please fill all details");
-      return;
-    }
-
-    if (!startDate) {
-      alert("Please select a delivery start date");
-      return;
-    }
-
-    try {
-      const response = await createSubscription({
-        mealSize: selectedPlan, 
+  return (
+    <CheckoutFlowModal
+      isOpen={isOpen !== undefined ? isOpen : true}
+      onClose={onClose || (() => window.history.back())}
+      mode="create"
+      isCustomizationValid={!!startDate}
+      subscriptionData={{
+        mealSize: selectedPlan,
         preference,
         duration,
-        meals,                  
+        meals,
         quantity,
         deliveryMethod,
         startDate,
-      });
-
-      if (response && response.success && response.checkoutUrl) {
-        // Redirect to Stripe checkout page
-        window.location.href = response.checkoutUrl;
-      } else {
-        alert("Failed to start payment checkout session.");
-      }
-    } catch (error) {
-      console.error("Create Subscription Error:", error);
-      alert(error?.response?.data?.message || "Failed to create subscription");
-    }
-  };
-
-  return (
-    <div className={`bg-white rounded-[2.5rem] ${onClose ? "h-auto" : "h-screen"}`}>
-      {showSuccess ? (
-        <ThankYouPage setShowSuccess={setShowSuccess} />
-      ) : showCheckoutForm ? (
-        /* ================= CHECKOUT FORM VIEW ================= */
-        <div className="bg-[#f9f9fb] text-gray-800 font-sans antialiased min-h-[500px] py-10 px-4 flex flex-col items-center justify-center relative rounded-[2.5rem]">
-          <button
-            type="button"
-            onClick={() => {
-              setShowCheckoutForm(false);
-              setIsOtpSent(false);
-              setIsOtpVerified(false);
-              setShowPaymentSuccessMsg(false);
-            }}
-            className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-red-600 transition-colors"
-          >
-            &larr; Back to Summary
-          </button>
-
-          <div className="max-w-md w-full space-y-4">
-            {showPaymentSuccessMsg && (
-              <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-2xl text-xs font-bold text-center shadow-md">
-                🎉 Your payment has been successfully processed! Please provide your delivery and contact details below to proceed with your order.
-              </div>
-            )}
-
-            <div className="w-full bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xl">
-              <h2 className="text-xl font-extrabold text-gray-900 tracking-tight uppercase mb-1">
-                Checkout Details
-              </h2>
-              <p className="text-gray-500 text-xs mb-5 leading-relaxed">
-                Please provide your information to complete the meal subscription booking.
-              </p>
-
-              {!isOtpVerified ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                      Phone Number
-                    </label>
-                    <div className="flex gap-2 items-center relative phone-input-fix">
-                      <div className="w-full">
-                        <PhoneInput
-                          country={"in"} 
-                          enableSearch={true}
-                          value={checkoutData.phone}
-                          onChange={(phone) => setCheckoutData({ ...checkoutData, phone: "+" + phone })}
-                          inputStyle={{
-                            width: "100%",
-                            height: "38px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                            color: "#374151",
-                            borderRadius: "0.75rem",
-                            border: "1px solid #d1d5db",
-                            backgroundColor: "#fff",
-                          }}
-                          buttonStyle={{
-                            borderRadius: "0.75rem 0 0 0.75rem",
-                            border: "1px solid #d1d5db",
-                            borderRight: "none",
-                            backgroundColor: "#fff",
-                          }}
-                        />
-                      </div>
-                      {!isOtpSent && (
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          className="bg-[#dc2626] text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-[#b91c1c] transition-all h-[38px] flex items-center justify-center"
-                        >
-                          Send OTP
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {isOtpSent && (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                          Enter OTP
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Enter OTP"
-                          value={checkoutData.otp}
-                          onChange={(e) => setCheckoutData({ ...checkoutData, otp: e.target.value })}
-                          className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all"
-                      >
-                        Verify OTP
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Enter your full name"
-                      value={checkoutData.name}
-                      onChange={(e) => setCheckoutData({ ...checkoutData, name: e.target.value })}
-                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      readOnly
-                      placeholder="Enter phone number"
-                      value={checkoutData.phone}
-                      className="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-500 focus:outline-none cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="Enter your email address"
-                      value={checkoutData.email || ""}
-                      onChange={(e) => setCheckoutData({ ...checkoutData, email: e.target.value })}
-                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-black tracking-wider text-gray-600 uppercase mb-1">
-                      Delivery Address
-                    </label>
-                    <textarea
-                      required
-                      rows="2"
-                      placeholder="Enter your complete delivery address"
-                      value={checkoutData.address || ""}
-                      onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })}
-                      className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-medium text-gray-700 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] resize-none"
-                    />
-                  </div>
-
-                  <div className="bg-[#f4f5f7] p-3 rounded-xl text-xs font-bold text-slate-600 mt-2">
-                    <div className="flex justify-between">
-                      <span>Total Amount Paid:</span>
-                      <span className="text-[#dc2626] font-black text-sm">${(totalAmount || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-[#dc2626] text-white py-2.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm hover:bg-[#b91c1c] transition-all active:scale-[0.98] focus:outline-none mt-2"
-                  >
-                    Submit & Complete Order
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased ${onClose ? "h-auto rounded-[2.5rem]" : "min-h-screen"} py-3 px-2 sm:px-4 lg:px-5 relative`}>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-colors"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-
+      }}
+    >
+      <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased h-full py-3 px-2 sm:px-4 lg:px-5 relative`}>
             <main className="max-w-full bg-white/50 rounded-3xl">
               {/* ================= HEADER AREA WITH USER DETAILS ================= */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-1.5 pb-1.5 border-b border-gray-200/60 px-2">
@@ -475,19 +188,6 @@ export default function CreatePackage({ onClose, userData }) {
                     Customize your culinary journey with premium ingredients delivered to your doorstep.
                   </p>
                 </div>
-
-                {userData && (
-                  <div className="bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-4 flex items-center gap-x-6 gap-y-2 shadow-sm min-w-[280px] md:max-w-md self-start md:self-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black tracking-wider text-red-500 uppercase">
-                        Pincode
-                      </span>
-                      <span className="text-sm font-bold text-slate-700 bg-red-100/40 px-2 py-0.5 rounded-md border border-red-100/70">
-                        {userData.pincode || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Pickup / Delivery selector for mobile/small screens */}
@@ -1052,21 +752,11 @@ export default function CreatePackage({ onClose, userData }) {
                       </svg>
                       <span>Price per Tiffin: ${pricePerMeal}</span>
                     </div>
-
-                    <button
-                      type="button"
-                      className="w-full bg-[#dc2626] text-white py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#b91c1c] transition-all"
-                      onClick={handleProceedToCheckout}
-                    >
-                      Proceed to Checkout
-                    </button>
                   </div>
                 </div>
               </div>
             </main>
           </div>
-        </>
-      )}
-    </div>
+    </CheckoutFlowModal>
   );
 }
