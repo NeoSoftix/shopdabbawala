@@ -6,6 +6,114 @@ import { sendEmail } from "../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../utils/email/purchaseSuccessTemplate.js"
 import User from "../models/User.model.js"
 
+// Helper function to setup a scheduled subscription from setup mode session
+const setupScheduledSubscription = async (session, payment, subscriptionObj = null) => {
+  try {
+    // 1. Retrieve setup intent to get payment method
+    let paymentMethodId;
+    if (session.setup_intent) {
+      const setupIntent = await stripe.setupIntents.retrieve(session.setup_intent);
+      paymentMethodId = setupIntent.payment_method;
+    }
+
+    if (paymentMethodId) {
+      // 2. Attach payment method to customer
+      await stripe.paymentMethods.attach(paymentMethodId, {
+        customer: session.customer,
+      });
+
+      // Set it as default invoice payment method
+      await stripe.customers.update(session.customer, {
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        },
+      });
+    }
+
+    // 3. Create Stripe Product & Price dynamically
+    const product = await stripe.products.create({
+      name: `${session.metadata.mealSize} Custom Package`,
+      description: `${session.metadata.duration} Plan`,
+    });
+
+    const recurringMap = {
+      Trial: { interval: "day", interval_count: 1 },
+      Weekly: { interval: "week", interval_count: 1 },
+      Monthly: { interval: "month", interval_count: 1 },
+      Quarterly: { interval: "month", interval_count: 3 },
+    };
+    const recurring = recurringMap[session.metadata.duration] || { interval: "month", interval_count: 1 };
+
+    const price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: Number(session.metadata.price),
+      currency: "usd",
+      recurring,
+    });
+
+    // 4. Create Subscription Schedule starting in the future
+    const startDateSeconds = Math.floor(new Date(session.metadata.startDate).getTime() / 1000);
+
+    const schedule = await stripe.subscriptionSchedules.create({
+      customer: session.customer,
+      start_date: startDateSeconds,
+      end_behavior: "cancel",
+      phases: [
+        {
+          items: [
+            {
+              price: price.id,
+              quantity: Number(session.metadata.quantity || 1),
+            },
+          ],
+          duration: {
+            interval: recurring.interval,
+            interval_count: recurring.interval_count,
+          },
+        },
+      ],
+    });
+
+    console.log("Subscription schedule created from setup mode:", schedule.id);
+
+    // 5. Update local Database Subscription
+    let subscription = subscriptionObj;
+    if (!subscription) {
+      subscription = await Subscription.create({
+        user: session.metadata.userId,
+        mealSize: session.metadata.mealSize,
+        preference: session.metadata.preference,
+        duration: session.metadata.duration,
+        meals: session.metadata.meals,
+        quantity: Number(session.metadata.quantity),
+        deliveryMethod: session.metadata.deliveryMethod,
+        price: Number(session.metadata.price) / 100, // convert back to standard currency amount
+        totalMeals: Number(session.metadata.totalMeals),
+        mealsUsed: 0,
+        maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
+        stripeSubscriptionId: schedule.subscription || "",
+        stripeSubscriptionScheduleId: schedule.id,
+        startDate: new Date(session.metadata.startDate),
+        endDate: new Date(session.metadata.endDate),
+      });
+
+      payment.subscription = subscription._id;
+      await payment.save();
+    } else {
+      subscription.stripeSubscriptionScheduleId = schedule.id;
+      if (schedule.subscription) {
+        subscription.stripeSubscriptionId = schedule.subscription;
+      }
+      await subscription.save();
+    }
+
+    return schedule.id;
+  } catch (error) {
+    console.error("setupScheduledSubscription error:", error);
+    throw error;
+  }
+};
+
 export const createPackageCheckout = async (req, res) => {
   try {
     const { packageId } = req.body;
@@ -273,6 +381,69 @@ export const stripeWebhook = async (req, res) => {
             }
           );
         }
+
+        // -------- CUSTOM PACKAGE --------
+        if (session.metadata.paymentType === "CUSTOM_PACKAGE") {
+          if (session.metadata.isScheduled === "true") {
+            try {
+              // Retrieve payment again to populate subscription if it was populated in another thread
+              const populatedPayment = await Payment.findOne({ stripeSessionId: session.id }).populate("subscription");
+              await setupScheduledSubscription(session, populatedPayment, populatedPayment.subscription);
+            } catch (err) {
+              console.error("Failed to create scheduled subscription in webhook:", err.message);
+            }
+          } else {
+            const subscription = await Subscription.create({
+              user: session.metadata.userId,
+
+              mealSize: session.metadata.mealSize,
+              preference: session.metadata.preference,
+              duration: session.metadata.duration,
+
+              meals: session.metadata.meals,
+
+              quantity: Number(session.metadata.quantity),
+
+              deliveryMethod: session.metadata.deliveryMethod,
+
+              price: Number(session.metadata.price),
+
+              totalMeals: Number(session.metadata.totalMeals),
+
+              mealsUsed: 0,
+
+              maxItemsPerMeal: Number(
+                session.metadata.maxItemsPerMeal
+              ),
+
+              stripeSubscriptionId: session.subscription,
+
+              startDate: new Date(session.metadata.startDate),
+
+              endDate: new Date(session.metadata.endDate),
+            });
+
+            payment.subscription = subscription._id;
+
+            await payment.save();
+
+            // Option 1: Transition the Stripe subscription into a Subscription Schedule
+            if (session.subscription) {
+              try {
+                const schedule = await stripe.subscriptionSchedules.create({
+                  from_subscription: session.subscription,
+                });
+                console.log("Subscription schedule created successfully:", schedule.id);
+
+                subscription.stripeSubscriptionScheduleId = schedule.id;
+                await subscription.save();
+              } catch (scheduleError) {
+                console.error("Failed to create subscription schedule in webhook:", scheduleError.message);
+              }
+            }
+          }
+        }
+
         break;
       }
 
@@ -303,23 +474,79 @@ export const saveCheckoutDetails = async (req, res) => {
     }
 
     const payment = await Payment.findOne({ stripeSessionId: sessionId }).populate("package").populate("subscription");
-
+    let finalPayment = payment;
+    console.log(payment);
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment not found." });
     }
 
-    let finalPayment = payment;
-    // FULFILL ORDER INSTANTLY IF NOT PROCESSED YET
-    if (payment.status !== "paid") {
+    // Resilience: Retrieve subscription schedule ID directly from Stripe if the webhook hasn't updated the DB yet.
+    let stripeSubscriptionScheduleId = payment.subscription?.stripeSubscriptionScheduleId;
+
+    if (payment.paymentType === "CUSTOM_PACKAGE") {
       try {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.payment_status === "paid") {
-          await fulfillOrder(session, payment);
-          // Re-fetch to get the newly created subscription details for the email if needed
-          finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
+        if (session.metadata.isScheduled === "true") {
+          let subscription = payment.subscription;
+          if (!subscription || !subscription.stripeSubscriptionScheduleId) {
+            stripeSubscriptionScheduleId = await setupScheduledSubscription(session, payment, subscription);
+          } else {
+            stripeSubscriptionScheduleId = subscription.stripeSubscriptionScheduleId;
+          }
+        } else {
+          if (session.subscription) {
+            let subscription = payment.subscription;
+            if (!subscription) {
+              const startDateVal = session.metadata.startDate ? new Date(session.metadata.startDate) : new Date();
+              const endDateVal = session.metadata.endDate ? new Date(session.metadata.endDate) : new Date();
+
+              subscription = await Subscription.create({
+                user: session.metadata.userId,
+                mealSize: session.metadata.mealSize,
+                preference: session.metadata.preference,
+                duration: session.metadata.duration,
+                meals: session.metadata.meals,
+                quantity: Number(session.metadata.quantity),
+                deliveryMethod: session.metadata.deliveryMethod,
+                price: Number(session.metadata.price),
+                totalMeals: Number(session.metadata.totalMeals),
+                mealsUsed: 0,
+                maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
+                stripeSubscriptionId: session.subscription,
+                startDate: startDateVal,
+                endDate: endDateVal,
+              });
+
+              payment.subscription = subscription._id;
+              await payment.save();
+            }
+
+            if (!subscription.stripeSubscriptionScheduleId) {
+              const stripeSub = await stripe.subscriptions.retrieve(session.subscription);
+              if (stripeSub.schedule) {
+                stripeSubscriptionScheduleId = stripeSub.schedule;
+              } else {
+                try {
+                  const schedule = await stripe.subscriptionSchedules.create({
+                    from_subscription: session.subscription,
+                  });
+                  stripeSubscriptionScheduleId = schedule.id;
+                } catch (scheduleError) {
+                  console.error("Failed to create subscription schedule on-the-fly:", scheduleError.message);
+                }
+              }
+
+              if (stripeSubscriptionScheduleId) {
+                subscription.stripeSubscriptionScheduleId = stripeSubscriptionScheduleId;
+                await subscription.save();
+              }
+            } else {
+              stripeSubscriptionScheduleId = subscription.stripeSubscriptionScheduleId;
+            }
+          }
         }
       } catch (stripeErr) {
-        console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr);
+        console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr.message);
       }
     }
 
@@ -348,15 +575,81 @@ export const saveCheckoutDetails = async (req, res) => {
       totalMeals = finalPayment.subscription.totalMeals;
     }
 
-    // Send the email in the background to prevent blocking the response
+    const customer = await stripe.customers.create({
+      email: email,
+      name: name,
+    });
+    // Send the email
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
     sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml)
       .catch(err => console.error("Background email sending failed:", err));
 
-    return res.status(200).json({ success: true, message: "Details saved and email processing." });
+    return res.status(200).json({
+      success: true,
+      message: "Details saved and email sent.",
+      stripeSubscriptionScheduleId,
+    });
   } catch (error) {
     console.error("saveCheckoutDetails error:", error);
     return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+// Create subscription schedule
+export const createScheduledSubscription = async (req, res) => {
+  try {
+    const { customerId, priceId, startDate, durationInterval = "week", durationCount = 1 } = req.body;
+
+    if (!customerId || !priceId || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer ID, Price ID, and Start Date are required.",
+      });
+    }
+
+    // Convert startDate to a Unix timestamp in seconds
+    const parsedDate = new Date(startDate);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid start date format.",
+      });
+    }
+    const startTimestamp = Math.floor(parsedDate.getTime() / 1000);
+
+    // Create the subscription schedule on Stripe
+    const schedule = await stripe.subscriptionSchedules.create({
+      customer: customerId,
+      start_date: startTimestamp,
+      end_behavior: "cancel",
+      phases: [
+        {
+          items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          duration: {
+            interval: durationInterval,
+            interval_count: Number(durationCount),
+          },
+        },
+      ],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Subscription schedule created successfully.",
+      scheduleId: schedule.id,
+      schedule,
+    });
+  } catch (error) {
+    console.error("Create Subscription Schedule Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to create subscription schedule.",
+    });
   }
 };
 

@@ -58,7 +58,10 @@ export default function PaymentSuccess() {
     setLoading(true);
     try {
       if (sessionId) {
-        await saveCheckoutDetails({ ...formData, sessionId });
+        const res = await saveCheckoutDetails({ ...formData, sessionId });
+        // if (res && res.stripeSubscriptionScheduleId) {
+        //   alert(`Stripe Subscription Schedule ID: ${res.stripeSubscriptionScheduleId}`);
+        // }
       }
       
       if (setUser) {
