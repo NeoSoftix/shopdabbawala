@@ -26,6 +26,7 @@ export default function PaymentSuccess() {
               name: user?.name || res.customer_details.name || prev.name,
               email: user?.email || res.customer_details.email || prev.email,
               phone: user?.phone || res.customer_details.phone || prev.phone,
+              address: user?.address || prev.address,
             }));
           }
         })
@@ -36,6 +37,7 @@ export default function PaymentSuccess() {
         name: user.name || prev.name,
         email: user.email || prev.email,
         phone: user.phone || prev.phone,
+        address: user.address || prev.address,
       }));
     }
   }, [sessionId, user]);
@@ -59,7 +61,7 @@ export default function PaymentSuccess() {
       }
       
       if (setUser) {
-        setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone }) : null);
+        setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone, address: formData.address }) : null);
       }
       
       toast.success("🙌 Your details saved! Welcome aboard!");

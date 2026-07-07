@@ -4,12 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 // Agar aap Vite ya standard React setup use kar rahe hain, toh logo ko aise import karein:
 import logoImg from "/logo.png"; // Apne folder structure ke hisaab se path sahi kar lein
+import UserLogin from "./UserLogin";
 
 export default function HeroHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -141,9 +143,9 @@ export default function HeroHeader() {
               </div>
             ) : (
               <>
-                <Link to="/login" className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
+                <button onClick={() => setIsLoginOpen(true)} className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
                   Login
-                </Link>
+                </button>
                 <button
                   className="
                     px-6 lg:px-8 py-2.5 lg:py-3
@@ -253,9 +255,9 @@ export default function HeroHeader() {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="w-full py-3.5 rounded-xl text-xs text-center uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 transition-all block">
+                <button onClick={() => { setIsMenuOpen(false); setIsLoginOpen(true); }} className="w-full py-3.5 rounded-xl text-xs text-center uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 transition-all block">
                   Login
-                </Link>
+                </button>
                 <button className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-black bg-red-600 text-white shadow-md shadow-red-600/10 hover:bg-red-700 transition-all" onClick={scrollToPackages}>
                   Get Started
                 </button>
@@ -264,6 +266,8 @@ export default function HeroHeader() {
           </div>
         </div>
       </div>
+
+      <UserLogin isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </header>
   );
 }

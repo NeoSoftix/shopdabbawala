@@ -318,12 +318,13 @@ export const saveCheckoutDetails = async (req, res) => {
           // Re-fetch to get the newly created subscription details for the email if needed
           finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
           
-          // Also update User profile if name/phone is provided and missing
-          if (name || req.body.phone) {
+          // Also update User profile if name/phone/address is provided and missing
+          if (name || req.body.phone || address) {
             await User.findByIdAndUpdate(payment.user, {
               $set: {
                 ...(name && { name }),
                 ...(req.body.phone && { phone: req.body.phone }),
+                ...(address && { address }),
               }
             });
           }
