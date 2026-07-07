@@ -515,6 +515,7 @@ export const saveCheckoutDetails = async (req, res) => {
                 stripeSubscriptionId: session.subscription,
                 startDate: startDateVal,
                 endDate: endDateVal,
+                pincode: pincode,
               });
 
               payment.subscription = subscription._id;
@@ -548,6 +549,40 @@ export const saveCheckoutDetails = async (req, res) => {
       } catch (stripeErr) {
         console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr.message);
       }
+    }
+
+
+    // ========================================
+    // SAVE PINCODE IN SUBSCRIPTION
+    // ========================================
+
+    const refreshedPayment = await Payment.findById(payment._id);
+
+    console.log("PINCODE RECEIVED:", pincode);
+    console.log(
+      "SUBSCRIPTION ID:",
+      refreshedPayment?.subscription
+    );
+
+    if (pincode && refreshedPayment?.subscription) {
+      const updatedSubscription =
+        await Subscription.findByIdAndUpdate(
+          refreshedPayment.subscription,
+          {
+            $set: {
+              pincode: String(pincode).trim(),
+            },
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+      console.log(
+        "PINCODE SAVED:",
+        updatedSubscription?.pincode
+      );
     }
 
     // Always update User profile if name/phone/address/pincode is provided

@@ -85,7 +85,7 @@ export default function CheckoutFlowModal({
       const successUrl = `${window.location.origin}${location.pathname}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
       let checkoutRes;
       if (mode === "packages") {
-        checkoutRes = await createPackageCheckout(planId); 
+        checkoutRes = await createPackageCheckout(planId);
       } else {
         checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
       }
@@ -178,6 +178,7 @@ export default function CheckoutFlowModal({
       const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");
+        localStorage.setItem("pincode", pincode.trim());
         setStep(2);
       } else {
         setError(res?.message || "Sorry! Service not available in your area.");
@@ -253,7 +254,7 @@ export default function CheckoutFlowModal({
       const verifyRes = await verifyOtp({ phone: `+${phone}`, otp: otp.trim(), allowNoSubscription: true });
       if (verifyRes && verifyRes.success) {
         toast.success("✅ Mobile verified! Redirecting to payment...");
-        
+
         // Pass success URL so it comes back to the same page
         const successUrl = `${window.location.origin}${location.pathname}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
 
@@ -261,7 +262,7 @@ export default function CheckoutFlowModal({
         if (mode === "packages") {
           // You may need to update this backend service to accept a successUrl override if supported, 
           // or handle it in backend via referer. 
-          checkoutRes = await createPackageCheckout(planId); 
+          checkoutRes = await createPackageCheckout(planId);
         } else {
           checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
         }
@@ -512,9 +513,9 @@ export default function CheckoutFlowModal({
                       <p className="text-slate-400 text-xs font-medium">Tell us where to deliver your fresh meals!</p>
                       {sessionId && <div className="mt-2 text-[10px] text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded">Payment Successful</div>}
                     </div>
-                    <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                    <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                    <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                    <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                    <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                    <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
                     <div className="mt-2">
                       {error && (
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
