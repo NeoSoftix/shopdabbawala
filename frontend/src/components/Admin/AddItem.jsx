@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllCategories } from "../../services/category.service";
+import { createItem } from "../../services/items.service";
 
 const AddItem = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const AddItem = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, [categories]);
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -38,10 +39,14 @@ const AddItem = () => {
   };
 
   const handleImageChange = (e) => {
-    setItemData({
-      ...itemData,
-      image: e.target.files[0],
-    });
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setItemData((prev) => ({
+      ...prev,
+      image: file,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -51,6 +56,7 @@ const AddItem = () => {
       setLoading(true);
       setError("");
       setSuccess("");
+
       const formData = new FormData();
 
       formData.append("name", itemData.name);
@@ -59,10 +65,12 @@ const AddItem = () => {
 
       formData.append(
         "allergies",
-        itemData.allergies
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
+        JSON.stringify(
+          itemData.allergies
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+        ),
       );
 
       if (itemData.image) {
@@ -72,10 +80,16 @@ const AddItem = () => {
       const res = await createItem(formData);
 
       setSuccess(res.message || "Item created successfully");
+
+      navigate("/admin/items");
     } catch (error) {
       console.log("Create item error", error);
 
-      setError(error?.response?.data?.message || "Failed to create item");
+      setError(
+        error?.response?.data?.message || "Failed to create item",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -208,23 +222,56 @@ const AddItem = () => {
               <div>
                 <label className="block mb-2 font-medium">Item Image</label>
 
-                <div className="border-2 border-dashed rounded-lg p-10 min-h-[220px] flex items-center justify-center">
-                  <div className="text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                <label
+                  htmlFor="itemImage"
+                  className="border-2 border-dashed rounded-lg p-10 min-h-[220px] flex items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <input
+                    id="itemImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
 
-                    {itemData.image && (
+                  {itemData.image ? (
+                    <div className="text-center">
                       <img
                         src={URL.createObjectURL(itemData.image)}
                         alt="Preview"
-                        className="w-32 h-32 object-cover rounded-lg border mt-4 mx-auto"
+                        className="w-40 h-40 object-cover rounded-lg border mx-auto"
                       />
-                    )}
-                  </div>
-                </div>
+
+                      <p className="text-sm text-gray-500 mt-3">
+                        Click anywhere to change image
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <svg
+                        className="w-12 h-12 mx-auto text-gray-400 mb-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M12 3v12m0-12l-4 4m4-4l4 4"
+                        />
+                      </svg>
+
+                      <p className="font-medium text-gray-700">
+                        Click anywhere to upload image
+                      </p>
+
+                      <p className="text-sm text-gray-400 mt-1">
+                        PNG, JPG, JPEG
+                      </p>
+                    </div>
+                  )}
+                </label>
               </div>
             </div>
           </div>
@@ -241,9 +288,13 @@ const AddItem = () => {
 
             <button
               type="submit"
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl"
+              disabled={loading}
+              className={`px-6 py-3 rounded-xl text-white ${loading
+                ? "bg-red-400 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+                }`}
             >
-              Save Item
+              {loading ? "Saving..." : "Save Item"}
             </button>
           </div>
         </form>
