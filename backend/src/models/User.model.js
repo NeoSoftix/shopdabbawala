@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
       required: false,
       unique: true,
       trim: true,
+      match: [/^\+?[1-9]\d{1,14}$/, 'Please fill a valid international phone number']
     },
 
     password: {
@@ -38,8 +39,14 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["admin", "vendor", "user"],
+    enum: ["admin", "vendor", "user"],
       default: "user",
+    },
+
+    address: {
+      type: String,
+      required: false,
+      trim: true,
     },
   },
   { timestamps: true },

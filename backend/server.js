@@ -13,7 +13,8 @@ import vendorRoutes from "./src/routes/vendor.routes.js";
 import packageRoutes from "./src/routes/package.routes.js"
 import subscriptionRoutes from "./src/routes/subcription.routes.js"
 import paymentRoutes from "./src/routes/payment.routes.js"
-import customerRoutes from "./src/routes/customer.routes.js";
+import mealScheduleRoutes from "./src/routes/mealSchedule.routes.js";
+import customerRoutes from "./src/routes/customer.routes.js"
 
 const app = express();
 
@@ -25,16 +26,21 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://127.0.0.1:5173",
   "https://tiffin-delivery-app.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin || 
+        origin.includes("localhost") || 
+        origin.includes("vercel.app") || 
+        origin.includes("render.com")
+      ) {
         callback(null, true);
       } else {
+        console.error("CORS Error: Origin not allowed ->", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -72,6 +78,11 @@ app.use("/api/payment", paymentRoutes);
 
 // customer routes
 app.use("/api/customer", customerRoutes);
+
+// meal schedule routes
+app.use("/api/meal-schedule", mealScheduleRoutes);
+
+
 
 app.listen(5000, () => {
   console.log("Server running on 5000");

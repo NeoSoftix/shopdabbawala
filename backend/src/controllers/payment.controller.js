@@ -4,6 +4,7 @@ import Payment from "../models/payment.model.js"
 import Subscription from "../models/Subcription.model.js"
 import { sendEmail } from "../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../utils/email/purchaseSuccessTemplate.js"
+import User from "../models/User.model.js"
 
 // Helper function to setup a scheduled subscription from setup mode session
 const setupScheduledSubscription = async (session, payment, subscriptionObj = null) => {
@@ -149,6 +150,7 @@ export const createPackageCheckout = async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      phone_number_collection: { enabled: true },
 
       payment_method_types: ["card"],
 
@@ -175,9 +177,9 @@ export const createPackageCheckout = async (req, res) => {
         paymentType: "ADMIN_PACKAGE",
       },
 
-      success_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancel`,
+      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
     });
 
     await Payment.create({
@@ -212,6 +214,101 @@ export const createPackageCheckout = async (req, res) => {
 }
 
 // weeb hook 
+// -------- FULFILL ORDER HELPER --------
+const fulfillOrder = async (session, payment) => {
+  payment.status = "paid";
+  payment.paymentIntentId = session.payment_intent;
+  payment.paidAt = new Date();
+
+  await payment.save();
+
+  // -------- ADMIN PACKAGE --------
+  if (session.metadata?.paymentType === "ADMIN_PACKAGE") {
+    const pkg = await Package.findById(session.metadata.packageId);
+
+    if (pkg) {
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+      const subscription = await Subscription.create({
+        user: session.metadata.userId,
+        package: pkg._id,
+        mealSize: pkg.name,
+        price: pkg.price,
+        totalMeals: pkg.totalMeals,
+        mealsUsed: 0,
+        maxItemsPerMeal: pkg.maxItemsPerMeal,
+        preference: "Veg",
+        duration: "Monthly",
+        quantity: 1,
+        deliveryMethod: "Delivery",
+        startDate,
+        endDate,
+      });
+
+      payment.subscription = subscription._id;
+      await payment.save();
+    }
+  }
+
+  // -------- CUSTOM PACKAGE --------
+  if (session.metadata?.paymentType === "CUSTOM_PACKAGE") {
+    const subscription = await Subscription.create({
+      user: session.metadata.userId,
+      stripeSubscriptionId: session.subscription,
+
+      mealSize: session.metadata.mealSize,
+      preference: session.metadata.preference,
+      duration: session.metadata.duration,
+      meals: session.metadata.meals,
+      quantity: Number(session.metadata.quantity),
+      deliveryMethod: session.metadata.deliveryMethod,
+      price: Number(session.metadata.price),
+      totalMeals: Number(session.metadata.totalMeals),
+      mealsUsed: 0,
+      maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
+      startDate: new Date(session.metadata.startDate),
+      endDate: new Date(session.metadata.endDate),
+    });
+
+    payment.subscription = subscription._id;
+    await payment.save();
+  }
+
+  // -------- RENEWAL --------
+  if (session.metadata?.paymentType === "RENEWAL") {
+    const subId = session.metadata.subscriptionId;
+    const duration = session.metadata.duration;
+
+    const newStartDate = new Date();
+    const newEndDate = new Date(newStartDate);
+
+    if (duration === "Trial") newEndDate.setDate(newEndDate.getDate() + 1);
+    else if (duration === "Weekly") newEndDate.setDate(newEndDate.getDate() + 7);
+    else if (duration === "Monthly") newEndDate.setMonth(newEndDate.getMonth() + 1);
+    else if (duration === "Quarterly") newEndDate.setMonth(newEndDate.getMonth() + 3);
+
+    const subscription = await Subscription.findByIdAndUpdate(
+      subId,
+      {
+        status: "active",
+        startDate: newStartDate,
+        endDate: newEndDate,
+        mealsUsed: 0,
+        cancelAtPeriodEnd: false,
+        stripeSubscriptionId: session.subscription,
+      },
+      { new: true }
+    );
+
+    if (subscription) {
+      payment.subscription = subscription._id;
+      await payment.save();
+    }
+  }
+};
+
 export const stripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
 
@@ -250,54 +347,39 @@ export const stripeWebhook = async (req, res) => {
           return res.json({ received: true });
         }
 
-        payment.status = "paid";
-        payment.paymentIntentId = session.payment_intent;
-        payment.paidAt = new Date();
+        await fulfillOrder(session, payment);
 
-        await payment.save();
+        break;
+      }
 
-        // -------- ADMIN PACKAGE --------
-        if (session.metadata.paymentType === "ADMIN_PACKAGE") {
-          const pkg = await Package.findById(session.metadata.packageId);
+      case "customer.subscription.deleted": {
+        const stripeSub = event.data.object;
 
-          if (!pkg) {
-            return res.status(404).json({
-              success: false,
-              message: "Package not found",
-            });
-          }
+        await Subscription.findOneAndUpdate(
+          { stripeSubscriptionId: stripeSub.id },
+          { status: "expired", cancelAtPeriodEnd: false }
+        );
+        break;
+      }
 
-          const startDate = new Date();
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const stripeSubId = invoice.subscription;
+          const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
 
-          const endDate = new Date(startDate);
-          endDate.setDate(endDate.getDate() + pkg.validityDays);
+          const newStartDate = new Date(stripeSub.current_period_start * 1000);
+          const newEndDate = new Date(stripeSub.current_period_end * 1000);
 
-          const subscription = await Subscription.create({
-            user: session.metadata.userId,
-            package: pkg._id,
-
-            mealSize: pkg.name,
-            price: pkg.price,
-
-            totalMeals: pkg.totalMeals,
-            mealsUsed: 0,
-
-            maxItemsPerMeal: pkg.maxItemsPerMeal,
-
-            preference: "Veg",
-
-            duration: "Monthly",
-
-            quantity: 1,
-
-            deliveryMethod: "Delivery",
-
-            startDate,
-            endDate,
-          });
-
-          payment.subscription = subscription._id;
-          await payment.save();
+          await Subscription.findOneAndUpdate(
+            { stripeSubscriptionId: stripeSubId },
+            {
+              status: "active",
+              startDate: newStartDate,
+              endDate: newEndDate,
+              mealsUsed: 0
+            }
+          );
         }
 
         // -------- CUSTOM PACKAGE --------
@@ -382,6 +464,7 @@ export const stripeWebhook = async (req, res) => {
   }
 };
 
+// save check out detilas 
 export const saveCheckoutDetails = async (req, res) => {
   try {
     const { name, email, address, sessionId } = req.body;
@@ -391,6 +474,7 @@ export const saveCheckoutDetails = async (req, res) => {
     }
 
     const payment = await Payment.findOne({ stripeSessionId: sessionId }).populate("package").populate("subscription");
+    let finalPayment = payment;
     console.log(payment);
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment not found." });
@@ -469,14 +553,14 @@ export const saveCheckoutDetails = async (req, res) => {
     // Determine plan name and total meals
     let planName = "Custom Subscription";
     let totalMeals = "Varies";
-    let amount = payment.amount;
+    let amount = finalPayment.amount;
 
-    if (payment.paymentType === "ADMIN_PACKAGE" && payment.package) {
-      planName = payment.package.name;
-      totalMeals = payment.package.meals ? payment.package.meals.length : "Pre-defined";
-    } else if (payment.paymentType === "CUSTOM_PACKAGE" && payment.subscription) {
-      planName = `Custom ${payment.subscription.duration} Plan`;
-      totalMeals = payment.subscription.totalMeals;
+    if (finalPayment.paymentType === "ADMIN_PACKAGE" && finalPayment.package) {
+      planName = finalPayment.package.name;
+      totalMeals = finalPayment.package.totalMeals || "Pre-defined";
+    } else if (finalPayment.paymentType === "CUSTOM_PACKAGE" && finalPayment.subscription) {
+      planName = `Custom ${finalPayment.subscription.duration} Plan`;
+      totalMeals = finalPayment.subscription.totalMeals;
     }
 
     const customer = await stripe.customers.create({
@@ -485,7 +569,8 @@ export const saveCheckoutDetails = async (req, res) => {
     });
     // Send the email
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
-    await sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml);
+    sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml)
+      .catch(err => console.error("Background email sending failed:", err));
 
     return res.status(200).json({
       success: true,
@@ -552,6 +637,29 @@ export const createScheduledSubscription = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to create subscription schedule.",
+    });
+  }
+};
+
+export const getCheckoutSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      return res.status(400).json({ success: false, message: "Session ID is required" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    return res.status(200).json({
+      success: true,
+      customer_details: session.customer_details,
+    });
+  } catch (error) {
+    console.error("Get Session Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
     });
   }
 };

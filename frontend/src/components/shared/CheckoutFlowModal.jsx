@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { checkServiceAvailability } from "../../services/vendor.service";
 import { sendOtp, verifyOtp } from "../../services/auth.service";
-import { createPackageCheckout, saveCheckoutDetails } from "../../services/payment.service";
+import { createPackageCheckout, saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
 import { createSubscription } from "../../services/subscription.service";
+import { updateCustomerProfile } from "../../services/customer.service";
 import { FiMapPin, FiSmartphone, FiShield, FiPackage, FiCheckCircle, FiX, FiLoader, FiMail } from "react-icons/fi";
 import PhoneInputPkg from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -80,8 +81,20 @@ export default function CheckoutFlowModal({
   useEffect(() => {
     if (paymentSuccess === "true" && isOpen) {
       setStep(mode === "packages" ? 4 : 5); // Jump to Details step
+      if (sessionId) {
+        getSessionDetails(sessionId).then(res => {
+          if (res.success && res.customer_details) {
+            setFormData(prev => ({
+              ...prev,
+              name: res.customer_details.name || prev.name,
+              email: res.customer_details.email || prev.email,
+            }));
+            // phone can also be updated if needed, though phone might already be present
+          }
+        }).catch(err => console.error("Failed to fetch session", err));
+      }
     }
-  }, [paymentSuccess, isOpen, mode]);
+  }, [paymentSuccess, isOpen, mode, sessionId]);
 
   const stepLabels =
     mode === "packages"
@@ -223,7 +236,7 @@ export default function CheckoutFlowModal({
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.address) {
+    if (!formData.name || !formData.email) {
       setError("Please fill all details.");
       return;
     }
@@ -238,7 +251,7 @@ export default function CheckoutFlowModal({
       toast.success("🙌 Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
-      setError("Failed to save details. Please try again.");
+      setError("Failed to save details.");
     } finally {
       setLoading(false);
     }
@@ -286,10 +299,10 @@ export default function CheckoutFlowModal({
                     <div key={i} className="flex items-center">
                       <div className="flex flex-col items-center">
                         <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black transition-all duration-300 ${i < currentStepIndex
-                            ? "bg-emerald-500 text-white"
-                            : i === currentStepIndex
-                              ? "bg-red-600 text-white ring-4 ring-red-100"
-                              : "bg-slate-100 text-slate-400"
+                          ? "bg-emerald-500 text-white"
+                          : i === currentStepIndex
+                            ? "bg-red-600 text-white ring-4 ring-red-100"
+                            : "bg-slate-100 text-slate-400"
                           }`}>
                           {i < currentStepIndex ? "✓" : i + 1}
                         </div>
@@ -454,10 +467,7 @@ export default function CheckoutFlowModal({
                     </div>
                     <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                     <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                    <div>
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">Delivery Address</label>
-                      <textarea required placeholder="House No, Street, City..." rows="2" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none" />
-                    </div>
+                    <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
                     <div className="mt-2">
                       {error && (
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
@@ -484,7 +494,9 @@ export default function CheckoutFlowModal({
                     <p className="text-slate-400 text-xs mb-6">We're excited to fuel your journey to better health! 🌿</p>
                     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-2.5 mb-6">
                       <div className="flex gap-2 items-center"><FiMail className="text-sm text-red-500" /><span className="text-xs font-semibold">{formData.email}</span></div>
-                      <div className="flex gap-2 items-start"><FiMapPin className="text-sm mt-0.5 text-red-500" /><span className="text-xs font-semibold">{formData.address}</span></div>
+                      {formData.address && (
+                        <div className="flex gap-2 items-start"><FiMapPin className="text-sm text-red-500 mt-0.5" /><span className="text-xs font-semibold">{formData.address}</span></div>
+                      )}
                     </div>
                     <button onClick={handleClose} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg">Go to Dashboard</button>
                   </motion.div>

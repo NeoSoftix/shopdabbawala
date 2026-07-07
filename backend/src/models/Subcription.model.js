@@ -16,7 +16,6 @@ const subscriptionSchema = new mongoose.Schema(
 
     mealSize: {
       type: String,
-      enum: ["Basic", "Medium", "Premium"],
       required: true,
     },
 
@@ -51,15 +50,15 @@ const subscriptionSchema = new mongoose.Schema(
     },
 
     duration: {
-  type: String,
-  enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
-  required: true,
-},
+      type: String,
+      enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
+      required: true,
+    },
 
     meals: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Meal",
-      required: true,
+      required: false,
     },
 
     quantity: {
@@ -81,16 +80,21 @@ const subscriptionSchema = new mongoose.Schema(
 
     stripeSubscriptionId: {
       type: String,
+      default: null,
+    },
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false,
     },
 
     stripeSubscriptionScheduleId: {
       type: String,
     },
 
-   startDate: {
-  type: Date,
-  required: true,
-},
+    startDate: {
+      type: Date,
+      required: true,
+    },
 
     endDate: {
       type: Date,

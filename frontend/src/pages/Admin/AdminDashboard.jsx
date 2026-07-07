@@ -14,17 +14,32 @@ import StatCard from "../../components/shared/StatCard";
 import { getAllVendors } from "../../services/vendor.service";
 import { getAllMeals } from "../../services/meal.service";
 import { getAllItems } from "../../services/items.service";
+import { getCustomerStats } from "../../services/customer.service";
 
 export default function AdminDashboard() {
   const [vendorCount, setVendorCount] = useState(0);
   const [mealCount, setMealCount] = useState(0);
   const [itemCount, setItemCount] = useState(0);
+  const [customerCount, setCustomerCount] = useState(0);
 
   useEffect(() => {
     fetchVendorCount();
     fetchMealCount();
     fetchItemCount();
+    fetchCustomerCount();
   }, []);
+
+  const fetchCustomerCount = async () => {
+    try {
+      const res = await getCustomerStats();
+      console.log("Customer Stats Response:", res);
+      if (res.success) {
+        setCustomerCount(res.stats.totalCustomers || 0);
+      }
+    } catch (error) {
+      console.error("Customer Count Error:", error);
+    }
+  };
 
   const fetchVendorCount = async () => {
     try {
@@ -68,7 +83,7 @@ export default function AdminDashboard() {
     }
   };
   const dashboardStats = {
-    users: 40,
+    users: customerCount,
     vendors: vendorCount,
     meals: mealCount,
     items: itemCount,

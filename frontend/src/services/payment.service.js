@@ -17,3 +17,8 @@ export const createScheduledSubscription = async (scheduleData) => {
   const res = await API.post("/payment/create-schedule", scheduleData);
   return res.data;
 };
+
+export const getSessionDetails = async (sessionId) => {
+  const res = await API.get(`/payment/session/${sessionId}`);
+  return res.data;
+};
