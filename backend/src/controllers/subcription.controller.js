@@ -157,9 +157,21 @@ export const createSubscription = async (req, res) => {
     const recurring = recurringMap[duration];
 
     // Calculate trial_end if startDate is at least 48 hours in the future
+    // const nowSec = Math.floor(Date.now() / 1000);
+    // const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
+    // const trialEnd = (startSec > nowSec + 86400) ? startSec : undefined; // at least 48 hours (172800 seconds) in future
+
+
+
+    const now = new Date();
+    const isToday = calculatedStartDate.toDateString() === now.toDateString();
+
     const nowSec = Math.floor(Date.now() / 1000);
     const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
-    const trialEnd = (startSec > nowSec + 172800) ? startSec : undefined; // at least 48 hours (172800 seconds) in future
+    const minTrialEnd = nowSec + 172800; // Stripe's 48hr floor
+
+    // Not today → trial. Clamp to Stripe's minimum if the selected date is too close.
+    const trialEnd = isToday ? undefined : Math.max(startSec, minTrialEnd);
 
     let session;
     if (trialEnd) {

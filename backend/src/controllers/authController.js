@@ -397,14 +397,14 @@ export const sendOtp = async (req, res) => {
       });
     }
 
-    // const formattedPhone = formatPhoneNumber(phone);
+    const formattedPhone = formatPhoneNumber(phone);
 
-    // await client.verify.v2
-    //   .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-    //   .verifications.create({
-    //     to: formattedPhone,
-    //     channel: "sms",
-    //   });
+    await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({
+        to: formattedPhone,
+        channel: "sms",
+      });
 
     return res.status(200).json({
       success: true,
@@ -434,34 +434,34 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // const formattedPhone = formatPhoneNumber(phone);
+    const formattedPhone = formatPhoneNumber(phone);
 
-    // let verificationCheck;
-    // try {
-    //   verificationCheck = await client.verify.v2
-    //     .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-    //     .verificationChecks.create({
-    //       to: formattedPhone,
-    //       code: otp,
-    //     });
-    // } catch (twilioErr) {
-    //   console.log("Twilio Verify OTP Error:", twilioErr);
-    //   // Catch 404 (Resource not found) or similar Twilio errors
-    //   if (twilioErr.status === 404) {
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: "OTP has expired or was already verified. Please request a new OTP.",
-    //     });
-    //   }
-    //   throw twilioErr;
-    // }
+    let verificationCheck;
+    try {
+      verificationCheck = await client.verify.v2
+        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+        .verificationChecks.create({
+          to: formattedPhone,
+          code: otp,
+        });
+    } catch (twilioErr) {
+      console.log("Twilio Verify OTP Error:", twilioErr);
+      // Catch 404 (Resource not found) or similar Twilio errors
+      if (twilioErr.status === 404) {
+        return res.status(400).json({
+          success: false,
+          message: "OTP has expired or was already verified. Please request a new OTP.",
+        });
+      }
+      throw twilioErr;
+    }
 
-    // if (verificationCheck.status !== "approved") {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid OTP",
-    //   });
-    // }
+    if (verificationCheck.status !== "approved") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
 
     // Find existing user
     let user = await User.findOne({ phone });
