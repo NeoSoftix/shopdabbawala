@@ -17,21 +17,7 @@ export default function PaymentSuccess() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
 
   useEffect(() => {
-    if (sessionId) {
-      getSessionDetails(sessionId)
-        .then(res => {
-          if (res.success && res.customer_details) {
-            setFormData(prev => ({
-              ...prev,
-              name: user?.name || res.customer_details.name || prev.name,
-              email: user?.email || res.customer_details.email || prev.email,
-              phone: user?.phone || res.customer_details.phone || prev.phone,
-              address: user?.address || prev.address,
-            }));
-          }
-        })
-        .catch(err => console.error("Failed to fetch session", err));
-    } else if (user) {
+    if (user) {
       setFormData(prev => ({
         ...prev,
         name: user.name || prev.name,
@@ -39,6 +25,21 @@ export default function PaymentSuccess() {
         phone: user.phone || prev.phone,
         address: user.address || prev.address,
       }));
+    }
+
+    if (sessionId) {
+      getSessionDetails(sessionId)
+        .then(res => {
+          if (res.success && res.customer_details) {
+            setFormData(prev => ({
+              ...prev,
+              name: prev.name || res.customer_details.name || "",
+              email: prev.email || res.customer_details.email || "",
+              phone: prev.phone || res.customer_details.phone || "",
+            }));
+          }
+        })
+        .catch(err => console.error("Failed to fetch session", err));
     }
   }, [sessionId, user]);
 

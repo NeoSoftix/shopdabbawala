@@ -317,21 +317,21 @@ export const saveCheckoutDetails = async (req, res) => {
           await fulfillOrder(session, payment);
           // Re-fetch to get the newly created subscription details for the email if needed
           finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
-          
-          // Also update User profile if name/phone/address is provided and missing
-          if (name || req.body.phone || address) {
-            await User.findByIdAndUpdate(payment.user, {
-              $set: {
-                ...(name && { name }),
-                ...(req.body.phone && { phone: req.body.phone }),
-                ...(address && { address }),
-              }
-            });
-          }
         }
       } catch (stripeErr) {
         console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr);
       }
+    }
+
+    // Always update User profile if name/phone/address is provided
+    if (name || req.body.phone || address) {
+      await User.findByIdAndUpdate(payment.user, {
+        $set: {
+          ...(name && { name }),
+          ...(req.body.phone && { phone: req.body.phone }),
+          ...(address && { address }),
+        }
+      });
     }
 
     // Determine plan name and total meals
