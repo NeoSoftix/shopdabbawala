@@ -14,18 +14,21 @@ import { getAllVendors } from "../../services/vendor.service";
 import { getAllMeals } from "../../services/meal.service";
 import { getAllItems } from "../../services/items.service";
 import { getCustomerStats } from "../../services/customer.service";
+import { getOrderStats } from "../../services/order.service";
 
 export default function AdminDashboard() {
   const [vendorCount, setVendorCount] = useState(0);
   const [mealCount, setMealCount] = useState(0);
   const [itemCount, setItemCount] = useState(0);
   const [customerCount, setCustomerCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
 
   useEffect(() => {
     fetchVendorCount();
     fetchMealCount();
     fetchItemCount();
     fetchCustomerCount();
+    fetchOrderCount();
   }, []);
 
   const fetchCustomerCount = async () => {
@@ -81,12 +84,25 @@ export default function AdminDashboard() {
       console.error("Item Count Error:", error);
     }
   };
+
+  const fetchOrderCount = async () => {
+    try {
+      const res = await getOrderStats();
+
+      if (res.success) {
+        setOrderCount(res.stats.totalOrders || 0);
+      }
+    } catch (error) {
+      console.error("Order Count Error:", error);
+    }
+  };
+
   const dashboardStats = {
     users: customerCount,
     vendors: vendorCount,
     meals: mealCount,
     items: itemCount,
-    orders: 60,
+    orders: orderCount,
     revenue: 10000,
   };
 
@@ -107,8 +123,6 @@ export default function AdminDashboard() {
     { name: "Sat", value: 40 },
     { name: "Sun", value: 35 },
   ];
-
-  const recentOrders = [];
 
   return (
     <div className="space-y-8">

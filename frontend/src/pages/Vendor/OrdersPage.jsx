@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   FaClipboardList,
   FaClock,
@@ -8,36 +9,76 @@ import {
 import StatCard from "../../components/shared/StatCard";
 import NotificationFilters from "../../components/vendor/NotificationFilters";
 import OrdersTable from "../../components/shared/OrdersTable";
+import { SectionLoader } from "../../components/shared/Loader";
+import { getOrderStats, getAllOrders } from "../../services/order.service";
 
 export default function OrdersPage() {
+  const [orderStats, setOrderStats] = useState({
+    totalOrders: 0,
+    byStatus: {},
+  });
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrderStats();
+    fetchOrders();
+  }, []);
+
+  const fetchOrderStats = async () => {
+    try {
+      const res = await getOrderStats();
+      if (res.success) {
+        setOrderStats(res.stats);
+      }
+    } catch (error) {
+      console.error("Order Stats Error:", error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await getAllOrders();
+      if (res.success) {
+        setOrders(res.orders || []);
+      }
+    } catch (error) {
+      console.error("Fetch Orders Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const processingOrders =
+    (orderStats.byStatus?.Preparing || 0) + (orderStats.byStatus?.["On the way"] || 0);
+
   const stats = [
     {
       title: "Total Orders",
-      value: 120,
-      growth: "+12%",
+      value: orderStats.totalOrders || 0,
+      growth: "0%",
       Icon: FaClipboardList,
     },
     {
       title: "Pending Orders",
-      value: 25,
-      growth: "+5%",
+      value: orderStats.byStatus?.Pending || 0,
+      growth: "0%",
       Icon: FaClock,
     },
     {
       title: "Processing Orders",
-      value: 18,
-      growth: "+3%",
+      value: processingOrders,
+      growth: "0%",
       Icon: FaTruck,
     },
     {
       title: "Delivered Orders",
-      value: 77,
-      growth: "+15%",
+      value: orderStats.byStatus?.Delivered || 0,
+      growth: "0%",
       Icon: FaCheckCircle,
     },
   ];
-
-  const orders = [];
 
   return (
     <div className="space-y-6">
@@ -54,7 +95,7 @@ export default function OrdersPage() {
       <NotificationFilters />
 
       {/* Orders Table */}
-      <OrdersTable orders={orders} />
+      {loading ? <SectionLoader text="Loading orders..." /> : <OrdersTable orders={orders} />}
     </div>
   );
 }
