@@ -369,7 +369,7 @@ const formatPhoneNumber = (phone, countryCode) => {
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, "");
 
-  // If already in E.164 format
+  // If it already starts with '+', keep it
   if (cleaned.startsWith("+")) {
     return cleaned;
   }
@@ -411,7 +411,7 @@ export const sendOtp = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: err.status === 404 
+      message: err.status === 404
         ? 'Verification service not found. Please verify your Twilio settings.'
         : err.message,
     });
@@ -459,7 +459,7 @@ export const verifyOtp = async (req, res) => {
     // }
 
     let user = await User.findOne({ phone });
- 
+
     if (!user) {
       user = await User.create({
         phone,
@@ -483,7 +483,7 @@ export const verifyOtp = async (req, res) => {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
- 
+
     return res.status(200).json({
       success: true,
       message: 'OTP verified successfully',
