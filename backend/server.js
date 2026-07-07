@@ -17,6 +17,7 @@ import mealScheduleRoutes from "./src/routes/mealSchedule.routes.js";
 import customerRoutes from "./src/routes/customer.routes.js"
 import durationRoutes from "./src/routes/durationPlan.routes.js"
 import mealTierRoutes from "./src/routes/mealTier.routes.js";
+import orderRoutes from "./src/routes/order.routes.js";
 
 const app = express();
 
@@ -90,8 +91,11 @@ app.use("/api/custom", durationRoutes)
 // meal tier api
 app.use("/api/meal-tiers", mealTierRoutes)
 
+// orders route
+app.use("/api/orders", orderRoutes);
 
 
-app.listen(5000, () => {
+
+app.listen(8000, () => {
   console.log("Server running on 5000");
 });

@@ -1,20 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { FiChevronLeft, FiChevronRight, FiEye } from 'react-icons/fi';
+import { useState, useEffect, useCallback } from 'react';
+import { FiChevronLeft, FiChevronRight, FiEye, FiLoader } from 'react-icons/fi';
+import { getOrderCountsByMonth, getOrdersByDate } from '../../services/order.service';
 
-const generateDummyData = (year, month) => {
-  const data = {};
-  const activeDays = [2, 3, 5, 9, 11, 14, 16, 21, 23, 27];
-  
-  activeDays.forEach(day => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const numOrders = Math.floor(Math.random() * 12) + 1; // 1 to 12 orders
-    data[dateStr] = Array.from({ length: numOrders }).map((_, i) => ({
-      id: `ORD-${year}${String(month + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
-      customer: ["Anand Kumar", "Priya Singh", "Rahul Sharma", "Sneha Gupta", "Vikram Patel", "Amit Kumar", "Neha Jain"][Math.floor(Math.random() * 7)],
-      type: Math.random() > 0.5 ? "Lunch" : "Dinner",
-    }));
-  });
-  return data;
+const statusStyles = {
+  Pending: 'bg-amber-50 text-amber-600',
+  Preparing: 'bg-indigo-50 text-indigo-600',
+  'On the way': 'bg-blue-50 text-blue-600',
+  Delivered: 'bg-green-50 text-green-600',
+  Cancelled: 'bg-slate-100 text-slate-500',
 };
 
 export default function OrdersCalendar() {
@@ -22,11 +15,13 @@ export default function OrdersCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
 
+  const [orderCounts, setOrderCounts] = useState({});
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [loadingCounts, setLoadingCounts] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
-  // Generate stable dummy data for the current viewed month
-  const dummyData = useMemo(() => generateDummyData(year, month), [year, month]);
 
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
   const getFirstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
@@ -61,13 +56,47 @@ export default function OrdersCalendar() {
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const selectedDateStr = formatDateStr(selectedDate);
-  const selectedOrders = dummyData[selectedDateStr] || [];
+
+  // Fetch order counts whenever the visible month changes
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchCounts = async () => {
+      setLoadingCounts(true);
+      try {
+        const res = await getOrderCountsByMonth(year, month + 1);
+        if (!isCancelled) setOrderCounts(res.counts || {});
+      } catch {
+        if (!isCancelled) setOrderCounts({});
+      } finally {
+        if (!isCancelled) setLoadingCounts(false);
+      }
+    };
+    fetchCounts();
+    return () => { isCancelled = true; };
+  }, [year, month]);
+
+  // Fetch orders whenever the selected date changes
+  const fetchOrdersForDate = useCallback(async (dateStr) => {
+    setLoadingOrders(true);
+    try {
+      const res = await getOrdersByDate(dateStr);
+      setSelectedOrders(res.orders || []);
+    } catch {
+      setSelectedOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrdersForDate(selectedDateStr);
+  }, [selectedDateStr, fetchOrdersForDate]);
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 w-full">
       {/* Left Panel: Calendar */}
       <div className="flex-grow xl:w-2/3 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-        
+
         {/* Calendar Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div className="flex items-center gap-2">
@@ -83,9 +112,10 @@ export default function OrdersCalendar() {
               Today
             </button>
           </div>
-          
-          <h2 className="text-xl md:text-2xl font-black text-slate-800">
+
+          <h2 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">
             {monthNames[month]} {year}
+            {loadingCounts && <FiLoader className="w-4 h-4 animate-spin text-slate-400" />}
           </h2>
 
           <div className="flex bg-slate-900 rounded-lg p-1 text-white text-xs font-semibold">
@@ -116,11 +146,11 @@ export default function OrdersCalendar() {
               const dateStr = formatDateStr(date);
               const isSelected = selectedDateStr === dateStr;
               const isToday = formatDateStr(today) === dateStr;
-              const orders = dummyData[dateStr] || [];
-              const hasOrders = orders.length > 0;
+              const count = orderCounts[dateStr] || 0;
+              const hasOrders = count > 0;
 
               return (
-                <div 
+                <div
                   key={dateStr}
                   onClick={() => setSelectedDate(date)}
                   className={`min-h-[100px] p-2 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
@@ -132,13 +162,13 @@ export default function OrdersCalendar() {
                   }`}>
                     {isToday ? <span className="bg-red-600 text-white w-6 h-6 inline-flex items-center justify-center rounded-full text-xs">{date.getDate()}</span> : date.getDate()}
                   </div>
-                  
+
                   {hasOrders && (
                     <div className="mt-1 flex flex-col gap-1">
                       <div className={`text-[10px] font-bold px-1.5 py-1 rounded-md w-full truncate ${
                         isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-red-100 text-red-700 group-hover:bg-red-200'
                       }`}>
-                        Deliveries: {orders.length}
+                        Deliveries: {count}
                       </div>
                     </div>
                   )}
@@ -159,7 +189,12 @@ export default function OrdersCalendar() {
         </div>
 
         <div className="flex-1 overflow-y-auto pr-2 no-scrollbar">
-          {selectedOrders.length === 0 ? (
+          {loadingOrders ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
+              <FiLoader className="w-6 h-6 animate-spin" />
+              <p className="text-sm font-medium">Loading deliveries...</p>
+            </div>
+          ) : selectedOrders.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
                 <FiEye className="w-6 h-6 text-slate-300" />
@@ -172,24 +207,24 @@ export default function OrdersCalendar() {
               <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100">
                 <div className="col-span-3">ID</div>
                 <div className="col-span-4">Customer</div>
-                <div className="col-span-3 text-center">Type</div>
+                <div className="col-span-3 text-center">Status</div>
                 <div className="col-span-2 text-center">Action</div>
               </div>
-              
+
               {/* Data rows */}
-              {selectedOrders.map((order, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center px-4 py-3 bg-white border border-slate-100 rounded-xl hover:border-red-200 hover:shadow-sm transition-all group">
-                  <div className="col-span-3 text-xs font-bold text-slate-700 truncate" title={order.id}>
-                    {order.id.split('-')[2]}
+              {selectedOrders.map((order) => (
+                <div key={order._id} className="grid grid-cols-12 gap-2 items-center px-4 py-3 bg-white border border-slate-100 rounded-xl hover:border-red-200 hover:shadow-sm transition-all group">
+                  <div className="col-span-3 text-xs font-bold text-slate-700 truncate" title={order._id}>
+                    {order._id.slice(-6).toUpperCase()}
                   </div>
                   <div className="col-span-4 text-xs font-semibold text-slate-600 truncate">
-                    {order.customer}
+                    {order.user?.name || 'N/A'}
                   </div>
                   <div className="col-span-3 flex justify-center">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      order.type === 'Lunch' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'
+                      statusStyles[order.status] || 'bg-slate-100 text-slate-500'
                     }`}>
-                      {order.type}
+                      {order.status}
                     </span>
                   </div>
                   <div className="col-span-2 flex justify-center">

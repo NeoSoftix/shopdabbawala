@@ -3,8 +3,7 @@ import { Menu, X, LogOut, User, ChevronDown } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-// Agar aap Vite ya standard React setup use kar rahe hain, toh logo ko aise import karein:
-import logoImg from "/logo.png"; // Apne folder structure ke hisaab se path sahi kar lein
+import logoImg from "/logo.png"; 
 import UserLogin from "./UserLogin";
 import UserProfileEdit from "./UserProfileEdit";
 
@@ -93,7 +92,7 @@ export default function HeroHeader() {
             }
           `}
         >
-          {/* Logo Brand Block (Updated with Image) */}
+          {/* Logo Brand Block */}
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
             <img
               src={logoImg}
@@ -102,17 +101,17 @@ export default function HeroHeader() {
             />
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-7 lg:gap-9">
-            {links.map((link, index) => {
+            {links.map((link) => {
               const active = isLinkActive(link);
               const activeClass = active
                 ? "text-red-600 font-extrabold"
                 : scrolled
                   ? "text-slate-600 hover:text-red-600"
                   : "text-slate-800 md:text-slate-900 lg:text-slate-900 hover:text-red-500";
+              
               const commonProps = {
-                key: link.label,
                 className: `relative font-bold text-xs lg:text-sm uppercase tracking-widest transition-colors duration-300 group py-1 ${activeClass}`
               };
 
@@ -127,7 +126,7 @@ export default function HeroHeader() {
 
               if (link.isRouterLink) {
                 return (
-                  <Link to={link.to} {...commonProps}>
+                  <Link key={link.label} to={link.to} {...commonProps}>
                     {link.label}
                     {indicator}
                   </Link>
@@ -135,7 +134,7 @@ export default function HeroHeader() {
               }
 
               return (
-                <a href={link.href} {...commonProps}>
+                <a key={link.label} href={link.href} {...commonProps}>
                   {link.label}
                   {indicator}
                 </a>
@@ -168,7 +167,6 @@ export default function HeroHeader() {
                 <AnimatePresence>
                   {isDropdownOpen && (
                     <>
-                      {/* Click outside backdrop */}
                       <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
                       
                       <motion.div
@@ -232,7 +230,7 @@ export default function HeroHeader() {
             )}
           </div>
 
-          {/* Mobile Hamburguer Control Icon */}
+          {/* Mobile Hamburger Control Icon */}
           <button
             onClick={() => setIsMenuOpen(true)}
             className={`md:hidden p-1.5 rounded-full transition-colors ${scrolled ? "hover:bg-slate-100 text-slate-900" : "hover:bg-white/10 text-white"}`}
@@ -245,10 +243,8 @@ export default function HeroHeader() {
 
       {/* ================= MODERN SIDE OVERLAY DRAWER (MOBILE MODE) ================= */}
       <div className={`fixed inset-0 z-[1000] transition-all duration-500 ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}>
-        {/* Blurry Backdrop */}
         <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
 
-        {/* Drawer Window Panel */}
         <div
           className={`
             absolute top-0 right-0
@@ -259,7 +255,6 @@ export default function HeroHeader() {
             ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
-          {/* Drawer Top Header Row (Updated with Image) */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2">
               <img 
@@ -273,27 +268,27 @@ export default function HeroHeader() {
             </button>
           </div>
 
-          {/* Menu Core Links Stack */}
+          {/* Menu Core Links Stack (Mobile) */}
           <div className="flex flex-col gap-1.5 my-auto">
-            {links.map((link, index) => {
+            {links.map((link) => {
               const active = isLinkActive(link);
               const activeClass = active ? "bg-red-50 text-red-600 font-bold" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
+              
               const commonProps = {
-                key: link.label,
                 onClick: () => setIsMenuOpen(false),
                 className: `text-sm font-bold uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all ${activeClass}`
               };
 
               if (link.isRouterLink) {
                 return (
-                  <Link to={link.to} {...commonProps}>
+                  <Link key={link.label} to={link.to} {...commonProps}>
                     {link.label}
                   </Link>
                 );
               }
 
               return (
-                <a href={link.href} {...commonProps}>
+                <a key={link.label} href={link.href} {...commonProps}>
                   {link.label}
                 </a>
               );
