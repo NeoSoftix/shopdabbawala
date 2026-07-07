@@ -55,7 +55,7 @@ export default function HeroHeader() {
 
   const links = [
     { label: "Home", to: "/", isRouterLink: true },
-    ...(user ? [{ label: "Dashboard", to: "/meal-planner", isRouterLink: true }] : []),
+    ...(user ? [{ label: "Dashboard", to: "/dashboard", isRouterLink: true }] : []),
     { label: "Plans", href: "#plans" },
     { label: "Menu", href: "#menu" },
     { label: "About", href: "#about" },
@@ -179,7 +179,7 @@ export default function HeroHeader() {
                         className="absolute right-0 top-12 z-50 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 py-2"
                       >
                         <Link
-                          to="/meal-planner"
+                          to="/dashboard"
                           onClick={() => setIsDropdownOpen(false)}
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                         >
@@ -306,7 +306,7 @@ export default function HeroHeader() {
             {user ? (
               <>
                 <Link
-                  to="/meal-planner"
+                  to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
                   className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold bg-slate-50 text-slate-800 border border-slate-200 transition-all flex items-center justify-center gap-2"
                 >

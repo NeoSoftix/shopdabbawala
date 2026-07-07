@@ -6,6 +6,7 @@ import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import client from "../config/twilio.js";
 import OTP from "../models/otp.model.js";
+import Subscription from "../models/Subcription.model.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -418,10 +419,9 @@ export const sendOtp = async (req, res) => {
   }
 };
 
-// verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
-    const { phone, otp } = req.body;
+    const { phone, otp, allowNoSubscription } = req.body;
 
     if (!phone || !otp) {
       return res.status(400).json({
@@ -435,7 +435,7 @@ export const verifyOtp = async (req, res) => {
     // let verificationCheck;
     // try {
     //   verificationCheck = await client.verify.v2
-    //     .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+    //     .services(process.env.TWIFY_VERIFY_SERVICE_SID)
     //     .verificationChecks.create({
     //       to: formattedPhone,
     //       code: otp,
@@ -458,12 +458,56 @@ export const verifyOtp = async (req, res) => {
     //   });
     // }
 
-    let user = await User.findOne({ phone });
+    const normalizePhone = (p) => {
+      if (!p) return "";
+      let cleaned = p.replace(/\D/g, "");
+      if (cleaned.length === 12 && cleaned.startsWith("91")) {
+        cleaned = cleaned.slice(2);
+      }
+      return cleaned;
+    };
+
+    const normPhone = normalizePhone(phone);
+    const possibleNumbers = [normPhone, `+91${normPhone}`, `91${normPhone}`];
+    
+    let user = await User.findOne({ phone: { $in: possibleNumbers } });
+
+    if (!allowNoSubscription) {
+      if (!user) {
+        return res.status(403).json({
+          success: false,
+          message: "Please purchase a plan first, then login.",
+        });
+      }
+      
+      if (user.role === "user") {
+        const subscriptionCount = await Subscription.countDocuments({
+          user: user._id,
+          status: "active",
+        });
+
+        if (subscriptionCount === 0) {
+          return res.status(403).json({
+            success: false,
+            message: "Please purchase a plan first, then login.",
+          });
+        }
+      }
+    }
  
     if (!user) {
       user = await User.create({
-        phone,
+        phone: normPhone,
       });
+    } else {
+      if (user.phone !== normPhone) {
+        try {
+          user.phone = normPhone;
+          await user.save();
+        } catch (saveErr) {
+          console.warn("Could not normalize phone number due to duplicate key constraint, keeping original:", saveErr.message);
+        }
+      }
     }
 
     const token = jwt.sign(

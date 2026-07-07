@@ -7,6 +7,7 @@ import { sendOtp, verifyOtp } from "../../services/auth.service";
 import { createPackageCheckout, saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
 import { createSubscription } from "../../services/subscription.service";
 import { updateCustomerProfile } from "../../services/customer.service";
+import { useAuth } from "../../context/AuthContext";
 import { FiMapPin, FiSmartphone, FiShield, FiPackage, FiCheckCircle, FiX, FiLoader, FiMail } from "react-icons/fi";
 import PhoneInputPkg from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -65,6 +66,7 @@ export default function CheckoutFlowModal({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const searchParams = new URLSearchParams(location.search);
   const paymentSuccess = searchParams.get("payment_success");
   const sessionId = searchParams.get("session_id");
@@ -73,9 +75,55 @@ export default function CheckoutFlowModal({
   const [pincode, setPincode] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", address: "", pincode: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const redirectToPayment = async () => {
+    setLoading(true);
+    try {
+      const successUrl = `${window.location.origin}${location.pathname}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
+      let checkoutRes;
+      if (mode === "packages") {
+        checkoutRes = await createPackageCheckout(planId); 
+      } else {
+        checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
+      }
+
+      if (checkoutRes && checkoutRes.checkoutUrl) {
+        window.location.href = checkoutRes.checkoutUrl;
+      } else {
+        setError("Could not start payment session.");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Prefill details from logged-in user profile if available
+  useEffect(() => {
+    if (user && isOpen) {
+      if (user.phone) {
+        let cleanPhone = user.phone.replace(/\D/g, "");
+        if (cleanPhone.length === 10) {
+          cleanPhone = "91" + cleanPhone;
+        }
+        setPhone(cleanPhone);
+      }
+      if (user.pincode) {
+        setPincode(user.pincode);
+      }
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        address: user.address || prev.address,
+        pincode: user.pincode || prev.pincode,
+      }));
+    }
+  }, [user, isOpen]);
 
   // If redirected back from Stripe
   useEffect(() => {
@@ -86,10 +134,9 @@ export default function CheckoutFlowModal({
           if (res.success && res.customer_details) {
             setFormData(prev => ({
               ...prev,
-              name: res.customer_details.name || prev.name,
-              email: res.customer_details.email || prev.email,
+              name: prev.name || res.customer_details.name || "",
+              email: prev.email || res.customer_details.email || "",
             }));
-            // phone can also be updated if needed, though phone might already be present
           }
         }).catch(err => console.error("Failed to fetch session", err));
       }
@@ -142,7 +189,7 @@ export default function CheckoutFlowModal({
     }
   };
 
-  const handleCustomizationNext = (e) => {
+  const handleCustomizationNext = async (e) => {
     e.preventDefault();
     if (!isCustomizationValid) {
       setError(customizationErrorMsg);
@@ -203,27 +250,10 @@ export default function CheckoutFlowModal({
     setError("");
     setLoading(true);
     try {
-      const verifyRes = await verifyOtp({ phone: `+${phone}`, otp: otp.trim() });
+      const verifyRes = await verifyOtp({ phone: `+${phone}`, otp: otp.trim(), allowNoSubscription: true });
       if (verifyRes && verifyRes.success) {
         toast.success("✅ Mobile verified! Redirecting to payment...");
-        
-        // Pass success URL so it comes back to the same page
-        const successUrl = `${window.location.origin}${location.pathname}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
-
-        let checkoutRes;
-        if (mode === "packages") {
-          // You may need to update this backend service to accept a successUrl override if supported, 
-          // or handle it in backend via referer. 
-          checkoutRes = await createPackageCheckout(planId); 
-        } else {
-          checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
-        }
-
-        if (checkoutRes && checkoutRes.checkoutUrl) {
-          window.location.href = checkoutRes.checkoutUrl;
-        } else {
-          setError("Could not start payment session.");
-        }
+        await redirectToPayment();
       } else {
         setError(verifyRes?.message || "Invalid OTP.");
       }
@@ -467,6 +497,7 @@ export default function CheckoutFlowModal({
                     <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                     <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
                     <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                    <InputField label="Pincode" placeholder="e.g. 144001" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} />
                     <div className="mt-2">
                       {error && (
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">

@@ -53,7 +53,7 @@ export default function UserLogin({ isOpen, onClose }) {
         setUser(res.user);
         toast.success("Logged in successfully! 🎉");
         onClose();
-        navigate("/meal-planner");
+        navigate("/dashboard");
       } else {
         throw new Error("Verification failed");
       }

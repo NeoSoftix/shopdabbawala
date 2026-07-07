@@ -123,6 +123,7 @@ export const updateCustomerProfile = async (req, res) => {
 
     if (name) customer.name = name;
     if (req.body.address !== undefined) customer.address = req.body.address;
+    if (req.body.pincode !== undefined) customer.pincode = req.body.pincode;
 
     await customer.save();
 

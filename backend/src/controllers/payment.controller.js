@@ -296,7 +296,7 @@ export const stripeWebhook = async (req, res) => {
 // save check out detilas 
 export const saveCheckoutDetails = async (req, res) => {
   try {
-    const { name, email, address, sessionId } = req.body;
+    const { name, email, address, pincode, sessionId } = req.body;
 
     if (!email || !sessionId) {
       return res.status(400).json({ success: false, message: "Email and session ID are required." });
@@ -323,13 +323,14 @@ export const saveCheckoutDetails = async (req, res) => {
       }
     }
 
-    // Always update User profile if name/phone/address is provided
-    if (name || req.body.phone || address) {
+    // Always update User profile if name/phone/address/pincode is provided
+    if (name || req.body.phone || address || pincode) {
       await User.findByIdAndUpdate(payment.user, {
         $set: {
           ...(name && { name }),
           ...(req.body.phone && { phone: req.body.phone }),
           ...(address && { address }),
+          ...(pincode && { pincode }),
         }
       });
     }

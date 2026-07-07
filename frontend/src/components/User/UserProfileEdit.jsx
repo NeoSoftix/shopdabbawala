@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 
 export default function UserProfileEdit({ isOpen, onClose }) {
   const { user, setUser } = useAuth();
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", pincode: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,6 +18,7 @@ export default function UserProfileEdit({ isOpen, onClose }) {
         email: user.email || "",
         phone: user.phone || "",
         address: user.address || "",
+        pincode: user.pincode || "",
       });
     }
   }, [user, isOpen]);
@@ -161,10 +162,28 @@ export default function UserProfileEdit({ isOpen, onClose }) {
                     name="address"
                     required
                     rows={3}
-                    placeholder="Street, City, Pincode..."
+                    placeholder="Street, City..."
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                  Pincode
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="text"
+                    name="pincode"
+                    required
+                    placeholder="e.g. 144001"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
                   />
                 </div>
               </div>
