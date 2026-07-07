@@ -178,7 +178,13 @@ export default function CheckoutFlowModal({
       const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");
-        setStep(2);
+        // Logged-in users skip Mobile + OTP verification entirely and go
+        // straight to payment; guests still verify phone via OTP.
+        if (mode === "packages" && user) {
+          await redirectToPayment();
+        } else {
+          setStep(2);
+        }
       } else {
         setError(res?.message || "Sorry! Service not available in your area.");
       }
@@ -197,7 +203,14 @@ export default function CheckoutFlowModal({
     }
     setError("");
     if (onCustomizationSubmit) onCustomizationSubmit();
-    setStep(3);
+
+    // Logged-in users skip Mobile + OTP verification entirely and go
+    // straight to payment; guests still verify phone via OTP.
+    if (user) {
+      await redirectToPayment();
+    } else {
+      setStep(3);
+    }
   };
 
   const handlePhoneChange = (val) => {
