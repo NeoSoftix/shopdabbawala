@@ -16,7 +16,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 w-full overflow-x-hidden">
+    <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
       {/* SIDEBAR: State aur close logic connect kar diya */}
       <Sidebar
         title="TIFFIN SERVICE"
@@ -27,7 +27,7 @@ export default function AdminLayout() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex flex-col flex-1 min-w-0 w-full">
+      <div className="flex flex-col flex-1 min-w-0 w-full h-full">
         {/* HEADER: onMenuClick pass kar diya jo hamburger pe click hote hi state true karega */}
         <Header
           title="Dashboard"

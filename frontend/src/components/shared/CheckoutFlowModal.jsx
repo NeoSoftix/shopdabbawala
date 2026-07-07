@@ -485,6 +485,7 @@ export default function CheckoutFlowModal({
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
                           <FiX className="w-4 h-4 shrink-0 mt-0.5" />
                           <span>{error}</span>
+                          
                         </div>
                       )}
                       <SubmitBtn label="Verify & Pay →" loading={loading} />

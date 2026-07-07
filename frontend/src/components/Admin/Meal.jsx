@@ -6,12 +6,15 @@ import {
 } from "../../services/meal.service";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 
 const Meal = () => {
   const navigate = useNavigate();
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   const [isEdit, setIsEdit] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
@@ -23,33 +26,53 @@ const Meal = () => {
   const fetchMeals = async () => {
     try {
       setLoading(true);
-
       const res = await getAllMeals();
-
       setMeals(res.data || res.meals || []);
     } catch (error) {
-      setError(error?.response?.data?.message || "Failed to fetch meals");
+      toast.error(error?.response?.data?.message || "Failed to fetch meals.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const confirmDelete = window.confirm("Are you sure?");
-
-      if (!confirmDelete) return;
-
-      await deleteMeal(id);
-
-      setMeals((prev) => prev.filter((meal) => meal._id !== id));
-    } catch (error) {
-      console.log(error);
-    }
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this meal?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteMeal(id);
+                  setMeals((prev) => prev.filter((meal) => meal._id !== id));
+                  toast.success("Meal deleted successfully.");
+                } catch (error) {
+                  toast.error("Failed to delete meal.");
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
+    );
   };
 
   const handleUpdate = async () => {
     try {
+      setUpdating(true);
       const formData = new FormData();
 
       formData.append("name", selectedMeal.name);
@@ -64,8 +87,11 @@ const Meal = () => {
 
       setIsEdit(false);
       setSelectedMeal(null);
+      toast.success("Meal updated successfully.");
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || "Failed to update meal.");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -102,17 +128,12 @@ const Meal = () => {
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
                 <td className="px-4 py-4 align-middle">
-                  {meal.image?.url ? (
-                    <img
-                      src={meal.image.url}
-                      alt={meal.name}
-                      className="h-14 w-14 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
-                      No image
-                    </div>
-                  )}
+                  <img
+                    src={meal.image?.url || "https://placehold.co/56x56?text=No+Img"}
+                    alt={meal.name}
+                    className="h-14 w-14 rounded-xl object-cover"
+                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
+                  />
                 </td>
 
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
@@ -146,11 +167,8 @@ const Meal = () => {
 
             {loading && (
               <tr>
-                <td
-                  colSpan="3"
-                  className="px-4 py-8 text-center text-slate-500"
-                >
-                  Loading meals...
+                <td colSpan="3">
+                  <SectionLoader text="Loading meals..." />
                 </td>
               </tr>
             )}
@@ -211,12 +229,13 @@ const Meal = () => {
               <div className="mb-3">
                 <img
                   src={
-                    selectedMeal.file
+                    (selectedMeal.file
                       ? selectedMeal.image
-                      : selectedMeal.image?.url
+                      : selectedMeal.image?.url) || "https://placehold.co/96x96?text=No+Img"
                   }
                   alt="preview"
                   className="w-24 h-24 object-cover rounded"
+                  onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
                 />
               </div>
             </div>
@@ -227,6 +246,7 @@ const Meal = () => {
                   setIsEdit(false);
                   setSelectedMeal(null);
                 }}
+                disabled={updating}
                 className="border px-4 py-2 rounded"
               >
                 Cancel
@@ -234,9 +254,11 @@ const Meal = () => {
 
               <button
                 onClick={handleUpdate}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                disabled={updating}
+                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                Update
+                {updating && <ButtonSpinner />}
+                {updating ? "Updating..." : "Update"}
               </button>
             </div>
           </div>

@@ -7,7 +7,6 @@ import { FaRupeeSign } from "react-icons/fa";
 
 import DashboardPieChart from "../../components/shared/DashboardPieChart";
 import DashboardLineChart from "../../components/shared/DashboardLineChart";
-import OrdersTable from "../../components/shared/OrdersTable";
 import OrdersCalendar from "../../components/shared/OrdersCalendar";
 import StatCard from "../../components/shared/StatCard";
 
@@ -167,7 +166,6 @@ export default function AdminDashboard() {
 
      
 
-      <OrdersTable orders={recentOrders} />
     </div>
   );
 }

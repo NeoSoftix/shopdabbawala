@@ -19,6 +19,7 @@ import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
 import UserHistorydetails from "../../components/User/UserHistoryDetails";
 import { toast } from "react-hot-toast";
+import { SectionLoader } from "../../components/shared/Loader";
 
 // Configuration Data
 const daysOfWeek = [
@@ -34,7 +35,7 @@ const daysOfWeek = [
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
 const MealPlanSummary = ({ subscriptions, loading }) => {
   if (loading) {
-    return <div className="p-8 text-center text-gray-500 font-bold">Loading your plans...</div>;
+    return <SectionLoader text="Loading your plans..." />;
   }
 
   if (!subscriptions || subscriptions.length === 0) {
@@ -303,7 +304,9 @@ const MealSchedule = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {loadingData ? (
-              <div className="col-span-full py-8 text-center text-sm text-gray-500 font-bold">Loading items...</div>
+              <div className="col-span-full">
+                <SectionLoader text="Loading items..." />
+              </div>
             ) : filteredFoodItems.length === 0 ? (
               <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items found for this category.</div>
             ) : (
@@ -327,9 +330,10 @@ const MealSchedule = ({
 
                     <div className="space-y-3">
                       <img
-                        src={item.image?.url || "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"}
+                        src={item.image?.url || "https://placehold.co/300x200?text=Food+Item"}
                         alt={item.name}
                         className="w-full h-24 object-cover rounded-lg"
+                        onError={(e) => { e.target.src = "https://placehold.co/300x200?text=Food+Item"; e.target.onerror = null; }}
                       />
                       <div>
                         <h4 className="text-sm font-bold text-[#1B254B] leading-tight">
@@ -427,9 +431,10 @@ const MealSchedule = ({
 
                         <div className="space-y-1.5 text-center mt-2 flex flex-col items-center">
                           <img
-                            src={item.image?.url || "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"}
+                            src={item.image?.url || "https://placehold.co/80x80?text=Meal"}
                             alt=""
                             className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                            onError={(e) => { e.target.src = "https://placehold.co/80x80?text=Meal"; e.target.onerror = null; }}
                           />
                           <div className="w-full px-0.5">
                             <p className="text-xs font-bold text-[#1B254B] truncate leading-tight">

@@ -7,16 +7,19 @@ import {
   updateItem,
 } from "../../services/items.service";
 import { getAllCategories } from "../../services/category.service";
+import { toast } from "react-hot-toast";
+import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 
 const Item = () => {
   const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [items, setItems] = useState([]);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -35,39 +38,53 @@ const Item = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      setError("");
       const res = await getAllItems();
       setItems(res.data);
     } catch (error) {
-      console.log("Fetch items error");
-      setError(
-        error?.response?.data?.message ||
-          error.message ||
-          "Something went wrong",
-      );
+      toast.error(error?.response?.data?.message || error.message || "Failed to load items.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this item?",
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this item?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteItem(id);
+                  toast.success("Item deleted successfully.");
+                  fetchItems();
+                } catch (error) {
+                  toast.error(error?.response?.data?.message || "Failed to delete item.");
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
     );
-    if (!confirmDelete) return;
-
-    try {
-      await deleteItem(id);
-      setSuccess("Successfully Deleted Item");
-      fetchItems();
-    } catch (error) {
-      console.log("Delete Item error", error);
-      setError(error?.response?.data?.message || "Failed to delete item");
-    }
   };
 
   const handleUpdate = async () => {
     try {
+      setUpdating(true);
       const formData = new FormData();
       formData.append("name", selectedItem.name);
       formData.append("description", selectedItem.description);
@@ -88,6 +105,8 @@ const Item = () => {
     } catch (error) {
       console.log("Update Item Error", error);
       setError(error?.response?.data?.message || "Failed to update item");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -141,17 +160,12 @@ const Item = () => {
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
                 <td className="px-4 py-4 align-middle">
-                  {item.image?.url ? (
-                    <img
-                      src={item.image.url}
-                      alt={item.name}
-                      className="h-14 w-14 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
-                      No image
-                    </div>
-                  )}
+                  <img
+                    src={item.image?.url || "https://placehold.co/56x56?text=No+Img"}
+                    alt={item.name}
+                    className="h-14 w-14 rounded-xl object-cover"
+                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
+                  />
                 </td>
 
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
@@ -203,11 +217,8 @@ const Item = () => {
 
             {loading && (
               <tr>
-                <td
-                  colSpan="7"
-                  className="px-4 py-8 text-center text-slate-500"
-                >
-                  Loading items...
+                <td colSpan="7">
+                  <SectionLoader text="Loading items..." />
                 </td>
               </tr>
             )}
@@ -327,9 +338,14 @@ const Item = () => {
               <div className="mb-3">
                 {(selectedItem.previewImage || selectedItem.image?.url) && (
                   <img
-                    src={selectedItem.previewImage || selectedItem.image?.url}
+                    src={
+                      selectedItem.previewImage ||
+                      selectedItem.image?.url ||
+                      "https://placehold.co/96x96?text=No+Img"
+                    }
                     alt="Preview"
                     className="w-24 h-24 object-cover rounded"
+                    onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
                   />
                 )}
               </div>
@@ -341,6 +357,7 @@ const Item = () => {
                   setIsEdit(false);
                   setSelectedItem(null);
                 }}
+                disabled={updating}
                 className="border px-4 py-2 rounded"
               >
                 Cancel
@@ -348,9 +365,11 @@ const Item = () => {
 
               <button
                 onClick={handleUpdate}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                disabled={updating}
+                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                Update
+                {updating && <ButtonSpinner />}
+                {updating ? "Updating..." : "Update"}
               </button>
             </div>
           </div>

@@ -306,6 +306,7 @@ export default function AddonsSection() {
                       }
                       alt={item.name}
                       className="w-full h-full object-cover rounded-full"
+                      onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"; e.target.onerror = null; }}
                     />
                   </div>
 
@@ -499,6 +500,7 @@ export default function AddonsSection() {
                               }
                               alt={item.name}
                               className="w-12 h-12 rounded-full object-cover bg-slate-100"
+                              onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"; e.target.onerror = null; }}
                             />
                             <div>
                               <h5 className="font-bold text-slate-900 text-sm uppercase">

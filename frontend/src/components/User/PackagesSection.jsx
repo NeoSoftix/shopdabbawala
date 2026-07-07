@@ -375,6 +375,7 @@ export default function PackagesSection() {
                         src={pkg.image}
                         alt={pkg.title}
                         className="w-full h-full object-cover rounded-full"
+                        onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                       />
                     </div>
                   </div>
@@ -564,6 +565,7 @@ export default function PackagesSection() {
                     src={featureModalData.image}
                     alt={featureModalData.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                   />
                 </div>
                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-wide">
@@ -683,6 +685,7 @@ export default function PackagesSection() {
                             src={pkg.image}
                             alt={pkg.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                           />
                         </div>
                         <div>

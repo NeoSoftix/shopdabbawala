@@ -7,6 +7,8 @@ import {
   deleteCategory,
 } from "../../services/category.service.js";
 import { getAllMeals } from "../../services/meal.service.js";
+import { toast } from "react-hot-toast";
+import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -14,9 +16,10 @@ const Categories = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -35,34 +38,48 @@ const Categories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      setError("");
       const res = await getAllCategories();
       setCategories(res.data);
     } catch (error) {
-      console.log("Get all categrioes error", error);
-      setError(error?.response?.data?.message || "Failed to fetch categories");
+      toast.error(error?.response?.data?.message || "Failed to fetch categories.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this category?",
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this category?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteCategory(id);
+                  toast.success("Category deleted successfully.");
+                  fetchCategories();
+                } catch (error) {
+                  toast.error(error?.response?.data?.message || "Failed to delete category.");
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
     );
-    if (!confirmDelete) return;
-
-    try {
-      setError("");
-      setSuccess("");
-      await deleteCategory(id);
-      setSuccess("Category deleted successfully");
-      await fetchCategories();
-    } catch (error) {
-      console.log("Delete category error", error);
-      setSuccess("");
-      setError(error?.response?.data?.message || "Failed to delete category");
-    }
   };
 
   const handleEdit = (category) => {
@@ -74,6 +91,7 @@ const Categories = () => {
 
   const handleUpdate = async () => {
     try {
+      setUpdating(true);
       setError("");
       setSuccess("");
 
@@ -98,6 +116,8 @@ const Categories = () => {
       console.log("Update category error", error);
       setSuccess("");
       setError(error?.response?.data?.message || "Failed to update category");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -149,17 +169,12 @@ const Categories = () => {
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
                 <td className="px-4 py-4 align-middle">
-                  {category.image?.url ? (
-                    <img
-                      src={category.image.url}
-                      alt={category.name}
-                      className="h-14 w-14 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
-                      No image
-                    </div>
-                  )}
+                  <img
+                    src={category.image?.url || "https://placehold.co/56x56?text=No+Img"}
+                    alt={category.name}
+                    className="h-14 w-14 rounded-xl object-cover"
+                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
+                  />
                 </td>
 
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
@@ -208,11 +223,8 @@ const Categories = () => {
 
             {loading && (
               <tr>
-                <td
-                  colSpan="5"
-                  className="px-4 py-8 text-center text-slate-500"
-                >
-                  Loading categories...
+                <td colSpan="5">
+                  <SectionLoader text="Loading categories..." />
                 </td>
               </tr>
             )}
@@ -315,10 +327,12 @@ const Categories = () => {
                   <img
                     src={
                       selectedCategory.previewImage ||
-                      selectedCategory.image?.url
+                      selectedCategory.image?.url ||
+                      "https://placehold.co/96x96?text=No+Img"
                     }
                     alt="Preview"
                     className="w-24 h-24 object-cover rounded"
+                    onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
                   />
                 )}
               </div>
@@ -330,6 +344,7 @@ const Categories = () => {
                   setIsEditOpen(false);
                   setSelectedCategory(null);
                 }}
+                disabled={updating}
                 className="border px-4 py-2 rounded"
               >
                 Cancel
@@ -337,9 +352,11 @@ const Categories = () => {
 
               <button
                 onClick={handleUpdate}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                disabled={updating}
+                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                Update
+                {updating && <ButtonSpinner />}
+                {updating ? "Updating..." : "Update"}
               </button>
             </div>
           </div>
