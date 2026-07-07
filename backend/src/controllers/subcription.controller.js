@@ -5,6 +5,7 @@ import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/User.model.js";
 import Package from "../models/package.model.js";
+import DurationPlan from "../models/durationPlan.model.js";
 
 
 // create subscription
@@ -26,7 +27,6 @@ export const createSubscription = async (req, res) => {
       !mealSize ||
       !preference ||
       !duration ||
-      !meals ||
       !deliveryMethod ||
       !totalMeals ||
       !startDate
@@ -37,65 +37,41 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Validate Meal Id
-    if (!mongoose.Types.ObjectId.isValid(meals)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Meal Id.",
-      });
+    // Meal Timing is optional
+    let meal = null;
+    if (meals) {
+      if (!mongoose.Types.ObjectId.isValid(meals)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Meal Id.",
+        });
+      }
+
+      meal = await Meal.findById(meals);
+
+      if (!meal) {
+        return res.status(404).json({
+          success: false,
+          message: "Meal not found.",
+        });
+      }
     }
 
-    const meal = await Meal.findById(meals);
+    // Find the matching duration plan configured by the admin (DurationPlan collection)
+    const durationPlanDoc = await DurationPlan.findOne({
+      durationLabel: new RegExp(`^${duration}$`, "i"),
+      totalMeals: Number(totalMeals),
+      isActive: true,
+    });
 
-    if (!meal) {
-      return res.status(404).json({
-        success: false,
-        message: "Meal not found.",
-      });
-    }
-
-    // Meal Plans
-    const mealPlans = {
-      "1 Meal": [
-        { totalMeals: 1, price: 15.00, label: "Single Tiffin", productId: "" },
-      ],
-      Weekly: [
-        { totalMeals: 4, price: 12.50, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
-        { totalMeals: 5, price: 12.00, label: "5 Meals / Week", productId: "prod_Upn1WgmC4FTua8" },
-        { totalMeals: 6, price: 11.50, label: "6 Meals / Week", productId: "prod_Upn2jDR5ogDcV9" },
-      ],
-      Monthly: [
-        { totalMeals: 16, price: 11.95, label: "4 Meals / Week", productId: "prod_Upn5c9rZHfivsw" },
-        { totalMeals: 20, price: 11.50, label: "5 Meals / Week", productId: "prod_Upn6dyzCoMEwyc" },
-        { totalMeals: 24, price: 10.95, label: "6 Meals / Week", productId: "prod_Upn728ftQwP04L" },
-      ],
-      Quarterly: [
-        { totalMeals: 48, price: 10.95, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
-        { totalMeals: 60, price: 10.50, label: "5 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
-        { totalMeals: 72, price: 9.95, label: "6 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
-      ],
-    };
-
-    const plans = mealPlans[duration] || mealPlans["1 Meal"];
-
-    if (!plans) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid duration.",
-      });
-    }
-    const selectedPlan = plans.find(
-      plan => plan.totalMeals === Number(totalMeals)
-    );
-
-    if (!selectedPlan) {
+    if (!durationPlanDoc) {
       return res.status(400).json({
         success: false,
         message: "Invalid meal size.",
       });
     }
 
-    const subtotal = selectedPlan.totalMeals * selectedPlan.price * quantity;
+    const subtotal = durationPlanDoc.totalMeals * durationPlanDoc.pricePerMeal * quantity;
     const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
     const discount = subtotal * 0.2;
     const totalAmount = subtotal - discount + deliveryCharges;
@@ -110,21 +86,24 @@ export const createSubscription = async (req, res) => {
     }
 
     const endDate = new Date(calculatedStartDate);
+    const durationKey = duration.trim().toLowerCase();
+    // Subscription model's `duration` enum expects Capitalized values (Trial/Weekly/Monthly/Quarterly)
+    const normalizedDuration = durationKey.charAt(0).toUpperCase() + durationKey.slice(1);
 
-    switch (duration) {
-      case "Trial":
+    switch (durationKey) {
+      case "trial":
         endDate.setDate(endDate.getDate() + 1);
         break;
 
-      case "Weekly":
+      case "weekly":
         endDate.setDate(endDate.getDate() + 7);
         break;
 
-      case "Monthly":
+      case "monthly":
         endDate.setMonth(endDate.getMonth() + 1);
         break;
 
-      case "Quarterly":
+      case "quarterly":
         endDate.setMonth(endDate.getMonth() + 3);
         break;
 
@@ -137,25 +116,25 @@ export const createSubscription = async (req, res) => {
 
     // Recurring Mapping
     const recurringMap = {
-      Trial: {
+      trial: {
         interval: "day",
         interval_count: 1,
       },
-      Weekly: {
+      weekly: {
         interval: "week",
         interval_count: 1,
       },
-      Monthly: {
+      monthly: {
         interval: "month",
         interval_count: 1,
       },
-      Quarterly: {
+      quarterly: {
         interval: "month",
         interval_count: 3,
       },
     };
 
-    const recurring = recurringMap[duration];
+    const recurring = recurringMap[durationKey];
 
     // Calculate trial_end if startDate is at least 48 hours in the future
     // const nowSec = Math.floor(Date.now() / 1000);
@@ -193,13 +172,13 @@ export const createSubscription = async (req, res) => {
           paymentType: "CUSTOM_PACKAGE",
           mealSize,
           preference,
-          duration,
-          meals: meal._id.toString(),
+          duration: normalizedDuration,
+          ...(meal && { meals: meal._id.toString() }),
           quantity: quantity.toString(),
           deliveryMethod,
           price: Math.round(totalAmount * 100).toString(),
-          totalMeals: selectedPlan.totalMeals.toString(),
-          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          totalMeals: durationPlanDoc.totalMeals.toString(),
+          maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
           isScheduled: "true",
@@ -218,7 +197,7 @@ export const createSubscription = async (req, res) => {
               currency: "usd",
               product_data: {
                 name: `${mealSize} Custom Package`,
-                description: `${duration} Plan`,
+                description: `${normalizedDuration} Plan`,
               },
               unit_amount: Math.round(totalAmount * 100),
               recurring: {
@@ -234,13 +213,13 @@ export const createSubscription = async (req, res) => {
           paymentType: "CUSTOM_PACKAGE",
           mealSize,
           preference,
-          duration,
-          meals: meal._id.toString(),
+          duration: normalizedDuration,
+          ...(meal && { meals: meal._id.toString() }),
           quantity: quantity.toString(),
           deliveryMethod,
           price: Math.round(totalAmount * 100).toString(),
-          totalMeals: selectedPlan.totalMeals.toString(),
-          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          totalMeals: durationPlanDoc.totalMeals.toString(),
+          maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
         },
@@ -307,13 +286,14 @@ export const renewSubscription = async (req, res) => {
 
     // 2. Duration mapping (Trial, Weekly, Monthly, Quarterly handles dynamically)
     const recurringMap = {
-      Trial: { interval: "day", interval_count: 1 },
-      Weekly: { interval: "week", interval_count: 1 },
-      Monthly: { interval: "month", interval_count: 1 },
-      Quarterly: { interval: "month", interval_count: 3 },
+      trial: { interval: "day", interval_count: 1 },
+      weekly: { interval: "week", interval_count: 1 },
+      monthly: { interval: "month", interval_count: 1 },
+      quarterly: { interval: "month", interval_count: 3 },
     };
 
-    const recurring = recurringMap[oldSubscription.duration] || { interval: "month", interval_count: 1 };
+    const recurring =
+      recurringMap[oldSubscription.duration?.trim().toLowerCase()] || { interval: "month", interval_count: 1 };
 
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
     const session = await stripe.checkout.sessions.create({

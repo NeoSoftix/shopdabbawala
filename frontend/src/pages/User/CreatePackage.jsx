@@ -28,8 +28,6 @@ export default function CreatePackage({ isOpen, onClose }) {
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
   const [mealSize, setMealSize] = useState("Basic");
-  const [mealOptions, setMealOptions] = useState([]);
-  const [meals, setMeals] = useState("");
 
 
   // Start Date & Calendar States
