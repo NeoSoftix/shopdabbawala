@@ -157,7 +157,7 @@ export default function HeroHeader() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className={`text-xs font-bold ${scrolled ? "text-slate-800" : "text-slate-900"}`}>
-                      {user.name?.split(" ")[0] || (user.phone ? `***${user.phone.slice(-4)}` : "User")}
+                      {user.name?.split(" ")[0] || `Guest_${user._id?.substring(user._id.length - 4).toUpperCase() || 'USER'}`}
                     </span>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider flex items-center gap-0.5">
                       Account <ChevronDown size={10} />

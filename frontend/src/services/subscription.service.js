@@ -14,6 +14,16 @@ export const createSubscription = async (data) => {
   }
 };
 
+export const instantUpgradeSubscription = async (packageId) => {
+  try {
+    const res = await API.post("/subscriptions/instant-upgrade", { packageId });
+    return res.data;
+  } catch (error) {
+    console.log("Instant Upgrade Error", error);
+    throw error;
+  }
+};
+
 export const getMySubscriptions = async () => {
   try {
     const res = await API.get("/subscriptions/my-subscriptions");

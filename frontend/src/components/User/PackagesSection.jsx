@@ -6,6 +6,9 @@ import { checkServiceAvailability } from "../../services/vendor.service";
 import { getActivePackages } from "../../services/package.service";
 import { toast } from "react-hot-toast";
 import CheckoutFlowModal from "../shared/CheckoutFlowModal";
+import { useAuth } from "../../context/AuthContext";
+import { getMySubscriptions, instantUpgradeSubscription } from "../../services/subscription.service";
+import { useNavigate } from "react-router-dom";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -38,6 +41,25 @@ export default function PackagesSection() {
   const [leadError, setLeadError] = useState("");
   // --- CHECKOUT MODAL STATES ---
   const [checkoutPlan, setCheckoutPlan] = useState(null);
+  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [userSubscriptions, setUserSubscriptions] = useState([]);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      getMySubscriptions()
+        .then((res) => {
+          if (res.success && res.subscriptions) {
+            setUserSubscriptions(res.subscriptions);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch subscriptions:", err));
+    }
+  }, [user]);
+
+  const activeSubscription = userSubscriptions.find(sub => sub.status === "active");
 
   // --- DYNAMIC DATA FETCHING VIA SERVICE ---
   useEffect(() => {
@@ -147,8 +169,27 @@ export default function PackagesSection() {
     setFeatureModalData(pkg);
   };
 
-  const openCheckoutModal = (pkg) => {
-    setCheckoutPlan(pkg);
+  const openCheckoutModal = async (pkg) => {
+    if (activeSubscription) {
+      if (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name) {
+        return; // Current plan, do nothing
+      }
+      // Instant Upgrade Flow
+      try {
+        setIsUpgrading(true);
+        const res = await instantUpgradeSubscription(pkg._id);
+        if (res.success) {
+          toast.success("Subscription upgraded successfully!");
+          navigate("/payment-success?session_id=instant_" + Date.now());
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to upgrade subscription");
+      } finally {
+        setIsUpgrading(false);
+      }
+    } else {
+      setCheckoutPlan(pkg);
+    }
   };
 
   const closeCheckoutModal = () => {
@@ -278,6 +319,7 @@ export default function PackagesSection() {
             if (!shouldRender && packages.length > 2) return null;
 
             const visibleFeatures = pkg.features.slice(0, 3);
+            const isCurrentPlan = activeSubscription && (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name);
 
             return (
               <motion.div
@@ -394,15 +436,18 @@ export default function PackagesSection() {
                     </div>
 
                     <button
-                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm cursor-pointer
+                      disabled={isCurrentPlan || isUpgrading}
+                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm ${isCurrentPlan ? "" : "cursor-pointer"}
                         ${
-                          isActive
-                            ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
-                            : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
+                          isCurrentPlan 
+                            ? "bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed shadow-none opacity-80" 
+                            : isActive
+                              ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
+                              : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
                         }`}
                       onClick={() => openCheckoutModal(pkg)}
                     >
-                      Choose Plan
+                      {isCurrentPlan ? "Current Plan" : "Choose Plan"}
                     </button>
                   </div>
                 </div>
@@ -616,7 +661,9 @@ export default function PackagesSection() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {packages.map((pkg, index) => (
+                {packages.map((pkg, index) => {
+                  const isCurrentPlan = activeSubscription && (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name);
+                  return (
                   <div
                     key={pkg._id}
                     className="bg-slate-50/70 border border-slate-100 rounded-3xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow"
@@ -683,14 +730,14 @@ export default function PackagesSection() {
                     </div>
 
                     <button
+                      disabled={isCurrentPlan || isUpgrading}
                       onClick={() => handleChoosePlanInModal(index)}
-                      className="w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all focus:outline-none"
+                      className={`w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase shadow-sm transition-all focus:outline-none ${isCurrentPlan ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'}`}
                     >
-                      Choose Plan
+                      {isCurrentPlan ? "Current Plan" : "Choose Plan"}
                     </button>
                   </div>
-
-                ))}
+                )})}
               </div>
             </motion.div>
           </div>
