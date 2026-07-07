@@ -14,31 +14,34 @@ export default function PaymentSuccess() {
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", pincode: localStorage.getItem("pincode") || "" });
 
   useEffect(() => {
-    if (sessionId) {
-      getSessionDetails(sessionId)
-        .then(res => {
-          if (res.success && res.customer_details) {
-            setFormData(prev => ({
-              ...prev,
-              name: user?.name || res.customer_details.name || prev.name,
-              email: user?.email || res.customer_details.email || prev.email,
-              phone: user?.phone || res.customer_details.phone || prev.phone,
-              address: user?.address || prev.address,
-            }));
-          }
-        })
-        .catch(err => console.error("Failed to fetch session", err));
-    } else if (user) {
+    if (user) {
       setFormData(prev => ({
         ...prev,
         name: user.name || prev.name,
         email: user.email || prev.email,
         phone: user.phone || prev.phone,
         address: user.address || prev.address,
+        pincode: user.pincode || prev.pincode,
       }));
+    }
+
+    if (sessionId) {
+      getSessionDetails(sessionId)
+        .then(res => {
+          if (res.success && res.customer_details) {
+            setFormData(prev => ({
+              ...prev,
+              name: prev.name || res.customer_details.name || "",
+              email: prev.email || res.customer_details.email || "",
+              phone: prev.phone || res.customer_details.phone || "",
+
+            }));
+          }
+        })
+        .catch(err => console.error("Failed to fetch session", err));
     }
   }, [sessionId, user]);
 
@@ -57,13 +60,16 @@ export default function PaymentSuccess() {
     setLoading(true);
     try {
       if (sessionId) {
-        await saveCheckoutDetails({ ...formData, sessionId });
+        const res = await saveCheckoutDetails({ ...formData, sessionId });
+        // if (res && res.stripeSubscriptionScheduleId) {
+        //   alert(`Stripe Subscription Schedule ID: ${res.stripeSubscriptionScheduleId}`);
+        // }
       }
-      
+
       if (setUser) {
         setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone, address: formData.address }) : null);
       }
-      
+
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
@@ -216,7 +222,22 @@ export default function PaymentSuccess() {
                     className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
                   />
                 </div>
+                <div>
+                  <div>
 
+                    <input
+                      type="hidden"
+                      name="pincode"
+                      required
+                      maxLength={6}
+                      placeholder="123456"
+                      value={formData.pincode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                    />
+                  </div>
+
+                </div>
 
                 <button
                   type="submit"
@@ -303,7 +324,7 @@ export default function PaymentSuccess() {
               </div>
 
               <button
-                onClick={() => navigate("/meal-planner")}
+                onClick={() => navigate("/dashboard")}
                 className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

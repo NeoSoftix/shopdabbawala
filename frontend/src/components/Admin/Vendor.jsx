@@ -5,6 +5,7 @@ import {
   deleteVendor,
   updateVendor,
 } from "../../services/vendor.service.js";
+import { PageLoader, ButtonSpinner } from "../shared/Loader";
 
 const VendorList = () => {
   const navigate = useNavigate();
@@ -153,13 +154,7 @@ const VendorList = () => {
   );
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-lg font-medium text-gray-600 animate-pulse">
-          Loading Vendors...
-        </p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
@@ -230,9 +225,10 @@ const VendorList = () => {
               {/* Profile Info */}
               <div className="flex items-center gap-4 min-w-[220px]">
                 <img
-                  src={vendor.logo?.url || "https://via.placeholder.com/150"}
+                  src={vendor.logo?.url || "https://placehold.co/80x80?text=Vendor"}
                   alt={vendor.organizationName}
                   className="h-20 w-20 rounded-2xl border-2 border-red-50 object-cover shadow-sm shrink-0"
+                  onError={(e) => { e.target.src = "https://placehold.co/80x80?text=Vendor"; e.target.onerror = null; }}
                 />
                 <div className="min-w-0">
                   <h2 className="text-xl font-black text-gray-900 tracking-tight">
@@ -368,8 +364,9 @@ const VendorList = () => {
               <button
                 disabled={deleting}
                 onClick={handleConfirmDelete}
-                className="rounded-xl bg-[#e61e2d] px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="rounded-xl bg-[#e61e2d] px-4 py-2 text-sm font-medium text-white hover:bg-red-700 flex items-center justify-center gap-2 disabled:opacity-60"
               >
+                {deleting && <ButtonSpinner />}
                 {deleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
@@ -536,8 +533,9 @@ const VendorList = () => {
                 <button
                   type="submit"
                   disabled={updating}
-                  className="rounded-xl bg-[#e61e2d] px-5 py-2 text-sm text-white hover:bg-red-700"
+                  className="rounded-xl bg-[#e61e2d] px-5 py-2 text-sm text-white hover:bg-red-700 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
+                  {updating && <ButtonSpinner />}
                   {updating ? "Updating..." : "Save Changes"}
                 </button>
               </div>

@@ -22,8 +22,8 @@ export default function Sidebar({
 
       {/* Sidebar Panel */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 w-[270px] h-screen bg-white border-r border-gray-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 w-[270px] h-full bg-white border-r border-gray-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out shrink-0
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Logo Section */}
         <div className="bg-[#E23747] text-white px-6 py-7 relative flex flex-col justify-center">

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createVendor } from "../../services/vendor.service.js";
 import { toast } from "react-hot-toast";
+import { ButtonSpinner } from "../shared/Loader";
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -25,14 +26,13 @@ const AddVendor = () => {
   );
 
   const [loading, setLoading] = useState(false);
-  const [fetchingLocation, setFetchingLocation] = useState(false); // लोकेशन फैचिंग स्टेट
-  const [areas, setAreas] = useState([]); // पिनकोड के सभी इलाकों को स्टोर करने के लिए स्टेट
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [areas, setAreas] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (errors[e.target.name]) setErrors((p) => ({ ...p, [e.target.name]: "" }));
   };
 
   // पिनकोड चेंज होने पर काम करने वाला फंक्शन
@@ -92,10 +92,27 @@ const AddVendor = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Field-level validation
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Vendor name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email address.";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
+    else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) newErrors.phone = "Enter a valid 10-digit phone number.";
+    if (!formData.organizationName.trim()) newErrors.organizationName = "Organization name is required.";
+    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+    if (!formData.city.trim()) newErrors.city = "City is required (enter a valid pincode).";
+    if (!formData.state.trim()) newErrors.state = "State is required (enter a valid pincode).";
+    if (!formData.address.trim()) newErrors.address = "Detailed address is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fix the highlighted errors before submitting.");
+      return;
+    }
 
     try {
       setLoading(true);
-
       const data = new FormData();
       data.append("name", formData.name);
       data.append("email", formData.email);
@@ -106,18 +123,13 @@ const AddVendor = () => {
       data.append("state", formData.state);
       data.append("pincode", formData.pincode);
       data.append("description", formData.description);
-
-      if (image) {
-        data.append("logo", image);
-      }
+      if (image) data.append("logo", image);
 
       const response = await createVendor(data);
-
-      toast.success(response?.message || "Vendor Added Successfully");
+      toast.success(response?.message || "🎉 Vendor Added Successfully!");
       navigate("/admin/vendors");
     } catch (error) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || "Failed to create vendor");
+      toast.error(error?.response?.data?.message || "Failed to create vendor.");
     } finally {
       setLoading(false);
     }
@@ -154,6 +166,7 @@ const AddVendor = () => {
             src={preview}
             alt="Vendor"
             className="h-28 w-28 rounded-full border-4 border-[#e61e2d]/20 object-cover"
+            onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; e.target.onerror = null; }}
           />
 
           <label className="mt-4 cursor-pointer rounded-lg bg-[#e61e2d] px-5 py-2 text-sm font-medium text-white hover:bg-red-700">
@@ -170,66 +183,53 @@ const AddVendor = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Vendor Name */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Vendor Name
-            </label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Vendor Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter vendor name"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.name ? "border-red-400" : "border-gray-300"}`}
               required
             />
+            {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
           </div>
 
           {/* Email & Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Email
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
+                type="email" name="email" value={formData.email} onChange={handleChange}
                 placeholder="Enter email"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.email ? "border-red-400" : "border-gray-300"}`}
                 required
               />
+              {errors.email && <p className="text-red-500 text-sm mt-1">⚠ {errors.email}</p>}
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
               <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
+                type="text" name="phone" value={formData.phone} onChange={handleChange}
                 placeholder="Enter phone number"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.phone ? "border-red-400" : "border-gray-300"}`}
                 required
               />
+              {errors.phone && <p className="text-red-500 text-sm mt-1">⚠ {errors.phone}</p>}
             </div>
           </div>
 
           {/* Organization Name */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Organization Name
-            </label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Organization Name</label>
             <input
-              type="text"
-              name="organizationName"
-              value={formData.organizationName}
-              onChange={handleChange}
+              type="text" name="organizationName" value={formData.organizationName} onChange={handleChange}
               placeholder="Enter organization name"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.organizationName ? "border-red-400" : "border-gray-300"}`}
               required
             />
+            {errors.organizationName && <p className="text-red-500 text-sm mt-1">⚠ {errors.organizationName}</p>}
           </div>
 
           {/* Pincode Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}
@@ -343,8 +343,9 @@ const AddVendor = () => {
           <button
             type="submit"
             disabled={loading || fetchingLocation}
-            className="w-full rounded-xl bg-[#e61e2d] py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            className="w-full rounded-xl bg-[#e61e2d] py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
           >
+            {loading && <ButtonSpinner />}
             {loading ? "Creating Vendor..." : "Add Vendor"}
           </button>
         </form>

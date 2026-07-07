@@ -28,6 +28,9 @@ export default function CreatePackage({ isOpen, onClose }) {
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
   const [mealSize, setMealSize] = useState("Basic");
+  const [mealOptions, setMealOptions] = useState([]);
+  const [meals, setMeals] = useState("");
+
 
   // Start Date & Calendar States
   const [startDate, setStartDate] = useState("");
@@ -36,6 +39,8 @@ export default function CreatePackage({ isOpen, onClose }) {
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  // Red & White Theme Based Meal Plan State
   
   const [selectedPlan, setSelectedPlan] = useState("Basic");
   const [hoveredPlan, setHoveredPlan] = useState(null);
@@ -131,7 +136,7 @@ export default function CreatePackage({ isOpen, onClose }) {
 
   const pricePerMeal = parseFloat((basePricePerMeal * planMultiplier).toFixed(2));
   const subtotal = totalMeals * pricePerMeal * quantity;
-  const discount = subtotal * 0.2; 
+  const discount = subtotal * 0.2;
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
@@ -140,7 +145,7 @@ export default function CreatePackage({ isOpen, onClose }) {
     const month = date.getMonth();
     const firstDayIndex = new Date(year, month, 1).getDay();
     const totalDays = new Date(year, month + 1, 0).getDate();
-    
+
     const days = [];
     for (let i = 0; i < firstDayIndex; i++) {
       days.push(null);
@@ -168,6 +173,7 @@ export default function CreatePackage({ isOpen, onClose }) {
       subscriptionData={{
         mealSize: selectedPlan,
         preference,
+        totalMeals,
         duration,
         quantity,
         deliveryMethod,
@@ -463,10 +469,10 @@ export default function CreatePackage({ isOpen, onClose }) {
                               i
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPlan(planName)}
-                              className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[90px] focus:outline-none relative
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPlan(planName)}
+                          className={`w-full p-2.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center min-h-[90px] focus:outline-none relative
                                 ${isSelected ? "bg-[#dc2626] text-white border-[#dc2626] shadow-lg shadow-red-600/10 font-black" : "bg-white text-gray-800 border-gray-200 hover:border-[#dc2626]/60"}`}
                             >
                               <span className="text-sm font-black tracking-tight">
@@ -593,33 +599,33 @@ export default function CreatePackage({ isOpen, onClose }) {
                       </div>
                     </div>
 
-                    <div className="bg-[#f4f5f7] p-2.5 rounded-xl my-2 space-y-1.5">
-                      <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
-                        <span>Subtotal ({totalMeals} meals)</span>
-                        <span className="text-slate-700">
-                          ${subtotal.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-xs font-bold text-[#dc2626] uppercase tracking-wide">
-                        <span>Discount (20% off)</span>
-                        <span>-${discount.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
-                        <span>{deliveryMethod} Charges</span>
-                        <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
-                          {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
-                        </span>
-                      </div>
-                      <hr className="border-gray-200" />
-                      <div className="flex justify-between items-center pt-0.5">
-                        <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
-                          Total Amount
-                        </span>
-                        <span className="text-lg font-black text-[#dc2626] tracking-tight">
-                          ${totalAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
+                <div className="bg-[#f4f5f7] p-2.5 rounded-xl my-2 space-y-1.5">
+                  <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
+                    <span>Subtotal ({totalMeals} meals)</span>
+                    <span className="text-slate-700">
+                      ${subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs font-bold text-[#dc2626] uppercase tracking-wide">
+                    <span>Discount (20% off)</span>
+                    <span>-${discount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    <span>{deliveryMethod} Charges</span>
+                    <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
+                      {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <hr className="border-gray-200" />
+                  <div className="flex justify-between items-center pt-0.5">
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                      Total Amount
+                    </span>
+                    <span className="text-lg font-black text-[#dc2626] tracking-tight">
+                      ${totalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
 
                     <div className="bg-red-50 border border-red-100 text-[#dc2626] text-[10px] rounded-xl p-1.5 text-center font-black uppercase tracking-widest mb-2 flex items-center justify-center space-x-1.5">
                       <svg width="3.5" height="3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">

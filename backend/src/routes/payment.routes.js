@@ -1,8 +1,10 @@
 import express from "express";
 import {
   createPackageCheckout,
+  createAddonCheckout,
   stripeWebhook,
   saveCheckoutDetails,
+  createScheduledSubscription,
   getCheckoutSession,
 } from "../controllers/payment.controller.js";
 
@@ -13,12 +15,17 @@ const router = express.Router();
 // Admin Package Purchase
 router.post("/package-checkout", verifyToken, createPackageCheckout);
 
+// Add-ons Cart Checkout
+router.post("/addon-checkout", verifyToken, createAddonCheckout);
+
 // Get Checkout Session Details
 router.get("/session/:sessionId", verifyToken, getCheckoutSession);
 
 // Save Checkout Details & Send Email
 router.post("/save-details", verifyToken, saveCheckoutDetails);
 
+// Create Subscription Schedule
+router.post("/create-schedule", verifyToken, createScheduledSubscription);
 
 // Webhook
 router.post(

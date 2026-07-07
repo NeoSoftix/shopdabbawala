@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllCategories } from "../../services/category.service";
+import { createItem } from "../../services/items.service";
+import { toast } from "react-hot-toast";
+import { ButtonSpinner } from "../shared/Loader";
+
+const DEFAULT_IMG = "https://placehold.co/128x128?text=No+Image";
 
 const AddItem = () => {
   const navigate = useNavigate();
@@ -12,125 +17,98 @@ const AddItem = () => {
     image: null,
   });
   const [categories, setCategories] = useState([]);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     fetchCategories();
-  }, [categories]);
+  }, []);
 
   const fetchCategories = async () => {
     try {
       const res = await getAllCategories();
-
-      setCategories(res.data);
+      setCategories(res.data || []);
     } catch (error) {
-      console.log("Fetch categories error", error);
+      toast.error("Failed to load categories");
     }
   };
 
   const handleChange = (e) => {
-    setItemData({
-      ...itemData,
-      [e.target.name]: e.target.value,
-    });
+    setItemData({ ...itemData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+    }
   };
 
   const handleImageChange = (e) => {
-    setItemData({
-      ...itemData,
-      image: e.target.files[0],
-    });
+    const file = e.target.files[0];
+    if (file) {
+      setItemData({ ...itemData, image: file });
+      setPreviewUrl(URL.createObjectURL(file));
+      if (errors.image) setErrors((prev) => ({ ...prev, image: "" }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!itemData.name.trim()) newErrors.name = "Item name is required.";
+    if (!itemData.description.trim()) newErrors.description = "Description is required.";
+    if (!itemData.category) newErrors.category = "Please select a category.";
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fix the errors before submitting.");
+      return;
+    }
 
     try {
       setLoading(true);
-      setError("");
-      setSuccess("");
       const formData = new FormData();
-
       formData.append("name", itemData.name);
       formData.append("description", itemData.description);
       formData.append("category", itemData.category);
-
       formData.append(
         "allergies",
-        itemData.allergies
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
+        itemData.allergies.split(",").map((item) => item.trim()).filter(Boolean)
       );
+      if (itemData.image) formData.append("image", itemData.image);
 
       if (itemData.image) {
         formData.append("image", itemData.image);
       }
 
-      const res = await createItem(formData);
+      await createItem(formData);
 
-      setSuccess(res.message || "Item created successfully");
+      toast.success("🎉 Item created successfully!");
+      navigate("/admin/items");
     } catch (error) {
       console.log("Create item error", error);
 
-      setError(error?.response?.data?.message || "Failed to create item");
+      toast.error(error?.response?.data?.message || "Failed to create item. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {success && (
-        <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-emerald-100 bg-emerald-50/50 p-3 text-sm font-medium text-emerald-800 shadow-sm animate-fade-in">
-          <svg
-            className="h-4 w-4 text-emerald-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </svg>
-          <span>{success}</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-rose-100 bg-rose-50/50 p-3 text-sm font-medium text-rose-800 shadow-sm animate-fade-in">
-          <svg
-            className="h-4 w-4 text-rose-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-            />
-          </svg>
-          <span>{error}</span>
-        </div>
-      )}
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-4xl font-bold text-slate-800">Add Item</h1>
-
-          <p className="text-gray-500">Create a new item</p>
+          <p className="text-gray-500 mt-1">Create a new menu item</p>
         </div>
-
         <button
           onClick={() => navigate("/admin/items")}
-          className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium"
+          className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium transition-colors"
         >
-          Back to Items
+          ← Back to Items
         </button>
       </div>
 
@@ -140,115 +118,160 @@ const AddItem = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Side */}
             <div className="space-y-5">
+              {/* Item Name */}
               <div>
-                <label className="block mb-2 font-medium">Item Name</label>
-
+                <label className="block mb-1.5 font-medium text-gray-700">
+                  Item Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="name"
                   value={itemData.name}
                   onChange={handleChange}
                   placeholder="Enter Item Name"
-                  className="w-full border rounded-lg p-3"
+                  className={`w-full border rounded-lg p-3 focus:outline-none focus:ring-2 ${errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 />
+                {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
               </div>
 
+              {/* Description */}
               <div>
-                <label className="block mb-2 font-medium">Description</label>
-
+                <label className="block mb-1.5 font-medium text-gray-700">
+                  Description <span className="text-red-500">*</span>
+                </label>
                 <textarea
                   rows="5"
                   name="description"
                   value={itemData.description}
                   onChange={handleChange}
                   placeholder="Enter Description"
-                  className="w-full border rounded-lg p-3 resize-none"
+                  className={`w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 />
+                {errors.description && <p className="text-red-500 text-sm mt-1">⚠ {errors.description}</p>}
               </div>
 
+              {/* Allergies */}
               <div>
-                <label className="block mb-2 font-medium">Allergies</label>
-
+                <label className="block mb-1.5 font-medium text-gray-700">Allergies</label>
                 <input
                   type="text"
                   name="allergies"
                   value={itemData.allergies}
                   onChange={handleChange}
                   placeholder="Milk, Nuts, Gluten"
-                  className="w-full border rounded-lg p-3"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-200"
                 />
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Separate allergies with commas.
-                </p>
+                <p className="text-sm text-gray-400 mt-1">Separate allergies with commas.</p>
               </div>
             </div>
 
             {/* Right Side */}
             <div className="space-y-5">
+              {/* Category */}
               <div>
-                <label className="block mb-2 font-medium">Category</label>
-
+                <label className="block mb-1.5 font-medium text-gray-700">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <select
                   name="category"
                   value={itemData.category}
                   onChange={handleChange}
-                  className="w-full border rounded-lg p-3"
+                  className={`w-full border rounded-lg p-3 bg-white focus:outline-none focus:ring-2 ${errors.category ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 >
                   <option value="">Select Category</option>
-
                   {categories.map((category) => (
                     <option key={category._id} value={category._id}>
                       {category.name}
                     </option>
                   ))}
                 </select>
+                {errors.category && <p className="text-red-500 text-sm mt-1">⚠ {errors.category}</p>}
               </div>
 
+              {/* Item Image */}
               <div>
                 <label className="block mb-2 font-medium">Item Image</label>
 
-                <div className="border-2 border-dashed rounded-lg p-10 min-h-[220px] flex items-center justify-center">
-                  <div className="text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                <label
+                  htmlFor="itemImage"
+                  className="border-2 border-dashed rounded-lg p-10 min-h-[220px] flex items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <input
+                    id="itemImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
 
-                    {itemData.image && (
+                  {itemData.image ? (
+                    <div className="text-center">
                       <img
                         src={URL.createObjectURL(itemData.image)}
                         alt="Preview"
-                        className="w-32 h-32 object-cover rounded-lg border mt-4 mx-auto"
+                        className="w-40 h-40 object-cover rounded-lg border mx-auto"
                       />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+
+                      <p className="text-sm text-gray-500 mt-3">
+                        Click anywhere to change image
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <svg
+                        className="w-12 h-12 mx-auto text-gray-400 mb-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M12 3v12m0-12l-4 4m4-4l4 4"
+                        />
+                      </svg>
+
+                      <p className="font-medium text-gray-700">
+                        Click anywhere to upload image
+                      </p>
+
+                      <p className="text-sm text-gray-400 mt-1">
+                        PNG, JPG, JPEG
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div >
+            </div >
+          </div >
 
           {/* Buttons */}
-          <div className="flex justify-end gap-4 mt-8">
+          < div className="flex justify-end gap-4 mt-8" >
             <button
               type="button"
               onClick={() => navigate("/admin/items")}
-              className="border px-6 py-3 rounded-xl"
+              className="border border-gray-300 px-6 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
-
             <button
               type="submit"
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl"
+              disabled={loading}
+              className={`px-6 py-3 rounded-xl text-white ${loading
+                ? "bg-red-400 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+                }`}
             >
-              Save Item
+              {loading ? "Saving..." : "Save Item"}
             </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </div >
+        </form >
+      </div >
+    </div >
   );
 };
 

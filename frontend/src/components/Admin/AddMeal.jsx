@@ -1,40 +1,48 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createMeal } from "../../services/meal.service.js";
+import { toast } from "react-hot-toast";
+import { ButtonSpinner } from "../shared/Loader";
+
+const DEFAULT_IMG = "https://placehold.co/128x128?text=No+Image";
 
 const AddMeal = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const validate = () => {
+    const newErrors = {};
+    if (!name.trim()) newErrors.name = "Meal name is required.";
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     try {
       setLoading(true);
-      setError("");
-      setSuccess("");
-
       const formData = new FormData();
-
       formData.append("name", name);
-      if (image) {
-        formData.append("image", image);
-      }
+      if (image) formData.append("image", image);
 
       const res = await createMeal(formData);
-
-      setSuccess(res.message || "Meal Created Successfully");
-
+      toast.success(res.message || "🎉 Meal created successfully!");
       setName("");
       setImage(null);
+      setPreviewUrl(null);
     } catch (error) {
-      setError(
-        error?.response?.data?.message ||
-          error.message ||
-          "Something went wrong",
+      toast.error(
+        error?.response?.data?.message || error.message || "Failed to create meal."
       );
     } finally {
       setLoading(false);
@@ -47,10 +55,8 @@ const AddMeal = () => {
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Add Meal</h1>
-
           <p className="mt-1 text-sm text-gray-500">Create a new meal</p>
         </div>
-
         <button
           onClick={() => navigate("/admin/meals")}
           className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-red-600 transition hover:bg-red-100"
@@ -61,72 +67,64 @@ const AddMeal = () => {
 
       {/* Form */}
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-        {error && (
-          <div className="mb-4 animate-in slide-in-from-top-2 duration-300 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-red-500">⚠️</span>
-              <p className="text-sm font-medium text-red-700">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 rounded-xl border border-[#e61e2d]/20 bg-[#e61e2d]/5 px-4 py-3 shadow-sm animate-pulse">
-            <p className="text-sm font-medium text-[#e61e2d]">✓ {success}</p>
-          </div>
-        )}
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid gap-5 md:grid-cols-2">
             {/* Meal Name */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Meal Name
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Meal Name <span className="text-red-500">*</span>
               </label>
-
               <input
                 type="text"
-                required
                 value={name}
                 placeholder="Enter meal name"
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors((p) => ({ ...p, name: "" }));
+                }}
+                className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 ${
+                  errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                }`}
               />
+              {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
             </div>
 
             {/* Image Upload */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Meal Image
-              </label>
-
-              <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition hover:border-red-500">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Meal Image</label>
+              <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition hover:border-red-400">
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">Click to upload image</p>
-
-                  {image && (
-                    <p className="mt-2 text-xs text-green-600">{image.name}</p>
+                  {image ? (
+                    <p className="text-xs text-green-600 font-medium">{image.name}</p>
+                  ) : (
+                    <p className="text-sm text-gray-400">Click to upload image</p>
                   )}
                 </div>
-
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => setImage(e.target.files[0])}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setImage(file);
+                      setPreviewUrl(URL.createObjectURL(file));
+                    }
+                  }}
                 />
               </label>
             </div>
           </div>
 
           {/* Preview */}
-          {image && (
+          {previewUrl && (
             <div className="rounded-lg border p-4">
               <p className="mb-2 text-sm text-gray-600">Selected Image</p>
-
               <img
-                src={URL.createObjectURL(image)}
+                src={previewUrl}
                 alt="Preview"
                 className="h-28 w-28 rounded-lg border object-cover"
+                onError={(e) => { e.target.src = DEFAULT_IMG; e.target.onerror = null; }}
               />
             </div>
           )}
@@ -139,19 +137,20 @@ const AddMeal = () => {
               onClick={() => {
                 setName("");
                 setImage(null);
-                setError("");
-                setSuccess("");
+                setPreviewUrl(null);
+                setErrors({});
               }}
-              className="rounded-lg border px-5 py-2.5 text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border px-5 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Clear
             </button>
-
             <button
               type="submit"
-              className="rounded-lg bg-red-600 px-6 py-2.5 font-medium text-white hover:bg-red-700"
+              disabled={loading}
+              className="rounded-lg bg-red-600 px-6 py-2.5 font-medium text-white hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 transition-colors"
             >
-              Save Meal
+              {loading && <ButtonSpinner />}
+              {loading ? "Saving..." : "Save Meal"}
             </button>
           </div>
         </form>

@@ -1,116 +1,76 @@
 import mongoose from "mongoose";
 
-const addressSchema = new mongoose.Schema(
+const mealItemSchema = new mongoose.Schema(
   {
-    street: {
-      type: String,
-      trim: true,
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
       required: true,
     },
 
-    city: {
-      type: String,
-      trim: true,
+    quantity: {
+      type: Number,
       required: true,
-    },
-
-    state: {
-      type: String,
-      trim: true,
-      required: true,
-    },
-
-    pincode: {
-      type: String,
-      trim: true,
-      required: true,
-    },
-
-    addressType: {
-      type: String,
-      enum: ["Home", "Work", "Other"],
-      default: "Home",
-    },
-
-    isDefault: {
-      type: Boolean,
-      default: false,
+      default: 1,
+      min: 1,
     },
   },
-  { _id: true }
+  {
+    _id: false,
+  }
 );
 
 const dayScheduleSchema = new mongoose.Schema(
   {
-    items: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Item",
-      },
-    ],
-
-    addressId: {
-      type: mongoose.Schema.Types.ObjectId,
+    day: {
+      type: String,
       required: true,
+      enum: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+    },
+
+    items: {
+      type: [mealItemSchema],
+      default: [],
     },
   },
-  { _id: false }
+  {
+    _id: false,
+  }
 );
 
-const mealPlanSchema = new mongoose.Schema(
+const mealScheduleSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    subscription: {
+    subscriptionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
       required: true,
+      index: true,
     },
 
-    addresses: {
-      type: [addressSchema],
-      default: [],
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
     },
 
     schedule: {
-      Monday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
+      type: [dayScheduleSchema],
+      default: [],
+    },
 
-      Tuesday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
-
-      Wednesday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
-
-      Thursday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
-
-      Friday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
-
-      Saturday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
-
-      Sunday: {
-        type: dayScheduleSchema,
-        default: {},
-      },
+    status: {
+      type: String,
+      enum: ["active", "completed", "cancelled"],
+      default: "active",
     },
   },
   {
@@ -118,6 +78,9 @@ const mealPlanSchema = new mongoose.Schema(
   }
 );
 
-const MealPlan = mongoose.model("MealPlan", mealPlanSchema);
+const MealSchedule = mongoose.model(
+  "MealSchedule",
+  mealScheduleSchema
+);
 
-export default MealPlan;
+export default MealSchedule;

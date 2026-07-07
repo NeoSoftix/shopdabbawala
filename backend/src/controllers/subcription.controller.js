@@ -3,6 +3,8 @@ import stripe from "../config/stripe.js";
 import Subscription from "../models/Subcription.model.js";
 import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
+import User from "../models/User.model.js";
+import Package from "../models/package.model.js";
 
 
 // create subscription
@@ -15,6 +17,7 @@ export const createSubscription = async (req, res) => {
       meals,
       quantity = 1,
       deliveryMethod,
+      totalMeals,
       startDate,
     } = req.body;
 
@@ -25,6 +28,7 @@ export const createSubscription = async (req, res) => {
       !duration ||
       !meals ||
       !deliveryMethod ||
+      !totalMeals ||
       !startDate
     ) {
       return res.status(400).json({
@@ -52,24 +56,37 @@ export const createSubscription = async (req, res) => {
 
     // Meal Plans
     const mealPlans = {
-      Basic: {
-        price: 299,
-        totalMeals: 15,
-        maxItemsPerMeal: 4,
-      },
-      Medium: {
-        price: 499,
-        totalMeals: 30,
-        maxItemsPerMeal: 8,
-      },
-      Premium: {
-        price: 799,
-        totalMeals: 30,
-        maxItemsPerMeal: 10,
-      },
+      "1 Meal": [
+        { totalMeals: 1, price: 15.00, label: "Single Tiffin", productId: "" },
+      ],
+      Weekly: [
+        { totalMeals: 4, price: 12.50, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 5, price: 12.00, label: "5 Meals / Week", productId: "prod_Upn1WgmC4FTua8" },
+        { totalMeals: 6, price: 11.50, label: "6 Meals / Week", productId: "prod_Upn2jDR5ogDcV9" },
+      ],
+      Monthly: [
+        { totalMeals: 16, price: 11.95, label: "4 Meals / Week", productId: "prod_Upn5c9rZHfivsw" },
+        { totalMeals: 20, price: 11.50, label: "5 Meals / Week", productId: "prod_Upn6dyzCoMEwyc" },
+        { totalMeals: 24, price: 10.95, label: "6 Meals / Week", productId: "prod_Upn728ftQwP04L" },
+      ],
+      Quarterly: [
+        { totalMeals: 48, price: 10.95, label: "4 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 60, price: 10.50, label: "5 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+        { totalMeals: 72, price: 9.95, label: "6 Meals / Week", productId: "prod_Upn0nTj5lSdjoY" },
+      ],
     };
 
-    const selectedPlan = mealPlans[mealSize];
+    const plans = mealPlans[duration] || mealPlans["1 Meal"];
+
+    if (!plans) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid duration.",
+      });
+    }
+    const selectedPlan = plans.find(
+      plan => plan.totalMeals === Number(totalMeals)
+    );
 
     if (!selectedPlan) {
       return res.status(400).json({
@@ -77,6 +94,11 @@ export const createSubscription = async (req, res) => {
         message: "Invalid meal size.",
       });
     }
+
+    const subtotal = selectedPlan.totalMeals * selectedPlan.price * quantity;
+    const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
+    const discount = subtotal * 0.2;
+    const totalAmount = subtotal - discount + deliveryCharges;
 
     const calculatedStartDate = new Date(startDate);
 
@@ -135,61 +157,97 @@ export const createSubscription = async (req, res) => {
 
     const recurring = recurringMap[duration];
 
-    // Checkout Session with inline subscription price_data (does not create catalog products)
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      phone_number_collection: { enabled: true },
+    // Calculate trial_end if startDate is at least 48 hours in the future
+    // const nowSec = Math.floor(Date.now() / 1000);
+    // const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
+    // const trialEnd = (startSec > nowSec + 86400) ? startSec : undefined; // at least 48 hours (172800 seconds) in future
 
-      payment_method_types: ["card"],
 
-      line_items: [
-        {
-          price_data: {
-            currency: "inr",
-            product_data: {
-              name: `${mealSize} Custom Package`,
-              description: `${duration} Plan`,
-            },
-            unit_amount: Math.max(selectedPlan.price * 100, 4000),
-            recurring: {
-              interval: recurring.interval,
-              interval_count: recurring.interval_count,
-            },
-          },
-          quantity,
+
+    const now = new Date();
+    const isToday = calculatedStartDate.toDateString() === now.toDateString();
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
+    const minTrialEnd = nowSec + 172800; // Stripe's 48hr floor
+
+    // Not today → trial. Clamp to Stripe's minimum if the selected date is too close.
+    const trialEnd = isToday ? undefined : Math.max(startSec, minTrialEnd);
+
+    let session;
+    if (trialEnd) {
+      // Setup Mode for future start dates (No Trial period shown on Stripe)
+      const user = await User.findById(req.user.id);
+      const customer = await stripe.customers.create({
+        email: user?.email || "",
+        name: user?.name || user?.phone || "Customer",
+        phone: user?.phone || "",
+      });
+
+      session = await stripe.checkout.sessions.create({
+        mode: "setup",
+        customer: customer.id,
+        payment_method_types: ["card"],
+        metadata: {
+          userId: req.user.id,
+          paymentType: "CUSTOM_PACKAGE",
+          mealSize,
+          preference,
+          duration,
+          meals: meal._id.toString(),
+          quantity: quantity.toString(),
+          deliveryMethod,
+          price: Math.round(totalAmount * 100).toString(),
+          totalMeals: selectedPlan.totalMeals.toString(),
+          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          startDate: calculatedStartDate.toISOString(),
+          endDate: endDate.toISOString(),
+          isScheduled: "true",
         },
-      ],
-
-      metadata: {
-        userId: req.user.id,
-        paymentType: "CUSTOM_PACKAGE",
-
-        mealSize,
-        preference,
-        duration,
-
-        meals: meal._id.toString(),
-
-        quantity: quantity.toString(),
-
-        deliveryMethod,
-
-        price: selectedPlan.price.toString(),
-
-        totalMeals: selectedPlan.totalMeals.toString(),
-
-        maxItemsPerMeal:
-          selectedPlan.maxItemsPerMeal.toString(),
-
-        startDate: calculatedStartDate.toISOString(),
-
-        endDate: endDate.toISOString(),
-      },
-
-      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-
-      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
-    });
+        success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+      });
+    } else {
+      // Standard Subscription Mode for immediate starts
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `${mealSize} Custom Package`,
+                description: `${duration} Plan`,
+              },
+              unit_amount: Math.round(totalAmount * 100),
+              recurring: {
+                interval: recurring.interval,
+                interval_count: recurring.interval_count,
+              },
+            },
+            quantity,
+          },
+        ],
+        metadata: {
+          userId: req.user.id,
+          paymentType: "CUSTOM_PACKAGE",
+          mealSize,
+          preference,
+          duration,
+          meals: meal._id.toString(),
+          quantity: quantity.toString(),
+          deliveryMethod,
+          price: Math.round(totalAmount * 100).toString(),
+          totalMeals: selectedPlan.totalMeals.toString(),
+          maxItemsPerMeal: selectedPlan.totalMeals.toString(),
+          startDate: calculatedStartDate.toISOString(),
+          endDate: endDate.toISOString(),
+        },
+        success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+      });
+    }
 
     await Payment.create({
       user: req.user.id,
@@ -198,9 +256,9 @@ export const createSubscription = async (req, res) => {
 
       stripeSessionId: session.id,
 
-      amount: selectedPlan.price * quantity,
+      amount: Math.round(totalAmount * 100),
 
-      currency: "inr",
+      currency: "usd",
 
       status: "pending",
 
@@ -367,6 +425,49 @@ export const cancelSubscription = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// Instant Upgrade without Stripe
+export const instantUpgrade = async (req, res) => {
+  try {
+    const { packageId } = req.body;
+    const userId = req.user.id;
+
+    if (!packageId) {
+      return res.status(400).json({ success: false, message: "Package ID is required" });
+    }
+
+    const pkg = await Package.findById(packageId);
+    if (!pkg) {
+      return res.status(404).json({ success: false, message: "Package not found" });
+    }
+
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+    const subscription = await Subscription.create({
+      user: userId,
+      package: pkg._id,
+      mealSize: pkg.name,
+      price: pkg.price,
+      totalMeals: pkg.totalMeals,
+      mealsUsed: 0,
+      maxItemsPerMeal: pkg.maxItemsPerMeal,
+      preference: "Veg",
+      duration: "Monthly",
+      quantity: 1,
+      deliveryMethod: "Delivery",
+      startDate,
+      endDate,
+      status: "active",
+    });
+
+    return res.status(200).json({ success: true, message: "Subscription upgraded instantly", subscription });
+  } catch (error) {
+    console.error("Instant Upgrade Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

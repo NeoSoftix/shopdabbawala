@@ -6,6 +6,7 @@ import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import { sendEmail } from "../utils/email/sendEmail.js";
 import client from "../config/twilio.js";
 import OTP from "../models/otp.model.js";
+import Subscription from "../models/Subcription.model.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -369,7 +370,7 @@ const formatPhoneNumber = (phone, countryCode) => {
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, "");
 
-  // If already in E.164 format
+  // If it already starts with '+', keep it
   if (cleaned.startsWith("+")) {
     return cleaned;
   }
@@ -411,17 +412,16 @@ export const sendOtp = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: err.status === 404 
+      message: err.status === 404
         ? 'Verification service not found. Please verify your Twilio settings.'
         : err.message,
     });
   }
 };
 
-// verfiy otp 
 export const verifyOtp = async (req, res) => {
   try {
-    const { phone, otp } = req.body;
+    const { phone, otp, allowNoSubscription } = req.body;
 
     if (!phone || !otp) {
       return res.status(400).json({
@@ -435,7 +435,7 @@ export const verifyOtp = async (req, res) => {
     // let verificationCheck;
     // try {
     //   verificationCheck = await client.verify.v2
-    //     .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+    //     .services(process.env.TWIFY_VERIFY_SERVICE_SID)
     //     .verificationChecks.create({
     //       to: formattedPhone,
     //       code: otp,
@@ -458,12 +458,35 @@ export const verifyOtp = async (req, res) => {
     //   });
     // }
 
-    let user = await User.findOne({ phone });
+    const normalizePhone = (p) => {
+      if (!p) return "";
+      let cleaned = p.replace(/\D/g, "");
+      if (cleaned.length === 12 && cleaned.startsWith("91")) {
+        cleaned = cleaned.slice(2);
+      }
+      return cleaned;
+    };
+
+    const normPhone = normalizePhone(phone);
+    const possibleNumbers = [normPhone, `+91${normPhone}`, `91${normPhone}`];
+    
+    let user = await User.findOne({ phone: { $in: possibleNumbers } });
+
+    // Removed allowNoSubscription logic to allow all users to login.
  
     if (!user) {
       user = await User.create({
-        phone,
+        phone: normPhone,
       });
+    } else {
+      if (user.phone !== normPhone) {
+        try {
+          user.phone = normPhone;
+          await user.save();
+        } catch (saveErr) {
+          console.warn("Could not normalize phone number due to duplicate key constraint, keeping original:", saveErr.message);
+        }
+      }
     }
 
     const token = jwt.sign(
@@ -483,7 +506,7 @@ export const verifyOtp = async (req, res) => {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
- 
+
     return res.status(200).json({
       success: true,
       message: 'OTP verified successfully',

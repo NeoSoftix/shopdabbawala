@@ -134,7 +134,7 @@ function App() {
       <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
-        <Route path="meal-planner" element={<MealPlanner />} />
+        <Route path="dashboard" element={<MealPlanner />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />

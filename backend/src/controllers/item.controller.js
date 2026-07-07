@@ -1,4 +1,7 @@
 import Item from "../models/item.model.js";
+import mongoose from "mongoose";
+import Category from "../models/category.model.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // ➤ Create Item
 export const createItem = async (req, res) => {
@@ -60,12 +63,30 @@ export const createItem = async (req, res) => {
       };
     }
 
+    let parsedAllergies = [];
+
+    if (allergies) {
+      if (Array.isArray(allergies)) {
+        parsedAllergies = allergies;
+      } else {
+        try {
+          const parsed = JSON.parse(allergies);
+
+          parsedAllergies = Array.isArray(parsed)
+            ? parsed
+            : [parsed];
+        } catch {
+          parsedAllergies = [allergies];
+        }
+      }
+    }
+
     const item = await Item.create({
       name,
       description,
       category,
       image: imageData,
-      allergies: allergies ? JSON.parse(allergies) : [], 
+      allergies: parsedAllergies,
     });
 
     return res.status(201).json({
@@ -91,7 +112,7 @@ export const getAllItems = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: items.length,
-      data : items
+      data: items
     });
   } catch (error) {
     return res.status(500).json({
@@ -282,9 +303,8 @@ export const toggleItemStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Item ${
-        item.isActive ? "activated" : "deactivated"
-      } successfully`,
+      message: `Item ${item.isActive ? "activated" : "deactivated"
+        } successfully`,
       item,
     });
   } catch (error) {

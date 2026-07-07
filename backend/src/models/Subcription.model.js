@@ -72,6 +72,13 @@ const subscriptionSchema = new mongoose.Schema(
       enum: ["Delivery", "Pickup"],
       required: true,
     },
+
+    pincode: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+
     status: {
       type: String,
       enum: ["active", "expired", "cancelled"],
@@ -85,6 +92,10 @@ const subscriptionSchema = new mongoose.Schema(
     cancelAtPeriodEnd: {
       type: Boolean,
       default: false,
+    },
+
+    stripeSubscriptionScheduleId: {
+      type: String,
     },
 
     startDate: {
