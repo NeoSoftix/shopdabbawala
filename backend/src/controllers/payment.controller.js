@@ -548,6 +548,38 @@ export const saveCheckoutDetails = async (req, res) => {
       } catch (stripeErr) {
         console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr.message);
       }
+    } else if (payment.paymentType === "ADMIN_PACKAGE") {
+      // Immediate fulfillment if webhook is delayed
+      let subscription = payment.subscription;
+      if (!subscription) {
+        const pkg = payment.package;
+        if (pkg) {
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+          subscription = await Subscription.create({
+            user: payment.user,
+            package: pkg._id,
+            mealSize: pkg.name,
+            price: pkg.price,
+            totalMeals: pkg.totalMeals,
+            mealsUsed: 0,
+            maxItemsPerMeal: pkg.maxItemsPerMeal,
+            preference: "Veg",
+            duration: "Monthly",
+            quantity: 1,
+            deliveryMethod: "Delivery",
+            startDate,
+            endDate,
+            status: "active"
+          });
+
+          payment.subscription = subscription._id;
+          payment.status = "paid";
+          await payment.save();
+        }
+      }
     }
 
     // Always update User profile if name/phone/address/pincode is provided

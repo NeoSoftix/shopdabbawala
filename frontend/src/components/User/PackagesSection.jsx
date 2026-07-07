@@ -59,7 +59,7 @@ export default function PackagesSection() {
     }
   }, [user]);
 
-  const activeSubscription = userSubscriptions.find(sub => sub.status === "active");
+  const activeSubscriptions = userSubscriptions.filter(sub => sub.status === "active");
 
   // --- DYNAMIC DATA FETCHING VIA SERVICE ---
   useEffect(() => {
@@ -170,8 +170,10 @@ export default function PackagesSection() {
   };
 
   const openCheckoutModal = async (pkg) => {
-    if (activeSubscription) {
-      if (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name) {
+    const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
+    
+    if (activeSubscriptions.length > 0) {
+      if (isCurrentPlan) {
         return; // Current plan, do nothing
       }
       // Instant Upgrade Flow
@@ -319,7 +321,7 @@ export default function PackagesSection() {
             if (!shouldRender && packages.length > 2) return null;
 
             const visibleFeatures = pkg.features.slice(0, 3);
-            const isCurrentPlan = activeSubscription && (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name);
+            const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
 
             return (
               <motion.div
@@ -662,7 +664,7 @@ export default function PackagesSection() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {packages.map((pkg, index) => {
-                  const isCurrentPlan = activeSubscription && (activeSubscription.package?._id === pkg._id || activeSubscription.mealSize === pkg.name);
+                  const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
                   return (
                   <div
                     key={pkg._id}
