@@ -357,23 +357,15 @@ export default function CheckoutFlowModal({
                     onSubmit={handleCustomizationNext}
                     className="flex flex-col h-full"
                   >
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Configure Your Plan</h3>
-                      <p className="text-slate-400 text-xs font-medium">Select your meals, preferences, and schedule</p>
-                    </div>
                     <div className="flex-1 min-h-0 overflow-y-auto px-1 pb-4">
-                      {children}
+                      {typeof children === "function"
+                        ? children({
+                            goBack: () => { setError(""); setStep(step - 1); },
+                            loading,
+                            error,
+                          })
+                        : children}
                     </div>
-                    <div className="mt-auto pt-4 border-t border-slate-100 shrink-0">
-                      {error && (
-                        <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
-                          <FiX className="w-4 h-4 shrink-0 mt-0.5" />
-                          <span>{error}</span>
-                        </div>
-                      )}
-                      <SubmitBtn label="Proceed to Phone Verification →" loading={loading} />
-                    </div>
-                    <button type="button" onClick={() => { setError(""); setStep(step - 1); }} className="w-full text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">← Go Back</button>
                   </motion.form>
                 )}
 

@@ -137,7 +137,7 @@ export const createPackage = async (req, res) => {
     const stripePrice = await stripe.prices.create({
       product: stripeProduct.id,
       unit_amount: numericPrice * 100,
-      currency: "inr",
+      currency: "usd",
       recurring,
     });
 
@@ -301,7 +301,6 @@ export const updatePackage = async (req, res) => {
       });
     }
 
-    // Recurring Mapping (same as createPackage)
     const recurringMap = {
       7: { interval: "week", interval_count: 1 },
       15: { interval: "day", interval_count: 15 },
@@ -310,6 +309,9 @@ export const updatePackage = async (req, res) => {
       180: { interval: "month", interval_count: 6 },
       365: { interval: "year", interval_count: 1 },
     };
+
+    // Track karo ki Stripe-relevant fields mein se koi actually change hua ya nahi
+    let stripeMetadataChanged = false;
 
     // Update Name
     if (name !== undefined) {
@@ -327,15 +329,23 @@ export const updatePackage = async (req, res) => {
         });
       }
 
+      if (normalizedName !== packageData.name) {
+        stripeMetadataChanged = true;
+      }
+
       packageData.name = normalizedName;
     }
 
-    // Update Description
     if (description !== undefined) {
-      packageData.description = description.trim();
+      const trimmedDescription = description.trim();
+
+      if (trimmedDescription !== packageData.description) {
+        stripeMetadataChanged = true;
+      }
+
+      packageData.description = trimmedDescription;
     }
 
-    // Update Price (numeric validation only, Stripe price create niche hoga)
     let numericPrice = packageData.price;
     if (price !== undefined) {
       numericPrice = Number(price);
@@ -348,7 +358,6 @@ export const updatePackage = async (req, res) => {
       }
     }
 
-    // Update Total Meals
     if (totalMeals !== undefined) {
       const numericMeal = Number(totalMeals);
 
@@ -359,10 +368,13 @@ export const updatePackage = async (req, res) => {
         });
       }
 
+      if (numericMeal !== packageData.totalMeals) {
+        stripeMetadataChanged = true;
+      }
+
       packageData.totalMeals = numericMeal;
     }
 
-    // Update Max Items Per Meal
     if (maxItemsPerMeal !== undefined) {
       const numericMaxItems = Number(maxItemsPerMeal);
 
@@ -373,10 +385,13 @@ export const updatePackage = async (req, res) => {
         });
       }
 
+      if (numericMaxItems !== packageData.maxItemsPerMeal) {
+        stripeMetadataChanged = true;
+      }
+
       packageData.maxItemsPerMeal = numericMaxItems;
     }
 
-    // Update Validity Days (numeric validation only, Stripe recurring niche hoga)
     let numericValidityDays = packageData.validityDays;
     if (validityDays !== undefined) {
       numericValidityDays = Number(validityDays);
@@ -396,7 +411,7 @@ export const updatePackage = async (req, res) => {
       }
     }
 
-    // Update Add-On Permission
+    // isAddOnAllowed — Stripe se koi lena dena nahi, isliye stripeMetadataChanged trigger nahi karta
     if (isAddOnAllowed !== undefined) {
       if (typeof isAddOnAllowed !== "boolean") {
         return res.status(400).json({
@@ -408,7 +423,6 @@ export const updatePackage = async (req, res) => {
       packageData.isAddOnAllowed = isAddOnAllowed;
     }
 
-    // Update Features
     let cleanedFeatures = packageData.features;
     if (features !== undefined) {
       if (!Array.isArray(features)) {
@@ -429,61 +443,85 @@ export const updatePackage = async (req, res) => {
         });
       }
 
+      // Array comparison — agar content change hua hai to hi flag set karo
+      const oldFeaturesStr = JSON.stringify(packageData.features);
+      const newFeaturesStr = JSON.stringify(cleanedFeatures);
+
+      if (oldFeaturesStr !== newFeaturesStr) {
+        stripeMetadataChanged = true;
+      }
+
       packageData.features = cleanedFeatures;
     }
 
-    // ---------------- STRIPE SYNC ----------------
-
-    // 1) Product-level fields update (name, description, metadata)
-    await stripe.products.update(packageData.stripeProductId, {
-      name: packageData.name,
-      description: packageData.description || "",
-      metadata: {
-        validityDays: numericValidityDays.toString(),
-        totalMeals: packageData.totalMeals.toString(),
-        maxItemsPerMeal: packageData.maxItemsPerMeal.toString(),
-        features: JSON.stringify(cleanedFeatures),
-      },
-    });
-
-    // 2) Price change hone par nayi price banani padegi (Stripe price immutable hoti hai)
     const priceChanged = price !== undefined && numericPrice !== packageData.price;
     const validityChanged =
       validityDays !== undefined && numericValidityDays !== packageData.validityDays;
 
-    if (priceChanged || validityChanged) {
-      const recurring = recurringMap[numericValidityDays];
-
-      const newStripePrice = await stripe.prices.create({
-        product: packageData.stripeProductId,
-        unit_amount: numericPrice * 100,
-        currency: "inr",
-        recurring,
-      });
-
-      // Purani price ko default se hata kar archive karo
-      const oldStripePriceId = packageData.stripePriceId;
-
-      await stripe.products.update(packageData.stripeProductId, {
-        default_price: newStripePrice.id,
-      });
-
-      if (oldStripePriceId) {
-        try {
-          await stripe.prices.update(oldStripePriceId, { active: false });
-        } catch (archiveErr) {
-          console.error("Old Price Archive Error:", archiveErr.message);
-        }
-      }
-
-      packageData.stripePriceId = newStripePrice.id;
+    // validityDays metadata mein bhi store hota hai, isliye ise bhi count karo
+    if (validityChanged) {
+      stripeMetadataChanged = true;
     }
 
-    // DB values update (price/validityDays) after stripe sync success
+    // ---------------- DB SAVE PEHLE ----------------
     packageData.price = numericPrice;
     packageData.validityDays = numericValidityDays;
 
     await packageData.save();
+
+    // ---------------- AB STRIPE SYNC (sirf zaroorat hone par) ----------------
+    if (packageData.stripeProductId) {
+      // Sirf tab product update karo jab actually kuch relevant change hua ho
+      if (stripeMetadataChanged) {
+        try {
+          await stripe.products.update(packageData.stripeProductId, {
+            name: packageData.name,
+            description: packageData.description || "",
+            metadata: {
+              validityDays: packageData.validityDays.toString(),
+              totalMeals: packageData.totalMeals.toString(),
+              maxItemsPerMeal: packageData.maxItemsPerMeal.toString(),
+              features: JSON.stringify(packageData.features),
+            },
+          });
+        } catch (stripeErr) {
+          console.error("Stripe Product Update Error:", stripeErr.message);
+        }
+      }
+
+      // Price/validity change hone par hi nayi price banao
+      if (priceChanged || validityChanged) {
+        try {
+          const recurring = recurringMap[numericValidityDays];
+
+          const newStripePrice = await stripe.prices.create({
+            product: packageData.stripeProductId,
+            unit_amount: numericPrice * 100,
+            currency: "usd",
+            recurring,
+          });
+
+          const oldStripePriceId = packageData.stripePriceId;
+
+          await stripe.products.update(packageData.stripeProductId, {
+            default_price: newStripePrice.id,
+          });
+
+          if (oldStripePriceId) {
+            try {
+              await stripe.prices.update(oldStripePriceId, { active: false });
+            } catch (archiveErr) {
+              console.error("Old Price Archive Error:", archiveErr.message);
+            }
+          }
+
+          packageData.stripePriceId = newStripePrice.id;
+          await packageData.save();
+        } catch (priceErr) {
+          console.error("Stripe Price Update Error:", priceErr.message);
+        }
+      }
+    }
 
     return res.status(200).json({
       message: "Package updated successfully",
@@ -506,64 +544,50 @@ export const toggleStatus = async (req, res) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "Invalid package data",
-        success: false,
-      });
+      return res.status(400).json({ message: "Invalid package data", success: false });
     }
 
     const packageData = await Package.findById(id);
 
     if (!packageData) {
-      return res.status(404).json({
-        message: "Package Not Found",
-        success: false,
-      });
+      return res.status(404).json({ message: "Package Not Found", success: false });
     }
 
     const newStatus = !packageData.isActive;
 
     // ---------------- STRIPE SYNC ----------------
-
-    // Product ka active status toggle karo
     if (packageData.stripeProductId) {
       try {
-        await stripe.products.update(packageData.stripeProductId, {
-          active: newStatus,
-        });
+        await stripe.products.update(packageData.stripeProductId, { active: newStatus });
       } catch (productErr) {
         console.error("Stripe Product Toggle Error:", productErr.message);
-
-        return res.status(500).json({
-          message: "Failed to update package status on Stripe",
-          success: false,
-        });
+        return res.status(500).json({ message: "Failed to update package status on Stripe", success: false });
       }
     }
 
-    // Price ka active status bhi toggle karo
-    // (Deactivate karte waqt price band ho jaye, activate karte waqt wapas available ho)
     if (packageData.stripePriceId) {
       try {
-        await stripe.prices.update(packageData.stripePriceId, {
-          active: newStatus,
-        });
+        if (!newStatus) {
+          // Deactivating: pehle default_price hatao, tabhi price archive hone dega Stripe
+          await stripe.products.update(packageData.stripeProductId, { default_price: "" });
+          await stripe.prices.update(packageData.stripePriceId, { active: false });
+        } else {
+          // Reactivating: price ko active karo aur wapas default bana do
+          await stripe.prices.update(packageData.stripePriceId, { active: true });
+          await stripe.products.update(packageData.stripeProductId, {
+            default_price: packageData.stripePriceId,
+          });
+        }
       } catch (priceErr) {
         console.error("Stripe Price Toggle Error:", priceErr.message);
 
-        // Rollback product status agar price update fail ho jaye (consistency ke liye)
         try {
-          await stripe.products.update(packageData.stripeProductId, {
-            active: !newStatus,
-          });
+          await stripe.products.update(packageData.stripeProductId, { active: !newStatus });
         } catch (rollbackErr) {
           console.error("Stripe Product Rollback Error:", rollbackErr.message);
         }
 
-        return res.status(500).json({
-          message: "Failed to update package price status on Stripe",
-          success: false,
-        });
+        return res.status(500).json({ message: "Failed to update package price status on Stripe", success: false });
       }
     }
 
@@ -572,19 +596,13 @@ export const toggleStatus = async (req, res) => {
     await packageData.save();
 
     return res.status(200).json({
-      message: `Package ${
-        packageData.isActive ? "activated" : "deactivated"
-      } successfully`,
+      message: `Package ${packageData.isActive ? "activated" : "deactivated"} successfully`,
       data: packageData,
       success: true,
     });
   } catch (error) {
     console.log("Toggle status of Package error", error);
-
-    return res.status(500).json({
-      message: "Internal Server Error",
-      success: false,
-    });
+    return res.status(500).json({ message: "Internal Server Error", success: false });
   }
 };
 
@@ -609,36 +627,9 @@ export const deletePackage = async (req, res) => {
       });
     }
 
-    // Optional but recommended: check active subscriptions using this package
-    // (Agar tumhare paas Subscription/UserPackage jaisa model hai to uncomment karo)
-    /*
-    const activeSubscribers = await Subscription.findOne({
-      packageId: packageData._id,
-      status: "active",
-    });
-
-    if (activeSubscribers) {
-      return res.status(400).json({
-        message: "Cannot delete package with active subscribers",
-        success: false,
-      });
-    }
-    */
-
     // ---------------- STRIPE CLEANUP ----------------
-
-    // 1) Archive the Price first (Stripe requires this before archiving product in some flows)
-    if (packageData.stripePriceId) {
-      try {
-        await stripe.prices.update(packageData.stripePriceId, {
-          active: false,
-        });
-      } catch (priceErr) {
-        console.error("Stripe Price Archive Error:", priceErr.message);
-      }
-    }
-
-    // 2) Archive the Product (Stripe doesn't support hard delete if product has prices/usage)
+    // Sirf product ko archive karo. Price ko chhedne ki zaroorat nahi —
+    // product inactive hote hi naye purchases automatically band ho jate hain.
     if (packageData.stripeProductId) {
       try {
         await stripe.products.update(packageData.stripeProductId, {
@@ -647,7 +638,6 @@ export const deletePackage = async (req, res) => {
       } catch (productErr) {
         console.error("Stripe Product Archive Error:", productErr.message);
 
-        // Agar product ke saath koi prices hain jo archive nahi hue, Stripe error de sakta hai
         return res.status(500).json({
           message: "Failed to archive package on Stripe",
           success: false,

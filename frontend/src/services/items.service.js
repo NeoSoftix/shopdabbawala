@@ -93,3 +93,16 @@ export const getAllItems = async () => {
         throw error
     }
 }
+
+// get active items service
+export const getActiveItems = async () => {
+    try {
+        const res = await API.get("/items/active")
+
+        return res.data
+    } catch (error) {
+        console.log("Get active items error", error)
+
+        throw error
+    }
+}

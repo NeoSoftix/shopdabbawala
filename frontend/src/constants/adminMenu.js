@@ -66,6 +66,18 @@ export const adminMenu = [
     icon: MdLocalOffer,
   },
 
+{
+    label: "Set Duration",
+    path: "/admin/duration",
+    icon: MdLocalOffer,
+  },
+
+  {
+    label: "Meal Tiers",
+    path: "/admin/meal-tiers",
+    icon: MdTune,
+  },
+
   {
     label: "Settings",
     path: "/admin/settings",

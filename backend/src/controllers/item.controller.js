@@ -101,6 +101,27 @@ export const getAllItems = async (req, res) => {
   }
 };
 
+// ➤ Get Active Items (user-facing, for dropdowns/checklists)
+export const getActiveItems = async (req, res) => {
+  try {
+    const items = await Item.find({ isActive: true })
+      .select("name")
+      .sort({ name: 1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: items.length,
+      data: items,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // ➤ Get Single Item
 export const getSingleItem = async (req, res) => {
   try {

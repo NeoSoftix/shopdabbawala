@@ -15,6 +15,8 @@ import subscriptionRoutes from "./src/routes/subcription.routes.js"
 import paymentRoutes from "./src/routes/payment.routes.js"
 import mealScheduleRoutes from "./src/routes/mealSchedule.routes.js";
 import customerRoutes from "./src/routes/customer.routes.js"
+import durationRoutes from "./src/routes/durationPlan.routes.js"
+import mealTierRoutes from "./src/routes/mealTier.routes.js";
 
 const app = express();
 
@@ -81,6 +83,12 @@ app.use("/api/customer", customerRoutes);
 
 // meal schedule routes
 app.use("/api/meal-schedule", mealScheduleRoutes);
+
+// duration set api 
+app.use("/api/custom", durationRoutes)
+
+// meal tier api
+app.use("/api/meal-tiers", mealTierRoutes)
 
 
 

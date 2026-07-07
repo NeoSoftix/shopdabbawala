@@ -3,6 +3,7 @@ import express from "express";
 import {
   createItem,
   getAllItems,
+  getActiveItems,
   getSingleItem,
   updateItem,
   deleteItem,
@@ -19,6 +20,9 @@ router.post("/", verifyToken, allowedRoles("admin") ,upload.single("image"), cre
 
 // Read
 router.get("/", getAllItems);
+
+// Active items (user-facing, for dropdowns/checklists)
+router.get("/active", getActiveItems);
 
 // Filters
 router.get(

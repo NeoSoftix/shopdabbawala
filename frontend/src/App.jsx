@@ -40,6 +40,9 @@ import NotFoundPage from "./components/shared/NotFoundPage";
 
 import PaymentSuccess from "./components/shared/PaymentSuccess";
 import PaymentFailed from "./components/shared/PaymentFailed";
+import SetDuration from "./components/Admin/SetDuration.jsx"
+import MealTierManager from "./components/Admin/MealTierManager.jsx"
+
 function App() {
   return (
     <>
@@ -107,6 +110,8 @@ function App() {
         <Route path="packages" element={<PackagesPage />} />
         <Route path="add-on" element={<AddOns />} />
         <Route path="add-on/add" element={<CreateAddOns />} />
+        <Route path="duration" element={<SetDuration />} />
+        <Route path="meal-tiers" element={<MealTierManager />} />
       </Route>
 
       {/* Vendor layout route */}
