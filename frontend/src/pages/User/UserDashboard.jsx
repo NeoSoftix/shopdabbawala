@@ -17,17 +17,8 @@ export default function UserDashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // If the user is logged in, immediately take them to their dashboard
-    if (!loading && user) {
-      navigate("/meal-planner");
-    }
-  }, [user, loading, navigate]);
-
-  // Optionally, show nothing or a spinner while redirecting/loading
-  if (loading || user) {
-    return null;
-  }
+  // We no longer forcefully redirect the user from the home page.
+  // If they want to go to their dashboard, they can click "Dashboard" in the header.
 
   return (
     <div className="bg-[#f7f8fc] min-h-screen">

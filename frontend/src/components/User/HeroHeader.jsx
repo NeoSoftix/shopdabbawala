@@ -25,7 +25,14 @@ export default function HeroHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = ["Home", "Plans", "Menu", "About", "Contact"];
+  const links = [
+    { label: "Home", to: "/", isRouterLink: true },
+    ...(user ? [{ label: "Dashboard", to: "/meal-planner", isRouterLink: true }] : []),
+    { label: "Plans", href: "#plans" },
+    { label: "Menu", href: "#menu" },
+    { label: "About", href: "#about" },
+    { label: "Contact", href: "#contact" },
+  ];
 
   const scrollToPackages = () => {
     const section = document.getElementById("plans");
@@ -70,29 +77,40 @@ export default function HeroHeader() {
 
           {/* Center Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 lg:gap-9">
-            {navLinks.map((item, index) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className={`
-                  relative font-bold text-xs lg:text-sm uppercase tracking-widest transition-colors duration-300 group py-1
-                  ${
-                    scrolled
-                      ? index === 0 ? "text-red-600" : "text-slate-600 hover:text-red-600"
-                      : index === 0 ? "text-red-500" : "text-slate-800 md:text-slate-900 lg:text-slate-900 hover:text-red-500"
-                  }
-                `}
-              >
-                {item}
-                {/* Active/Hover Micro Line Indicator */}
+            {links.map((link, index) => {
+              const activeClass = scrolled
+                ? index === 0 ? "text-red-600" : "text-slate-600 hover:text-red-600"
+                : index === 0 ? "text-red-500" : "text-slate-800 md:text-slate-900 lg:text-slate-900 hover:text-red-500";
+              const commonProps = {
+                key: link.label,
+                className: `relative font-bold text-xs lg:text-sm uppercase tracking-widest transition-colors duration-300 group py-1 ${activeClass}`
+              };
+
+              const indicator = (
                 <span
                   className={`
                     absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] bg-red-600 transition-all duration-300 rounded-full
                     ${index === 0 ? "w-6" : "w-0 group-hover:w-6"}
                   `}
                 />
-              </a>
-            ))}
+              );
+
+              if (link.isRouterLink) {
+                return (
+                  <Link to={link.to} {...commonProps}>
+                    {link.label}
+                    {indicator}
+                  </Link>
+                );
+              }
+
+              return (
+                <a href={link.href} {...commonProps}>
+                  {link.label}
+                  {indicator}
+                </a>
+              );
+            })}
           </nav>
 
           {/* Right Action Trigger Deck */}
@@ -187,19 +205,28 @@ export default function HeroHeader() {
 
           {/* Menu Core Links Stack */}
           <div className="flex flex-col gap-1.5 my-auto">
-            {navLinks.map((item, index) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                onClick={() => setIsMenuOpen(false)}
-                className={`
-                  text-sm font-bold uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all
-                  ${index === 0 ? "bg-red-50 text-red-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}
-                `}
-              >
-                {item}
-              </a>
-            ))}
+            {links.map((link, index) => {
+              const activeClass = index === 0 ? "bg-red-50 text-red-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
+              const commonProps = {
+                key: link.label,
+                onClick: () => setIsMenuOpen(false),
+                className: `text-sm font-bold uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all ${activeClass}`
+              };
+
+              if (link.isRouterLink) {
+                return (
+                  <Link to={link.to} {...commonProps}>
+                    {link.label}
+                  </Link>
+                );
+              }
+
+              return (
+                <a href={link.href} {...commonProps}>
+                  {link.label}
+                </a>
+              );
+            })}
           </div>
 
           {/* Bottom Call to Action Triggers */}
