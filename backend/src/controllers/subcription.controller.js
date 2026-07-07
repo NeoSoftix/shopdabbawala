@@ -4,6 +4,7 @@ import Subscription from "../models/Subcription.model.js";
 import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/User.model.js";
+import Package from "../models/package.model.js";
 
 
 // create subscription
@@ -424,6 +425,49 @@ export const cancelSubscription = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// Instant Upgrade without Stripe
+export const instantUpgrade = async (req, res) => {
+  try {
+    const { packageId } = req.body;
+    const userId = req.user.id;
+
+    if (!packageId) {
+      return res.status(400).json({ success: false, message: "Package ID is required" });
+    }
+
+    const pkg = await Package.findById(packageId);
+    if (!pkg) {
+      return res.status(404).json({ success: false, message: "Package not found" });
+    }
+
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+    const subscription = await Subscription.create({
+      user: userId,
+      package: pkg._id,
+      mealSize: pkg.name,
+      price: pkg.price,
+      totalMeals: pkg.totalMeals,
+      mealsUsed: 0,
+      maxItemsPerMeal: pkg.maxItemsPerMeal,
+      preference: "Veg",
+      duration: "Monthly",
+      quantity: 1,
+      deliveryMethod: "Delivery",
+      startDate,
+      endDate,
+      status: "active",
+    });
+
+    return res.status(200).json({ success: true, message: "Subscription upgraded instantly", subscription });
+  } catch (error) {
+    console.error("Instant Upgrade Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

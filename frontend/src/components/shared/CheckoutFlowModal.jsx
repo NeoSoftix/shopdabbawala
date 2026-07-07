@@ -178,8 +178,15 @@ export default function CheckoutFlowModal({
       const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");
+        // Logged-in users skip Mobile + OTP verification entirely and go
+        // straight to payment; guests still verify phone via OTP.
         localStorage.setItem("pincode", pincode.trim());
-        setStep(2);
+        if (mode === "packages" && user) {
+          await redirectToPayment();
+        } else {
+          setStep(2);
+        }
+
       } else {
         setError(res?.message || "Sorry! Service not available in your area.");
       }
@@ -198,7 +205,14 @@ export default function CheckoutFlowModal({
     }
     setError("");
     if (onCustomizationSubmit) onCustomizationSubmit();
-    setStep(3);
+
+    // Logged-in users skip Mobile + OTP verification entirely and go
+    // straight to payment; guests still verify phone via OTP.
+    if (user) {
+      await redirectToPayment();
+    } else {
+      setStep(3);
+    }
   };
 
   const handlePhoneChange = (val) => {
@@ -486,6 +500,7 @@ export default function CheckoutFlowModal({
                         <div className="mb-3 p-3 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-100 flex items-start gap-2">
                           <FiX className="w-4 h-4 shrink-0 mt-0.5" />
                           <span>{error}</span>
+
                         </div>
                       )}
                       <SubmitBtn label="Verify & Pay →" loading={loading} />

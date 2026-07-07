@@ -20,6 +20,7 @@ import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
 import UserHistorydetails from "../../components/User/UserHistoryDetails";
 import { toast } from "react-hot-toast";
+import { SectionLoader } from "../../components/shared/Loader";
 
 // Configuration Data
 const daysOfWeek = [
@@ -35,7 +36,7 @@ const daysOfWeek = [
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
 const MealPlanSummary = ({ subscriptions, loading }) => {
   if (loading) {
-    return <div className="p-8 text-center text-gray-500 font-bold">Loading your plans...</div>;
+    return <SectionLoader text="Loading your plans..." />;
   }
 
   if (!subscriptions || subscriptions.length === 0) {
@@ -535,7 +536,9 @@ const MealSchedule = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {loadingData ? (
-              <div className="col-span-full py-8 text-center text-sm text-gray-500 font-bold">Loading items...</div>
+              <div className="col-span-full">
+                <SectionLoader text="Loading items..." />
+              </div>
             ) : filteredFoodItems.length === 0 ? (
               <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items found for this category.</div>
             ) : (
@@ -738,6 +741,7 @@ const MealSchedule = ({
                             }
                             alt={item.name}
                             className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                            onError={(e) => { e.target.src = "https://placehold.co/80x80?text=Meal"; e.target.onerror = null; }}
                           />
 
                           <div className="w-full px-0.5">

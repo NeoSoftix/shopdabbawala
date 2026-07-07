@@ -2,6 +2,7 @@ import stripe from "../config/stripe.js"
 import Package from "../models/package.model.js"
 import Payment from "../models/payment.model.js"
 import Subscription from "../models/Subcription.model.js"
+import AddOn from "../models/addOns.model.js"
 import { sendEmail } from "../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../utils/email/purchaseSuccessTemplate.js"
 import User from "../models/User.model.js"
@@ -213,7 +214,99 @@ export const createPackageCheckout = async (req, res) => {
   }
 }
 
-// weeb hook 
+// One-time checkout for a cart of add-on items (User Dashboard "Add-ons" section)
+export const createAddonCheckout = async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. User context missing.",
+      });
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Your cart is empty.",
+      });
+    }
+
+    const addonIds = items.map((item) => item.id);
+    const addons = await AddOn.find({ _id: { $in: addonIds }, isActive: true });
+
+    const line_items = items
+      .map((cartItem) => {
+        const addon = addons.find((a) => a._id.toString() === cartItem.id);
+        if (!addon) return null;
+
+        const quantity = Math.max(1, Number(cartItem.quantity) || 1);
+
+        return {
+          price_data: {
+            currency: "inr",
+            product_data: {
+              name: addon.name,
+              description: addon.description || undefined,
+            },
+            unit_amount: Math.round(addon.price * 100),
+          },
+          quantity,
+        };
+      })
+      .filter(Boolean);
+
+    if (line_items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid add-ons found in your cart.",
+      });
+    }
+
+    const totalAmount = line_items.reduce(
+      (sum, li) => sum + li.price_data.unit_amount * li.quantity,
+      0,
+    );
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      phone_number_collection: { enabled: true },
+      payment_method_types: ["card"],
+      line_items,
+      metadata: {
+        userId: req.user.id,
+        paymentType: "ADDON_ORDER",
+      },
+      success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+    });
+
+    await Payment.create({
+      user: req.user.id,
+      paymentType: "ADDON_ORDER",
+      stripeSessionId: session.id,
+      amount: Math.round(totalAmount / 100),
+      currency: "inr",
+      status: "pending",
+      metadata: session.metadata,
+    });
+
+    return res.status(200).json({
+      success: true,
+      checkoutUrl: session.url,
+    });
+  } catch (error) {
+    console.error("Addon Checkout Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+// weeb hook
 // -------- FULFILL ORDER HELPER --------
 const fulfillOrder = async (session, payment) => {
   payment.status = "paid";
@@ -549,6 +642,38 @@ export const saveCheckoutDetails = async (req, res) => {
       } catch (stripeErr) {
         console.error("Stripe retrieval error in saveCheckoutDetails:", stripeErr.message);
       }
+    } else if (payment.paymentType === "ADMIN_PACKAGE") {
+      // Immediate fulfillment if webhook is delayed
+      let subscription = payment.subscription;
+      if (!subscription) {
+        const pkg = payment.package;
+        if (pkg) {
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + pkg.validityDays);
+
+          subscription = await Subscription.create({
+            user: payment.user,
+            package: pkg._id,
+            mealSize: pkg.name,
+            price: pkg.price,
+            totalMeals: pkg.totalMeals,
+            mealsUsed: 0,
+            maxItemsPerMeal: pkg.maxItemsPerMeal,
+            preference: "Veg",
+            duration: "Monthly",
+            quantity: 1,
+            deliveryMethod: "Delivery",
+            startDate,
+            endDate,
+            status: "active"
+          });
+
+          payment.subscription = subscription._id;
+          payment.status = "paid";
+          await payment.save();
+        }
+      }
     }
 
 
@@ -608,6 +733,9 @@ export const saveCheckoutDetails = async (req, res) => {
     } else if (finalPayment.paymentType === "CUSTOM_PACKAGE" && finalPayment.subscription) {
       planName = `Custom ${finalPayment.subscription.duration} Plan`;
       totalMeals = finalPayment.subscription.totalMeals;
+    } else if (finalPayment.paymentType === "ADDON_ORDER") {
+      planName = "Add-on Order";
+      totalMeals = "N/A";
     }
 
     const customer = await stripe.customers.create({

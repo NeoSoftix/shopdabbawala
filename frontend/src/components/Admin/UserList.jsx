@@ -3,6 +3,7 @@ import { FiEye, FiSearch } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
 import { getAllCustomers, deleteCustomer } from "../../services/customer.service";
 import { toast } from "react-hot-toast";
+import { SectionLoader } from "../shared/Loader";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -28,22 +29,41 @@ const Users = () => {
     fetchCustomers(search);
   }, [search]);
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete customer "${name}"?`)) {
-      return;
-    }
-
-    try {
-      const res = await deleteCustomer(id);
-      if (res.success) {
-        toast.success(res.message || "Customer deleted successfully");
-        // Reload customers list
-        fetchCustomers(search);
-      }
-    } catch (error) {
-      console.error("Delete Customer Error:", error);
-      toast.error(error.response?.data?.message || "Failed to delete customer");
-    }
+  const handleDelete = (id, name) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete customer "{name}"?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  const res = await deleteCustomer(id);
+                  if (res.success) {
+                    toast.success(res.message || "Customer deleted successfully.");
+                    fetchCustomers(search);
+                  }
+                } catch (error) {
+                  toast.error(error.response?.data?.message || "Failed to delete customer.");
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
+    );
   };
 
   return (
@@ -69,10 +89,7 @@ const Users = () => {
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-amber-500"></div>
-              <p className="mt-4 text-gray-500 text-sm">Loading customers...</p>
-            </div>
+            <SectionLoader text="Loading customers..." />
           ) : (
             <>
               <table className="w-full">

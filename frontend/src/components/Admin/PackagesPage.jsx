@@ -13,12 +13,15 @@ import {
   deletePackage,
   updatePackage,
 } from "../../services/package.service.js";
+import { toast } from "react-hot-toast";
+import { ButtonSpinner, SectionLoader } from "../shared/Loader";
 
 const PackagesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [packages, setPackages] = useState([]);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loadingPackages, setLoadingPackages] = useState(true);
+  const [savingPackage, setSavingPackage] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [editId, setEditId] = useState(null);
 
   // Single State for Form
@@ -59,13 +62,16 @@ const PackagesPage = () => {
   // 1. GET ALL PACKAGES API CALL
   const fetchPackages = async () => {
     try {
+      setLoadingPackages(true);
       const res = await getAllPackages();
       if (res && res.data) {
         setPackages(res.data);
       }
     } catch (error) {
       console.error("get all packages error", error);
-      setError("Failed to fetch packages.");
+      toast.error("Failed to fetch packages.");
+    } finally {
+      setLoadingPackages(false);
     }
   };
 
@@ -81,8 +87,6 @@ const PackagesPage = () => {
   // 3. CREATE & UPDATE PACKAGE API CALL
   const handleSavePackage = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (
       !formData.name ||
@@ -91,22 +95,18 @@ const PackagesPage = () => {
       !formData.validityDays ||
       !formData.maxItemsPerMeal
     ) {
-      setError("Please fill all required fields.");
+      toast.error("Please fill all required fields.");
       return;
     }
 
-    // 💡 Backend के लिए features string को Array में कन्वर्ट कर रहे हैं
-    // कॉमा (,) से अलग करेगा और एक्स्ट्रा स्पेस हटा देगा
     const parsedFeatures = formData.features
       ? formData.features.split(",").map((item) => item.trim()).filter(Boolean)
       : [];
 
-    const dataToSend = {
-      ...formData,
-      features: parsedFeatures // Backend को Array फॉर्मेट मिलेगा
-    };
+    const dataToSend = { ...formData, features: parsedFeatures };
 
     try {
+      setSavingPackage(true);
       let res;
       if (editId) {
         res = await updatePackage(editId, dataToSend);
@@ -115,43 +115,58 @@ const PackagesPage = () => {
       }
 
       if (res && res.success) {
-        setSuccess(
-          editId
-            ? "Package updated successfully!"
-            : "Package added successfully!"
-        );
+        toast.success(editId ? "✅ Package updated successfully!" : "🎉 Package added successfully!");
         resetForm();
         setShowForm(false);
         fetchPackages();
       }
     } catch (error) {
       console.error("Save package error", error);
-      setError(error.response?.data?.message || "Failed to Save Package");
+      toast.error(error.response?.data?.message || "Failed to save package.");
+    } finally {
+      setSavingPackage(false);
     }
   };
 
   // 4. DELETE PACKAGE API CALL
   const handleDelete = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this package?"
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this package?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  setDeletingId(id);
+                  const res = await deletePackage(id);
+                  if (res.success) {
+                    await fetchPackages();
+                    toast.success("Package deleted successfully.");
+                  }
+                } catch (error) {
+                  toast.error("Failed to delete package.");
+                } finally {
+                  setDeletingId(null);
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
     );
-
-    if (!confirmed) return;
-
-    try {
-      setSuccess("");
-      setError("");
-
-      const res = await deletePackage(id);
-
-      if (res.success) {
-        await fetchPackages();
-        setSuccess("Package deleted successfully");
-      }
-    } catch (error) {
-      console.log("Delete package error:", error);
-      setError("Failed to delete package");
-    }
   };
 
   // 5. FILL FORM FOR EDITING
@@ -175,19 +190,7 @@ const PackagesPage = () => {
     setShowForm(true);
   };
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(""), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [success]);
 
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(""), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const stats = [
     {
@@ -252,17 +255,7 @@ const PackagesPage = () => {
       </div>
 
       <div className="mb-4">
-        {error && (
-          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm font-medium">
-            {success}
-          </div>
-        )}
+        {/* Errors/success now handled by toast - kept empty div for layout */}
       </div>
 
       {/* STATS GRID */}
@@ -322,7 +315,13 @@ const PackagesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {packages.map((p, i) => (
+                {loadingPackages ? (
+                  <tr>
+                    <td colSpan="9" className="py-10">
+                      <SectionLoader text="Loading packages..." />
+                    </td>
+                  </tr>
+                ) : packages.map((p, i) => (
                   <tr
                     key={p._id || i}
                     className="hover:bg-gray-50/40 transition-colors duration-150"
@@ -370,9 +369,17 @@ const PackagesPage = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(p._id || i)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                          disabled={deletingId === (p._id || i)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150 disabled:opacity-40"
                         >
-                          <FaTrash className="w-3.5 h-3.5" />
+                          {deletingId === (p._id || i) ? (
+                            <svg className="animate-spin w-3.5 h-3.5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                          ) : (
+                            <FaTrash className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       </div>
                     </td>
@@ -522,9 +529,16 @@ const PackagesPage = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-sm py-3 rounded-xl shadow-sm shadow-red-600/10 transition-all duration-150 active:scale-[0.99]"
+                  disabled={savingPackage}
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold text-sm py-3 rounded-xl shadow-sm shadow-red-600/10 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2"
                 >
-                  {editId ? "Update Package" : "Save Package"}
+                  {savingPackage && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  )}
+                  {savingPackage ? "Saving..." : editId ? "Update Package" : "Save Package"}
                 </button>
                 <p className="text-[11px] text-gray-400 text-center mt-2.5">
                   Packages will be visible after saving.

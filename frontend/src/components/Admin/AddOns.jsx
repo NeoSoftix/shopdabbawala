@@ -7,6 +7,8 @@ import {
   updateAddOn,
   toggleStatus,
 } from "../../services/addOn.service.js";
+import { toast } from "react-hot-toast";
+import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 
 const AddOns = () => {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ const AddOns = () => {
   const [selectedAddOn, setSelectedAddOn] = useState(null);
   const [addons, setAddons] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const fetchAddOns = async () => {
     try {
@@ -39,18 +43,39 @@ const AddOns = () => {
       ? "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700"
       : "inline-flex rounded-full bg-rose-100 px-3 py-1 text-sm font-semibold text-rose-700";
 
-  const handleDelete = async (id) => {
-    try {
-      const confirmDelete = window.confirm("Are you sure?");
-
-      if (!confirmDelete) return;
-
-      await deleteAddOn(id);
-
-      fetchAddOns();
-    } catch (error) {
-      console.log(error);
-    }
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this add-on?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteAddOn(id);
+                  toast.success("Add-on deleted successfully.");
+                  fetchAddOns();
+                } catch (error) {
+                  toast.error("Failed to delete add-on.");
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
+    );
   };
 
   const handleToggleStatus = async (id) => {
@@ -62,8 +87,21 @@ const AddOns = () => {
     }
   };
 
+  const validateAddOn = () => {
+    const newErrors = {};
+    if (!selectedAddOn.name?.trim()) newErrors.name = "Name is required.";
+    if (!selectedAddOn.description?.trim())
+      newErrors.description = "Description is required.";
+    if (!selectedAddOn.price || Number(selectedAddOn.price) <= 0)
+      newErrors.price = "Enter a valid price.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleUpdate = async () => {
+    if (!validateAddOn()) return;
     try {
+      setUpdating(true);
       const formData = new FormData();
 
       formData.append("name", selectedAddOn.name);
@@ -90,8 +128,11 @@ const AddOns = () => {
       setUpdateImage(null);
 
       fetchAddOns();
+      toast.success("Add-on updated successfully.");
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || "Failed to update add-on.");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -134,17 +175,12 @@ const AddOns = () => {
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
                 <td className="px-4 py-4 align-middle">
-                  {addon.image?.url ? (
-                    <img
-                      src={addon.image.url}
-                      alt={addon.name}
-                      className="h-14 w-14 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
-                      No image
-                    </div>
-                  )}
+                  <img
+                    src={addon.image?.url || "https://placehold.co/56x56?text=No+Img"}
+                    alt={addon.name}
+                    className="h-14 w-14 rounded-xl object-cover"
+                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
+                  />
                 </td>
 
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
@@ -185,6 +221,7 @@ const AddOns = () => {
                           allergies: addon.allergies?.join(", "),
                         });
                         setUpdateImage(null);
+                        setErrors({});
                         setShowModal(true);
                       }}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
@@ -207,11 +244,8 @@ const AddOns = () => {
 
             {loading && (
               <tr>
-                <td
-                  colSpan="7"
-                  className="px-4 py-8 text-center text-slate-500"
-                >
-                  Loading add-ons...
+                <td colSpan="7">
+                  <SectionLoader text="Loading add-ons..." />
                 </td>
               </tr>
             )}
@@ -236,43 +270,62 @@ const AddOns = () => {
           <div className="bg-white w-[600px] rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Update Add On</h2>
 
+            <div className="mb-3">
+              <input
+                type="text"
+                placeholder="Name"
+                value={selectedAddOn.name}
+                onChange={(e) =>
+                  setSelectedAddOn({
+                    ...selectedAddOn,
+                    name: e.target.value,
+                  })
+                }
+                className="w-full border p-3 rounded"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <textarea
+                placeholder="Description"
+                value={selectedAddOn.description}
+                onChange={(e) =>
+                  setSelectedAddOn({
+                    ...selectedAddOn,
+                    description: e.target.value,
+                  })
+                }
+                className="w-full border p-3 rounded"
+              />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <input
+                type="number"
+                placeholder="Price"
+                value={selectedAddOn.price}
+                onChange={(e) =>
+                  setSelectedAddOn({
+                    ...selectedAddOn,
+                    price: e.target.value,
+                  })
+                }
+                className="w-full border p-3 rounded"
+              />
+              {errors.price && (
+                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+              )}
+            </div>
+
             <input
               type="text"
-              value={selectedAddOn.name}
-              onChange={(e) =>
-                setSelectedAddOn({
-                  ...selectedAddOn,
-                  name: e.target.value,
-                })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
-
-            <textarea
-              value={selectedAddOn.description}
-              onChange={(e) =>
-                setSelectedAddOn({
-                  ...selectedAddOn,
-                  description: e.target.value,
-                })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
-
-            <input
-              type="number"
-              value={selectedAddOn.price}
-              onChange={(e) =>
-                setSelectedAddOn({
-                  ...selectedAddOn,
-                  price: e.target.value,
-                })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
-
-            <input
-              type="text"
+              placeholder="Allergies (comma separated)"
               value={selectedAddOn.allergies}
               onChange={(e) =>
                 setSelectedAddOn({
@@ -296,12 +349,13 @@ const AddOns = () => {
               <div className="mb-3">
                 <img
                   src={
-                    updateImage
+                    (updateImage
                       ? URL.createObjectURL(updateImage)
-                      : selectedAddOn.image?.url
+                      : selectedAddOn.image?.url) || "https://placehold.co/96x96?text=No+Img"
                   }
                   alt="preview"
                   className="w-24 h-24 object-cover rounded"
+                  onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
                 />
               </div>
             </div>
@@ -312,7 +366,9 @@ const AddOns = () => {
                   setShowModal(false);
                   setSelectedAddOn(null);
                   setUpdateImage(null);
+                  setErrors({});
                 }}
+                disabled={updating}
                 className="border px-4 py-2 rounded"
               >
                 Cancel
@@ -320,9 +376,11 @@ const AddOns = () => {
 
               <button
                 onClick={handleUpdate}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                disabled={updating}
+                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                Update
+                {updating && <ButtonSpinner />}
+                {updating ? "Updating..." : "Update"}
               </button>
             </div>
           </div>

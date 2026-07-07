@@ -5,6 +5,9 @@ import { sendOtp, verifyOtp } from "../../services/auth.service";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import PhoneInputPkg from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+const PhoneInput = PhoneInputPkg.default ? PhoneInputPkg.default : PhoneInputPkg;
 
 export default function UserLogin({ isOpen, onClose }) {
   const { setUser } = useAuth();
@@ -17,17 +20,17 @@ export default function UserLogin({ isOpen, onClose }) {
   const [error, setError] = useState("");
 
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!phone || phone.length < 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError("Please enter a valid mobile number.");
       return;
     }
     setError("");
     setLoading(true);
 
     try {
-      // API payload expects phone
-      await sendOtp({ phone });
+      // API payload expects phone with +
+      await sendOtp({ phone: `+${phone}` });
       toast.success("OTP sent successfully!");
       setStep("otp");
     } catch (err) {
@@ -48,7 +51,7 @@ export default function UserLogin({ isOpen, onClose }) {
     setLoading(true);
 
     try {
-      const res = await verifyOtp({ phone, otp });
+      const res = await verifyOtp({ phone: `+${phone}`, otp, allowNoSubscription: true });
       if (res.success && res.user) {
         setUser(res.user);
         toast.success("Logged in successfully! 🎉");
@@ -123,18 +126,17 @@ export default function UserLogin({ isOpen, onClose }) {
             {step === "phone" ? (
               <form onSubmit={handleSendOtp} className="space-y-5">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 block">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 block text-left">
                     Mobile Number
                   </label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="tel"
-                      required
-                      placeholder="Enter 10-digit number"
+                  <div className="relative text-left">
+                    <PhoneInput
+                      country={'in'}
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                      onChange={(val) => setPhone(val)}
+                      inputClass="!w-full !px-4 !py-3.5 !bg-slate-50 !border !border-slate-200 !rounded-2xl !font-semibold !text-sm !text-slate-800 !pl-14 focus:!outline-none focus:!border-red-400 focus:!ring-2 focus:!ring-red-100 !transition-all"
+                      buttonClass="!bg-transparent !border-none !pl-2"
+                      containerClass="!w-full"
                     />
                   </div>
                 </div>
@@ -174,13 +176,21 @@ export default function UserLogin({ isOpen, onClose }) {
                   {loading ? "Verifying..." : "Verify & Login →"}
                 </button>
 
-                <div className="text-center pt-2">
+                <div className="flex justify-between items-center pt-2">
                   <button
                     type="button"
-                    onClick={() => setStep("phone")}
-                    className="text-xs font-extrabold text-red-600 hover:text-red-700 transition-colors uppercase tracking-wider"
+                    onClick={() => { setOtp(""); setStep("phone"); }}
+                    className="text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors"
                   >
-                    ← Change Phone Number
+                    ← Change Phone
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={loading}
+                    className="text-red-600 text-xs font-bold hover:text-red-700 transition-colors"
+                  >
+                    Resend OTP
                   </button>
                 </div>
               </form>

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createPackageCheckout,
+  createAddonCheckout,
   stripeWebhook,
   saveCheckoutDetails,
   createScheduledSubscription,
@@ -13,6 +14,9 @@ const router = express.Router();
 
 // Admin Package Purchase
 router.post("/package-checkout", verifyToken, createPackageCheckout);
+
+// Add-ons Cart Checkout
+router.post("/addon-checkout", verifyToken, createAddonCheckout);
 
 // Get Checkout Session Details
 router.get("/session/:sessionId", verifyToken, getCheckoutSession);

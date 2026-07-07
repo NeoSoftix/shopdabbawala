@@ -55,7 +55,6 @@ export default function HeroHeader() {
 
   const links = [
     { label: "Home", to: "/", isRouterLink: true },
-    ...(user ? [{ label: "Dashboard", to: "/dashboard", isRouterLink: true }] : []),
     { label: "Plans", href: "#plans" },
     { label: "Menu", href: "#menu" },
     { label: "About", href: "#about" },
@@ -96,10 +95,10 @@ export default function HeroHeader() {
         >
           {/* Logo Brand Block (Updated with Image) */}
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
-            <img 
-              src={logoImg} 
-              alt="Meals Logo" 
-              className="h-10 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
+            <img
+              src={logoImg}
+              alt="Meals Logo"
+              className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${scrolled ? "h-15" : "h-22"}`}
             />
           </Link>
 
@@ -157,7 +156,7 @@ export default function HeroHeader() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className={`text-xs font-bold ${scrolled ? "text-slate-800" : "text-slate-900"}`}>
-                      {user.name?.split(" ")[0] || (user.phone ? `***${user.phone.slice(-4)}` : "User")}
+                      {user.name?.split(" ")[0] || `Guest_${user._id?.substring(user._id.length - 4).toUpperCase() || 'USER'}`}
                     </span>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider flex items-center gap-0.5">
                       Account <ChevronDown size={10} />

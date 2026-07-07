@@ -6,6 +6,8 @@ import { checkServiceAvailability } from "../../services/vendor.service";
 import { getActivePackages } from "../../services/package.service";
 import { toast } from "react-hot-toast";
 import CheckoutFlowModal from "../shared/CheckoutFlowModal";
+import { useAuth } from "../../context/AuthContext";
+import { getMySubscriptions } from "../../services/subscription.service";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -38,6 +40,23 @@ export default function PackagesSection() {
   const [leadError, setLeadError] = useState("");
   // --- CHECKOUT MODAL STATES ---
   const [checkoutPlan, setCheckoutPlan] = useState(null);
+  
+  const { user } = useAuth();
+  const [userSubscriptions, setUserSubscriptions] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      getMySubscriptions()
+        .then((res) => {
+          if (res.success && res.subscriptions) {
+            setUserSubscriptions(res.subscriptions);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch subscriptions:", err));
+    }
+  }, [user]);
+
+  const activeSubscriptions = userSubscriptions.filter(sub => sub.status === "active");
 
   // --- DYNAMIC DATA FETCHING VIA SERVICE ---
   useEffect(() => {
@@ -148,6 +167,14 @@ export default function PackagesSection() {
   };
 
   const openCheckoutModal = (pkg) => {
+    const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
+
+    if (isCurrentPlan) {
+      return; // Already on this plan, do nothing
+    }
+
+    // Always go through the full checkout flow (pincode -> phone -> OTP -> payment),
+    // even for users upgrading from an existing plan. Only their details get prefilled.
     setCheckoutPlan(pkg);
   };
 
@@ -278,6 +305,7 @@ export default function PackagesSection() {
             if (!shouldRender && packages.length > 2) return null;
 
             const visibleFeatures = pkg.features.slice(0, 3);
+            const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
 
             return (
               <motion.div
@@ -331,6 +359,7 @@ export default function PackagesSection() {
                         src={pkg.image}
                         alt={pkg.title}
                         className="w-full h-full object-cover rounded-full"
+                        onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                       />
                     </div>
                   </div>
@@ -394,15 +423,18 @@ export default function PackagesSection() {
                     </div>
 
                     <button
-                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm cursor-pointer
+                      disabled={isCurrentPlan}
+                      className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm ${isCurrentPlan ? "" : "cursor-pointer"}
                         ${
-                          isActive
-                            ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
-                            : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
+                          isCurrentPlan 
+                            ? "bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed shadow-none opacity-80" 
+                            : isActive
+                              ? "bg-red-600 border-red-600 text-white shadow-red-500/20"
+                              : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:border-slate-300"
                         }`}
                       onClick={() => openCheckoutModal(pkg)}
                     >
-                      Choose Plan
+                      {isCurrentPlan ? "Current Plan" : "Choose Plan"}
                     </button>
                   </div>
                 </div>
@@ -517,6 +549,7 @@ export default function PackagesSection() {
                     src={featureModalData.image}
                     alt={featureModalData.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                   />
                 </div>
                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-wide">
@@ -616,7 +649,9 @@ export default function PackagesSection() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {packages.map((pkg, index) => (
+                {packages.map((pkg, index) => {
+                  const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
+                  return (
                   <div
                     key={pkg._id}
                     className="bg-slate-50/70 border border-slate-100 rounded-3xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow"
@@ -634,6 +669,7 @@ export default function PackagesSection() {
                             src={pkg.image}
                             alt={pkg.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
                           />
                         </div>
                         <div>
@@ -683,14 +719,14 @@ export default function PackagesSection() {
                     </div>
 
                     <button
+                      disabled={isCurrentPlan}
                       onClick={() => handleChoosePlanInModal(index)}
-                      className="w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all focus:outline-none"
+                      className={`w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase shadow-sm transition-all focus:outline-none ${isCurrentPlan ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'}`}
                     >
-                      Choose Plan
+                      {isCurrentPlan ? "Current Plan" : "Choose Plan"}
                     </button>
                   </div>
-
-                ))}
+                )})}
               </div>
             </motion.div>
           </div>

@@ -1,15 +1,14 @@
-import { Outlet } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-
+import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
-
 import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
 
 export default function VendorLayout() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -17,17 +16,24 @@ export default function VendorLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
       <Sidebar
         title="TIFFIN SERVICE"
         subtitle="VENDOR PANEL"
         menuItems={vendorMenu}
         onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex flex-col flex-1">
-        <Header title="Vendor Dashboard" userName="Vendor" userRole="Vendor" />
-        <main className="flex-1 p-8">
+      <div className="flex flex-col flex-1 min-w-0 w-full h-full">
+        <Header
+          title="Vendor Dashboard"
+          userName="Vendor"
+          userRole="Vendor"
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>

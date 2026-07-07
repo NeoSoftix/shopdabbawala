@@ -472,28 +472,7 @@ export const verifyOtp = async (req, res) => {
     
     let user = await User.findOne({ phone: { $in: possibleNumbers } });
 
-    if (!allowNoSubscription) {
-      if (!user) {
-        return res.status(403).json({
-          success: false,
-          message: "Please purchase a plan first, then login.",
-        });
-      }
-      
-      if (user.role === "user") {
-        const subscriptionCount = await Subscription.countDocuments({
-          user: user._id,
-          status: "active",
-        });
-
-        if (subscriptionCount === 0) {
-          return res.status(403).json({
-            success: false,
-            message: "Please purchase a plan first, then login.",
-          });
-        }
-      }
-    }
+    // Removed allowNoSubscription logic to allow all users to login.
  
     if (!user) {
       user = await User.create({
