@@ -55,7 +55,6 @@ export default function HeroHeader() {
 
   const links = [
     { label: "Home", to: "/", isRouterLink: true },
-    ...(user ? [{ label: "Dashboard", to: "/dashboard", isRouterLink: true }] : []),
     { label: "Plans", href: "#plans" },
     { label: "Menu", href: "#menu" },
     { label: "About", href: "#about" },
@@ -96,10 +95,10 @@ export default function HeroHeader() {
         >
           {/* Logo Brand Block (Updated with Image) */}
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
-            <img 
-              src={logoImg} 
-              alt="Meals Logo" 
-              className="h-15 w-auto object-cover transition-transform duration-300 group-hover:scale-105" 
+            <img
+              src={logoImg}
+              alt="Meals Logo"
+              className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${scrolled ? "h-15" : "h-22"}`}
             />
           </Link>
 
