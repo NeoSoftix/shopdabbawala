@@ -42,6 +42,8 @@ export default function Login() {
         navigate("/admin/dashboard");
       } else if (res.user.role === "vendor") {
         navigate("/vendor/dashboard");
+      } else if (res.user.role === "user" || res.user.role === "customer") {
+        navigate("/meal-planner");
       } else {
         setError("Unauthorized role type.");
       }

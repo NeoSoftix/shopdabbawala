@@ -5,11 +5,13 @@ import {
 } from 'lucide-react';
 import { getMyMealPlan } from '../../services/mealSchedule.service';
 
-export default function UserHistoryDetails({ subscription }) {
+export default function UserHistoryDetails({ subscriptions }) {
   // Tabs state: 'past', 'today', 'upcoming'
   const [activeTab, setActiveTab] = useState('upcoming');
   const [mealPlan, setMealPlan] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const activeSub = subscriptions?.find(sub => sub.status === "active") || subscriptions?.[0];
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -25,12 +27,12 @@ export default function UserHistoryDetails({ subscription }) {
         setLoading(false);
       }
     };
-    if (subscription) {
+    if (activeSub) {
       fetchPlan();
     } else {
       setLoading(false);
     }
-  }, [subscription]);
+  }, [activeSub]);
 
   // Helper to format Date
   const formatDate = (dateString) => {
@@ -195,7 +197,7 @@ export default function UserHistoryDetails({ subscription }) {
                             <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                             <div>
                               <span className="font-semibold block text-gray-800">Delivery Method</span>
-                              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{subscription?.deliveryMethod || "Delivery"}</p>
+                              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{activeSub?.deliveryMethod || "Delivery"}</p>
                             </div>
                           </div>
                         </div>
@@ -231,41 +233,45 @@ export default function UserHistoryDetails({ subscription }) {
               <section className="space-y-4 fade-in">
                 <h2 className="text-lg font-bold text-gray-900">Purchase History</h2>
                 
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50 hover:bg-gray-50/50 transition">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-red-50 text-red-600 p-2.5 rounded-lg mt-0.5">
-                        <ShoppingBag className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="font-bold text-gray-900">{subscription?.duration} Plan Purchase</span>
-                        <p className="text-xs text-gray-400">Purchased on: {formatDate(subscription?.createdAt)}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
-                          <span className="flex items-center space-x-1">
-                            <span className="font-semibold text-gray-700">Total Meals:</span>
-                            <span>{subscription?.totalMeals}</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <span className="font-semibold text-gray-700">Meals Used:</span>
-                            <span>{subscription?.mealsUsed}</span>
+                <div className="space-y-4">
+                  {subscriptions && subscriptions.map((sub, idx) => (
+                    <div key={sub._id || idx} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50 hover:bg-gray-50/50 transition">
+                        <div className="flex items-start space-x-4">
+                          <div className="bg-red-50 text-red-600 p-2.5 rounded-lg mt-0.5">
+                            <ShoppingBag className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-bold text-gray-900 capitalize">{sub.duration || "Custom"} Plan Purchase ({sub.mealSize || "Custom"})</span>
+                            <p className="text-xs text-gray-400">Purchased on: {formatDate(sub.createdAt)}</p>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
+                              <span className="flex items-center space-x-1">
+                                <span className="font-semibold text-gray-700">Total Meals:</span>
+                                <span>{sub.totalMeals}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <span className="font-semibold text-gray-700">Meals Used:</span>
+                                <span>{sub.mealsUsed}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3 px-0 md:px-8 flex-1 max-w-xs md:border-l md:border-r md:border-gray-100">
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-800">Status</h4>
+                            <p className="text-xs text-gray-500 capitalize">{sub.status}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between md:justify-end space-x-4">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            {sub.status === 'active' ? 'Active' : sub.status}
                           </span>
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-3 px-0 md:px-8 flex-1 max-w-xs md:border-l md:border-r md:border-gray-100">
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-800">Status</h4>
-                        <p className="text-xs text-gray-500 capitalize">{subscription?.status}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between md:justify-end space-x-4">
-                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                        Active
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </section>
             )}
