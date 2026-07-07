@@ -79,10 +79,17 @@ const AddItem = () => {
       );
       if (itemData.image) formData.append("image", itemData.image);
 
+      if (itemData.image) {
+        formData.append("image", itemData.image);
+      }
+
       await createItem(formData);
+
       toast.success("🎉 Item created successfully!");
       navigate("/admin/items");
     } catch (error) {
+      console.log("Create item error", error);
+
       toast.error(error?.response?.data?.message || "Failed to create item. Please try again.");
     } finally {
       setLoading(false);
@@ -122,9 +129,8 @@ const AddItem = () => {
                   value={itemData.name}
                   onChange={handleChange}
                   placeholder="Enter Item Name"
-                  className={`w-full border rounded-lg p-3 focus:outline-none focus:ring-2 ${
-                    errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                  }`}
+                  className={`w-full border rounded-lg p-3 focus:outline-none focus:ring-2 ${errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
               </div>
@@ -140,9 +146,8 @@ const AddItem = () => {
                   value={itemData.description}
                   onChange={handleChange}
                   placeholder="Enter Description"
-                  className={`w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${
-                    errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                  }`}
+                  className={`w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1">⚠ {errors.description}</p>}
               </div>
@@ -173,9 +178,8 @@ const AddItem = () => {
                   name="category"
                   value={itemData.category}
                   onChange={handleChange}
-                  className={`w-full border rounded-lg p-3 bg-white focus:outline-none focus:ring-2 ${
-                    errors.category ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                  }`}
+                  className={`w-full border rounded-lg p-3 bg-white focus:outline-none focus:ring-2 ${errors.category ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
+                    }`}
                 >
                   <option value="">Select Category</option>
                   {categories.map((category) => (
@@ -189,37 +193,64 @@ const AddItem = () => {
 
               {/* Item Image */}
               <div>
-                <label className="block mb-1.5 font-medium text-gray-700">Item Image</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center gap-3 hover:border-red-400 transition-colors">
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="w-32 h-32 object-cover rounded-lg border"
-                      onError={(e) => { e.target.src = DEFAULT_IMG; e.target.onerror = null; }}
-                    />
+                <label className="block mb-2 font-medium">Item Image</label>
+
+                <label
+                  htmlFor="itemImage"
+                  className="border-2 border-dashed rounded-lg p-10 min-h-[220px] flex items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <input
+                    id="itemImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+
+                  {itemData.image ? (
+                    <div className="text-center">
+                      <img
+                        src={URL.createObjectURL(itemData.image)}
+                        alt="Preview"
+                        className="w-40 h-40 object-cover rounded-lg border mx-auto"
+                      />
+
+                      <p className="text-sm text-gray-500 mt-3">
+                        Click anywhere to change image
+                      </p>
+                    </div>
                   ) : (
                     <div className="text-center">
-                      <p className="text-gray-400 text-sm">Click to upload image</p>
-                      <p className="text-gray-300 text-xs mt-1">PNG, JPG, WEBP accepted</p>
+                      <svg
+                        className="w-12 h-12 mx-auto text-gray-400 mb-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M12 3v12m0-12l-4 4m4-4l4 4"
+                        />
+                      </svg>
+
+                      <p className="font-medium text-gray-700">
+                        Click anywhere to upload image
+                      </p>
+
+                      <p className="text-sm text-gray-400 mt-1">
+                        PNG, JPG, JPEG
+                      </p>
                     </div>
                   )}
-                  <label className="cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-                    {previewUrl ? "Change Image" : "Upload Image"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
+                </label>
+              </div >
+            </div >
+          </div >
 
           {/* Buttons */}
-          <div className="flex justify-end gap-4 mt-8">
+          < div className="flex justify-end gap-4 mt-8" >
             <button
               type="button"
               onClick={() => navigate("/admin/items")}
@@ -230,15 +261,17 @@ const AddItem = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
+              className={`px-6 py-3 rounded-xl text-white ${loading
+                ? "bg-red-400 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+                }`}
             >
-              {loading && <ButtonSpinner />}
               {loading ? "Saving..." : "Save Item"}
             </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </div >
+        </form >
+      </div >
+    </div >
   );
 };
 

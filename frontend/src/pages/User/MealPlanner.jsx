@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getActiveCategory } from "../../services/category.service";
 import { getAllItems } from "../../services/items.service";
+import { createMeal, getMealSchedule } from "../../services/mealSchedule.service";
 
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
@@ -64,7 +65,7 @@ const MealPlanSummary = ({ subscriptions, loading }) => {
 
         const remaining = totalMeals - mealsUsed;
         const usagePercentage = totalMeals > 0 ? Math.round((mealsUsed / totalMeals) * 100) : 0;
-        
+
         // Calculate remaining days
         const end = new Date(endDate);
         const today = new Date();
@@ -194,11 +195,14 @@ const MealSchedule = ({
   setSelectedDay,
   weeklyPlan,
   setWeeklyPlan,
+  mealSize,
+  subscriptionId
 }) => {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     Promise.all([getActiveCategory(), getAllItems()])
@@ -224,20 +228,177 @@ const MealSchedule = ({
 
   const toggleItemForDay = (item) => {
     if (!item) return;
+
     setWeeklyPlan((prev) => {
       const currentDayItems = prev[selectedDay] || [];
-      const exists = currentDayItems.some((i) => i && i._id === item._id);
 
-      if (!exists && currentDayItems.length >= 6) {
-        toast.error("You can only add up to 6 meals per day in this plan.");
+      const exists = currentDayItems.some(
+        (meal) => meal?._id === item._id,
+      );
+
+      // ✅ Already selected -> remove complete product
+      if (exists) {
+        return {
+          ...prev,
+          [selectedDay]: currentDayItems.filter(
+            (meal) => meal?._id !== item._id,
+          ),
+        };
+      }
+
+      // Count total quantities
+      const totalSelected = currentDayItems.reduce(
+        (total, meal) =>
+          total + (meal.quantity || 1),
+        0,
+      );
+
+      // Plan limit check
+      if (totalSelected >= totalSlots) {
+        toast.error(
+          `Maximum ${totalSlots} meals allowed in your ${mealSize} plan.`,
+        );
+
         return prev;
       }
 
+      // ✅ First click -> add quantity 1
       return {
         ...prev,
-        [selectedDay]: exists
-          ? currentDayItems.filter((i) => i && i._id !== item._id)
-          : [...currentDayItems, item],
+
+        [selectedDay]: [
+          ...currentDayItems,
+          {
+            ...item,
+            quantity: 1,
+          },
+        ],
+      };
+    });
+  };
+
+  const updateItemQuantity = (item, change) => {
+    setWeeklyPlan((prev) => {
+      const currentDayItems =
+        prev[selectedDay] || [];
+
+      const existingItem = currentDayItems.find(
+        (meal) => meal?._id === item._id,
+      );
+
+      const totalSelected = currentDayItems.reduce(
+        (total, meal) =>
+          total + (meal.quantity || 1),
+        0,
+      );
+
+
+      // ================= PLUS =================
+
+      if (change === 1) {
+        if (totalSelected >= totalSlots) {
+          toast.error(
+            `Maximum ${totalSlots} meals allowed in your ${mealSize} plan.`,
+          );
+
+          return prev;
+        }
+
+        // First time adding item
+        if (!existingItem) {
+          return {
+            ...prev,
+
+            [selectedDay]: [
+              ...currentDayItems,
+              {
+                ...item,
+                quantity: 1,
+              },
+            ],
+          };
+        }
+
+        // Increase existing quantity
+        return {
+          ...prev,
+
+          [selectedDay]: currentDayItems.map(
+            (meal) =>
+              meal._id === item._id
+                ? {
+                  ...meal,
+                  quantity:
+                    (meal.quantity || 1) + 1,
+                }
+                : meal,
+          ),
+        };
+      }
+
+
+      // ================= MINUS =================
+
+      if (!existingItem) {
+        return prev;
+      }
+
+      const currentQuantity =
+        existingItem.quantity || 1;
+
+      // Quantity 1 → remove item
+      if (currentQuantity <= 1) {
+        return {
+          ...prev,
+
+          [selectedDay]: currentDayItems.filter(
+            (meal) => meal._id !== item._id,
+          ),
+        };
+      }
+
+      // Quantity decrease
+      return {
+        ...prev,
+
+        [selectedDay]: currentDayItems.map(
+          (meal) =>
+            meal._id === item._id
+              ? {
+                ...meal,
+                quantity: currentQuantity - 1,
+              }
+              : meal,
+        ),
+      };
+    });
+  };
+
+  const removeOneItemFromDay = (day, itemId) => {
+    setWeeklyPlan((prev) => {
+      const dayItems = prev[day] || [];
+
+      return {
+        ...prev,
+
+        [day]: dayItems
+          .map((item) => {
+            if (item._id !== itemId) {
+              return item;
+            }
+
+            const quantity = item.quantity || 1;
+
+            if (quantity <= 1) {
+              return null;
+            }
+
+            return {
+              ...item,
+              quantity: quantity - 1,
+            };
+          })
+          .filter(Boolean),
       };
     });
   };
@@ -245,12 +406,83 @@ const MealSchedule = ({
   const removeItemFromDay = (day, itemId) => {
     setWeeklyPlan((prev) => ({
       ...prev,
-      [day]: (prev[day] || []).filter((item) => item && item._id !== itemId),
+
+      [day]: (prev[day] || []).filter(
+        (item) => item?._id !== itemId,
+      ),
     }));
   };
 
-  const totalSlots = 6;
+  const planItems = {
+    basic: 3,
+    medium: 4,
+    premium: 6,
+  };
+
+  const totalSlots =
+    planItems[mealSize?.toLowerCase()] || 0;
   const currentDayMeals = weeklyPlan[selectedDay] || [];
+
+  const expandedDayMeals = currentDayMeals.flatMap((meal) =>
+    Array.from(
+      { length: meal.quantity || 1 },
+      () => meal,
+    ),
+  );
+
+  const totalSelectedMeals = expandedDayMeals.length;
+
+  const handleSubmitDay = async () => {
+    if (!subscriptionId) {
+      toast.error("Subscription ID missing");
+      console.log("subscriptionId:", subscriptionId);
+      return;
+    }
+
+    if (totalSelectedMeals === 0) {
+      toast.error("Please select at least one meal before confirming.");
+      return;
+    }
+
+    const selectedItems = currentDayMeals.map((meal) => ({
+      item: meal._id,
+      quantity: meal.quantity || 1,
+    }));
+
+    const payload = {
+      subscriptionId,
+      day: selectedDay,
+      items: selectedItems,
+    };
+
+    console.log("Meal Payload:", payload);
+
+    setSubmitting(true);
+
+    try {
+      const res = await createMeal(payload);
+
+      console.log("Create Meal Response:", res);
+
+      if (res?.success) {
+        toast.success(`${selectedDay}'s meal plan confirmed!`);
+      } else {
+        toast.error(res?.message || "Failed to confirm meal plan.");
+      }
+    } catch (error) {
+      console.error("FULL ERROR:", error);
+      console.error("ERROR RESPONSE:", error?.response);
+      console.error("ERROR DATA:", error?.response?.data);
+
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to confirm meal plan."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full space-y-8 bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50">
@@ -288,8 +520,8 @@ const MealSchedule = ({
                 type="button"
                 onClick={() => setSelectedCategory(cat.name)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedCategory === cat.name
-                    ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
-                    : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
+                  ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
+                  : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
                   }`}
               >
                 {cat.image?.url ? (
@@ -311,37 +543,105 @@ const MealSchedule = ({
               <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items found for this category.</div>
             ) : (
               filteredFoodItems.map((item) => {
-                const isChecked = currentDayMeals.some(
-                  (i) => i && i._id === item._id,
+                const selectedItem = currentDayMeals.find(
+                  (meal) => meal?._id === item._id,
                 );
+
+                const isChecked = Boolean(selectedItem);
+
+                const quantity =
+                  selectedItem?.quantity || 0;
+
                 return (
                   <div
                     key={item._id}
                     onClick={() => toggleItemForDay(item)}
                     className="bg-white rounded-xl border border-gray-100 p-3 relative flex flex-col justify-between cursor-pointer group shadow-[0_2px_15px_rgba(0,0,0,0.01)] hover:border-gray-200 transition-all"
                   >
-                    <div className="absolute top-3 right-3 z-10">
+                    {/* <div className="absolute top-3 right-3 z-10">
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isChecked ? "bg-[#E31A1A] border-[#E31A1A]" : "border-gray-300 bg-white"}`}
                       >
                         {isChecked && <FaCheck className="text-white" size={9} />}
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="space-y-3">
-                      <img
-                        src={item.image?.url || "https://placehold.co/300x200?text=Food+Item"}
-                        alt={item.name}
-                        className="w-full h-24 object-cover rounded-lg"
-                        onError={(e) => { e.target.src = "https://placehold.co/300x200?text=Food+Item"; e.target.onerror = null; }}
-                      />
+                      <div className="relative">
+                        <img
+                          src={
+                            item.image?.url ||
+                            "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"
+                          }
+                          alt={item.name}
+                          className={`w-full h-24 object-cover rounded-lg transition-all ${isChecked ? "brightness-75" : ""
+                            }`}
+                        />
+
+                        {isChecked && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#E31A1A] border-2 border-white shadow-lg">
+                              <FaCheck
+                                className="text-white"
+                                size={16}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div>
                         <h4 className="text-sm font-bold text-[#1B254B] leading-tight">
                           {item.name}
                         </h4>
+
                         <p className="text-xs text-[#A3AED0] font-medium mt-1 line-clamp-2 leading-normal">
                           {item.description}
                         </p>
+                      </div>
+
+                      {/* QUANTITY CONTROLS */}
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <span className="text-xs font-bold text-[#A3AED0]">
+                          Quantity
+                        </span>
+
+                        <div className="flex items-center gap-3 bg-gray-50 rounded-full p-1">
+                          {/* MINUS */}
+                          <button
+                            type="button"
+                            disabled={quantity === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              updateItemQuantity(item, -1);
+                            }}
+                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all ${quantity === 0
+                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                              : "bg-white text-[#E31A1A] shadow-sm hover:bg-red-50"
+                              }`}
+                          >
+                            −
+                          </button>
+
+                          {/* QUANTITY */}
+                          <span className="text-sm font-black text-[#1B254B] min-w-[20px] text-center">
+                            {quantity}
+                          </span>
+
+                          {/* PLUS */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              updateItemQuantity(item, 1);
+                            }}
+                            className="w-7 h-7 bg-[#E31A1A] text-white rounded-full flex items-center justify-center font-bold shadow-sm hover:bg-red-700 transition-all"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -387,8 +687,8 @@ const MealSchedule = ({
                     </span>
                     <span
                       className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${isSelected
-                          ? "bg-[#E31A1A] text-white shadow-sm"
-                          : "text-[#1B254B] hover:bg-gray-100"
+                        ? "bg-[#E31A1A] text-white shadow-sm"
+                        : "text-[#1B254B] hover:bg-gray-100"
                         }`}
                     >
                       {day.date}
@@ -404,25 +704,29 @@ const MealSchedule = ({
                   Your Plan ({selectedDay})
                 </span>
                 <span className="text-gray-500">
-                  {currentDayMeals.length} / {totalSlots} Items
+                  {totalSelectedMeals} / {totalSlots} Items
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[160px]">
                 {Array.from({ length: totalSlots }).map((_, index) => {
-                  const item = currentDayMeals[index];
+                  const item = expandedDayMeals[index];
 
                   if (item) {
                     return (
                       <div
-                        key={item._id}
+                        key={`${item._id}-${index}`}
                         className="flex flex-col justify-between bg-white p-2 rounded-xl border border-gray-100 relative group min-h-[90px] sm:min-h-[110px]"
                       >
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeItemFromDay(selectedDay, item._id);
+
+                            removeOneItemFromDay(
+                              selectedDay,
+                              item._id,
+                            );
                           }}
                           className="absolute top-1 right-1 text-gray-300 hover:text-red-500 p-1 z-10 bg-white rounded-full shadow-sm"
                         >
@@ -431,37 +735,39 @@ const MealSchedule = ({
 
                         <div className="space-y-1.5 text-center mt-2 flex flex-col items-center">
                           <img
-                            src={item.image?.url || "https://placehold.co/80x80?text=Meal"}
-                            alt=""
+                            src={
+                              item.image?.url ||
+                              "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=150&auto=format&fit=crop&q=80"
+                            }
+                            alt={item.name}
                             className="w-10 h-10 rounded-md object-cover flex-shrink-0"
                             onError={(e) => { e.target.src = "https://placehold.co/80x80?text=Meal"; e.target.onerror = null; }}
                           />
+
                           <div className="w-full px-0.5">
                             <p className="text-xs font-bold text-[#1B254B] truncate leading-tight">
                               {item.name}
-                            </p>
-                            <p className="text-[11px] text-[#A3AED0] font-medium mt-0.5">
-                              {item.cal}
                             </p>
                           </div>
                         </div>
                       </div>
                     );
-                  } else {
-                    return (
-                      <div
-                        key={`empty-${index}`}
-                        className="flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-2 h-[90px] sm:h-[110px] text-center"
-                      >
-                        <span className="text-gray-300 text-sm font-light">
-                          ✕
-                        </span>
-                        <span className="text-[#A3AED0] text-[10px] sm:text-xs font-bold tracking-tight uppercase mt-0.5">
-                          Empty
-                        </span>
-                      </div>
-                    );
                   }
+
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-2 h-[90px] sm:h-[110px] text-center"
+                    >
+                      <span className="text-gray-300 text-sm font-light">
+                        ✕
+                      </span>
+
+                      <span className="text-[#A3AED0] text-[10px] sm:text-xs font-bold tracking-tight uppercase mt-0.5">
+                        Empty
+                      </span>
+                    </div>
+                  );
                 })}
               </div>
             </div>
@@ -469,10 +775,11 @@ const MealSchedule = ({
             <div className="pt-3 border-t border-gray-100 flex items-center justify-end">
               <button
                 type="button"
-                onClick={() => toast.success("Order Confirmed!")}
-                className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all"
+                disabled={submitting}
+                onClick={handleSubmitDay}
+                className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all"
               >
-                PREVIEW & CONFIRM &gt;
+                {submitting ? "SUBMITTING..." : "PREVIEW & CONFIRM >"}
               </button>
             </div>
           </div>
@@ -564,6 +871,67 @@ const MealPlanner = () => {
   });
 
   useEffect(() => {
+    const fetchSavedMealPlan = async () => {
+      if (!activeSubscription?._id) {
+        return;
+      }
+
+      try {
+        const res = await getMealSchedule(
+          activeSubscription._id
+        );
+
+        console.log(
+          "Saved Meal Schedule:",
+          res
+        );
+
+        if (!res.success || !res.data) {
+          return;
+        }
+
+        const initialPlan = {
+          Monday: [],
+          Tuesday: [],
+          Wednesday: [],
+          Thursday: [],
+          Friday: [],
+          Saturday: [],
+          Sunday: [],
+        };
+
+        res.data.schedule.forEach((daySchedule) => {
+          if (!daySchedule?.day) {
+            return;
+          }
+
+          initialPlan[daySchedule.day] =
+            (daySchedule.items || [])
+              .filter((meal) => meal?.item)
+              .map((meal) => ({
+                ...meal.item,
+                quantity: meal.quantity || 1,
+              }));
+        });
+
+        console.log(
+          "Formatted Weekly Plan:",
+          initialPlan
+        );
+
+        setWeeklyPlan(initialPlan);
+      } catch (error) {
+        console.error(
+          "Failed to load saved meal plan:",
+          error?.response?.data || error
+        );
+      }
+    };
+
+    fetchSavedMealPlan();
+  }, [activeSubscription?._id]);
+
+  useEffect(() => {
     if (!loading && !user) {
       navigate("/");
     }
@@ -636,8 +1004,8 @@ const MealPlanner = () => {
                   key={item.id}
                   onClick={() => setActiveStep(item.id)}
                   className={`w-full flex items-center gap-4 p-4 rounded-[20px] transition-all duration-200 text-left ${isActive
-                      ? "bg-[#FFF5F5] border border-red-100/50"
-                      : "bg-transparent hover:bg-gray-50/80"
+                    ? "bg-[#FFF5F5] border border-red-100/50"
+                    : "bg-transparent hover:bg-gray-50/80"
                     }`}
                 >
                   <span
@@ -706,6 +1074,8 @@ const MealPlanner = () => {
                   setSelectedDay={setSelectedDay}
                   weeklyPlan={weeklyPlan}
                   setWeeklyPlan={setWeeklyPlan}
+                  mealSize={activeSubscription?.mealSize}
+                  subscriptionId={activeSubscription?._id}
                 />
               )}
             </div>

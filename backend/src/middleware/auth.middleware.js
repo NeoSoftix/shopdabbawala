@@ -4,7 +4,10 @@ export const verifyToken = (req, res, next) => {
   try {
     let token = req.cookies?.token;
 
-    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    if (
+      !token &&
+      req.headers.authorization?.startsWith("Bearer ")
+    ) {
       token = req.headers.authorization.split(" ")[1];
     }
 
@@ -15,14 +18,34 @@ export const verifyToken = (req, res, next) => {
       });
     }
 
-    // Verify Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
-    req.user = decoded;
+    const userId =
+      decoded.userId ||
+      decoded.id ||
+      decoded._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User ID not found in token",
+      });
+    }
+
+    req.user = {
+      ...decoded,
+      userId,
+    };
 
     next();
   } catch (error) {
-    console.log("Token Verification Error:", error.message);
+    console.log(
+      "Token Verification Error:",
+      error.message
+    );
 
     return res.status(401).json({
       success: false,

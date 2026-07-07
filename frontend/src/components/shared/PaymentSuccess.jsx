@@ -14,7 +14,7 @@ export default function PaymentSuccess() {
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", pincode: localStorage.getItem("pincode") || "" });
 
   useEffect(() => {
     if (user) {
@@ -24,6 +24,7 @@ export default function PaymentSuccess() {
         email: user.email || prev.email,
         phone: user.phone || prev.phone,
         address: user.address || prev.address,
+        pincode: user.pincode || prev.pincode,
       }));
     }
 
@@ -36,6 +37,7 @@ export default function PaymentSuccess() {
               name: prev.name || res.customer_details.name || "",
               email: prev.email || res.customer_details.email || "",
               phone: prev.phone || res.customer_details.phone || "",
+
             }));
           }
         })
@@ -63,11 +65,11 @@ export default function PaymentSuccess() {
         //   alert(`Stripe Subscription Schedule ID: ${res.stripeSubscriptionScheduleId}`);
         // }
       }
-      
+
       if (setUser) {
         setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone, address: formData.address }) : null);
       }
-      
+
       toast.success("🙌 Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
@@ -220,7 +222,22 @@ export default function PaymentSuccess() {
                     className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
                   />
                 </div>
+                <div>
+                  <div>
 
+                    <input
+                      type="hidden"
+                      name="pincode"
+                      required
+                      maxLength={6}
+                      placeholder="123456"
+                      value={formData.pincode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                    />
+                  </div>
+
+                </div>
 
                 <button
                   type="submit"
