@@ -7,15 +7,21 @@ import {
   FaRegHeart,
   FaTrash,
   FaArrowRight,
-  FaCheckCircle,
 } from "react-icons/fa";
 // Kuch versions mein Shopping bag aur X mark ka naam alag hota hai, isliye inko 'fa' ke compatible names se replace kiya:
 import { FaShoppingBasket, FaTimes } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Path ko apne folder structure ke according adjust karlein
 import { getActiveAddOns } from "../../services/addOn.service";
+import { checkServiceAvailability } from "../../services/vendor.service";
+import { sendOtp, verifyOtp } from "../../services/auth.service";
+import { createAddonCheckout } from "../../services/payment.service";
 
 export default function AddonsSection() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [addonsData, setAddonsData] = useState([]);
   const [categories, setCategories] = useState(["All"]);
   const [activeTab, setActiveTab] = useState("All");
@@ -27,22 +33,16 @@ export default function AddonsSection() {
 
   // --- MODAL & CHECKOUT STATES ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalStep, setModalStep] = useState(1); // 1: Preview, 2: Pincode, 3: Details, 4: OTP, 5: Success
+  const [modalStep, setModalStep] = useState(1); // 1: Preview, 2: Pincode, 3: Phone, 4: OTP, 5: Redirecting
   const [pincode, setPincode] = useState("");
-  const [addressData, setAddressData] = useState({ city: "", state: "" });
   const [pincodeError, setPincodeError] = useState("");
-  const [userData, setUserData] = useState({ name: "", email: "", phone: "" });
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [detailsError, setDetailsError] = useState("");
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
-
-  // Sample deliverable pincodes list
-  const DELIVERABLE_PINCODES = [
-    "110001",
-    "400001",
-    "700001",
-    "600001",
-    "144001",
-  ];
+  const [otpLoading, setOtpLoading] = useState(false);
 
   useEffect(() => {
     const fetchActiveAddons = async () => {
@@ -75,6 +75,17 @@ export default function AddonsSection() {
 
     fetchActiveAddons();
   }, []);
+
+  // If the browser returns here after a Stripe redirect (shouldn't normally
+  // happen since checkout success_url points to the shared /payment-success
+  // page), just send the user there instead of showing a stale cart/modal.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment_success") === "true") {
+      const sessionId = params.get("session_id");
+      navigate(`/payment-success${sessionId ? `?session_id=${sessionId}` : ""}`, { replace: true });
+    }
+  }, [location.search, navigate]);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -113,9 +124,9 @@ export default function AddonsSection() {
     setIsModalOpen(false);
     setModalStep(1);
     setPincode("");
-    setAddressData({ city: "", state: "" });
     setPincodeError("");
-    setUserData({ name: "", email: "", phone: "" });
+    setPhone("");
+    setDetailsError("");
     setOtp("");
     setOtpError("");
   };
@@ -129,50 +140,75 @@ export default function AddonsSection() {
       return;
     }
 
-    if (!DELIVERABLE_PINCODES.includes(pincode)) {
-      setPincodeError("Sorry, we do not deliver to this area.");
+    setPincodeLoading(true);
+    try {
+      const res = await checkServiceAvailability(pincode);
+      if (res && res.success) {
+        setModalStep(3);
+      } else {
+        setPincodeError(res?.message || "Sorry, we do not deliver to this area.");
+      }
+    } catch (err) {
+      setPincodeError(err.response?.data?.message || "Sorry, we do not deliver to this area.");
+    } finally {
+      setPincodeLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    setDetailsError("");
+
+    if (phone.length !== 10) {
+      setDetailsError("Please enter a valid 10-digit phone number.");
       return;
     }
 
+    setDetailsLoading(true);
     try {
-      const res = await fetch(
-        `https://api.postalpincode.in/pincode/${pincode}`,
-      );
-      const data = await res.json();
-
-      if (data[0].Status === "Success") {
-        const postOffice = data[0].PostOffice[0];
-        setAddressData({
-          city: postOffice.District,
-          state: postOffice.State,
-        });
-        setModalStep(3);
+      const res = await sendOtp({ phone: `+91${phone}` });
+      if (res && res.success) {
+        setModalStep(4);
       } else {
-        setPincodeError("Invalid pincode details.");
+        setDetailsError(res?.message || "Failed to send OTP.");
       }
     } catch (err) {
-      setAddressData({ city: "Your City", state: "Your State" });
-      setModalStep(3);
+      setDetailsError(err.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
-  const handleUserDetailsSubmit = (e) => {
+  const handleOtpVerify = async (e) => {
     e.preventDefault();
-    setModalStep(4);
-  };
-
-  const handleOtpVerify = (e) => {
-    e.preventDefault();
-    if (otp === "1234") {
-      setModalStep(5);
-    } else {
-      setOtpError("Invalid OTP. Enter '1234' for testing.");
+    if (!otp.trim()) {
+      setOtpError("Please enter the OTP.");
+      return;
     }
-  };
 
-  const handleFinalDone = () => {
-    clearAllCart();
-    handleCloseModal();
+    setOtpError("");
+    setOtpLoading(true);
+    try {
+      const verifyRes = await verifyOtp({ phone: `+91${phone}`, otp: otp.trim() });
+      if (!(verifyRes && verifyRes.success)) {
+        setOtpError(verifyRes?.message || "Invalid OTP.");
+        return;
+      }
+
+      const items = Object.entries(cart).map(([id, quantity]) => ({ id, quantity }));
+      const checkoutRes = await createAddonCheckout(items);
+
+      if (checkoutRes && checkoutRes.checkoutUrl) {
+        setModalStep(5);
+        window.location.href = checkoutRes.checkoutUrl;
+      } else {
+        setOtpError(checkoutRes?.message || "Could not start payment session.");
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
   const filteredItems = addonsData.filter((item) => {
@@ -551,7 +587,7 @@ export default function AddonsSection() {
                     <input
                       type="text"
                       maxLength={6}
-                      placeholder="Enter Pincode (Try: 144001 or 110001)"
+                      placeholder="Enter 6-digit Pincode"
                       value={pincode}
                       onChange={(e) =>
                         setPincode(e.target.value.replace(/\D/g, ""))
@@ -567,67 +603,49 @@ export default function AddonsSection() {
 
                   <button
                     type="submit"
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
+                    disabled={pincodeLoading}
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
                   >
-                    Verify Area
+                    {pincodeLoading ? "Checking..." : "Verify Area"}
                   </button>
                 </form>
               )}
 
-              {/* STEP 3: USER PROFILE CAPTURE FORM */}
+              {/* STEP 3: PHONE NUMBER */}
               {modalStep === 3 && (
-                <form onSubmit={handleUserDetailsSubmit}>
-                  {/* ... Same content unchanged ... */}
+                <form onSubmit={handlePhoneSubmit}>
                   <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">
-                    Contact Details
+                    Enter Mobile Number
                   </h3>
                   <div className="bg-emerald-50 text-emerald-700 rounded-xl p-2.5 mb-5 text-[11px] font-bold flex gap-1.5 items-center">
-                    <span>✓</span> Available in: {addressData.city},{" "}
-                    {addressData.state}
+                    <span>✓</span> We deliver to pincode {pincode}
                   </div>
 
                   <div className="space-y-4 mb-6">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Your Full Name"
-                      value={userData.name}
-                      onChange={(e) =>
-                        setUserData({ ...userData, name: e.target.value })
-                      }
-                      className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
-                    />
-                    <input
-                      type="email"
-                      required
-                      placeholder="Email Address"
-                      value={userData.email}
-                      onChange={(e) =>
-                        setUserData({ ...userData, email: e.target.value })
-                      }
-                      className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
-                    />
                     <input
                       type="tel"
                       required
                       maxLength={10}
                       placeholder="Phone Number"
-                      value={userData.phone}
+                      value={phone}
                       onChange={(e) =>
-                        setUserData({
-                          ...userData,
-                          phone: e.target.value.replace(/\D/g, ""),
-                        })
+                        setPhone(e.target.value.replace(/\D/g, ""))
                       }
                       className="w-full px-5 py-3.5 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:outline-none focus:border-red-500 bg-slate-50/50 text-sm"
                     />
+                    {detailsError && (
+                      <p className="text-red-500 font-bold text-xs pl-1">
+                        ⚠️ {detailsError}
+                      </p>
+                    )}
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
+                    disabled={detailsLoading}
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
                   >
-                    Send OTP Verification
+                    {detailsLoading ? "Sending OTP..." : "Send OTP Verification"}
                   </button>
                 </form>
               )}
@@ -640,15 +658,14 @@ export default function AddonsSection() {
                     Phone Verification
                   </h3>
                   <p className="text-xs font-medium text-gray-400 mb-6">
-                    Enter OTP sent to +91 {userData.phone}. Use master bypass
-                    code <b>1234</b>.
+                    Enter the OTP sent to +91 {phone}.
                   </p>
 
                   <div className="mb-4">
                     <input
                       type="text"
-                      maxLength={4}
-                      placeholder="••••"
+                      maxLength={6}
+                      placeholder="• • • • • •"
                       value={otp}
                       onChange={(e) =>
                         setOtp(e.target.value.replace(/\D/g, ""))
@@ -664,37 +681,24 @@ export default function AddonsSection() {
 
                   <button
                     type="submit"
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
+                    disabled={otpLoading}
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all cursor-pointer"
                   >
-                    Verify & Pay
+                    {otpLoading ? "Please wait..." : "Verify & Pay"}
                   </button>
                 </form>
               )}
 
-              {/* STEP 5: SUCCESS ARCHITECTURE */}
+              {/* STEP 5: REDIRECTING TO STRIPE */}
               {modalStep === 5 && (
-                <div className="text-center py-6">
-                  <motion.div
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    className="text-emerald-500 flex justify-center mb-4"
-                  >
-                    {/* FaCheckCircle used here to replace FaCircleCheck */}
-                    <FaCheckCircle size={64} className="text-emerald-500" />
-                  </motion.div>
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">
-                    Order Success!
+                <div className="text-center py-10">
+                  <div className="w-12 h-12 mx-auto mb-5 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin" />
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">
+                    Redirecting to Payment
                   </h3>
-                  <p className="text-sm font-semibold text-gray-500 max-w-xs mx-auto mb-6">
-                    Awesome, {userData.name}! Payment received, your custom
-                    add-on list has been booked successfully!
+                  <p className="text-sm font-semibold text-gray-500 max-w-xs mx-auto">
+                    Please wait while we take you to our secure payment page...
                   </p>
-                  <button
-                    onClick={handleFinalDone}
-                    className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all cursor-pointer"
-                  >
-                    Done
-                  </button>
                 </div>
               )}
             </motion.div>

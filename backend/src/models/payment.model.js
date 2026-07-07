@@ -22,7 +22,7 @@ const paymentSchema = new mongoose.Schema(
 
     paymentType: {
       type: String,
-      enum: ["ADMIN_PACKAGE", "CUSTOM_PACKAGE"],
+      enum: ["ADMIN_PACKAGE", "CUSTOM_PACKAGE", "ADDON_ORDER"],
       required: true,
     },
 

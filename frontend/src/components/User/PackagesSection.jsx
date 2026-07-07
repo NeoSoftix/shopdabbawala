@@ -7,8 +7,7 @@ import { getActivePackages } from "../../services/package.service";
 import { toast } from "react-hot-toast";
 import CheckoutFlowModal from "../shared/CheckoutFlowModal";
 import { useAuth } from "../../context/AuthContext";
-import { getMySubscriptions, instantUpgradeSubscription } from "../../services/subscription.service";
-import { useNavigate } from "react-router-dom";
+import { getMySubscriptions } from "../../services/subscription.service";
 // Fallback Images (agar backend se image na mile)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200",
@@ -43,9 +42,7 @@ export default function PackagesSection() {
   const [checkoutPlan, setCheckoutPlan] = useState(null);
   
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [userSubscriptions, setUserSubscriptions] = useState([]);
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -169,29 +166,16 @@ export default function PackagesSection() {
     setFeatureModalData(pkg);
   };
 
-  const openCheckoutModal = async (pkg) => {
+  const openCheckoutModal = (pkg) => {
     const isCurrentPlan = activeSubscriptions.some(sub => sub.package?._id === pkg._id || sub.mealSize === pkg.name);
-    
-    if (activeSubscriptions.length > 0) {
-      if (isCurrentPlan) {
-        return; // Current plan, do nothing
-      }
-      // Instant Upgrade Flow
-      try {
-        setIsUpgrading(true);
-        const res = await instantUpgradeSubscription(pkg._id);
-        if (res.success) {
-          toast.success("Subscription upgraded successfully!");
-          navigate("/payment-success?session_id=instant_" + Date.now());
-        }
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to upgrade subscription");
-      } finally {
-        setIsUpgrading(false);
-      }
-    } else {
-      setCheckoutPlan(pkg);
+
+    if (isCurrentPlan) {
+      return; // Already on this plan, do nothing
     }
+
+    // Always go through the full checkout flow (pincode -> phone -> OTP -> payment),
+    // even for users upgrading from an existing plan. Only their details get prefilled.
+    setCheckoutPlan(pkg);
   };
 
   const closeCheckoutModal = () => {
@@ -439,7 +423,7 @@ export default function PackagesSection() {
                     </div>
 
                     <button
-                      disabled={isCurrentPlan || isUpgrading}
+                      disabled={isCurrentPlan}
                       className={`w-full py-3 sm:py-3.5 rounded-xl font-black text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 border focus:outline-none mt-2 shadow-sm ${isCurrentPlan ? "" : "cursor-pointer"}
                         ${
                           isCurrentPlan 
@@ -735,7 +719,7 @@ export default function PackagesSection() {
                     </div>
 
                     <button
-                      disabled={isCurrentPlan || isUpgrading}
+                      disabled={isCurrentPlan}
                       onClick={() => handleChoosePlanInModal(index)}
                       className={`w-full py-2.5 mt-4 rounded-xl font-black text-[11px] tracking-widest uppercase shadow-sm transition-all focus:outline-none ${isCurrentPlan ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'}`}
                     >
