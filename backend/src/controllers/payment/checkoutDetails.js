@@ -110,6 +110,14 @@ export const saveCheckoutDetails = async (req, res) => {
             pkg.discountedPrice < pkg.price;
           const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
 
+          let stripeSubscriptionId;
+          try {
+            const session = await stripe.checkout.sessions.retrieve(sessionId);
+            stripeSubscriptionId = session.subscription;
+          } catch (stripeErr) {
+            console.error("Stripe session retrieval error for ADMIN_PACKAGE:", stripeErr.message);
+          }
+
           subscription = await Subscription.create({
             user: payment.user,
             package: pkg._id,
@@ -122,6 +130,7 @@ export const saveCheckoutDetails = async (req, res) => {
             duration: "Monthly",
             quantity: 1,
             deliveryMethod: "Delivery",
+            stripeSubscriptionId,
             startDate,
             endDate,
             status: "active"

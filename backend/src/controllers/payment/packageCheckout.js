@@ -44,7 +44,7 @@ export const createPackageCheckout = async (req, res) => {
     const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       phone_number_collection: { enabled: true },
 
       payment_method_types: ["card"],
@@ -60,6 +60,11 @@ export const createPackageCheckout = async (req, res) => {
             },
 
             unit_amount: Math.max(effectivePrice * 100, 50), // Stripe requires minimum 50 cents
+
+            recurring: {
+              interval: "day",
+              interval_count: pkg.validityDays,
+            },
           },
 
           quantity: 1,
