@@ -1,7 +1,16 @@
 import express from "express";
 import http from "http";
+import dns from "dns";
 import dotenv from "dotenv";
 dotenv.config();
+
+// Render (and several other cloud hosts) don't route outbound IPv6, but
+// Node 18+ resolves DNS in whatever order the OS returns - which is often
+// IPv6-first - so outbound connections (e.g. Gmail SMTP for nodemailer)
+// fail with ENETUNREACH/ETIMEDOUT on an unreachable IPv6 address instead of
+// falling back to IPv4. Forcing IPv4-first resolution fixes this app-wide.
+dns.setDefaultResultOrder("ipv4first");
+
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./src/config/db.js";

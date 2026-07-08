@@ -7,11 +7,12 @@ import Order from "../../models/Order.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
 import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js";
 
-const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder }) => {
+const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder, planName }) => {
   const title = isNewOrder ? "New Order Received" : "Order Updated";
+  const planSuffix = planName ? ` (${planName} plan)` : "";
   const message = isNewOrder
-    ? `${userName || "A customer"} placed a meal order for ${day} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
-    : `${userName || "A customer"} updated their ${day} meal order (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
+    ? `${userName || "A customer"} placed a meal order for ${day}${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+    : `${userName || "A customer"} updated their ${day} meal order${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
 
   await notifyOrderEvent({
     vendorId,
@@ -21,6 +22,7 @@ const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount
     emailHeading: isNewOrder ? "New Meal Order Received" : "Meal Order Updated",
     emailLines: [
       { label: "Customer", value: userName || "A customer" },
+      { label: "Plan", value: planName || "N/A" },
       { label: "Day", value: day },
       { label: "Items", value: itemCount },
     ],
@@ -57,6 +59,10 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
 
     const deliveryAddress = user?.address || (pincode ? `Pincode: ${pincode}` : "Not set");
 
+    const planName = subscription.mealSize
+      ? `${subscription.mealSize}${subscription.preference ? ` (${subscription.preference})` : ""}`
+      : "";
+
     const existingOrder = await Order.findOne({
       user: userId,
       subscription: subscriptionId,
@@ -71,6 +77,7 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       existingOrder.vendor = vendor?._id || null;
       existingOrder.pincode = pincode || null;
       existingOrder.deliveryAddress = deliveryAddress;
+      existingOrder.planName = planName || existingOrder.planName;
       existingOrder.status = "Pending";
       await existingOrder.save();
       orderId = existingOrder._id;
@@ -82,6 +89,7 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         pincode: pincode || undefined,
         day,
         deliveryAddress,
+        planName: planName || undefined,
         items: orderItems,
         status: "Pending",
       });
@@ -97,6 +105,7 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         day,
         itemCount: orderItems.length,
         isNewOrder,
+        planName,
       });
     }
   } catch (error) {
@@ -405,20 +414,22 @@ export const updateDayOrderStatus = async (req, res) => {
     if (order.vendor) {
       const user = await User.findById(userId).select("name");
       const customerName = user?.name || "A customer";
+      const planLabel = order.planName ? ` for their ${order.planName} plan` : "";
 
       await notifyOrderEvent({
         vendorId: order.vendor,
         orderId: order._id,
         title: active ? "Order Resumed" : "Order Paused",
         message: active
-          ? `${customerName} resumed their ${day} meal order — resume delivery for this day.`
-          : `${customerName} paused their ${day} meal order — do NOT deliver on this day.`,
+          ? `${customerName} resumed their ${day} meal order${planLabel} — resume delivery for this day.`
+          : `${customerName} paused their ${day} meal order${planLabel} — do NOT deliver on this day.`,
         emailHeading: active ? "Meal Order Resumed" : "Meal Order Paused",
         emailIntro: active
-          ? `${customerName} has switched their ${day} order back to active. Please resume delivering to them on this day.`
-          : `${customerName} has marked their ${day} order as inactive for this plan. This means they should NOT be delivered a meal on this day until they resume it.`,
+          ? `${customerName} has switched their ${day} order${planLabel} back to active. Please resume delivering to them on this day.`
+          : `${customerName} has marked their ${day} order${planLabel} as inactive. This means they should NOT be delivered a meal on this day until they resume it.`,
         emailLines: [
           { label: "Customer", value: customerName },
+          { label: "Plan", value: order.planName || "N/A" },
           { label: "Day", value: day },
           { label: "Status", value: active ? "Active — deliver" : "Inactive — do not deliver" },
         ],
