@@ -19,11 +19,17 @@ export default function NotificationCard({
   time,
   type = "order",
   unread = false,
+  onClick,
 }) {
   const Icon = icons[type] || Bell;
 
   return (
-    <div className="bg-white border rounded-2xl p-5 hover:shadow-md transition">
+    <div
+      onClick={onClick}
+      className={`bg-white border rounded-2xl p-5 hover:shadow-md transition ${
+        unread ? "border-l-4 border-l-[#E23747] cursor-pointer" : ""
+      }`}
+    >
       <div className="flex justify-between">
         <div className="flex gap-4">
           <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">

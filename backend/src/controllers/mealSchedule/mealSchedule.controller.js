@@ -5,6 +5,27 @@ import MealSchedule from "../../models/mealSchedule.model.js";
 import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
+import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js";
+
+const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder }) => {
+  const title = isNewOrder ? "New Order Received" : "Order Updated";
+  const message = isNewOrder
+    ? `${userName || "A customer"} placed a meal order for ${day} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+    : `${userName || "A customer"} updated their ${day} meal order (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
+
+  await notifyOrderEvent({
+    vendorId,
+    orderId,
+    title,
+    message,
+    emailHeading: isNewOrder ? "New Meal Order Received" : "Meal Order Updated",
+    emailLines: [
+      { label: "Customer", value: userName || "A customer" },
+      { label: "Day", value: day },
+      { label: "Items", value: itemCount },
+    ],
+  });
+};
 
 // Upserts the Order that represents this weekday's meal order. Always
 // creates/updates the order (so admin sees every order placed), and attaches
@@ -13,7 +34,7 @@ import { findServingVendor } from "../../utils/findServingVendor.js";
 // failure here shouldn't block the meal schedule itself from being saved.
 const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, formattedItems }) => {
   try {
-    const user = await User.findById(userId).select("pincode address");
+    const user = await User.findById(userId).select("pincode address name");
     const pincode = subscription.pincode || user?.pincode || "";
 
     const vendor = pincode ? await findServingVendor(pincode) : null;
@@ -42,6 +63,9 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       day,
     });
 
+    let orderId;
+    let isNewOrder = false;
+
     if (existingOrder) {
       existingOrder.items = orderItems;
       existingOrder.vendor = vendor?._id || null;
@@ -49,8 +73,9 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       existingOrder.deliveryAddress = deliveryAddress;
       existingOrder.status = "Pending";
       await existingOrder.save();
+      orderId = existingOrder._id;
     } else {
-      await Order.create({
+      const createdOrder = await Order.create({
         user: userId,
         subscription: subscriptionId,
         vendor: vendor?._id,
@@ -59,6 +84,19 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         deliveryAddress,
         items: orderItems,
         status: "Pending",
+      });
+      orderId = createdOrder._id;
+      isNewOrder = true;
+    }
+
+    if (vendor?._id) {
+      await notifyVendorOfOrder({
+        vendorId: vendor._id,
+        orderId,
+        userName: user?.name,
+        day,
+        itemCount: orderItems.length,
+        isNewOrder,
       });
     }
   } catch (error) {
@@ -295,6 +333,108 @@ export const getMyMealPlan = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch meal schedule",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ Active/inactive status of each saved day-order for a subscription -
+// powers the toggle shown in the weekly preview.
+export const getDayStatuses = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { subscriptionId } = req.params;
+
+    if (!subscriptionId || !mongoose.Types.ObjectId.isValid(subscriptionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subscription ID",
+      });
+    }
+
+    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("day active");
+
+    const statusByDay = {};
+    orders.forEach((order) => {
+      if (order.day) {
+        statusByDay[order.day] = { active: order.active, orderId: order._id };
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      statusByDay,
+    });
+  } catch (error) {
+    console.error("Get Day Statuses Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch day statuses",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ Toggles a single day's order between active/inactive (user pausing or
+// resuming that day's delivery) and notifies the assigned vendor.
+export const updateDayOrderStatus = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { subscriptionId, day, active } = req.body;
+
+    if (!subscriptionId || !day || typeof active !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "subscriptionId, day and active are required.",
+      });
+    }
+
+    const order = await Order.findOne({ user: userId, subscription: subscriptionId, day });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "No order found for this day.",
+      });
+    }
+
+    order.active = active;
+    await order.save();
+
+    if (order.vendor) {
+      const user = await User.findById(userId).select("name");
+      const customerName = user?.name || "A customer";
+
+      await notifyOrderEvent({
+        vendorId: order.vendor,
+        orderId: order._id,
+        title: active ? "Order Resumed" : "Order Paused",
+        message: active
+          ? `${customerName} resumed their ${day} meal order — resume delivery for this day.`
+          : `${customerName} paused their ${day} meal order — do NOT deliver on this day.`,
+        emailHeading: active ? "Meal Order Resumed" : "Meal Order Paused",
+        emailIntro: active
+          ? `${customerName} has switched their ${day} order back to active. Please resume delivering to them on this day.`
+          : `${customerName} has marked their ${day} order as inactive for this plan. This means they should NOT be delivered a meal on this day until they resume it.`,
+        emailLines: [
+          { label: "Customer", value: customerName },
+          { label: "Day", value: day },
+          { label: "Status", value: active ? "Active — deliver" : "Inactive — do not deliver" },
+        ],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.error("Update Day Order Status Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update order status",
       error: error.message,
     });
   }

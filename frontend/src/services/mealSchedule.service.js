@@ -40,3 +40,25 @@ export const getMealSchedule = async (
     throw error;
   }
 };
+
+// Active/inactive status of each saved day-order for a subscription
+export const getDayStatuses = async (subscriptionId) => {
+  try {
+    const res = await API.get(`/meal-schedule/day-status/${subscriptionId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Get day statuses error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Pause/resume a specific day's order
+export const updateDayStatus = async ({ subscriptionId, day, active }) => {
+  try {
+    const res = await API.patch("/meal-schedule/day-status", { subscriptionId, day, active });
+    return res.data;
+  } catch (error) {
+    console.error("Update day status error:", error.response?.data || error.message);
+    throw error;
+  }
+};

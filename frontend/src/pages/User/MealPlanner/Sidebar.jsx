@@ -24,7 +24,7 @@ const sidebarItems = [
 // ================= COMPONENT: LEFT NAVIGATION SIDEBAR =================
 const Sidebar = ({ activeStep, setActiveStep }) => {
   return (
-    <section className="lg:col-span-3 bg-white rounded-[30px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6 w-full">
+    <section className="lg:col-span-3 bg-white rounded-[30px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6 w-full lg:sticky lg:top-28 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
       {/* Dashboard Header Banner */}
       <div className="bg-gradient-to-br from-[#FF4141] to-[#E31A1A] rounded-[24px] p-5 text-white relative overflow-hidden shadow-lg shadow-red-100 min-h-[110px] flex flex-col justify-center">
         <h3 className="text-xl font-bold">Meal Plan</h3>

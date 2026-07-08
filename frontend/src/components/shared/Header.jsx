@@ -7,7 +7,8 @@ const Header = ({
   title = "Dashboard",
   userName = "Admin",
   userRole = "Super Admin",
-  onMenuClick, 
+  onMenuClick,
+  notificationCount = 0,
 }) => {
   const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -63,9 +64,11 @@ const Header = ({
         {/* Notification Bell */}
         <div className="relative cursor-pointer p-1 rounded-full hover:bg-gray-50">
           <Bell size={22} className="text-gray-600 hover:text-red-600 transition" />
-          <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
-            3
-          </span>
+          {notificationCount > 0 && (
+            <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+              {notificationCount > 9 ? "9+" : notificationCount}
+            </span>
+          )}
         </div>
 
         {/* User Profile Dropdown container */}

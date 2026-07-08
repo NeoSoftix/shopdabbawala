@@ -1,47 +1,84 @@
+import { useMemo, useState } from "react";
 import NotificationCard from "../../components/vendor/NotificationCard";
 import NotificationFilters from "../../components/vendor/NotificationFilters";
 import NotificationSummary from "../../components/vendor/NotificationSummary";
 import NotificationSettings from "../../components/vendor/NotificationSettings";
+import { useNotifications } from "../../context/NotificationContext";
+
+const formatTimeAgo = (dateStr) => {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+};
 
 export default function VendorNotifications() {
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const counts = useMemo(() => {
+    return {
+      all: notifications.length,
+      order: notifications.filter((n) => n.type === "order").length,
+      payment: notifications.filter((n) => n.type === "payment").length,
+      system: notifications.filter((n) => n.type === "system").length,
+    };
+  }, [notifications]);
+
+  const filteredNotifications = useMemo(() => {
+    if (activeFilter === "all") return notifications;
+    return notifications.filter((n) => n.type === activeFilter);
+  }, [notifications, activeFilter]);
+
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-5">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Notifications</h1>
 
-          <button className="text-[#E23747] font-medium">
+          <button
+            onClick={markAllAsRead}
+            disabled={unreadCount === 0}
+            className="text-[#E23747] font-medium disabled:text-gray-300 disabled:cursor-not-allowed"
+          >
             Mark all as read
           </button>
         </div>
 
-        <NotificationFilters />
-
-        <NotificationCard
-          title="New Order Received"
-          message="Order #1001 received from Rahul."
-          time="2 min ago"
-          unread
-          type="order"
+        <NotificationFilters
+          counts={counts}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
         />
 
-        <NotificationCard
-          title="Payment Received"
-          message="₹250 payment received."
-          time="1 hour ago"
-          type="payment"
-        />
-
-        <NotificationCard
-          title="System Update"
-          message="Maintenance scheduled tonight."
-          time="3 hours ago"
-          type="system"
-        />
+        {filteredNotifications.length === 0 ? (
+          <div className="bg-white border rounded-2xl p-10 text-center text-gray-400">
+            No notifications yet.
+          </div>
+        ) : (
+          filteredNotifications.map((notification) => (
+            <NotificationCard
+              key={notification._id}
+              title={notification.title}
+              message={notification.message}
+              time={formatTimeAgo(notification.createdAt)}
+              type={notification.type}
+              unread={!notification.read}
+              onClick={() => !notification.read && markAsRead(notification._id)}
+            />
+          ))
+        )}
       </div>
 
       <div className="space-y-6">
-        <NotificationSummary />
+        <NotificationSummary counts={counts} unreadCount={unreadCount} />
         <NotificationSettings />
       </div>
     </div>

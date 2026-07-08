@@ -1,10 +1,13 @@
 import stripe from "../../config/stripe.js"
 import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
+import Order from "../../models/Order.model.js"
 import { sendEmail } from "../../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../../utils/email/purchaseSuccessTemplate.js"
 import User from "../../models/User.model.js"
 import { setupScheduledSubscription } from "./stripeHelpers.js"
+import { findServingVendor } from "../../utils/findServingVendor.js"
+import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js"
 
 // save check out detilas
 export const saveCheckoutDetails = async (req, res) => {
@@ -123,6 +126,33 @@ export const saveCheckoutDetails = async (req, res) => {
           await payment.save();
         }
       }
+    } else if (payment.paymentType === "ADDON_ORDER") {
+      // Create the actual Order document now that we have the delivery
+      // address, using the per-item quantity snapshot saved at checkout time.
+      if (!payment.order && Array.isArray(payment.items) && payment.items.length > 0) {
+        let deliveryAddress = address;
+        if (!deliveryAddress) {
+          const orderUser = await User.findById(payment.user).select("address");
+          deliveryAddress = orderUser?.address;
+        }
+
+        const order = await Order.create({
+          user: payment.user,
+          deliveryAddress: deliveryAddress || "Not provided",
+          addons: payment.items.map((it) => ({
+            addon: it.addon,
+            name: it.name,
+            qty: it.qty,
+            price: it.price,
+          })),
+          status: "Pending",
+          deliveryMethod: "Delivery",
+        });
+
+        payment.order = order._id;
+        payment.status = "paid";
+        await payment.save();
+      }
     }
 
 
@@ -185,6 +215,37 @@ export const saveCheckoutDetails = async (req, res) => {
     } else if (finalPayment.paymentType === "ADDON_ORDER") {
       planName = "Add-on Order";
       totalMeals = "N/A";
+    }
+
+    // Notify admin + the vendor serving this customer's pincode that a new
+    // subscription was purchased, so the vendor knows to expect orders from
+    // them. Guarded by purchaseNotified so a resubmitted form doesn't spam.
+    if (
+      !payment.purchaseNotified &&
+      (finalPayment.paymentType === "ADMIN_PACKAGE" || finalPayment.paymentType === "CUSTOM_PACKAGE") &&
+      refreshedPayment?.subscription
+    ) {
+      const purchasePincode = pincode || finalPayment.subscription?.pincode || "";
+      const vendor = purchasePincode ? await findServingVendor(purchasePincode) : null;
+      const customerName = name || "A customer";
+
+      await notifyOrderEvent({
+        vendorId: vendor?._id,
+        type: "payment",
+        title: "New Subscription Purchase",
+        message: `${customerName} purchased the ${planName} plan.`,
+        emailHeading: "New Subscription Purchased",
+        emailIntro: `${customerName} just purchased a new subscription. ${vendor ? `It has been matched to your service area (pincode ${purchasePincode}).` : "No serving vendor could be matched to their pincode yet."}`,
+        emailLines: [
+          { label: "Customer", value: customerName },
+          { label: "Plan", value: planName },
+          { label: "Amount", value: `₹${amount}` },
+          { label: "Pincode", value: purchasePincode || "Not provided" },
+        ],
+      });
+
+      payment.purchaseNotified = true;
+      await payment.save();
     }
 
     const customer = await stripe.customers.create({

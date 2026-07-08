@@ -20,6 +20,24 @@ const paymentSchema = new mongoose.Schema(
       default: null,
     },
 
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+      default: null,
+    },
+
+    // Snapshot of the add-on cart (id/name/qty/price) at checkout time,
+    // used to create the Order with the correct per-item quantity once
+    // delivery details are available.
+    items: [
+      {
+        addon: { type: mongoose.Schema.Types.ObjectId, ref: "AddOns" },
+        name: String,
+        qty: { type: Number, default: 1 },
+        price: Number,
+      },
+    ],
+
     paymentType: {
       type: String,
       enum: ["ADMIN_PACKAGE", "CUSTOM_PACKAGE", "ADDON_ORDER"],
@@ -60,6 +78,14 @@ const paymentSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
       default: null,
+    },
+
+    // Guards against sending the admin/vendor "new subscription purchased"
+    // email more than once if saveCheckoutDetails is hit again for the same
+    // session (e.g. the user resubmits the delivery-details form).
+    purchaseNotified: {
+      type: Boolean,
+      default: false,
     },
   },
   {

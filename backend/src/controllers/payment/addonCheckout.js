@@ -24,38 +24,50 @@ export const createAddonCheckout = async (req, res) => {
     const addonIds = items.map((item) => item.id);
     const addons = await AddOn.find({ _id: { $in: addonIds }, isActive: true });
 
-    const line_items = items
+    const matchedItems = items
       .map((cartItem) => {
         const addon = addons.find((a) => a._id.toString() === cartItem.id);
         if (!addon) return null;
 
         const quantity = Math.max(1, Number(cartItem.quantity) || 1);
 
-        return {
-          price_data: {
-            currency: "inr",
-            product_data: {
-              name: addon.name,
-              description: addon.description || undefined,
-            },
-            unit_amount: Math.round(addon.price * 100),
-          },
-          quantity,
-        };
+        return { addon, quantity };
       })
       .filter(Boolean);
 
-    if (line_items.length === 0) {
+    if (matchedItems.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No valid add-ons found in your cart.",
       });
     }
 
+    const line_items = matchedItems.map(({ addon, quantity }) => ({
+      price_data: {
+        currency: "inr",
+        product_data: {
+          name: addon.name,
+          description: addon.description || undefined,
+        },
+        unit_amount: Math.round(addon.price * 100),
+      },
+      quantity,
+    }));
+
     const totalAmount = line_items.reduce(
       (sum, li) => sum + li.price_data.unit_amount * li.quantity,
       0,
     );
+
+    // Snapshot of cart items (with real quantity) to persist on the Payment
+    // record, since Stripe session metadata can't reliably hold an arbitrarily
+    // large cart. This is what the Order gets built from later.
+    const orderItemsSnapshot = matchedItems.map(({ addon, quantity }) => ({
+      addon: addon._id,
+      name: addon.name,
+      qty: quantity,
+      price: addon.price,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -78,6 +90,7 @@ export const createAddonCheckout = async (req, res) => {
       currency: "inr",
       status: "pending",
       metadata: session.metadata,
+      items: orderItemsSnapshot,
     });
 
     return res.status(200).json({

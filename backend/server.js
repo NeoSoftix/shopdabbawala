@@ -1,9 +1,11 @@
 import express from "express";
+import http from "http";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./src/config/db.js";
+import { initSocket } from "./src/socket/index.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/category.routes.js";
 import mealRoutes from "./src/routes/meal.route.js";
@@ -18,6 +20,7 @@ import customerRoutes from "./src/routes/customer.routes.js"
 import durationRoutes from "./src/routes/durationPlan.routes.js"
 import mealTierRoutes from "./src/routes/mealTier.routes.js";
 import orderRoutes from "./src/routes/order.routes.js";
+import notificationRoutes from "./src/routes/notification.routes.js";
 
 const app = express();
 
@@ -94,8 +97,13 @@ app.use("/api/meal-tiers", mealTierRoutes)
 // orders route
 app.use("/api/orders", orderRoutes);
 
+// vendor notification routes
+app.use("/api/notifications", notificationRoutes);
 
 
-app.listen(8000, () => {
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
+httpServer.listen(5000, () => {
   console.log("Server running on 5000");
 });
