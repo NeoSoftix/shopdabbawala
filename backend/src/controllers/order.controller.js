@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
 import Vendor from "../models/vendor.model.js";
+import { notifyOrderStatusChange } from "../utils/notifyOrderEvent.js";
 
 // A vendor id that can never match a real document - used so a vendor
 // without a profile yet sees zero orders, instead of falling through to
@@ -226,6 +227,8 @@ export const acceptOrder = async (req, res) => {
     order.status = "Accepted";
     await order.save();
 
+    notifyOrderStatusChange({ order, status: "Accepted", vendorName: vendor.organizationName });
+
     return res.status(200).json({
       success: true,
       message: "Order accepted",
@@ -268,6 +271,8 @@ export const rejectOrder = async (req, res) => {
 
     order.status = "Rejected";
     await order.save();
+
+    notifyOrderStatusChange({ order, status: "Rejected", vendorName: vendor.organizationName });
 
     return res.status(200).json({
       success: true,
