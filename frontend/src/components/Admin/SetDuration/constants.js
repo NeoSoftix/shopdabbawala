@@ -1,7 +1,9 @@
 export const emptyForm = {
   durationLabel: "",
   totalMeals: "",
-  pricePerMeal: "",
   frequencyLabel: "",
   sortOrder: "",
+  labelOrder: "",
+  // { [mealTierId]: { pricePerMeal: "", discountPercentage: "" } }
+  tierPricing: {},
 };

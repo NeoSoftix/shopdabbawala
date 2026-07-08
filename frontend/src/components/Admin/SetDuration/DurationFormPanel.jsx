@@ -4,12 +4,15 @@ const DurationFormPanel = ({
   form,
   formErrors,
   submitting,
-  livePreviewTotal,
+  mealTiers,
   onChange,
+  onTierPriceChange,
   onClose,
   onSubmit,
 }) => {
   if (!isOpen) return null;
+
+  const totalMeals = Number(form.totalMeals) || 0;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -58,58 +61,125 @@ const DurationFormPanel = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-gray-700 mb-1 block">
-                Total Meals
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={form.totalMeals}
-                onChange={(e) => onChange("totalMeals", e.target.value)}
-                placeholder="4"
-                className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                  formErrors.totalMeals
-                    ? "border-red-400 focus:ring-red-400"
-                    : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-                }`}
-              />
-              {formErrors.totalMeals && (
-                <p className="text-[11px] text-red-600 mt-1">{formErrors.totalMeals}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-gray-700 mb-1 block">
-                Price / Meal ($)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.pricePerMeal}
-                onChange={(e) => onChange("pricePerMeal", e.target.value)}
-                placeholder="12.50"
-                className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                  formErrors.pricePerMeal
-                    ? "border-red-400 focus:ring-red-400"
-                    : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-                }`}
-              />
-              {formErrors.pricePerMeal && (
-                <p className="text-[11px] text-red-600 mt-1">{formErrors.pricePerMeal}</p>
-              )}
-            </div>
+          <div>
+            <label className="text-xs font-bold text-gray-700 mb-1 block">
+              Duration Tab Order <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="number"
+              value={form.labelOrder}
+              onChange={(e) => onChange("labelOrder", e.target.value)}
+              placeholder="0"
+              className="w-full border border-gray-300 rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">
+              Controls which tab shows first — e.g. "Weekly" before "Monthly". Lower numbers
+              show first. Applies to every plan under this duration label.
+            </p>
           </div>
 
-          <div className="bg-[#f4f5f7] rounded-xl p-3 flex items-center justify-between">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-              Total Price (auto-calculated)
-            </span>
-            <span className="text-lg font-black text-[#dc2626]">
-              {livePreviewTotal ? `$${livePreviewTotal}` : "—"}
-            </span>
+          <div>
+            <label className="text-xs font-bold text-gray-700 mb-1 block">
+              Total Meals
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={form.totalMeals}
+              onChange={(e) => onChange("totalMeals", e.target.value)}
+              placeholder="4"
+              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
+                formErrors.totalMeals
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
+              }`}
+            />
+            {formErrors.totalMeals && (
+              <p className="text-[11px] text-red-600 mt-1">{formErrors.totalMeals}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-gray-700 mb-2 block">
+              Price Per Meal Tier
+            </label>
+            <p className="text-[10px] text-gray-400 -mt-1.5 mb-2">
+              Each meal plan tier (Basic/Medium/Premium...) gets its own price for this
+              duration + meal-count combo.
+            </p>
+
+            {mealTiers.length === 0 && (
+              <p className="text-xs text-gray-400 py-2">
+                No active meal tiers found. Add one under "Meal Tiers" first.
+              </p>
+            )}
+
+            <div className="space-y-2.5">
+              {mealTiers.map((tier) => {
+                const row = form.tierPricing[tier._id] || { pricePerMeal: "", discountPercentage: "0" };
+                const price = Number(row.pricePerMeal) || 0;
+                const discountPct = Number(row.discountPercentage) || 0;
+                const total = totalMeals * price;
+                const discountedTotal = total - (total * discountPct) / 100;
+                const tierError = formErrors[`tier_${tier._id}`];
+
+                return (
+                  <div key={tier._id} className="border border-gray-200 rounded-xl p-2.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-black text-gray-800">{tier.name}</span>
+                      {total > 0 && (
+                        <span className="text-right">
+                          {discountPct > 0 ? (
+                            <>
+                              <span className="text-[11px] font-bold text-gray-400 line-through mr-1.5">
+                                ${total.toFixed(2)}
+                              </span>
+                              <span className="text-sm font-black text-[#dc2626]">
+                                ${discountedTotal.toFixed(2)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-black text-[#dc2626]">
+                              ${total.toFixed(2)}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={row.pricePerMeal}
+                        onChange={(e) => onTierPriceChange(tier._id, "pricePerMeal", e.target.value)}
+                        placeholder="Price / meal ($)"
+                        className={`w-full border rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
+                          tierError
+                            ? "border-red-400 focus:ring-red-400"
+                            : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
+                        }`}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={row.discountPercentage}
+                        onChange={(e) => onTierPriceChange(tier._id, "discountPercentage", e.target.value)}
+                        placeholder="Discount %"
+                        className={`w-full border rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
+                          tierError
+                            ? "border-red-400 focus:ring-red-400"
+                            : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
+                        }`}
+                      />
+                    </div>
+                    {tierError && <p className="text-[11px] text-red-600 mt-1">{tierError}</p>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div>
@@ -135,7 +205,7 @@ const DurationFormPanel = ({
             </p>
           </div>
 
-          {/* <div>
+          <div>
             <label className="text-xs font-bold text-gray-700 mb-1 block">
               Sort Order <span className="text-gray-400 font-normal">(optional)</span>
             </label>
@@ -149,7 +219,7 @@ const DurationFormPanel = ({
             <p className="text-[10px] text-gray-400 mt-1">
               Lower numbers show first among cards with the same duration label.
             </p>
-          </div> */}
+          </div>
         </form>
 
         <div className="flex items-center gap-2 px-5 py-4 border-t border-gray-100">

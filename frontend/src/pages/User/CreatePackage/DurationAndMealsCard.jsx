@@ -9,7 +9,7 @@ export default function DurationAndMealsCard({
   currentOptions,
   totalMeals,
   onTotalMealsChange,
-  planMultiplier,
+  selectedPlan,
 }) {
   return (
     <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-3">
@@ -40,6 +40,14 @@ export default function DurationAndMealsCard({
           {/* Dynamic custom meal options mapping */}
           {currentOptions.map((option) => {
             const isSelected = totalMeals === option.totalMeals;
+            const tierPrice = option.tierPricing?.find(
+              (t) => t.mealTier?.name?.trim().toLowerCase() === selectedPlan?.trim().toLowerCase()
+            );
+            const originalPrice = tierPrice ? tierPrice.pricePerMeal : option.pricePerMeal;
+            const discountPercentage = tierPrice ? tierPrice.discountPercentage : (option.discountPercentage ?? 0);
+            const discountedPrice =
+              originalPrice - (originalPrice * discountPercentage) / 100;
+            const hasDiscount = discountPercentage > 0;
             return (
               <button
                 type="button"
@@ -52,9 +60,20 @@ export default function DurationAndMealsCard({
                 <div className={`text-xl font-black ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
                   {option.totalMeals}
                 </div>
-                <div className="text-[11px] font-bold mt-0.5 opacity-90">
-                  ${(option.pricePerMeal * planMultiplier).toFixed(2)}
-                </div>
+                {hasDiscount ? (
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-[10px] font-bold line-through opacity-50">
+                      ${originalPrice.toFixed(2)}
+                    </span>
+                    <span className="text-xs font-black text-[#dc2626]">
+                      ${discountedPrice.toFixed(2)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-[11px] font-bold mt-0.5 opacity-90">
+                    ${originalPrice.toFixed(2)}
+                  </div>
+                )}
                 <div className="text-[9px] mt-0.5 font-bold uppercase tracking-wide opacity-60">
                   {option.frequencyLabel} meal per week
                 </div>

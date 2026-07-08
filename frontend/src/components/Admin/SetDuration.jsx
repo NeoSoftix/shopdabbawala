@@ -11,6 +11,7 @@ import {
   togglePlanStatus,
   deletePlan,
 } from "../../services/customPlanConfig.service.js"; // Apni service file ka exact path check kar lein
+import { getActiveMealTiers } from "../../services/mealTier.service.js";
 
 import { emptyForm } from "./SetDuration/constants.js";
 import DurationPlansHeader from "./SetDuration/DurationPlansHeader.jsx";
@@ -23,6 +24,8 @@ export default function SetDuration() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const [mealTiers, setMealTiers] = useState([]);
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -31,7 +34,7 @@ export default function SetDuration() {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   // ---------------------------------------------------------------------
-  // FETCH PLANS
+  // FETCH PLANS + MEAL TIERS
   // ---------------------------------------------------------------------
   const fetchPlans = async () => {
     setLoading(true);
@@ -47,38 +50,76 @@ export default function SetDuration() {
     }
   };
 
+  const fetchMealTiers = async () => {
+    try {
+      const res = await getActiveMealTiers();
+      setMealTiers(res.data || []);
+    } catch (error) {
+      console.error("Fetch Meal Tiers Error:", error);
+      toast.error("Couldn't load meal tiers");
+    }
+  };
+
   useEffect(() => {
     fetchPlans();
+    fetchMealTiers();
   }, []);
 
-  // ---------------------------------------------------------------------
-  // DERIVED — live total price preview while typing in the form
-  // ---------------------------------------------------------------------
-  const livePreviewTotal = useMemo(() => {
-    const meals = Number(form.totalMeals);
-    const price = Number(form.pricePerMeal);
-    if (!meals || !price || isNaN(meals) || isNaN(price)) return null;
-    return (meals * price).toFixed(2);
-  }, [form.totalMeals, form.pricePerMeal]);
+  // Meal tiers async load hote hain — agar form pehle se khula hai (e.g. tab
+  // background mein load ho raha tha) to naye tiers ke liye missing rows fill karo
+  // bina existing typed values ko chhue.
+  useEffect(() => {
+    if (!isFormOpen || mealTiers.length === 0) return;
+    setForm((prev) => {
+      const merged = { ...prev.tierPricing };
+      let changed = false;
+      mealTiers.forEach((tier) => {
+        if (!merged[tier._id]) {
+          merged[tier._id] = { pricePerMeal: "", discountPercentage: "0" };
+          changed = true;
+        }
+      });
+      return changed ? { ...prev, tierPricing: merged } : prev;
+    });
+  }, [mealTiers, isFormOpen]);
+
+  // Har active tier ke liye empty price rows bana ke deta hai — naya plan
+  // banate waqt ya edit karte waqt jo tiers plan mein already saved nahi hain
+  // unke liye default fallback.
+  const buildEmptyTierPricing = () =>
+    Object.fromEntries(mealTiers.map((t) => [t._id, { pricePerMeal: "", discountPercentage: "0" }]));
 
   // ---------------------------------------------------------------------
   // FORM HANDLERS
   // ---------------------------------------------------------------------
   const openCreateForm = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, tierPricing: buildEmptyTierPricing() });
     setFormErrors({});
     setIsFormOpen(true);
   };
 
   const openEditForm = (plan) => {
     setEditingId(plan._id);
+
+    const tierPricing = buildEmptyTierPricing();
+    (plan.tierPricing || []).forEach((entry) => {
+      const tierId = entry.mealTier?._id || entry.mealTier;
+      if (tierId) {
+        tierPricing[tierId] = {
+          pricePerMeal: String(entry.pricePerMeal),
+          discountPercentage: String(entry.discountPercentage ?? 0),
+        };
+      }
+    });
+
     setForm({
       durationLabel: plan.durationLabel,
       totalMeals: String(plan.totalMeals),
-      pricePerMeal: String(plan.pricePerMeal),
       frequencyLabel: plan.frequencyLabel,
       sortOrder: String(plan.sortOrder ?? 0),
+      labelOrder: String(plan.labelOrder ?? 0),
+      tierPricing,
     });
     setFormErrors({});
     setIsFormOpen(true);
@@ -96,12 +137,35 @@ export default function SetDuration() {
     setFormErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const handleTierPriceChange = (tierId, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      tierPricing: {
+        ...prev.tierPricing,
+        [tierId]: { ...prev.tierPricing[tierId], [field]: value },
+      },
+    }));
+    setFormErrors((prev) => ({ ...prev, [`tier_${tierId}`]: undefined }));
+  };
+
   const validateForm = () => {
     const errors = {};
     if (!form.durationLabel.trim()) errors.durationLabel = "Duration label is required";
     if (!form.totalMeals || Number(form.totalMeals) <= 0) errors.totalMeals = "Enter a positive number";
-    if (!form.pricePerMeal || Number(form.pricePerMeal) <= 0) errors.pricePerMeal = "Enter a positive number";
     if (!form.frequencyLabel.trim()) errors.frequencyLabel = "Frequency label is required";
+
+    mealTiers.forEach((tier) => {
+      const row = form.tierPricing[tier._id] || {};
+      if (!row.pricePerMeal || Number(row.pricePerMeal) <= 0) {
+        errors[`tier_${tier._id}`] = "Enter a positive price";
+      } else if (
+        row.discountPercentage !== "" &&
+        (Number(row.discountPercentage) < 0 || Number(row.discountPercentage) > 100)
+      ) {
+        errors[`tier_${tier._id}`] = "Discount must be between 0 and 100";
+      }
+    });
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -113,9 +177,16 @@ export default function SetDuration() {
     const payload = {
       durationLabel: form.durationLabel.trim(),
       totalMeals: Number(form.totalMeals),
-      pricePerMeal: Number(form.pricePerMeal),
       frequencyLabel: form.frequencyLabel.trim(),
       sortOrder: form.sortOrder ? Number(form.sortOrder) : 0,
+      labelOrder: form.labelOrder,
+      tierPricing: mealTiers.map((tier) => ({
+        mealTier: tier._id,
+        pricePerMeal: Number(form.tierPricing[tier._id]?.pricePerMeal),
+        discountPercentage: form.tierPricing[tier._id]?.discountPercentage
+          ? Number(form.tierPricing[tier._id].discountPercentage)
+          : 0,
+      })),
     };
 
     setSubmitting(true);
@@ -201,8 +272,9 @@ export default function SetDuration() {
         form={form}
         formErrors={formErrors}
         submitting={submitting}
-        livePreviewTotal={livePreviewTotal}
+        mealTiers={mealTiers}
         onChange={handleChange}
+        onTierPriceChange={handleTierPriceChange}
         onClose={closeForm}
         onSubmit={handleSubmit}
       />

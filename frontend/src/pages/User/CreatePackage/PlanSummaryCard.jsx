@@ -12,6 +12,7 @@ export default function PlanSummaryCard({
   totalMeals,
   subtotal,
   discount,
+  discountPercentage,
   deliveryCharges,
   totalAmount,
   pricePerMeal,
@@ -65,14 +66,16 @@ export default function PlanSummaryCard({
       <div className="bg-[#f4f5f7] p-2.5 rounded-xl my-2 space-y-1.5">
         <div className="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-wide">
           <span>Subtotal ({totalMeals} meals)</span>
-          <span className="text-slate-700">
+          <span className={discountPercentage > 0 ? "text-slate-400 line-through" : "text-slate-700"}>
             ${subtotal.toFixed(2)}
           </span>
         </div>
-        <div className="flex justify-between text-xs font-bold text-[#dc2626] uppercase tracking-wide">
-          <span>Discount (20% off)</span>
-          <span>-${discount.toFixed(2)}</span>
-        </div>
+        {discountPercentage > 0 && (
+          <div className="flex justify-between text-xs font-bold text-[#dc2626] uppercase tracking-wide">
+            <span>Discount ({discountPercentage}% off)</span>
+            <span>-${discount.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
           <span>{deliveryMethod} Charges</span>
           <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>

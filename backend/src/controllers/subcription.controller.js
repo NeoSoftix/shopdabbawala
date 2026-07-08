@@ -62,7 +62,7 @@ export const createSubscription = async (req, res) => {
       durationLabel: new RegExp(`^${duration}$`, "i"),
       totalMeals: Number(totalMeals),
       isActive: true,
-    });
+    }).populate("tierPricing.mealTier", "name");
 
     if (!durationPlanDoc) {
       return res.status(400).json({
@@ -71,9 +71,21 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    const subtotal = durationPlanDoc.totalMeals * durationPlanDoc.pricePerMeal * quantity;
+    // Selected meal tier (Basic/Medium/Premium) ki apni price use karo — har
+    // tier ki alag price ho sakti hai, base price sirf fallback hai jab is
+    // duration+meal-count combo ke liye us tier ki price set nahi ki gayi.
+    const normalizedMealSize = mealSize.trim().toLowerCase();
+    const tierPriceEntry = durationPlanDoc.tierPricing.find(
+      (t) => t.mealTier?.name?.trim().toLowerCase() === normalizedMealSize
+    );
+    const effectivePricePerMeal = tierPriceEntry ? tierPriceEntry.pricePerMeal : durationPlanDoc.pricePerMeal;
+    const effectiveDiscountPercentage = tierPriceEntry
+      ? tierPriceEntry.discountPercentage
+      : durationPlanDoc.discountPercentage;
+
+    const subtotal = durationPlanDoc.totalMeals * effectivePricePerMeal * quantity;
     const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
-    const discount = subtotal * 0.2;
+    const discount = subtotal * (effectiveDiscountPercentage / 100);
     const totalAmount = subtotal - discount + deliveryCharges;
 
     const calculatedStartDate = new Date(startDate);
