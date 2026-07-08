@@ -401,6 +401,7 @@ console.log(totalSlots);
         weeklyPlan={weeklyPlan}
         dayStatus={dayStatus}
         onToggleDayActive={onToggleDayActive}
+        setSelectedDay={setSelectedDay}
       />
     </div>
   );

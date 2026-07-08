@@ -85,3 +85,64 @@ export const notifyOrderEvent = async ({
     });
   })();
 };
+
+// Vendor accepted/rejected a specific day's order. Unlike notifyOrderEvent
+// (vendor + admin, vendor is the recipient), here the vendor is the *actor*
+// - so the customer whose order it is gets emailed the outcome, and admin
+// gets a separate email about what the vendor just did. Fire-and-forget,
+// never throws.
+export const notifyOrderStatusChange = async ({ order, status, vendorName }) => {
+  (async () => {
+    try {
+      const isAccepted = status === "Accepted";
+      const accent = isAccepted ? "#16a34a" : "#dc2626";
+      const user = await User.findById(order.user).select("email name");
+      const customerName = user?.name || "A customer";
+
+      if (user?.email) {
+        const userHeading = isAccepted ? "Your Order Has Been Accepted! 🎉" : "Your Order Was Rejected";
+        const userHtml = orderEventTemplate({
+          heading: userHeading,
+          intro: isAccepted
+            ? `Good news! Your meal order for ${order.day} has been accepted by ${vendorName || "your vendor"} and will be prepared for delivery.`
+            : `We're sorry - your meal order for ${order.day} was rejected by ${vendorName || "the vendor"}. Please contact support if you have questions.`,
+          lines: [
+            { label: "Day", value: order.day },
+            { label: "Plan", value: order.planName || "N/A" },
+            { label: "Status", value: status },
+          ],
+          accent,
+        });
+
+        sendEmail(user.email, userHeading, userHtml)
+          .then(() => console.log(`notifyOrderStatusChange: user email sent OK to ${user.email} (${status})`))
+          .catch((error) => console.error(`notifyOrderStatusChange: user email FAILED for ${user.email}:`, error.response?.data || error.message));
+      }
+
+      const admins = await User.find({ role: "admin", email: { $exists: true, $ne: null } }).select("email");
+      if (admins.length > 0) {
+        const adminHeading = isAccepted ? "Vendor Accepted an Order" : "Vendor Rejected an Order";
+        const adminHtml = orderEventTemplate({
+          heading: adminHeading,
+          intro: `${vendorName || "A vendor"} has ${isAccepted ? "accepted" : "rejected"} ${customerName}'s order for ${order.day}.`,
+          lines: [
+            { label: "Customer", value: customerName },
+            { label: "Vendor", value: vendorName || "N/A" },
+            { label: "Day", value: order.day },
+            { label: "Plan", value: order.planName || "N/A" },
+          ],
+          accent,
+        });
+
+        admins.forEach((admin) => {
+          if (!admin.email) return;
+          sendEmail(admin.email, adminHeading, adminHtml)
+            .then(() => console.log(`notifyOrderStatusChange: admin email sent OK to ${admin.email} (${status})`))
+            .catch((error) => console.error(`notifyOrderStatusChange: admin email FAILED for ${admin.email}:`, error.response?.data || error.message));
+        });
+      }
+    } catch (error) {
+      console.error("notifyOrderStatusChange error:", error);
+    }
+  })();
+};

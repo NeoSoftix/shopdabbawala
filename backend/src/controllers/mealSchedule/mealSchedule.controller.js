@@ -361,12 +361,12 @@ export const getDayStatuses = async (req, res) => {
       });
     }
 
-    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("day active");
+    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("day active status");
 
     const statusByDay = {};
     orders.forEach((order) => {
       if (order.day) {
-        statusByDay[order.day] = { active: order.active, orderId: order._id };
+        statusByDay[order.day] = { active: order.active, orderId: order._id, status: order.status };
       }
     });
 
