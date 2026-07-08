@@ -7,8 +7,9 @@ export default function Sidebar({
   subtitle = "ADMIN PANEL",
   menuItems = [],
   onLogout,
-  isOpen,     
-  onClose,    
+  isOpen,
+  onClose,
+  badges = {},
 }) {
   return (
     <>
@@ -48,6 +49,7 @@ export default function Sidebar({
           <div className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const badgeCount = badges[item.path] || 0;
 
               return (
                 <NavLink
@@ -75,7 +77,16 @@ export default function Sidebar({
                         className="flex-shrink-0"
                       />
 
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate flex-1">{item.label}</span>
+
+                      {badgeCount > 0 && (
+                        <span
+                          className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center
+                          ${isActive ? "bg-white text-[#E23747]" : "bg-[#E23747] text-white"}`}
+                        >
+                          {badgeCount > 99 ? "99+" : badgeCount}
+                        </span>
+                      )}
                     </>
                   )}
                 </NavLink>

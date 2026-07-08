@@ -4,10 +4,12 @@ import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
 import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
+import { NotificationProvider, useNotifications } from "../../context/NotificationContext";
 
-export default function VendorLayout() {
+function VendorLayoutInner() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -24,6 +26,7 @@ export default function VendorLayout() {
         onLogout={handleLogout}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        badges={{ "/vendor/notifications": unreadCount }}
       />
 
       <div className="flex flex-col flex-1 min-w-0 w-full h-full">
@@ -32,11 +35,20 @@ export default function VendorLayout() {
           userName="Vendor"
           userRole="Vendor"
           onMenuClick={() => setIsSidebarOpen(true)}
+          notificationCount={unreadCount}
         />
         <main className="flex-1 p-4 md:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>
     </div>
+  );
+}
+
+export default function VendorLayout() {
+  return (
+    <NotificationProvider>
+      <VendorLayoutInner />
+    </NotificationProvider>
   );
 }

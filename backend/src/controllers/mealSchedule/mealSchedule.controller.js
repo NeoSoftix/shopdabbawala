@@ -4,7 +4,34 @@ import Item from "../../models/item.model.js";
 import MealSchedule from "../../models/mealSchedule.model.js";
 import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
+import Notification from "../../models/notification.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
+import { emitToVendor } from "../../socket/index.js";
+
+// Persists a notification for the vendor an order was just assigned to, and
+// pushes it over the socket in real time so it shows up in the sidebar badge
+// / notifications tab without a page refresh. Never throws - a notification
+// failure shouldn't block the order/meal schedule itself.
+const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder }) => {
+  try {
+    const title = isNewOrder ? "New Order Received" : "Order Updated";
+    const message = isNewOrder
+      ? `${userName || "A customer"} placed a meal order for ${day} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+      : `${userName || "A customer"} updated their ${day} meal order (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
+
+    const notification = await Notification.create({
+      vendor: vendorId,
+      type: "order",
+      title,
+      message,
+      order: orderId,
+    });
+
+    emitToVendor(vendorId, "notification:new", notification);
+  } catch (error) {
+    console.error("Notify Vendor Of Order Error:", error);
+  }
+};
 
 // Upserts the Order that represents this weekday's meal order. Always
 // creates/updates the order (so admin sees every order placed), and attaches
@@ -13,7 +40,7 @@ import { findServingVendor } from "../../utils/findServingVendor.js";
 // failure here shouldn't block the meal schedule itself from being saved.
 const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, formattedItems }) => {
   try {
-    const user = await User.findById(userId).select("pincode address");
+    const user = await User.findById(userId).select("pincode address name");
     const pincode = subscription.pincode || user?.pincode || "";
 
     const vendor = pincode ? await findServingVendor(pincode) : null;
@@ -42,6 +69,9 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       day,
     });
 
+    let orderId;
+    let isNewOrder = false;
+
     if (existingOrder) {
       existingOrder.items = orderItems;
       existingOrder.vendor = vendor?._id || null;
@@ -49,8 +79,9 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       existingOrder.deliveryAddress = deliveryAddress;
       existingOrder.status = "Pending";
       await existingOrder.save();
+      orderId = existingOrder._id;
     } else {
-      await Order.create({
+      const createdOrder = await Order.create({
         user: userId,
         subscription: subscriptionId,
         vendor: vendor?._id,
@@ -59,6 +90,19 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         deliveryAddress,
         items: orderItems,
         status: "Pending",
+      });
+      orderId = createdOrder._id;
+      isNewOrder = true;
+    }
+
+    if (vendor?._id) {
+      await notifyVendorOfOrder({
+        vendorId: vendor._id,
+        orderId,
+        userName: user?.name,
+        day,
+        itemCount: orderItems.length,
+        isNewOrder,
       });
     }
   } catch (error) {
