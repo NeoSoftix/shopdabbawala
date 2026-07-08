@@ -1,7 +1,7 @@
 import { daysOfWeek } from "./constants";
 
 // ================= COMPONENT: WEEKLY PLAN MATRIX VIEW =================
-const WeeklyOverview = ({ weeklyPlan }) => {
+const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, onToggleDayActive }) => {
   return (
     <div className="bg-white rounded-[24px] border border-gray-100 p-5 space-y-4 shadow-sm">
       <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
@@ -20,6 +20,8 @@ const WeeklyOverview = ({ weeklyPlan }) => {
         {daysOfWeek.map((day) => {
           const items = weeklyPlan[day.name] || [];
           const hasItems = items.length > 0;
+          const status = dayStatus[day.name];
+          const isActive = status?.active !== false;
 
           return (
             <div
@@ -57,6 +59,21 @@ const WeeklyOverview = ({ weeklyPlan }) => {
                   </div>
                 )}
               </div>
+
+              {status && (
+                <button
+                  type="button"
+                  onClick={() => onToggleDayActive && onToggleDayActive(day.name, !isActive)}
+                  className={`mt-2 w-full flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-green-50 text-green-600 hover:bg-green-100"
+                      : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`} />
+                  {isActive ? "Active" : "Inactive"}
+                </button>
+              )}
             </div>
           );
         })}

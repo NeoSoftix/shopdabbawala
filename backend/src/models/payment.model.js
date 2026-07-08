@@ -79,6 +79,14 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // Guards against sending the admin/vendor "new subscription purchased"
+    // email more than once if saveCheckoutDetails is hit again for the same
+    // session (e.g. the user resubmits the delivery-details form).
+    purchaseNotified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

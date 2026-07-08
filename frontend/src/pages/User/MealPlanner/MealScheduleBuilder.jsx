@@ -18,7 +18,10 @@ const MealScheduleBuilder = ({
   setWeeklyPlan,
   mealSize,
   mealCount,
-  subscriptionId
+  subscriptionId,
+  dayStatus,
+  onToggleDayActive,
+  onDayConfirmed,
 }) => {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
@@ -292,6 +295,7 @@ console.log(totalSlots);
 
       if (res?.success) {
         toast.success(`${selectedDay}'s meal plan confirmed!`);
+        if (onDayConfirmed) onDayConfirmed();
       } else {
         toast.error(res?.message || "Failed to confirm meal plan.");
       }
@@ -393,7 +397,11 @@ console.log(totalSlots);
       </div>
 
       {/* MATRIX WEEKLY VIEW */}
-      <WeeklyOverview weeklyPlan={weeklyPlan} />
+      <WeeklyOverview
+        weeklyPlan={weeklyPlan}
+        dayStatus={dayStatus}
+        onToggleDayActive={onToggleDayActive}
+      />
     </div>
   );
 };

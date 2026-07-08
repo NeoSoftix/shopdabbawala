@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
-import { getMealSchedule } from "../../services/mealSchedule.service";
+import { getMealSchedule, getDayStatuses, updateDayStatus } from "../../services/mealSchedule.service";
 
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
@@ -11,6 +11,7 @@ import UserHistorydetails from "../../components/User/UserHistoryDetails";
 import Sidebar from "./MealPlanner/Sidebar";
 import PlanSummary from "./MealPlanner/PlanSummary";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
+import PlanSelector from "./MealPlanner/PlanSelector";
 
 // ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================
 const MealPlanner = () => {
@@ -31,6 +32,37 @@ const MealPlanner = () => {
     Saturday: [],
     Sunday: [],
   });
+  const [dayStatus, setDayStatus] = useState({});
+
+  const refreshDayStatuses = async (subscriptionId) => {
+    if (!subscriptionId) return;
+    try {
+      const res = await getDayStatuses(subscriptionId);
+      if (res.success) setDayStatus(res.statusByDay || {});
+    } catch (error) {
+      console.error("Failed to load day statuses:", error?.response?.data || error);
+    }
+  };
+
+  const handleToggleDayActive = async (day, active) => {
+    if (!activeSubscription?._id) return;
+
+    setDayStatus((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], active },
+    }));
+
+    try {
+      await updateDayStatus({ subscriptionId: activeSubscription._id, day, active });
+    } catch (error) {
+      console.error("Failed to update day status:", error?.response?.data || error);
+      // revert optimistic update on failure
+      setDayStatus((prev) => ({
+        ...prev,
+        [day]: { ...prev[day], active: !active },
+      }));
+    }
+  };
 
   useEffect(() => {
     const fetchSavedMealPlan = async () => {
@@ -90,7 +122,18 @@ const MealPlanner = () => {
       }
     };
 
+    const fetchDayStatuses = async () => {
+      if (!activeSubscription?._id) return;
+      try {
+        const res = await getDayStatuses(activeSubscription._id);
+        if (res.success) setDayStatus(res.statusByDay || {});
+      } catch (error) {
+        console.error("Failed to load day statuses:", error?.response?.data || error);
+      }
+    };
+
     fetchSavedMealPlan();
+    fetchDayStatuses();
   }, [activeSubscription?._id]);
 
   useEffect(() => {
@@ -152,7 +195,13 @@ console.log(activeSubscription?.maxItemsPerMeal);
                 </div>
               ) : (
 
-              
+              <>
+                <PlanSelector
+                  subscriptions={subscriptions}
+                  activeSubscription={activeSubscription}
+                  onChange={setActiveSubscription}
+                />
+
                 <MealScheduleBuilder
                   selectedDay={selectedDay}
                   setSelectedDay={setSelectedDay}
@@ -161,7 +210,11 @@ console.log(activeSubscription?.maxItemsPerMeal);
                   mealSize={activeSubscription?.mealSize}
                   mealCount={activeSubscription?.maxItemsPerMeal}
                   subscriptionId={activeSubscription?._id}
+                  dayStatus={dayStatus}
+                  onToggleDayActive={handleToggleDayActive}
+                  onDayConfirmed={() => refreshDayStatuses(activeSubscription?._id)}
                 />
+              </>
               )}
             </div>
           )}

@@ -17,7 +17,7 @@ export default function PlanSummaryCard({
   pricePerMeal,
 }) {
   return (
-    <div className="bg-white p-3 rounded-2xl border border-gray-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+    <div className="bg-white p-3 rounded-2xl border border-gray-300 shadow-[0_10px_30px_rgba(0,0,0,0.1)]">
       <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
         <div className="bg-red-50 p-2 rounded-lg text-[#dc2626]">
           <svg width="4" height="4" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">

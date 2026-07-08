@@ -38,6 +38,13 @@ const orderSchema = new mongoose.Schema(
       ],
     },
 
+    // Lets a user pause/resume a specific day's recurring delivery without
+    // deleting the schedule entirely.
+    active: {
+      type: Boolean,
+      default: true,
+    },
+
     orderDate: {
       type: Date,
       default: Date.now,

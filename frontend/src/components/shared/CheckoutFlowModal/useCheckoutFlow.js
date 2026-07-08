@@ -104,12 +104,25 @@ export default function useCheckoutFlow({
     }
   }, [paymentSuccess, isOpen, mode, sessionId]);
 
-  const stepLabels =
-    mode === "packages"
-      ? ["Area", "Mobile", "OTP", "Details"]
-      : ["Area", "Customize", "Mobile", "OTP", "Details"];
+  // Logged-in users never see the Mobile/OTP steps (they skip straight to
+  // payment - see handlePincodeSubmit/handleCustomizationNext below), so the
+  // progress bar shouldn't list them either, otherwise they'd render as
+  // "completed" checkmarks the user never actually stepped through.
+  const stepLabels = user
+    ? (mode === "packages" ? ["Area", "Details"] : ["Area", "Customize", "Details"])
+    : (mode === "packages"
+        ? ["Area", "Mobile", "OTP", "Details"]
+        : ["Area", "Customize", "Mobile", "OTP", "Details"]);
 
-  const currentStepIndex = step - 1;
+  // Maps the real `step` number (which always accounts for every possible
+  // step, guest or not) to an index in the possibly-compacted stepLabels
+  // above, so the indicator stays in sync for logged-in users too.
+  const stepIndexMaps = {
+    packages: { guest: { 1: 0, 2: 1, 3: 2, 4: 3 }, user: { 1: 0, 4: 1 } },
+    create: { guest: { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 }, user: { 1: 0, 2: 1, 5: 2 } },
+  };
+  const stepIndexMap = stepIndexMaps[mode][user ? "user" : "guest"];
+  const currentStepIndex = stepIndexMap[step] ?? step - 1;
 
   const reset = () => {
     setStep(1);

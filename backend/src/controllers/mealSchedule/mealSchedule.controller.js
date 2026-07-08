@@ -4,33 +4,27 @@ import Item from "../../models/item.model.js";
 import MealSchedule from "../../models/mealSchedule.model.js";
 import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
-import Notification from "../../models/notification.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
-import { emitToVendor } from "../../socket/index.js";
+import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js";
 
-// Persists a notification for the vendor an order was just assigned to, and
-// pushes it over the socket in real time so it shows up in the sidebar badge
-// / notifications tab without a page refresh. Never throws - a notification
-// failure shouldn't block the order/meal schedule itself.
 const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder }) => {
-  try {
-    const title = isNewOrder ? "New Order Received" : "Order Updated";
-    const message = isNewOrder
-      ? `${userName || "A customer"} placed a meal order for ${day} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
-      : `${userName || "A customer"} updated their ${day} meal order (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
+  const title = isNewOrder ? "New Order Received" : "Order Updated";
+  const message = isNewOrder
+    ? `${userName || "A customer"} placed a meal order for ${day} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+    : `${userName || "A customer"} updated their ${day} meal order (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
 
-    const notification = await Notification.create({
-      vendor: vendorId,
-      type: "order",
-      title,
-      message,
-      order: orderId,
-    });
-
-    emitToVendor(vendorId, "notification:new", notification);
-  } catch (error) {
-    console.error("Notify Vendor Of Order Error:", error);
-  }
+  await notifyOrderEvent({
+    vendorId,
+    orderId,
+    title,
+    message,
+    emailHeading: isNewOrder ? "New Meal Order Received" : "Meal Order Updated",
+    emailLines: [
+      { label: "Customer", value: userName || "A customer" },
+      { label: "Day", value: day },
+      { label: "Items", value: itemCount },
+    ],
+  });
 };
 
 // Upserts the Order that represents this weekday's meal order. Always
@@ -339,6 +333,108 @@ export const getMyMealPlan = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch meal schedule",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ Active/inactive status of each saved day-order for a subscription -
+// powers the toggle shown in the weekly preview.
+export const getDayStatuses = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { subscriptionId } = req.params;
+
+    if (!subscriptionId || !mongoose.Types.ObjectId.isValid(subscriptionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subscription ID",
+      });
+    }
+
+    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("day active");
+
+    const statusByDay = {};
+    orders.forEach((order) => {
+      if (order.day) {
+        statusByDay[order.day] = { active: order.active, orderId: order._id };
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      statusByDay,
+    });
+  } catch (error) {
+    console.error("Get Day Statuses Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch day statuses",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ Toggles a single day's order between active/inactive (user pausing or
+// resuming that day's delivery) and notifies the assigned vendor.
+export const updateDayOrderStatus = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { subscriptionId, day, active } = req.body;
+
+    if (!subscriptionId || !day || typeof active !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "subscriptionId, day and active are required.",
+      });
+    }
+
+    const order = await Order.findOne({ user: userId, subscription: subscriptionId, day });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "No order found for this day.",
+      });
+    }
+
+    order.active = active;
+    await order.save();
+
+    if (order.vendor) {
+      const user = await User.findById(userId).select("name");
+      const customerName = user?.name || "A customer";
+
+      await notifyOrderEvent({
+        vendorId: order.vendor,
+        orderId: order._id,
+        title: active ? "Order Resumed" : "Order Paused",
+        message: active
+          ? `${customerName} resumed their ${day} meal order — resume delivery for this day.`
+          : `${customerName} paused their ${day} meal order — do NOT deliver on this day.`,
+        emailHeading: active ? "Meal Order Resumed" : "Meal Order Paused",
+        emailIntro: active
+          ? `${customerName} has switched their ${day} order back to active. Please resume delivering to them on this day.`
+          : `${customerName} has marked their ${day} order as inactive for this plan. This means they should NOT be delivered a meal on this day until they resume it.`,
+        emailLines: [
+          { label: "Customer", value: customerName },
+          { label: "Day", value: day },
+          { label: "Status", value: active ? "Active — deliver" : "Inactive — do not deliver" },
+        ],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.error("Update Day Order Status Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update order status",
       error: error.message,
     });
   }

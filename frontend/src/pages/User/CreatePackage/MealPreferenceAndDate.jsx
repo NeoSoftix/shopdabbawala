@@ -36,7 +36,7 @@ const preferenceOptions = [
 
 export default function MealPreferenceAndDate({ preference, onPreferenceChange, startDate, onStartDateChange }) {
   return (
-    <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+    <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-300 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
