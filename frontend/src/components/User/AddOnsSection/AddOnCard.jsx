@@ -77,7 +77,7 @@ export default function AddOnCard({
           className={`font-black text-lg mt-2 transition-colors duration-300
           ${qtyInCart > 0 ? "text-red-600" : "text-[#111625] group-hover:text-red-600"}`}
         >
-          ₹{item.price}
+          ${item.price}
         </div>
       </div>
 

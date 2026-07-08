@@ -10,7 +10,7 @@ import {
   MdCheckCircle,
 } from "react-icons/md";
 
-import { FaRupeeSign } from "react-icons/fa";
+import { FaDollarSign } from "react-icons/fa";
 
 import { getOrderStats, getAllOrders } from "../../services/order.service";
 
@@ -75,9 +75,9 @@ export default function VendorDashboard() {
 
         <StatCard
           title="Earnings"
-          value="₹42,500"
+          value="$42,500"
           growth="15% increase"
-          Icon={FaRupeeSign}
+          Icon={FaDollarSign}
         />
       </div>
 

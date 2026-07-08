@@ -3,7 +3,7 @@ import { FiUsers, FiShoppingBag, FiShoppingCart } from "react-icons/fi";
 
 import { MdRestaurantMenu, MdFastfood } from "react-icons/md";
 
-import { FaRupeeSign } from "react-icons/fa";
+import { FaDollarSign } from "react-icons/fa";
 
 import DashboardPieChart from "../../components/shared/DashboardPieChart";
 import DashboardLineChart from "../../components/shared/DashboardLineChart";
@@ -164,9 +164,9 @@ export default function AdminDashboard() {
 
         <StatCard
           title="Revenue"
-          value={`₹${dashboardStats.revenue}`}
+          value={`$${dashboardStats.revenue}`}
           growth="0%"
-          Icon={FaRupeeSign}
+          Icon={FaDollarSign}
         />
       </div>
  <div className="mt-8">

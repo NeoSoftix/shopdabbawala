@@ -15,10 +15,20 @@ export const GRADIENTS = [
 
 // Maps raw backend package payloads into the display-ready shape the UI expects.
 export function formatPackages(rawPackages) {
-  return rawPackages.map((pkg, index) => ({
+  return rawPackages.map((pkg, index) => {
+    const hasDiscount =
+      pkg.discountedPrice != null && pkg.discountedPrice < pkg.price;
+
+    return {
     ...pkg,
     title: pkg.name ? pkg.name.toUpperCase() : "PLAN",
-    price: pkg.price ? `₹${pkg.price}` : "₹0",
+    hasDiscount,
+    price: hasDiscount
+      ? `$${pkg.discountedPrice}`
+      : pkg.price
+        ? `$${pkg.price}`
+        : "$0",
+    originalPrice: pkg.price ? `$${pkg.price}` : "$0",
     meals: `${pkg.totalMeals || 0} Meals / ${pkg.validityDays || 0} Days`,
     image:
       pkg.image?.url ||
@@ -34,7 +44,8 @@ export function formatPackages(rawPackages) {
           "Macro-Friendly Plan",
         ],
     popular: index === 1,
-  }));
+    };
+  });
 }
 
 // Determines how far (in px) adjacent carousel cards sit from the active card,

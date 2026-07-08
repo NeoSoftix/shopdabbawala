@@ -13,6 +13,7 @@ export const createPackage = async (req, res) => {
       totalMeals,
       price,
       description,
+      discountedPrice,
       maxItemsPerMeal,
       features,
     } = req.body;
@@ -81,6 +82,30 @@ export const createPackage = async (req, res) => {
       });
     }
 
+    // Discounted Price Validation (optional field)
+    let numericDiscountedPrice = null;
+    if (
+      discountedPrice !== undefined &&
+      discountedPrice !== null &&
+      discountedPrice !== ""
+    ) {
+      numericDiscountedPrice = Number(discountedPrice);
+
+      if (isNaN(numericDiscountedPrice) || numericDiscountedPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Discounted price must be greater than 0.",
+        });
+      }
+
+      if (numericDiscountedPrice >= numericPrice) {
+        return res.status(400).json({
+          success: false,
+          message: "Discounted price must be less than the actual price.",
+        });
+      }
+    }
+
     if (isNaN(numericMeals) || numericMeals <= 0) {
       return res.status(400).json({
         success: false,
@@ -120,10 +145,12 @@ export const createPackage = async (req, res) => {
         totalMeals: numericMeals.toString(),
         maxItemsPerMeal: numericMaxItems.toString(),
         features: JSON.stringify(cleanedFeatures),
+        discountedPrice:
+          numericDiscountedPrice !== null ? numericDiscountedPrice.toString() : "",
       },
     });
 
-    // Create Recurring Price on Stripe
+    // Create Recurring Price on Stripe (actual price)
     const stripePrice = await stripe.prices.create({
       product: stripeProduct.id,
       unit_amount: numericPrice * 100,
@@ -136,6 +163,7 @@ export const createPackage = async (req, res) => {
       name: normalizedName,
       description: description?.trim(),
       price: numericPrice,
+      discountedPrice: numericDiscountedPrice,
       totalMeals: numericMeals,
       validityDays: numericValidityDays,
       maxItemsPerMeal: numericMaxItems,

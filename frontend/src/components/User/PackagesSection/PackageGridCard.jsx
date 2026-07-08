@@ -10,6 +10,12 @@ export default function PackageGridCard({ pkg, isCurrentPlan, onChoose }) {
         </span>
       )}
 
+      {pkg.hasDiscount && (
+        <span className="absolute top-3 left-3 bg-green-600 text-white font-black text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-full">
+          Discounted
+        </span>
+      )}
+
       <div>
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full overflow-hidden shadow-inner border-2 border-white flex-shrink-0">
@@ -30,7 +36,12 @@ export default function PackageGridCard({ pkg, isCurrentPlan, onChoose }) {
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex items-baseline gap-1.5">
+          {pkg.hasDiscount && (
+            <span className="text-sm font-bold text-slate-400 line-through">
+              {pkg.originalPrice}
+            </span>
+          )}
           <span className="text-2xl font-black text-slate-900">
             {pkg.price}
           </span>
