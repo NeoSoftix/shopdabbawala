@@ -17,6 +17,7 @@ const MealScheduleBuilder = ({
   weeklyPlan,
   setWeeklyPlan,
   mealSize,
+  mealCount,
   subscriptionId
 }) => {
   const [categories, setCategories] = useState([]);
@@ -240,9 +241,12 @@ const MealScheduleBuilder = ({
     medium: 4,
     premium: 6,
   };
+  console.log(mealSize)
 
   const totalSlots =
-    planItems[mealSize?.toLowerCase()] || 0;
+    mealCount || 0;
+console.log(totalSlots);
+
   const currentDayMeals = weeklyPlan[selectedDay] || [];
 
   const expandedDayMeals = currentDayMeals.flatMap((meal) =>

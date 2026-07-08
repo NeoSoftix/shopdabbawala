@@ -116,6 +116,7 @@ const MealPlanner = () => {
       setLoadingPlan(false);
     }
   }, [user, loading]);
+console.log(activeSubscription?.maxItemsPerMeal);
 
   return (
     <div className="min-h-screen bg-[#F4F7FE] font-sans antialiased flex flex-col">
@@ -150,12 +151,15 @@ const MealPlanner = () => {
                   </button>
                 </div>
               ) : (
+
+              
                 <MealScheduleBuilder
                   selectedDay={selectedDay}
                   setSelectedDay={setSelectedDay}
                   weeklyPlan={weeklyPlan}
                   setWeeklyPlan={setWeeklyPlan}
                   mealSize={activeSubscription?.mealSize}
+                  mealCount={activeSubscription?.maxItemsPerMeal}
                   subscriptionId={activeSubscription?._id}
                 />
               )}
