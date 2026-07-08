@@ -25,6 +25,14 @@ const orderSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Snapshot of the subscription's plan name at order time (e.g. "Medium
+    // (Veg)") - lets a vendor/admin tell orders apart when a customer has
+    // multiple plans, without needing to populate/lookup the subscription.
+    planName: {
+      type: String,
+      trim: true,
+    },
+
     day: {
       type: String,
       enum: [
