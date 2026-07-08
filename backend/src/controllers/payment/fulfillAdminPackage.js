@@ -22,6 +22,7 @@ export const fulfillAdminPackage = async (session, payment) => {
       duration: "Monthly",
       quantity: 1,
       deliveryMethod: "Delivery",
+      stripeSubscriptionId: session.subscription,
       startDate,
       endDate,
     });

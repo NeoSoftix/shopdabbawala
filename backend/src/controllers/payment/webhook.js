@@ -2,7 +2,6 @@ import stripe from "../../config/stripe.js"
 import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
 import { fulfillOrder } from "./fulfillOrder.js"
-import { setupScheduledSubscription } from "./stripeHelpers.js"
 
 export const stripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
@@ -75,68 +74,6 @@ export const stripeWebhook = async (req, res) => {
               mealsUsed: 0
             }
           );
-        }
-
-        // -------- CUSTOM PACKAGE --------
-        if (session.metadata.paymentType === "CUSTOM_PACKAGE") {
-          if (session.metadata.isScheduled === "true") {
-            try {
-              // Retrieve payment again to populate subscription if it was populated in another thread
-              const populatedPayment = await Payment.findOne({ stripeSessionId: session.id }).populate("subscription");
-              await setupScheduledSubscription(session, populatedPayment, populatedPayment.subscription);
-            } catch (err) {
-              console.error("Failed to create scheduled subscription in webhook:", err.message);
-            }
-          } else {
-            const subscription = await Subscription.create({
-              user: session.metadata.userId,
-
-              mealSize: session.metadata.mealSize,
-              preference: session.metadata.preference,
-              duration: session.metadata.duration,
-
-              meals: session.metadata.meals,
-
-              quantity: Number(session.metadata.quantity),
-
-              deliveryMethod: session.metadata.deliveryMethod,
-
-              price: Number(session.metadata.price),
-
-              totalMeals: Number(session.metadata.totalMeals),
-
-              mealsUsed: 0,
-
-              maxItemsPerMeal: Number(
-                session.metadata.maxItemsPerMeal
-              ),
-
-              stripeSubscriptionId: session.subscription,
-
-              startDate: new Date(session.metadata.startDate),
-
-              endDate: new Date(session.metadata.endDate),
-            });
-
-            payment.subscription = subscription._id;
-
-            await payment.save();
-
-            // Option 1: Transition the Stripe subscription into a Subscription Schedule
-            if (session.subscription) {
-              try {
-                const schedule = await stripe.subscriptionSchedules.create({
-                  from_subscription: session.subscription,
-                });
-                console.log("Subscription schedule created successfully:", schedule.id);
-
-                subscription.stripeSubscriptionScheduleId = schedule.id;
-                await subscription.save();
-              } catch (scheduleError) {
-                console.error("Failed to create subscription schedule in webhook:", scheduleError.message);
-              }
-            }
-          }
         }
 
         break;
