@@ -14,6 +14,30 @@ const orderSchema = new mongoose.Schema(
       required: false,
     },
 
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
+      index: true,
+    },
+
+    pincode: {
+      type: String,
+      trim: true,
+    },
+
+    day: {
+      type: String,
+      enum: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+    },
+
     orderDate: {
       type: Date,
       default: Date.now,
@@ -48,7 +72,15 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Preparing", "On the way", "Delivered", "Cancelled"],
+      enum: [
+        "Pending",
+        "Accepted",
+        "Rejected",
+        "Preparing",
+        "On the way",
+        "Delivered",
+        "Cancelled",
+      ],
       default: "Pending",
     },
 

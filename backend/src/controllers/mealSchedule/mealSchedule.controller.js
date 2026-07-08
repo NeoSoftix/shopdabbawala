@@ -2,6 +2,69 @@ import mongoose from "mongoose";
 import Subscription from "../../models/Subcription.model.js"; // corrected model file name
 import Item from "../../models/item.model.js";
 import MealSchedule from "../../models/mealSchedule.model.js";
+import User from "../../models/User.model.js";
+import Order from "../../models/Order.model.js";
+import { findServingVendor } from "../../utils/findServingVendor.js";
+
+// Upserts the Order that represents this weekday's meal order. Always
+// creates/updates the order (so admin sees every order placed), and attaches
+// the vendor serving the user's pincode when one can be resolved (so vendor
+// dashboards only see orders for their own service area). Never throws - a
+// failure here shouldn't block the meal schedule itself from being saved.
+const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, formattedItems }) => {
+  try {
+    const user = await User.findById(userId).select("pincode address");
+    const pincode = subscription.pincode || user?.pincode || "";
+
+    const vendor = pincode ? await findServingVendor(pincode) : null;
+
+    if (pincode && !vendor) {
+      console.warn(`No serving vendor found for pincode ${pincode}; order will be created without a vendor.`);
+    } else if (!pincode) {
+      console.warn(`No pincode found for user ${userId}; order will be created without a vendor.`);
+    }
+
+    const itemIds = formattedItems.map((meal) => meal.item);
+    const itemDocs = await Item.find({ _id: { $in: itemIds } }).select("name");
+    const nameById = new Map(itemDocs.map((doc) => [doc._id.toString(), doc.name]));
+
+    const orderItems = formattedItems.map((meal) => ({
+      item: meal.item,
+      name: nameById.get(meal.item.toString()) || "",
+      qty: meal.quantity,
+    }));
+
+    const deliveryAddress = user?.address || (pincode ? `Pincode: ${pincode}` : "Not set");
+
+    const existingOrder = await Order.findOne({
+      user: userId,
+      subscription: subscriptionId,
+      day,
+    });
+
+    if (existingOrder) {
+      existingOrder.items = orderItems;
+      existingOrder.vendor = vendor?._id || null;
+      existingOrder.pincode = pincode || null;
+      existingOrder.deliveryAddress = deliveryAddress;
+      existingOrder.status = "Pending";
+      await existingOrder.save();
+    } else {
+      await Order.create({
+        user: userId,
+        subscription: subscriptionId,
+        vendor: vendor?._id,
+        pincode: pincode || undefined,
+        day,
+        deliveryAddress,
+        items: orderItems,
+        status: "Pending",
+      });
+    }
+  } catch (error) {
+    console.error("Sync Vendor Order Error:", error);
+  }
+};
 
 export const createMealSchedule = async (req, res) => {
   try {
@@ -128,6 +191,8 @@ export const createMealSchedule = async (req, res) => {
         ],
       });
 
+      await syncVendorOrder({ userId, subscriptionId, subscription, day, formattedItems });
+
       return res.status(201).json({
         success: true,
         message: `${day} meal schedule created successfully.`,
@@ -152,6 +217,8 @@ export const createMealSchedule = async (req, res) => {
     }
 
     await mealSchedule.save();
+
+    await syncVendorOrder({ userId, subscriptionId, subscription, day, formattedItems });
 
     return res.status(200).json({
       success: true,

@@ -154,7 +154,7 @@ const MealScheduleBuilder = ({
                     (meal.quantity || 1) + 1,
                 }
                 : meal,
-          ),
+          ),  
         };
       }
 
