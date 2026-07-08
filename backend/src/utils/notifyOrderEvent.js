@@ -37,35 +37,51 @@ export const notifyOrderEvent = async ({
   }
 
   // Fire-and-forget: resolve recipients and send emails in the background.
+  // Vendor lookup and admin lookup are isolated in their own try/catch each
+  // so a vendor-side failure (bad vendorId, missing linked user, etc.) can
+  // never silently swallow the admin notification, or vice versa.
   (async () => {
-    try {
-      const recipients = [];
+    const recipients = [];
 
-      if (vendorId) {
+    if (vendorId) {
+      try {
         const vendor = await Vendor.findById(vendorId).populate("userId", "email");
-        if (vendor?.userId?.email) recipients.push(vendor.userId.email);
+        if (vendor?.userId?.email) {
+          recipients.push(vendor.userId.email);
+        } else {
+          console.warn(`notifyOrderEvent: vendor ${vendorId} has no linked user email - vendor email skipped.`);
+        }
+      } catch (error) {
+        console.error(`notifyOrderEvent: vendor lookup failed for ${vendorId}:`, error.message);
       }
+    }
 
+    try {
       const admins = await User.find({ role: "admin", email: { $exists: true, $ne: null } }).select("email");
+      console.log(`notifyOrderEvent [${emailHeading || title}]: found ${admins.length} admin(s):`, admins.map((a) => a.email));
       admins.forEach((admin) => {
         if (admin.email) recipients.push(admin.email);
       });
-
-      if (recipients.length === 0) return;
-
-      const html = orderEventTemplate({
-        heading: emailHeading || title,
-        intro: emailIntro,
-        lines: emailLines,
-      });
-
-      recipients.forEach((email) => {
-        sendEmail(email, emailHeading || title, html).catch((error) =>
-          console.error(`Order event email failed for ${email}:`, error.message)
-        );
-      });
     } catch (error) {
-      console.error("Notify Order Event Email Error:", error);
+      console.error("notifyOrderEvent: admin lookup failed:", error.message);
     }
+
+    console.log(`notifyOrderEvent [${emailHeading || title}]: final recipients ->`, recipients);
+
+    if (recipients.length === 0) return;
+
+    const html = orderEventTemplate({
+      heading: emailHeading || title,
+      intro: emailIntro,
+      lines: emailLines,
+    });
+
+    recipients.forEach((email) => {
+      sendEmail(email, emailHeading || title, html)
+        .then(() => console.log(`notifyOrderEvent: email sent OK to ${email} (${emailHeading || title})`))
+        .catch((error) =>
+          console.error(`notifyOrderEvent: email FAILED for ${email} (${emailHeading || title}):`, error.response?.data || error.message)
+        );
+    });
   })();
 };
