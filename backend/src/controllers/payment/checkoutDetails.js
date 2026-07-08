@@ -1,6 +1,7 @@
 import stripe from "../../config/stripe.js"
 import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
+import Order from "../../models/Order.model.js"
 import { sendEmail } from "../../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../../utils/email/purchaseSuccessTemplate.js"
 import User from "../../models/User.model.js"
@@ -122,6 +123,33 @@ export const saveCheckoutDetails = async (req, res) => {
           payment.status = "paid";
           await payment.save();
         }
+      }
+    } else if (payment.paymentType === "ADDON_ORDER") {
+      // Create the actual Order document now that we have the delivery
+      // address, using the per-item quantity snapshot saved at checkout time.
+      if (!payment.order && Array.isArray(payment.items) && payment.items.length > 0) {
+        let deliveryAddress = address;
+        if (!deliveryAddress) {
+          const orderUser = await User.findById(payment.user).select("address");
+          deliveryAddress = orderUser?.address;
+        }
+
+        const order = await Order.create({
+          user: payment.user,
+          deliveryAddress: deliveryAddress || "Not provided",
+          addons: payment.items.map((it) => ({
+            addon: it.addon,
+            name: it.name,
+            qty: it.qty,
+            price: it.price,
+          })),
+          status: "Pending",
+          deliveryMethod: "Delivery",
+        });
+
+        payment.order = order._id;
+        payment.status = "paid";
+        await payment.save();
       }
     }
 

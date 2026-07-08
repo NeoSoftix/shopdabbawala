@@ -323,8 +323,8 @@ export const renewSubscription = async (req, res) => {
         subscriptionId: oldSubscription._id.toString(),
         duration: oldSubscription.duration,
       },
-      success_url: `https://tiffin-delivery-app.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://tiffin-delivery-app.vercel.app/payment-cancel`,
+      success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
     });
 
     // 4. Payment record me Total Amount (price * quantity) save karein
