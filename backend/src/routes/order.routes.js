@@ -6,10 +6,15 @@ import {
   getOrdersByDate,
   acceptOrder,
   rejectOrder,
+  getMyOrders,
 } from "../controllers/order.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+
+// Logged-in customer's own orders - available to any authenticated user,
+// so this is declared before the admin/vendor-only gate below.
+router.get("/my-orders", verifyToken, getMyOrders);
 
 router.use(verifyToken, allowedRoles("admin", "vendor"));
 

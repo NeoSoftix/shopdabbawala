@@ -45,6 +45,17 @@ export const getOrdersByDate = async (date) => {
   }
 };
 
+// ➤ Get the logged-in user's own orders (Order History / Today's Order tabs)
+export const getMyOrders = async () => {
+  try {
+    const res = await API.get("/orders/my-orders");
+    return res.data;
+  } catch (error) {
+    console.error("Get My Orders Error", error);
+    throw error;
+  }
+};
+
 // ➤ 5. Vendor accepts a pending order
 export const acceptOrder = async (orderId) => {
   try {

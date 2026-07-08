@@ -56,6 +56,31 @@ export const getOrderStats = async (req, res) => {
   }
 };
 
+// ➤ Get the logged-in user's own orders, newest first (User) - powers the
+// Order History / Today's Order tabs on the customer dashboard.
+export const getMyOrders = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const orders = await Order.find({ user: userId })
+      .populate("subscription", "mealSize preference duration")
+      .sort({ updatedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    console.error("Get My Orders Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching your orders",
+      error: error.message,
+    });
+  }
+};
+
 // ➤ 2. Get all orders, newest first (Admin/Vendor) - powers the Orders list page
 export const getAllOrders = async (req, res) => {
   try {
