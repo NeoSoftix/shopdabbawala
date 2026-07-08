@@ -1,5 +1,7 @@
 const statusStyles = {
   Pending: "bg-amber-50 text-amber-600",
+  Accepted: "bg-emerald-50 text-emerald-600",
+  Rejected: "bg-red-50 text-red-600",
   Preparing: "bg-indigo-50 text-indigo-600",
   "On the way": "bg-blue-50 text-blue-600",
   Delivered: "bg-green-50 text-green-600",
@@ -15,7 +17,10 @@ const formatDate = (date) =>
 
 export default function OrdersTable({
   orders = [],
+  onAccept,
+  onReject,
 }) {
+  const showActions = Boolean(onAccept || onReject);
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border">
       <div className="flex justify-between items-center mb-6">
@@ -34,6 +39,7 @@ export default function OrdersTable({
               <th className="pb-4">Order Date</th>
               <th className="pb-4">Delivery</th>
               <th className="pb-4">Status</th>
+              {showActions && <th className="pb-4">Actions</th>}
             </tr>
           </thead>
 
@@ -68,6 +74,31 @@ export default function OrdersTable({
                     {order.status}
                   </span>
                 </td>
+
+                {showActions && (
+                  <td>
+                    {order.status === "Pending" ? (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onAccept?.(order._id)}
+                          className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReject?.(order._id)}
+                          className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-600 text-white hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

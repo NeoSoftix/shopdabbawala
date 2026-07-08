@@ -44,3 +44,25 @@ export const getOrdersByDate = async (date) => {
     throw error;
   }
 };
+
+// ➤ 5. Vendor accepts a pending order
+export const acceptOrder = async (orderId) => {
+  try {
+    const res = await API.patch(`/orders/${orderId}/accept`);
+    return res.data;
+  } catch (error) {
+    console.error("Accept Order Error", error);
+    throw error;
+  }
+};
+
+// ➤ 6. Vendor rejects a pending order
+export const rejectOrder = async (orderId) => {
+  try {
+    const res = await API.patch(`/orders/${orderId}/reject`);
+    return res.data;
+  } catch (error) {
+    console.error("Reject Order Error", error);
+    throw error;
+  }
+};

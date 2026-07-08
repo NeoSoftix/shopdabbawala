@@ -10,7 +10,13 @@ import StatCard from "../../components/shared/StatCard";
 import NotificationFilters from "../../components/vendor/NotificationFilters";
 import OrdersTable from "../../components/shared/OrdersTable";
 import { SectionLoader } from "../../components/shared/Loader";
-import { getOrderStats, getAllOrders } from "../../services/order.service";
+import {
+  getOrderStats,
+  getAllOrders,
+  acceptOrder,
+  rejectOrder,
+} from "../../services/order.service";
+import { toast } from "react-hot-toast";
 
 export default function OrdersPage() {
   const [orderStats, setOrderStats] = useState({
@@ -47,6 +53,32 @@ export default function OrdersPage() {
       console.error("Fetch Orders Error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAccept = async (orderId) => {
+    try {
+      const res = await acceptOrder(orderId);
+      if (res.success) {
+        toast.success("Order accepted");
+        fetchOrders();
+        fetchOrderStats();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to accept order");
+    }
+  };
+
+  const handleReject = async (orderId) => {
+    try {
+      const res = await rejectOrder(orderId);
+      if (res.success) {
+        toast.success("Order rejected");
+        fetchOrders();
+        fetchOrderStats();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to reject order");
     }
   };
 
@@ -95,7 +127,11 @@ export default function OrdersPage() {
       <NotificationFilters />
 
       {/* Orders Table */}
-      {loading ? <SectionLoader text="Loading orders..." /> : <OrdersTable orders={orders} />}
+      {loading ? (
+        <SectionLoader text="Loading orders..." />
+      ) : (
+        <OrdersTable orders={orders} onAccept={handleAccept} onReject={handleReject} />
+      )}
     </div>
   );
 }

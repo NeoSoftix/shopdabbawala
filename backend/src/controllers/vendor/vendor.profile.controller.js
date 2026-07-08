@@ -1,4 +1,5 @@
 import Vendor from "../../models/vendor.model.js";
+import { findServingVendor } from "../../utils/findServingVendor.js";
 
 // get vendor profile
 export const vendorProfile = async (req, res) => {
@@ -41,13 +42,7 @@ export const checkServiceAvailability = async (req, res) => {
       })
     }
 
-    const vendor = await Vendor.findOne({
-      isActive: true,
-      $or: [
-        { pincode: pincode.trim() },
-        { "serviceZones.area": { $regex: `^${pincode.trim()}$`, $options: "i" } },
-      ],
-    })
+    const vendor = await findServingVendor(pincode)
 
     if(!vendor) {
       return res.status(404).json({

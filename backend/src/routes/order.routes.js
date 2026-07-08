@@ -4,6 +4,8 @@ import {
   getAllOrders,
   getOrderCountsByMonth,
   getOrdersByDate,
+  acceptOrder,
+  rejectOrder,
 } from "../controllers/order.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
 
@@ -22,5 +24,9 @@ router.get("/by-date", getOrdersByDate);
 
 // All orders list
 router.get("/", getAllOrders);
+
+// Vendor accepts/rejects a pending order
+router.patch("/:id/accept", allowedRoles("vendor"), acceptOrder);
+router.patch("/:id/reject", allowedRoles("vendor"), rejectOrder);
 
 export default router;

@@ -1,16 +1,38 @@
+import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
+import Vendor from "../models/vendor.model.js";
+
+// A vendor id that can never match a real document - used so a vendor
+// without a profile yet sees zero orders, instead of falling through to
+// `{}` (all orders) or matching orders that are legitimately unassigned
+// (vendor: null, e.g. no vendor currently serves that pincode).
+const NO_MATCH_ID = new mongoose.Types.ObjectId();
+
+// Builds the Order filter for the calling user: unscoped for admins,
+// scoped to their own vendor id for vendors.
+const getOrderScopeFilter = async (req) => {
+  if (req.user.role !== "vendor") return {};
+
+  const vendor = await Vendor.findOne({ userId: req.user.id });
+  return { vendor: vendor?._id || NO_MATCH_ID };
+};
 
 // ➤ 1. Get total order count + status breakdown (Admin/Vendor) - powers dashboard stat cards
 export const getOrderStats = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
+    const filter = await getOrderScopeFilter(req);
+
+    const totalOrders = await Order.countDocuments(filter);
 
     const statusCounts = await Order.aggregate([
+      { $match: filter },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     const byStatus = {
       Pending: 0,
+      Accepted: 0,
+      Rejected: 0,
       Preparing: 0,
       "On the way": 0,
       Delivered: 0,
@@ -38,8 +60,9 @@ export const getOrderStats = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const { search } = req.query;
+    const filter = await getOrderScopeFilter(req);
 
-    const orders = await Order.find()
+    const orders = await Order.find(filter)
       .populate("user", "name email phone")
       .sort({ orderDate: -1 });
 
@@ -83,8 +106,10 @@ export const getOrderCountsByMonth = async (req, res) => {
 
     const startDate = new Date(Number(year), Number(month) - 1, 1);
     const endDate = new Date(Number(year), Number(month), 1);
+    const filter = await getOrderScopeFilter(req);
 
     const orders = await Order.find({
+      ...filter,
       orderDate: { $gte: startDate, $lt: endDate },
     }).select("orderDate");
 
@@ -124,8 +149,10 @@ export const getOrdersByDate = async (req, res) => {
     const [year, month, day] = date.split("-").map(Number);
     const startDate = new Date(year, month - 1, day);
     const endDate = new Date(year, month - 1, day + 1);
+    const filter = await getOrderScopeFilter(req);
 
     const orders = await Order.find({
+      ...filter,
       orderDate: { $gte: startDate, $lt: endDate },
     })
       .populate("user", "name email")
@@ -141,6 +168,92 @@ export const getOrdersByDate = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching orders",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ 5. Vendor accepts a pending order assigned to them
+export const acceptOrder = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor profile not found",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      vendor: vendor._id,
+      status: "Pending",
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending order not found",
+      });
+    }
+
+    order.status = "Accepted";
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order accepted",
+      order,
+    });
+  } catch (error) {
+    console.error("Accept Order Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while accepting the order",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ 6. Vendor rejects a pending order assigned to them
+export const rejectOrder = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor profile not found",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      vendor: vendor._id,
+      status: "Pending",
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending order not found",
+      });
+    }
+
+    order.status = "Rejected";
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order rejected",
+      order,
+    });
+  } catch (error) {
+    console.error("Reject Order Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while rejecting the order",
       error: error.message,
     });
   }
