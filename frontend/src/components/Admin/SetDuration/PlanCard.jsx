@@ -1,6 +1,11 @@
 const PlanCard = ({ plan, onEdit, onToggle, onDeleteRequest }) => {
-  const totalPrice =
-    plan.totalPrice ?? Number((plan.pricePerMeal * plan.totalMeals).toFixed(2));
+  const tierPricing = plan.tierPricing || [];
+
+  // Card badge dikhata hai lowest discount se highest discount tak ka range
+  const discountValues = tierPricing.map((t) => t.discountPercentage ?? 0);
+  const hasDiscount = discountValues.some((d) => d > 0);
+  const minDiscount = discountValues.length ? Math.min(...discountValues) : 0;
+  const maxDiscount = discountValues.length ? Math.max(...discountValues) : 0;
 
   return (
     <div
@@ -18,30 +23,53 @@ const PlanCard = ({ plan, onEdit, onToggle, onDeleteRequest }) => {
             {plan.frequencyLabel}
           </div>
         </div>
-        <span
-          className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
-            plan.isActive
-              ? "bg-green-50 text-green-700"
-              : "bg-gray-100 text-gray-400"
-          }`}
-        >
-          {plan.isActive ? "Active" : "Hidden"}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span
+            className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
+              plan.isActive
+                ? "bg-green-50 text-green-700"
+                : "bg-gray-100 text-gray-400"
+            }`}
+          >
+            {plan.isActive ? "Active" : "Hidden"}
+          </span>
+          {hasDiscount && (
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-red-50 text-[#dc2626]">
+              {minDiscount === maxDiscount ? `${minDiscount}% OFF` : `${minDiscount}-${maxDiscount}% OFF`}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="bg-[#f4f5f7] rounded-xl p-2.5 mt-3 space-y-1">
-        <div className="flex justify-between text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-          <span>Per meal</span>
-          <span className="text-gray-700">${plan.pricePerMeal.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between items-center pt-1 border-t border-gray-200">
-          <span className="text-[11px] font-black text-gray-800 uppercase tracking-wide">
-            Total
-          </span>
-          <span className="text-base font-black text-[#dc2626]">
-            ${totalPrice.toFixed(2)}
-          </span>
-        </div>
+      <div className="bg-[#f4f5f7] rounded-xl p-2.5 mt-3 space-y-1.5">
+        {tierPricing.length === 0 && (
+          <p className="text-[11px] text-gray-400 text-center py-1">No tier pricing set</p>
+        )}
+        {tierPricing.map((tier) => {
+          const tierHasDiscount = (tier.discountPercentage ?? 0) > 0;
+          return (
+            <div
+              key={tier._id || tier.mealTier?._id}
+              className="flex justify-between items-center text-[11px] font-bold text-gray-500 uppercase tracking-wide"
+            >
+              <span className="text-gray-700">{tier.mealTier?.name || "Tier"}</span>
+              {tierHasDiscount ? (
+                <span className="flex items-baseline gap-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 line-through">
+                    ${(tier.totalActualPrice ?? tier.pricePerMeal * plan.totalMeals).toFixed(2)}
+                  </span>
+                  <span className="text-xs font-black text-[#dc2626]">
+                    ${(tier.totalDiscountedPrice ?? tier.pricePerMeal * plan.totalMeals).toFixed(2)}
+                  </span>
+                </span>
+              ) : (
+                <span className="text-xs font-black text-[#dc2626]">
+                  ${(tier.totalActualPrice ?? tier.pricePerMeal * plan.totalMeals).toFixed(2)}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex items-center gap-1.5 mt-3">

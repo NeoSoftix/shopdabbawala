@@ -109,31 +109,26 @@ export default function CreatePackage({ isOpen, onClose }) {
     }
   }, [duration, currentOptions, totalMeals]);
 
-  // Known tier names keep their original pricing multiplier; any custom tier the
-  // admin adds beyond Basic/Medium/Premium scales up by position instead of guessing.
-  const getPlanMultiplier = (name, index) => {
-    const key = name?.trim().toLowerCase();
-    if (key === "basic") return 1;
-    if (key === "medium") return 1.2;
-    if (key === "premium") return 1.4;
-    return 1 + index * 0.2;
-  };
-
   // 5. Dynamic Calculations Engine based on DB values
-  const planMultiplier = getPlanMultiplier(
-    selectedPlan,
-    mealTiers.findIndex((t) => t.name === selectedPlan)
-  );
-
   const matchedOption = useMemo(() => {
     return currentOptions.find((o) => o.totalMeals === totalMeals) || currentOptions[0];
   }, [currentOptions, totalMeals]);
 
-  const basePricePerMeal = matchedOption ? matchedOption.pricePerMeal : 0;
+  // Har meal tier (Basic/Medium/Premium) ki apni price admin ne set ki hai;
+  // agar is duration+meal-count combo ke liye tier price set nahi hai to
+  // plan ki base price per meal per tier structure daale fallback ban jaata hai.
+  const selectedTierPrice = useMemo(() => {
+    return matchedOption?.tierPricing?.find(
+      (t) => t.mealTier?.name?.trim().toLowerCase() === selectedPlan?.trim().toLowerCase()
+    );
+  }, [matchedOption, selectedPlan]);
 
-  const pricePerMeal = parseFloat((basePricePerMeal * planMultiplier).toFixed(2));
+  const basePricePerMeal = selectedTierPrice ? selectedTierPrice.pricePerMeal : (matchedOption ? matchedOption.pricePerMeal : 0);
+  const discountPercentage = selectedTierPrice ? selectedTierPrice.discountPercentage : (matchedOption?.discountPercentage ?? 0);
+
+  const pricePerMeal = parseFloat(basePricePerMeal.toFixed(2));
   const subtotal = totalMeals * pricePerMeal * quantity;
-  const discount = subtotal * 0.2;
+  const discount = subtotal * (discountPercentage / 100);
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
 
@@ -207,7 +202,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                     currentOptions={currentOptions}
                     totalMeals={totalMeals}
                     onTotalMealsChange={setTotalMeals}
-                    planMultiplier={planMultiplier}
+                    selectedPlan={selectedPlan}
                   />
 
                   {/* Meal Plan Selector — flex-1 so it stretches to match the right
@@ -233,6 +228,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                     totalMeals={totalMeals}
                     subtotal={subtotal}
                     discount={discount}
+                    discountPercentage={discountPercentage}
                     deliveryCharges={deliveryCharges}
                     totalAmount={totalAmount}
                     pricePerMeal={pricePerMeal}

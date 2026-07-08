@@ -38,12 +38,51 @@ const durationPlanSchema = new mongoose.Schema(
     sortOrder: {
       type: Number,
       default: 0,
+      // meal-count option order within a duration tab (e.g. 4/5/6 meals)
+    },
+
+    labelOrder: {
+      type: Number,
+      default: 0,
+      // duration tab order (e.g. Weekly before Monthly) — synced across all
+      // plans sharing the same durationLabel
     },
 
     isActive: {
       type: Boolean,
       default: true,
     },
+
+    stripeProductId: {
+      type: String,
+    },
+
+    stripePriceId: {
+      type: String,
+    },
+
+    // Har active MealTier (Basic/Medium/Premium) ka is duration+meal-count
+    // combo ke liye apna alag price — admin set karta hai "Set Duration" se.
+    tierPricing: [
+      {
+        mealTier: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "MealTier",
+          required: true,
+        },
+        pricePerMeal: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        discountPercentage: {
+          type: Number,
+          default: 0,
+          min: 0,
+          max: 100,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
