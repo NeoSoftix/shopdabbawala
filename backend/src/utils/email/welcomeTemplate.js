@@ -1,41 +1,35 @@
-export const vendorWelcomeTemplate = (
-  name,
-  email,
-  password
-) => {
-  return `
-    Hello ${name},
+import { emailShell } from "./emailShell.js";
 
-    Your vendor account has been created successfully.
+// Sent to a new vendor right after admin creates their account.
+export const vendorWelcomeTemplate = (name, email, password) =>
+  emailShell({
+    heading: "Welcome to the Team!",
+    subtitle: "Your vendor account is ready.",
+    badge: "ACCOUNT CREATED",
+    icon: "🏪",
+    intro: `Hi ${name}, your vendor account has been created successfully. Use the credentials below to log in - please change your password after your first login.`,
+    lines: [
+      { label: "Email", value: email },
+      { label: "Password", value: password },
+      { label: "Status", value: "Active" },
+    ],
+    ctaText: "Login to Dashboard",
+    ctaUrl: `${(process.env.FRONTEND_URL || "").replace(/\/$/, "")}/login`,
+    accent: "#dc2626",
+    accentDark: "#991b1b",
+  });
 
-    Email: ${email}
-    Password: ${password}
-
-    Please change your password after login.
-
-    Regards,
-    Tiffin Delivery Team
-  `;
-};
-
-export const resetPasswordTemplate = (
-  name,
-  resetUrl
-) => {
-  return `
-    Hello ${name},
-
-    We received a request to reset your password.
-
-    Reset Link:
-    ${resetUrl}
-
-    This link will expire in 15 minutes.
-
-    If you did not request this, please ignore this email.
-
-    Regards,
-    Tiffin Delivery Team
-  `;
-};
-
+// Sent when a user requests a password reset.
+export const resetPasswordTemplate = (name, resetUrl) =>
+  emailShell({
+    heading: "Reset Your Password",
+    subtitle: "We received a request to reset your password.",
+    badge: "SECURITY",
+    icon: "🔒",
+    intro: `Hi ${name}, click the button below to choose a new password. This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.`,
+    lines: [],
+    ctaText: "Reset Password",
+    ctaUrl: resetUrl,
+    accent: "#dc2626",
+    accentDark: "#991b1b",
+  });
