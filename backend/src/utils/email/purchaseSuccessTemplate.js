@@ -178,7 +178,7 @@ export const purchaseSuccessTemplate = (name, planName, amount, totalMeals) => {
             </div>
             <div class="detail-row total-row">
               <span class="detail-label" style="color: #dc2626; font-size: 16px;">Amount Paid</span>
-              <span class="detail-value total-value">₹${amount}</span>
+              <span class="detail-value total-value">$${amount}</span>
             </div>
           </div>
 

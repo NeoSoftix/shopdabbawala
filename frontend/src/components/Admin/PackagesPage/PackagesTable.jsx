@@ -57,7 +57,16 @@ const PackagesTable = ({
                   {p.name}
                 </td>
                 <td className="py-3.5 px-4 text-sm font-bold text-gray-900">
-                  ${p.price}
+                  {p.discountedPrice != null && p.discountedPrice < p.price ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-gray-400 line-through font-medium">
+                        ${p.price}
+                      </span>
+                      <span className="text-red-600">${p.discountedPrice}</span>
+                    </span>
+                  ) : (
+                    <>${p.price}</>
+                  )}
                 </td>
                 <td className="py-3.5 px-4 text-sm text-gray-600 font-medium">
                   {p.totalMeals} Tiffins

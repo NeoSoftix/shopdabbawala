@@ -196,7 +196,7 @@ const AddOns = () => {
                 </td>
 
                 <td className="px-4 py-4 align-middle font-semibold text-slate-900">
-                  ₹{addon.price}
+                  ${addon.price}
                 </td>
 
                 <td className="px-4 py-4 align-middle">

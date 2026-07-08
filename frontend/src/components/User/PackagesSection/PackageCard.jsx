@@ -58,6 +58,12 @@ export default function PackageCard({
           </div>
         )}
 
+        {pkg.hasDiscount && (
+          <div className="absolute -top-3 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap">
+            Discounted
+          </div>
+        )}
+
         <div className="w-full flex justify-center mb-3 md:mb-4 mt-1">
           <div
             className={`relative rounded-full overflow-hidden bg-slate-50 border-[4px] border-slate-100 shadow-md transition-all duration-500
@@ -85,7 +91,12 @@ export default function PackageCard({
 
             <div className="w-8 h-[2px] bg-red-500/20 mx-auto my-2" />
 
-            <div className="my-1 flex items-baseline justify-center">
+            <div className="my-1 flex items-baseline justify-center gap-1.5">
+              {pkg.hasDiscount && (
+                <span className="text-sm sm:text-base font-bold text-slate-400 line-through">
+                  {pkg.originalPrice}
+                </span>
+              )}
               <span className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
                 {pkg.price}
               </span>

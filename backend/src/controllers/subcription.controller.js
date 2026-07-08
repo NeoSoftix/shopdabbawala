@@ -315,12 +315,12 @@ export const renewSubscription = async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: "inr",
+            currency: "usd",
             product_data: {
               name: `${oldSubscription.mealSize} Custom Package Renewal`,
               description: `Renewal for ${oldSubscription.duration} Plan`,
             },
-            unit_amount: oldSubscription.price * 100, // Per-unit cost in paisa
+            unit_amount: oldSubscription.price * 100, // Per-unit cost in cents
             recurring: {
               interval: recurring.interval,
               interval_count: recurring.interval_count,
@@ -345,7 +345,7 @@ export const renewSubscription = async (req, res) => {
       paymentType: "RENEWAL",
       stripeSessionId: session.id,
       amount: oldSubscription.price * oldSubscription.quantity, // Total price calculation
-      currency: "inr",
+      currency: "usd",
       status: "pending",
       metadata: session.metadata,
     });

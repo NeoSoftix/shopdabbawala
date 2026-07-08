@@ -104,11 +104,17 @@ export const saveCheckoutDetails = async (req, res) => {
           const endDate = new Date(startDate);
           endDate.setDate(endDate.getDate() + pkg.validityDays);
 
+          const hasDiscount =
+            pkg.discountedPrice !== null &&
+            pkg.discountedPrice !== undefined &&
+            pkg.discountedPrice < pkg.price;
+          const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
+
           subscription = await Subscription.create({
             user: payment.user,
             package: pkg._id,
             mealSize: pkg.name,
-            price: pkg.price,
+            price: effectivePrice,
             totalMeals: pkg.totalMeals,
             mealsUsed: 0,
             maxItemsPerMeal: pkg.maxItemsPerMeal,
@@ -239,7 +245,7 @@ export const saveCheckoutDetails = async (req, res) => {
         emailLines: [
           { label: "Customer", value: customerName },
           { label: "Plan", value: planName },
-          { label: "Amount", value: `₹${amount}` },
+          { label: "Amount", value: `$${amount}` },
           { label: "Pincode", value: purchasePincode || "Not provided" },
         ],
       });

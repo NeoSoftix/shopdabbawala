@@ -13,6 +13,7 @@ export const updatePackage = async (req, res) => {
       name,
       description,
       price,
+      discountedPrice,
       totalMeals,
       validityDays,
       maxItemsPerMeal,
@@ -81,6 +82,34 @@ export const updatePackage = async (req, res) => {
           message: "Price should be a positive number",
           success: false,
         });
+      }
+    }
+
+    // Discounted Price (optional field, null/"" clears it)
+    let numericDiscountedPrice = packageData.discountedPrice ?? null;
+    if (discountedPrice !== undefined) {
+      if (discountedPrice === null || discountedPrice === "") {
+        numericDiscountedPrice = null;
+      } else {
+        numericDiscountedPrice = Number(discountedPrice);
+
+        if (isNaN(numericDiscountedPrice) || numericDiscountedPrice <= 0) {
+          return res.status(400).json({
+            message: "Discounted price should be a positive number",
+            success: false,
+          });
+        }
+
+        if (numericDiscountedPrice >= numericPrice) {
+          return res.status(400).json({
+            message: "Discounted price must be less than the actual price",
+            success: false,
+          });
+        }
+      }
+
+      if (numericDiscountedPrice !== (packageData.discountedPrice ?? null)) {
+        stripeMetadataChanged = true;
       }
     }
 
@@ -191,6 +220,7 @@ export const updatePackage = async (req, res) => {
 
     // ---------------- DB SAVE PEHLE ----------------
     packageData.price = numericPrice;
+    packageData.discountedPrice = numericDiscountedPrice;
     packageData.validityDays = numericValidityDays;
 
     await packageData.save();
@@ -208,6 +238,10 @@ export const updatePackage = async (req, res) => {
               totalMeals: packageData.totalMeals.toString(),
               maxItemsPerMeal: packageData.maxItemsPerMeal.toString(),
               features: JSON.stringify(packageData.features),
+              discountedPrice:
+                packageData.discountedPrice !== null && packageData.discountedPrice !== undefined
+                  ? packageData.discountedPrice.toString()
+                  : "",
             },
           });
         } catch (stripeErr) {

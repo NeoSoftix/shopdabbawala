@@ -44,7 +44,7 @@ export const createAddonCheckout = async (req, res) => {
 
     const line_items = matchedItems.map(({ addon, quantity }) => ({
       price_data: {
-        currency: "inr",
+        currency: "usd",
         product_data: {
           name: addon.name,
           description: addon.description || undefined,
@@ -87,7 +87,7 @@ export const createAddonCheckout = async (req, res) => {
       paymentType: "ADDON_ORDER",
       stripeSessionId: session.id,
       amount: Math.round(totalAmount / 100),
-      currency: "inr",
+      currency: "usd",
       status: "pending",
       metadata: session.metadata,
       items: orderItemsSnapshot,

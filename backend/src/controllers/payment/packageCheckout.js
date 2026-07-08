@@ -36,6 +36,13 @@ export const createPackageCheckout = async (req, res) => {
       });
     }
 
+    const hasDiscount =
+      pkg.discountedPrice !== null &&
+      pkg.discountedPrice !== undefined &&
+      pkg.discountedPrice < pkg.price;
+
+    const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       phone_number_collection: { enabled: true },
@@ -45,14 +52,14 @@ export const createPackageCheckout = async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: "inr",
+            currency: "usd",
 
             product_data: {
               name: pkg.name,
               description: pkg.description,
             },
 
-            unit_amount: Math.max(pkg.price * 100, 4000), // Stripe requires minimum 50 cents / 40 INR
+            unit_amount: Math.max(effectivePrice * 100, 50), // Stripe requires minimum 50 cents
           },
 
           quantity: 1,
@@ -77,9 +84,9 @@ export const createPackageCheckout = async (req, res) => {
 
       stripeSessionId: session.id,
 
-      amount: pkg.price,
+      amount: effectivePrice,
 
-      currency: "inr",
+      currency: "usd",
 
       status: "pending",
 

@@ -25,12 +25,12 @@ export default function OrderPreviewStep({ cart, addonsData, totalCartAmount, on
                     {item.name}
                   </h5>
                   <span className="text-xs font-semibold text-gray-400">
-                    ₹{item.price} x {qty}
+                    ${item.price} x {qty}
                   </span>
                 </div>
               </div>
               <span className="font-black text-slate-900 text-sm">
-                ₹{item.price * qty}
+                ${item.price * qty}
               </span>
             </div>
           );
@@ -41,7 +41,7 @@ export default function OrderPreviewStep({ cart, addonsData, totalCartAmount, on
           Grand Total:
         </span>
         <span className="text-2xl font-black text-red-600">
-          ₹{totalCartAmount}
+          ${totalCartAmount}
         </span>
       </div>
       <button

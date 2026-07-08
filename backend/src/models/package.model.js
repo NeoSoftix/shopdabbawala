@@ -21,6 +21,12 @@ const packageSchema = new mongoose.Schema(
       min: 0,
     },
 
+    discountedPrice: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+
     totalMeals: {
       type: Number,
       required: [true, "Number of total tiffins is Required"],

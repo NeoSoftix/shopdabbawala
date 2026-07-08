@@ -42,7 +42,7 @@ export default function CartFooterBar({
                   Total Amount
                 </span>
                 <span className="text-2xl font-black text-slate-900 tracking-tight">
-                  ₹{totalCartAmount}
+                  ${totalCartAmount}
                 </span>
               </div>
 
