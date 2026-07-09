@@ -11,7 +11,7 @@ export const getVendorNotifications = async (page = 1, limit = 10) => {
 
     return res.data;
   } catch (error) {
-    console.log("Get Vendor Notifications Error", error);
+    console.log("Get Notifications Error", error);
     throw error;
   }
 };

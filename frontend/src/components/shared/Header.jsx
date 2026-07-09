@@ -9,6 +9,7 @@ const Header = ({
   userRole = "Super Admin",
   onMenuClick,
   notificationCount = 0,
+  onNotificationClick,
 }) => {
   const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -62,14 +63,18 @@ const Header = ({
       {/* Right Section (Notifications + User Profile) */}
       <div className="flex items-center gap-4 md:gap-6">
         {/* Notification Bell */}
-        <div className="relative cursor-pointer p-1 rounded-full hover:bg-gray-50">
+        <button
+          onClick={onNotificationClick}
+          className="relative cursor-pointer p-1 rounded-full hover:bg-gray-50"
+          aria-label="Notifications"
+        >
           <Bell size={22} className="text-gray-600 hover:text-red-600 transition" />
           {notificationCount > 0 && (
             <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
               {notificationCount > 9 ? "9+" : notificationCount}
             </span>
           )}
-        </div>
+        </button>
 
         {/* User Profile Dropdown container */}
         <div className="relative">

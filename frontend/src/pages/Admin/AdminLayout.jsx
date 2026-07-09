@@ -2,13 +2,17 @@ import { useState } from "react"; // <-- Yeh import zaroori tha
 import { Outlet, useNavigate } from "react-router-dom";
 import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
+import NotificationDrawer from "../../components/shared/NotificationDrawer";
 import { adminMenu } from "../../constants/adminMenu";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../context/NotificationContext";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { logout } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const handleLogout = async () => {
     await logout();
@@ -34,12 +38,23 @@ export default function AdminLayout() {
           userName="Admin"
           userRole="Super Admin"
           onMenuClick={() => setIsSidebarOpen(true)}
+          notificationCount={unreadCount}
+          onNotificationClick={() => setIsNotificationsOpen(true)}
         />
 
         <main className="flex-1 p-4 md:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>
+
+      <NotificationDrawer
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+      />
     </div>
   );
 }

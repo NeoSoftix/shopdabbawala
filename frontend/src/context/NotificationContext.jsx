@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "./AuthContext";
 import { connectSocket, disconnectSocket } from "../services/socket";
 import {
-  getVendorNotifications,
+  getMyNotifications,
   getUnreadNotificationCount,
   markNotificationRead as markNotificationReadService,
   markAllNotificationsRead as markAllNotificationsReadService,
@@ -18,15 +18,15 @@ export const NotificationProvider = ({ children }) => {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
 
-  const isVendor = user?.role === "vendor";
+  const isRecipient = user?.role === "vendor" || user?.role === "user" || user?.role === "admin";
 
   useEffect(() => {
-    if (!isVendor) return;
+    if (!isRecipient) return;
 
     (async () => {
       try {
         const [listRes, countRes] = await Promise.all([
-          getVendorNotifications(page, 10),
+          getMyNotifications(page, 10),
           getUnreadNotificationCount(),
         ]);
 
@@ -52,7 +52,7 @@ export const NotificationProvider = ({ children }) => {
       socket.off("notification:new", handleNewNotification);
       disconnectSocket();
     };
-  }, [isVendor, page]);
+  }, [isVendor]);
 
   const markAsRead = async (id) => {
     setNotifications((prev) =>
