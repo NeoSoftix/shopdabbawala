@@ -43,7 +43,7 @@ export default function Login() {
       } else if (res.user.role === "vendor") {
         navigate("/vendor/dashboard");
       } else if (res.user.role === "user" || res.user.role === "customer") {
-        navigate("/dashboard");
+        navigate("/");
       } else {
         setError("Unauthorized role type.");
       }

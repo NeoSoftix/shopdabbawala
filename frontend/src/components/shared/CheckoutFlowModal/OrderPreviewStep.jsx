@@ -1,9 +1,15 @@
+import { motion } from "framer-motion";
+import { FALLBACK_ADDON_IMAGE } from "../../User/AddOnsSection/addOnsUtils";
 
-import { FALLBACK_ADDON_IMAGE } from "./addOnsUtils";
-
+// Step 1 for mode="addons": review the cart before checking delivery area.
 export default function OrderPreviewStep({ cart, addonsData, totalCartAmount, onConfirm }) {
   return (
-    <div>
+    <motion.div
+      key="preview"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+    >
       <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-4">
         Order Preview
       </h3>
@@ -50,6 +56,6 @@ export default function OrderPreviewStep({ cart, addonsData, totalCartAmount, on
       >
         Confirm Order
       </button>
-    </div>
+    </motion.div>
   );
 }
