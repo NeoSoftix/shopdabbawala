@@ -25,6 +25,7 @@ export default function VendorNotifications() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     page,
     setPage,
     pagination,
@@ -84,6 +85,7 @@ export default function VendorNotifications() {
                 onClick={() =>
                   !notification.read && markAsRead(notification._id)
                 }
+                onDelete={() => deleteNotification(notification._id)}
               />
             ))}
 

@@ -7,6 +7,7 @@ import {
   getUnreadNotificationCount,
   markNotificationRead as markNotificationReadService,
   markAllNotificationsRead as markAllNotificationsReadService,
+  deleteOneNotification as deleteOneNotificationService,
 } from "../services/notification.service";
 
 const NotificationContext = createContext();
@@ -67,6 +68,21 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
+  const deleteNotification = async (id) => {
+    const target = notifications.find((n) => n._id === id);
+
+    setNotifications((prev) => prev.filter((n) => n._id !== id));
+    if (target && !target.read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+
+    try {
+      await deleteOneNotificationService(id);
+    } catch (error) {
+      console.log("Delete notification failed", error);
+    }
+  };
+
   const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
@@ -85,6 +101,7 @@ export const NotificationProvider = ({ children }) => {
         unreadCount,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
         page,
         setPage,
         pagination,

@@ -45,3 +45,16 @@ export const markAllNotificationsRead = async () => {
     throw error;
   }
 };
+
+// delete one notifiaction
+export const deleteOneNotification = async (id) => {
+  try {
+    const res = await API.delete(`/notifications/${id}/delete`);
+
+    return res.data;
+  } catch (error) {
+    console.log("Delete one notification error", error);
+
+    throw error;
+  }
+};

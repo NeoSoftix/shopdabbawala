@@ -122,3 +122,42 @@ export const markAllNotificationsRead = async (req, res) => {
     return res.status(500).json({ success: false, message: "Failed to update notifications." });
   }
 };
+
+// for delete the notification 
+export const deleteOneNotification = async (req, res) => {
+  try {
+    const filter = await getRecipientFilter(req);
+
+    if (!filter) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification recipient not found.",
+      });
+    }
+
+    const { id } = req.params;
+
+    const notification = await Notification.findOneAndDelete({
+      _id: id,
+      ...filter,
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete Notification Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete notification.",
+    });
+  }
+};
