@@ -328,7 +328,7 @@ console.log(totalSlots);
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT SECTION */}
-        <div className="lg:col-span-7 space-y-5">
+        <div className="lg:col-span-7 space-y-5 min-w-0">
           <div className="flex items-start gap-3">
             <span className="w-7 h-7 bg-white border-2 border-[#E31A1A] text-[#E31A1A] rounded-full flex items-center justify-center font-bold text-sm shrink-0">
               1
@@ -349,7 +349,7 @@ console.log(totalSlots);
             setSelectedCategory={setSelectedCategory}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-130 overflow-y-auto no-scrollbar pr-1">
             <ItemGrid
               loadingData={loadingData}
               filteredFoodItems={filteredFoodItems}

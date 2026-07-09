@@ -59,10 +59,10 @@ export default function PackageCard({
         )}
 
         {pkg.hasDiscount && (
-          <div className="absolute -top-3 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap">
-            Discounted
-          </div>
-        )}
+  <div className="absolute -top-4 right-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-2 rounded-full text-xs font-extrabold tracking-wide shadow-xl z-30 whitespace-nowrap border border-white/30">
+    🏷 {pkg.discountPercentage}% OFF
+  </div>
+)}
 
         <div className="w-full flex justify-center mb-3 md:mb-4 mt-1">
           <div

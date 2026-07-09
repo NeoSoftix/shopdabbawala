@@ -1,6 +1,6 @@
 import Package from "../../models/package.model.js";
 import stripe from "../../config/stripe.js";
-import { recurringMap } from "./package.utils.js";
+import { getRecurring } from "./package.utils.js";
 
 // create package with stripe
 export const createPackage = async (req, res) => {
@@ -13,7 +13,7 @@ export const createPackage = async (req, res) => {
       totalMeals,
       price,
       description,
-      discountedPrice,
+      discountPercentage,
       maxItemsPerMeal,
       features,
     } = req.body;
@@ -82,28 +82,29 @@ export const createPackage = async (req, res) => {
       });
     }
 
-    // Discounted Price Validation (optional field)
+    // Discount Percentage Validation (optional field) — actual discounted price is derived from this
     let numericDiscountedPrice = null;
     if (
-      discountedPrice !== undefined &&
-      discountedPrice !== null &&
-      discountedPrice !== ""
+      discountPercentage !== undefined &&
+      discountPercentage !== null &&
+      discountPercentage !== ""
     ) {
-      numericDiscountedPrice = Number(discountedPrice);
+      const numericDiscountPercentage = Number(discountPercentage);
 
-      if (isNaN(numericDiscountedPrice) || numericDiscountedPrice <= 0) {
+      if (
+        isNaN(numericDiscountPercentage) ||
+        numericDiscountPercentage <= 0 ||
+        numericDiscountPercentage >= 100
+      ) {
         return res.status(400).json({
           success: false,
-          message: "Discounted price must be greater than 0.",
+          message: "Discount percentage must be between 0 and 100.",
         });
       }
 
-      if (numericDiscountedPrice >= numericPrice) {
-        return res.status(400).json({
-          success: false,
-          message: "Discounted price must be less than the actual price.",
-        });
-      }
+      numericDiscountedPrice = Number(
+        (numericPrice - (numericPrice * numericDiscountPercentage) / 100).toFixed(2),
+      );
     }
 
     if (isNaN(numericMeals) || numericMeals <= 0) {
@@ -127,7 +128,7 @@ export const createPackage = async (req, res) => {
       });
     }
 
-    const recurring = recurringMap[numericValidityDays];
+    const recurring = getRecurring(numericValidityDays);
 
     if (!recurring) {
       return res.status(400).json({

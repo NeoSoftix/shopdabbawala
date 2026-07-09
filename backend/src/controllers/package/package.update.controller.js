@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Package from "../../models/package.model.js";
 import stripe from "../../config/stripe.js";
-import { recurringMap } from "./package.utils.js";
+import { getRecurring } from "./package.utils.js";
 
 // update the package
 
@@ -13,7 +13,7 @@ export const updatePackage = async (req, res) => {
       name,
       description,
       price,
-      discountedPrice,
+      discountPercentage,
       totalMeals,
       validityDays,
       maxItemsPerMeal,
@@ -85,27 +85,28 @@ export const updatePackage = async (req, res) => {
       }
     }
 
-    // Discounted Price (optional field, null/"" clears it)
+    // Discount Percentage (optional field, null/"" clears it) — actual discounted price is derived from this
     let numericDiscountedPrice = packageData.discountedPrice ?? null;
-    if (discountedPrice !== undefined) {
-      if (discountedPrice === null || discountedPrice === "") {
+    if (discountPercentage !== undefined) {
+      if (discountPercentage === null || discountPercentage === "") {
         numericDiscountedPrice = null;
       } else {
-        numericDiscountedPrice = Number(discountedPrice);
+        const numericDiscountPercentage = Number(discountPercentage);
 
-        if (isNaN(numericDiscountedPrice) || numericDiscountedPrice <= 0) {
+        if (
+          isNaN(numericDiscountPercentage) ||
+          numericDiscountPercentage <= 0 ||
+          numericDiscountPercentage >= 100
+        ) {
           return res.status(400).json({
-            message: "Discounted price should be a positive number",
+            message: "Discount percentage must be between 0 and 100",
             success: false,
           });
         }
 
-        if (numericDiscountedPrice >= numericPrice) {
-          return res.status(400).json({
-            message: "Discounted price must be less than the actual price",
-            success: false,
-          });
-        }
+        numericDiscountedPrice = Number(
+          (numericPrice - (numericPrice * numericDiscountPercentage) / 100).toFixed(2),
+        );
       }
 
       if (numericDiscountedPrice !== (packageData.discountedPrice ?? null)) {
@@ -158,7 +159,7 @@ export const updatePackage = async (req, res) => {
         });
       }
 
-      if (!recurringMap[numericValidityDays]) {
+      if (!getRecurring[numericValidityDays]) {
         return res.status(400).json({
           message: "Unsupported validity period",
           success: false,
@@ -252,7 +253,7 @@ export const updatePackage = async (req, res) => {
       // Price/validity change hone par hi nayi price banao
       if (priceChanged || validityChanged) {
         try {
-          const recurring = recurringMap[numericValidityDays];
+          const recurring = getRecurring(numericValidityDays);
 
           const newStripePrice = await stripe.prices.create({
             product: packageData.stripeProductId,

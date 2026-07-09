@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingBag, CreditCard, Info, Megaphone, Bell } from "lucide-react";
+import { X, ShoppingBag, CreditCard, Info, Megaphone, Bell, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 
 const ICONS = {
   order: ShoppingBag,
@@ -29,6 +29,9 @@ export default function NotificationDrawer({
   unreadCount = 0,
   onMarkAsRead,
   onMarkAllAsRead,
+  onDelete,
+  pagination = {},
+  onPageChange,
 }) {
   return (
     <AnimatePresence>
@@ -92,31 +95,77 @@ export default function NotificationDrawer({
                   const isUnread = !notification.read;
 
                   return (
-                    <button
+                    <div
                       key={notification._id}
-                      onClick={() => isUnread && onMarkAsRead && onMarkAsRead(notification._id)}
-                      className={`w-full text-left flex items-start gap-3 p-3.5 rounded-2xl transition-colors ${
+                      className={`relative w-full flex items-start gap-3 p-3.5 rounded-2xl transition-colors ${
                         isUnread ? "bg-red-50/60 hover:bg-red-50" : "hover:bg-slate-50"
                       }`}
                     >
-                      <span className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center shrink-0 text-red-600">
-                        <Icon size={16} />
-                      </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="flex items-center gap-1.5">
-                          <span className="text-sm font-bold text-slate-900 truncate">{notification.title}</span>
-                          {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
+                      <button
+                        type="button"
+                        onClick={() => isUnread && onMarkAsRead && onMarkAsRead(notification._id)}
+                        className="flex-1 min-w-0 flex items-start gap-3 text-left pr-6"
+                      >
+                        <span className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center shrink-0 text-red-600">
+                          <Icon size={16} />
                         </span>
-                        <span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{notification.message}</span>
-                        <span className="block text-[10px] font-semibold text-slate-300 mt-1 uppercase tracking-wide">
-                          {formatTimeAgo(notification.createdAt)}
+                        <span className="flex-1 min-w-0">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-slate-900 truncate">{notification.title}</span>
+                            {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
+                          </span>
+                          <span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{notification.message}</span>
+                          <span className="block text-[10px] font-semibold text-slate-300 mt-1 uppercase tracking-wide">
+                            {formatTimeAgo(notification.createdAt)}
+                          </span>
                         </span>
-                      </span>
-                    </button>
+                      </button>
+
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(notification._id);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 rounded-full text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          aria-label="Delete notification"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   );
                 })
               )}
             </div>
+
+            {/* Pagination */}
+            {pagination?.totalPages > 1 && (
+              <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 shrink-0">
+                <button
+                  onClick={() => onPageChange && onPageChange(pagination.page - 1)}
+                  disabled={!pagination.hasPrevPage}
+                  className="p-1.5 rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <span className="text-xs font-semibold text-slate-500">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+
+                <button
+                  onClick={() => onPageChange && onPageChange(pagination.page + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className="p-1.5 rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </motion.div>
         </>
       )}

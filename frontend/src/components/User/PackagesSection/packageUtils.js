@@ -19,10 +19,16 @@ export function formatPackages(rawPackages) {
     const hasDiscount =
       pkg.discountedPrice != null && pkg.discountedPrice < pkg.price;
 
+    const discountPercentage =
+      hasDiscount && pkg.price
+        ? Math.round(((pkg.price - pkg.discountedPrice) / pkg.price) * 100)
+        : null;
+
     return {
     ...pkg,
     title: pkg.name ? pkg.name.toUpperCase() : "PLAN",
     hasDiscount,
+    discountPercentage,
     price: hasDiscount
       ? `$${pkg.discountedPrice}`
       : pkg.price
