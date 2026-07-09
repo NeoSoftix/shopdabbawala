@@ -132,6 +132,7 @@ export default function CreatePackage({ isOpen, onClose }) {
   const discount = subtotal * (discountPercentage / 100);
   const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
+  const discountedPricePerMeal = pricePerMeal - (pricePerMeal * discountPercentage) / 100;
 
   const getCustomizationError = () => {
     if (!startDate) return "Please select a Delivery Start Date from the calendar above.";
@@ -234,7 +235,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                     discountPercentage={discountPercentage}
                     deliveryCharges={deliveryCharges}
                     totalAmount={totalAmount}
-                    pricePerMeal={pricePerMeal}
+                    pricePerMeal={discountedPricePerMeal}
                   />
 
                   {/* Proceed / Go Back — directly below Plan Summary in the same sticky stack */}

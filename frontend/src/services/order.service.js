@@ -12,10 +12,12 @@ export const getOrderStats = async () => {
 };
 
 // ➤ 2. Get all orders (powers the Orders list page)
-export const getAllOrders = async (search = "") => {
+export const getAllOrders = async (search = "", page = 1, limit = 10) => {
   try {
-    const url = search ? `/orders?search=${encodeURIComponent(search)}` : "/orders";
-    const res = await API.get(url);
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set("search", search);
+
+    const res = await API.get(`/orders?${params.toString()}`);
     return res.data;
   } catch (error) {
     console.error("Get All Orders Error", error);

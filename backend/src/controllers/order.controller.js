@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
 import Vendor from "../models/vendor.model.js";
 import { notifyOrderStatusChange } from "../utils/notifyOrderEvent.js";
+import { getPagination } from "../utils/pagination.js";
 
 // A vendor id that can never match a real document - used so a vendor
 // without a profile yet sees zero orders, instead of falling through to
@@ -88,11 +89,14 @@ export const getAllOrders = async (req, res) => {
     const { search } = req.query;
     const filter = await getOrderScopeFilter(req);
 
+    const { page, limit, skip } = getPagination(req);
+
     const orders = await Order.find(filter)
       .populate("user", "name email phone")
       .sort({ orderDate: -1 });
 
     let filteredOrders = orders;
+
     if (search) {
       const regex = new RegExp(search, "i");
       filteredOrders = orders.filter(
@@ -103,13 +107,20 @@ export const getAllOrders = async (req, res) => {
       );
     }
 
+    const totalOrders = filteredOrders.length;
+
+    const paginatedOrders = filteredOrders.slice(skip, skip + limit);
+
     return res.status(200).json({
       success: true,
-      count: filteredOrders.length,
-      orders: filteredOrders,
+      currentPage: page,
+      totalPages: Math.ceil(totalOrders / limit),
+      totalOrders,
+      orders: paginatedOrders,
     });
   } catch (error) {
     console.error("Get All Orders Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching orders",

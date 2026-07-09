@@ -39,7 +39,7 @@ router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaO
 router.delete("/remove-area-category/:id", verifyToken, allowedRoles("vendor"), removeAreaAndCategory);
 
 // Update Vendor
-router.put("/:id", verifyToken, allowedRoles("admin"), upload.single("logo"), updateVendor);
+router.put("/:id", verifyToken, allowedRoles("admin", "vendor"), upload.single("logo"), updateVendor);
 
 // Toggle Status
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);

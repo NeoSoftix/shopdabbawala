@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import NotificationCard from "../../components/vendor/NotificationCard";
 import NotificationFilters from "../../components/vendor/NotificationFilters";
 import NotificationSummary from "../../components/vendor/NotificationSummary";
-import NotificationSettings from "../../components/vendor/NotificationSettings";
+// import NotificationSettings from "../../components/vendor/NotificationSettings";
 import { useNotifications } from "../../context/NotificationContext";
 
 const formatTimeAgo = (dateStr) => {
@@ -122,7 +122,7 @@ export default function VendorNotifications() {
           counts={counts}
           unreadCount={unreadCount}
         />
-        <NotificationSettings />
+        {/* <NotificationSettings /> */}
       </div>
     </div>
   );
