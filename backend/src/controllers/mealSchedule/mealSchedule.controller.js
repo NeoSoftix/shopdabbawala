@@ -5,7 +5,7 @@ import MealSchedule from "../../models/mealSchedule.model.js";
 import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
-import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js";
+import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
 
 const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder, planName }) => {
   const title = isNewOrder ? "New Order Received" : "Order Updated";
@@ -108,6 +108,15 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         planName,
       });
     }
+
+    notifyUser({
+      userId,
+      orderId,
+      title: isNewOrder ? "Order Placed" : "Order Updated",
+      message: isNewOrder
+        ? `Your order for ${day}${planName ? ` (${planName} plan)` : ""} has been placed successfully.`
+        : `Your order for ${day}${planName ? ` (${planName} plan)` : ""} has been updated.`,
+    });
   } catch (error) {
     console.error("Sync Vendor Order Error:", error);
   }

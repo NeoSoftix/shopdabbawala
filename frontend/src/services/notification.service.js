@@ -1,11 +1,11 @@
 import API from "./api";
 
-export const getVendorNotifications = async () => {
+export const getMyNotifications = async () => {
   try {
     const res = await API.get("/notifications");
     return res.data;
   } catch (error) {
-    console.log("Get Vendor Notifications Error", error);
+    console.log("Get Notifications Error", error);
     throw error;
   }
 };

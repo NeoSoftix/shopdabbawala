@@ -4,9 +4,9 @@ import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
 import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
-import { NotificationProvider, useNotifications } from "../../context/NotificationContext";
+import { useNotifications } from "../../context/NotificationContext";
 
-function VendorLayoutInner() {
+export default function VendorLayout() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { unreadCount } = useNotifications();
@@ -42,13 +42,5 @@ function VendorLayoutInner() {
         </main>
       </div>
     </div>
-  );
-}
-
-export default function VendorLayout() {
-  return (
-    <NotificationProvider>
-      <VendorLayoutInner />
-    </NotificationProvider>
   );
 }

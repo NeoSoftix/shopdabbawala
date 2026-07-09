@@ -2,10 +2,18 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
+    // Exactly one of these is set, depending on who the notification is for.
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true,
+      default: null,
+      index: true,
+    },
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
       index: true,
     },
 

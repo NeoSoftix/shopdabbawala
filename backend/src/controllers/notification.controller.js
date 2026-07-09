@@ -1,41 +1,53 @@
 import Notification from "../models/notification.model.js";
 import Vendor from "../models/vendor.model.js";
 
-const getVendorId = async (req) => {
-  const vendor = await Vendor.findOne({ userId: req.user.id }).select("_id");
-  return vendor?._id || null;
+// Vendors see notifications addressed to their vendor profile; regular
+// users and admins see notifications addressed to their own account (admins
+// are User documents too, so they reuse the same `user` field). Returns
+// null if neither applies (e.g. a vendor without a profile yet).
+const getRecipientFilter = async (req) => {
+  if (req.user.role === "vendor") {
+    const vendor = await Vendor.findOne({ userId: req.user.id }).select("_id");
+    return vendor ? { vendor: vendor._id } : null;
+  }
+
+  if (req.user.role === "user" || req.user.role === "admin") {
+    return { user: req.user.id };
+  }
+
+  return null;
 };
 
-// ➤ Get latest notifications for the logged-in vendor
-export const getVendorNotifications = async (req, res) => {
+// ➤ Get latest notifications for the logged-in vendor/user
+export const getMyNotifications = async (req, res) => {
   try {
-    const vendorId = await getVendorId(req);
+    const filter = await getRecipientFilter(req);
 
-    if (!vendorId) {
-      return res.status(404).json({ success: false, message: "Vendor profile not found." });
+    if (!filter) {
+      return res.status(404).json({ success: false, message: "Notification recipient not found." });
     }
 
-    const notifications = await Notification.find({ vendor: vendorId })
+    const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .limit(50);
 
     return res.status(200).json({ success: true, notifications });
   } catch (error) {
-    console.error("Get Vendor Notifications Error:", error);
+    console.error("Get Notifications Error:", error);
     return res.status(500).json({ success: false, message: "Failed to fetch notifications." });
   }
 };
 
-// ➤ Unread notification count - powers the sidebar badge
+// ➤ Unread notification count - powers the bell/sidebar badge
 export const getUnreadCount = async (req, res) => {
   try {
-    const vendorId = await getVendorId(req);
+    const filter = await getRecipientFilter(req);
 
-    if (!vendorId) {
-      return res.status(404).json({ success: false, message: "Vendor profile not found." });
+    if (!filter) {
+      return res.status(404).json({ success: false, message: "Notification recipient not found." });
     }
 
-    const count = await Notification.countDocuments({ vendor: vendorId, read: false });
+    const count = await Notification.countDocuments({ ...filter, read: false });
 
     return res.status(200).json({ success: true, count });
   } catch (error) {
@@ -47,14 +59,14 @@ export const getUnreadCount = async (req, res) => {
 // ➤ Mark a single notification as read
 export const markNotificationRead = async (req, res) => {
   try {
-    const vendorId = await getVendorId(req);
+    const filter = await getRecipientFilter(req);
 
-    if (!vendorId) {
-      return res.status(404).json({ success: false, message: "Vendor profile not found." });
+    if (!filter) {
+      return res.status(404).json({ success: false, message: "Notification recipient not found." });
     }
 
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, vendor: vendorId },
+      { _id: req.params.id, ...filter },
       { read: true },
       { new: true }
     );
@@ -70,16 +82,16 @@ export const markNotificationRead = async (req, res) => {
   }
 };
 
-// ➤ Mark all of this vendor's notifications as read
+// ➤ Mark all of this vendor's/user's notifications as read
 export const markAllNotificationsRead = async (req, res) => {
   try {
-    const vendorId = await getVendorId(req);
+    const filter = await getRecipientFilter(req);
 
-    if (!vendorId) {
-      return res.status(404).json({ success: false, message: "Vendor profile not found." });
+    if (!filter) {
+      return res.status(404).json({ success: false, message: "Notification recipient not found." });
     }
 
-    await Notification.updateMany({ vendor: vendorId, read: false }, { read: true });
+    await Notification.updateMany({ ...filter, read: false }, { read: true });
 
     return res.status(200).json({ success: true });
   } catch (error) {

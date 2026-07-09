@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
-import { Menu, X, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, User, ChevronDown, Bell } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
-import logoImg from "/logo.png"; 
+import logoImg from "/logo.png";
 import UserLogin from "./UserLogin";
 import UserProfileEdit from "./UserProfileEdit";
+import NotificationDrawer from "../shared/NotificationDrawer";
 
 export default function HeroHeader() {
   const { user, logout } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeHash, setActiveHash] = useState("");
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -145,6 +149,20 @@ export default function HeroHeader() {
           {/* Right Action Trigger Deck */}
           <div className="hidden md:flex items-center gap-5 lg:gap-7">
             {user ? (
+              <>
+                <button
+                  onClick={() => setIsNotificationsOpen(true)}
+                  className={`relative p-2 rounded-full transition-colors ${scrolled ? "hover:bg-slate-100 text-slate-700" : "hover:bg-white/10 text-slate-900"}`}
+                  aria-label="Notifications"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
               <div className="relative flex items-center gap-2">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -207,6 +225,7 @@ export default function HeroHeader() {
                   )}
                 </AnimatePresence>
               </div>
+              </>
             ) : (
               <>
                 <button onClick={() => setIsLoginOpen(true)} className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
@@ -299,6 +318,20 @@ export default function HeroHeader() {
           <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
             {user ? (
               <>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsNotificationsOpen(true);
+                  }}
+                  className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold bg-slate-50 text-slate-800 border border-slate-200 transition-all flex items-center justify-center gap-2 relative"
+                >
+                  <Bell size={16} /> Notifications
+                  {unreadCount > 0 && (
+                    <span className="bg-red-600 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
                 <Link
                   to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
@@ -333,6 +366,14 @@ export default function HeroHeader() {
 
       <UserLogin isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       <UserProfileEdit isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <NotificationDrawer
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+      />
     </header>
   );
 }

@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getVendorNotifications,
+  getMyNotifications,
   getUnreadCount,
   markNotificationRead,
   markAllNotificationsRead,
@@ -9,9 +9,9 @@ import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.use(verifyToken, allowedRoles("vendor"));
+router.use(verifyToken, allowedRoles("vendor", "user", "admin"));
 
-router.get("/", getVendorNotifications);
+router.get("/", getMyNotifications);
 router.get("/unread-count", getUnreadCount);
 router.patch("/read-all", markAllNotificationsRead);
 router.patch("/:id/read", markNotificationRead);

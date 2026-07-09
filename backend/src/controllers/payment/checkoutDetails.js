@@ -7,7 +7,7 @@ import { purchaseSuccessTemplate } from "../../utils/email/purchaseSuccessTempla
 import User from "../../models/User.model.js"
 import { setupScheduledSubscription } from "./stripeHelpers.js"
 import { findServingVendor } from "../../utils/findServingVendor.js"
-import { notifyOrderEvent } from "../../utils/notifyOrderEvent.js"
+import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js"
 
 // save check out detilas
 export const saveCheckoutDetails = async (req, res) => {
@@ -257,6 +257,13 @@ export const saveCheckoutDetails = async (req, res) => {
           { label: "Amount", value: `$${amount}` },
           { label: "Pincode", value: purchasePincode || "Not provided" },
         ],
+      });
+
+      notifyUser({
+        userId: payment.user,
+        type: "payment",
+        title: "Subscription Purchased",
+        message: `You purchased the ${planName} plan! We'll start preparing your meals soon.`,
       });
 
       payment.purchaseNotified = true;

@@ -1,9 +1,31 @@
 import Notification from "../models/notification.model.js";
 import Vendor from "../models/vendor.model.js";
 import User from "../models/User.model.js";
-import { emitToVendor } from "../socket/index.js";
+import { emitToVendor, emitToUser } from "../socket/index.js";
 import { sendEmail } from "./email/sendEmail.js";
 import { orderEventTemplate } from "./email/orderEventTemplate.js";
+
+// Persists + pushes a real-time in-app notification to a customer's own
+// bell/drawer (their purchases, order placements, accept/reject outcomes).
+// Never throws - a notification failure shouldn't block the action that
+// triggered it.
+export const notifyUser = async ({ userId, orderId, type = "order", title, message }) => {
+  if (!userId) return;
+
+  try {
+    const notification = await Notification.create({
+      user: userId,
+      type,
+      title,
+      message,
+      order: orderId || null,
+    });
+
+    emitToUser(userId, "notification:new", notification);
+  } catch (error) {
+    console.error("notifyUser: in-app notification error:", error);
+  }
+};
 
 // Single entry point for every order-lifecycle event (new subscription
 // purchased, new day order created/updated, day paused/resumed): persists +
@@ -57,10 +79,11 @@ export const notifyOrderEvent = async ({
     }
 
     try {
-      const admins = await User.find({ role: "admin", email: { $exists: true, $ne: null } }).select("email");
+      const admins = await User.find({ role: "admin" }).select("email");
       console.log(`notifyOrderEvent [${emailHeading || title}]: found ${admins.length} admin(s):`, admins.map((a) => a.email));
       admins.forEach((admin) => {
         if (admin.email) recipients.push(admin.email);
+        notifyUser({ userId: admin._id, orderId, type, title, message });
       });
     } catch (error) {
       console.error("notifyOrderEvent: admin lookup failed:", error.message);
@@ -99,6 +122,15 @@ export const notifyOrderStatusChange = async ({ order, status, vendorName }) => 
       const user = await User.findById(order.user).select("email name");
       const customerName = user?.name || "A customer";
 
+      notifyUser({
+        userId: order.user,
+        orderId: order._id,
+        title: isAccepted ? "Order Accepted" : "Order Rejected",
+        message: isAccepted
+          ? `Your order for ${order.day} has been accepted by ${vendorName || "the vendor"}.`
+          : `Your order for ${order.day} was rejected by ${vendorName || "the vendor"}.`,
+      });
+
       if (user?.email) {
         const userHeading = isAccepted ? "Your Order Has Been Accepted! 🎉" : "Your Order Was Rejected";
         const userHtml = orderEventTemplate({
@@ -119,12 +151,13 @@ export const notifyOrderStatusChange = async ({ order, status, vendorName }) => 
           .catch((error) => console.error(`notifyOrderStatusChange: user email FAILED for ${user.email}:`, error.response?.data || error.message));
       }
 
-      const admins = await User.find({ role: "admin", email: { $exists: true, $ne: null } }).select("email");
+      const admins = await User.find({ role: "admin" }).select("email");
       if (admins.length > 0) {
         const adminHeading = isAccepted ? "Vendor Accepted an Order" : "Vendor Rejected an Order";
+        const adminIntro = `${vendorName || "A vendor"} has ${isAccepted ? "accepted" : "rejected"} ${customerName}'s order for ${order.day}.`;
         const adminHtml = orderEventTemplate({
           heading: adminHeading,
-          intro: `${vendorName || "A vendor"} has ${isAccepted ? "accepted" : "rejected"} ${customerName}'s order for ${order.day}.`,
+          intro: adminIntro,
           lines: [
             { label: "Customer", value: customerName },
             { label: "Vendor", value: vendorName || "N/A" },
@@ -135,6 +168,8 @@ export const notifyOrderStatusChange = async ({ order, status, vendorName }) => 
         });
 
         admins.forEach((admin) => {
+          notifyUser({ userId: admin._id, orderId: order._id, title: adminHeading, message: adminIntro });
+
           if (!admin.email) return;
           sendEmail(admin.email, adminHeading, adminHtml)
             .then(() => console.log(`notifyOrderStatusChange: admin email sent OK to ${admin.email} (${status})`))

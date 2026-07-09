@@ -13,10 +13,10 @@ const parseCookie = (cookieHeader = "", name) => {
   return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
 };
 
-// Vendor-only auth: verifies the same JWT cookie used by the REST API, then
-// resolves the vendor doc for that user so the socket can join a private
-// per-vendor room (vendor:<vendorId>) - nobody outside that vendor's own
-// connections can receive events emitted to it.
+// Verifies the same JWT cookie used by the REST API, then joins the socket
+// to a private per-recipient room - vendors join `vendor:<vendorId>`,
+// regular users join `user:<userId>` - so nobody outside that recipient's
+// own connections can receive events emitted to it.
 const authenticateSocket = async (socket, next) => {
   try {
     const token = parseCookie(socket.handshake.headers.cookie, "token");
@@ -28,17 +28,26 @@ const authenticateSocket = async (socket, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId || decoded.id || decoded._id;
 
-    if (!userId || decoded.role !== "vendor") {
+    if (!userId) {
       return next(new Error("Unauthorized"));
     }
 
-    const vendor = await Vendor.findOne({ userId }).select("_id");
+    if (decoded.role === "vendor") {
+      const vendor = await Vendor.findOne({ userId }).select("_id");
 
-    if (!vendor) {
+      if (!vendor) {
+        return next(new Error("Unauthorized"));
+      }
+
+      socket.room = `vendor:${vendor._id}`;
+    } else if (decoded.role === "user" || decoded.role === "admin") {
+      // Admins are User documents too, so their notifications reuse the
+      // same `user:<id>` room as a regular customer's.
+      socket.room = `user:${userId}`;
+    } else {
       return next(new Error("Unauthorized"));
     }
 
-    socket.vendorId = vendor._id.toString();
     next();
   } catch (error) {
     next(new Error("Unauthorized"));
@@ -67,10 +76,10 @@ export const initSocket = (httpServer) => {
   io.use(authenticateSocket);
 
   io.on("connection", (socket) => {
-    socket.join(`vendor:${socket.vendorId}`);
+    socket.join(socket.room);
 
     socket.on("disconnect", () => {
-      socket.leave(`vendor:${socket.vendorId}`);
+      socket.leave(socket.room);
     });
   });
 
@@ -80,4 +89,9 @@ export const initSocket = (httpServer) => {
 export const emitToVendor = (vendorId, event, payload) => {
   if (!io || !vendorId) return;
   io.to(`vendor:${vendorId.toString()}`).emit(event, payload);
+};
+
+export const emitToUser = (userId, event, payload) => {
+  if (!io || !userId) return;
+  io.to(`user:${userId.toString()}`).emit(event, payload);
 };
