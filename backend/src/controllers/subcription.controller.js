@@ -472,9 +472,42 @@ export const getMySubscriptions = async (req, res) => {
       .populate("meals")
       .sort({ createdAt: -1 });
 
+    // Attach the matching Payment (transaction id, gateway, paid-at time) to
+    // each subscription so the Purchase History tab can show full details.
+    const payments = await Payment.find({
+      subscription: { $in: subscriptions.map((sub) => sub._id) },
+    }).sort({ createdAt: -1 });
+
+    const paymentBySubscription = new Map();
+    for (const payment of payments) {
+      const key = payment.subscription?.toString();
+      if (key && !paymentBySubscription.has(key)) {
+        paymentBySubscription.set(key, payment);
+      }
+    }
+
+    const subscriptionsWithPayment = subscriptions.map((sub) => {
+      const payment = paymentBySubscription.get(sub._id.toString());
+      return {
+        ...sub.toObject(),
+        payment: payment
+          ? {
+              transactionId: payment.stripeSessionId,
+              paymentIntentId: payment.paymentIntentId,
+              gateway: "Stripe",
+              amount: payment.amount,
+              currency: payment.currency,
+              status: payment.status,
+              paidAt: payment.paidAt,
+              createdAt: payment.createdAt,
+            }
+          : null,
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      subscriptions,
+      subscriptions: subscriptionsWithPayment,
     });
   } catch (error) {
     console.error("Get My Subscriptions Error:", error);

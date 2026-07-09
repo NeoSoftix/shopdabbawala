@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  Calendar, Clock, MapPin, Headphones, ShoppingBag, AlertCircle, Package
+  Calendar, Clock, MapPin, Headphones, ShoppingBag, AlertCircle, Package, Receipt
 } from 'lucide-react';
+import { SiStripe } from 'react-icons/si';
 import { getMyOrders } from '../../services/order.service';
 
 const STATUS_STYLES = {
@@ -42,6 +43,15 @@ export default function UserHistoryDetails({ subscriptions }) {
     if (!dateString) return "N/A";
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  // Helper to format Date + time together, for transaction timestamps
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+    });
   };
 
   // Get current day string (e.g., "Monday")
@@ -222,42 +232,59 @@ export default function UserHistoryDetails({ subscriptions }) {
                     </div>
                   ) : subscriptions.map((sub, idx) => (
                     <div key={sub._id || idx} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                      <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-50 hover:bg-gray-50/50 transition">
-                        <div className="flex items-start space-x-4">
-                          <div className="bg-red-50 text-red-600 p-2.5 rounded-lg mt-0.5">
+                      <div className="p-5 flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-gray-50 hover:bg-gray-50/50 transition">
+                        <div className="flex items-center space-x-4">
+                          <div className="bg-red-50 text-red-600 p-2.5 rounded-lg">
                             {sub.package ? <Package className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
                           </div>
-                          <div className="space-y-1">
-                            <span className="font-bold text-gray-900 capitalize">
-                              {sub.package?.name || `${sub.duration || "Custom"} Plan`} ({sub.mealSize || "Custom"})
-                            </span>
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-red-400">
-                              {sub.package ? "Admin Package" : "Custom Build"}
-                            </p>
-                            <p className="text-xs text-gray-400">Purchased on: {formatDate(sub.createdAt)}</p>
-                            <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
-                              <span className="flex items-center space-x-1">
-                                <span className="font-semibold text-gray-700">Total Meals:</span>
-                                <span>{sub.totalMeals}</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <span className="font-semibold text-gray-700">Meals Used:</span>
-                                <span>{sub.mealsUsed}</span>
-                              </span>
-                            </div>
-                          </div>
+                          <span className="font-bold text-gray-900 capitalize">
+                            {sub.package?.name || `${sub.duration || "Custom"} Plan`} ({sub.mealSize || "Custom"})
+                          </span>
                         </div>
 
-                        <div className="flex items-center space-x-3 px-0 md:px-8 flex-1 max-w-xs md:border-l md:border-r md:border-gray-100">
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-800">Status</h4>
-                            <p className="text-xs text-gray-500 capitalize">{sub.status}</p>
-                          </div>
+                        <div className="flex flex-col space-y-2 px-0 md:px-8 flex-1 max-w-sm md:border-l md:border-r md:border-gray-100">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                            <Receipt className="w-3.5 h-3.5" /> Transaction Details
+                          </h4>
+                          {sub.payment ? (
+                            <>
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <span className="font-semibold text-gray-700">Txn ID:</span>
+                                <span className="font-mono truncate max-w-[160px]" title={sub.payment.transactionId}>
+                                  {sub.payment.transactionId}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <span className="font-semibold text-gray-700">Date &amp; Time:</span>
+                                <span>{formatDateTime(sub.payment.paidAt || sub.payment.createdAt)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <span className="font-semibold text-gray-700">Paid via:</span>
+                                <span className="inline-flex items-center gap-1 bg-[#635BFF]/10 text-[#635BFF] font-semibold px-1.5 py-0.5 rounded">
+                                  <SiStripe className="w-3.5 h-3.5" /> {sub.payment.gateway}
+                                </span>
+                              </div>
+                              {typeof sub.payment.amount === "number" && (
+                                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                  <span className="font-semibold text-gray-700">Amount:</span>
+                                  <span>{(sub.payment.currency || "usd").toUpperCase()} {sub.payment.amount}</span>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">No transaction record found.</p>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between md:justify-end space-x-4">
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                            {sub.status === 'active' ? 'Active' : sub.status}
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                            sub.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : sub.status === 'expired'
+                                ? 'bg-red-100 text-red-600'
+                                : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {sub.status === 'active' ? 'Active' : sub.status === 'expired' ? 'Expired' : sub.status}
                           </span>
                         </div>
                       </div>
