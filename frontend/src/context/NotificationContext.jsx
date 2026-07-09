@@ -15,6 +15,8 @@ export const NotificationProvider = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({});
 
   const isVendor = user?.role === "vendor";
 
@@ -24,11 +26,12 @@ export const NotificationProvider = ({ children }) => {
     (async () => {
       try {
         const [listRes, countRes] = await Promise.all([
-          getVendorNotifications(),
+          getVendorNotifications(page, 10),
           getUnreadNotificationCount(),
         ]);
 
         if (listRes?.success) setNotifications(listRes.notifications);
+        setPagination(listRes.pagination);
         if (countRes?.success) setUnreadCount(countRes.count);
       } catch (error) {
         console.log("Notification initial load error", error);
@@ -49,11 +52,11 @@ export const NotificationProvider = ({ children }) => {
       socket.off("notification:new", handleNewNotification);
       disconnectSocket();
     };
-  }, [isVendor]);
+  }, [isVendor, page]);
 
   const markAsRead = async (id) => {
     setNotifications((prev) =>
-      prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
 
@@ -77,7 +80,15 @@ export const NotificationProvider = ({ children }) => {
 
   return (
     <NotificationContext.Provider
-      value={{ notifications, unreadCount, markAsRead, markAllAsRead }}
+      value={{
+        notifications,
+        unreadCount,
+        markAsRead,
+        markAllAsRead,
+        page,
+        setPage,
+        pagination,
+      }}
     >
       {children}
     </NotificationContext.Provider>

@@ -1,5 +1,6 @@
 import Notification from "../models/notification.model.js";
 import Vendor from "../models/vendor.model.js";
+import { getPagination } from "../utils/pagination.js";
 
 const getVendorId = async (req) => {
   const vendor = await Vendor.findOne({ userId: req.user.id }).select("_id");
@@ -12,17 +13,42 @@ export const getVendorNotifications = async (req, res) => {
     const vendorId = await getVendorId(req);
 
     if (!vendorId) {
-      return res.status(404).json({ success: false, message: "Vendor profile not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Vendor profile not found.",
+      });
     }
 
-    const notifications = await Notification.find({ vendor: vendorId })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const { page, limit, skip } = getPagination(req);
 
-    return res.status(200).json({ success: true, notifications });
+    const [notifications, total] = await Promise.all([
+      Notification.find({ vendor: vendorId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Notification.countDocuments({ vendor: vendorId }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      notifications,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (error) {
     console.error("Get Vendor Notifications Error:", error);
-    return res.status(500).json({ success: false, message: "Failed to fetch notifications." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch notifications.",
+    });
   }
 };
 

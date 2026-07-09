@@ -20,7 +20,16 @@ const formatTimeAgo = (dateStr) => {
 };
 
 export default function VendorNotifications() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    page,
+    setPage,
+    pagination,
+  } = useNotifications();
+
   const [activeFilter, setActiveFilter] = useState("all");
 
   const counts = useMemo(() => {
@@ -63,22 +72,54 @@ export default function VendorNotifications() {
             No notifications yet.
           </div>
         ) : (
-          filteredNotifications.map((notification) => (
-            <NotificationCard
-              key={notification._id}
-              title={notification.title}
-              message={notification.message}
-              time={formatTimeAgo(notification.createdAt)}
-              type={notification.type}
-              unread={!notification.read}
-              onClick={() => !notification.read && markAsRead(notification._id)}
-            />
-          ))
+          <>
+            {filteredNotifications.map((notification) => (
+              <NotificationCard
+                key={notification._id}
+                title={notification.title}
+                message={notification.message}
+                time={formatTimeAgo(notification.createdAt)}
+                type={notification.type}
+                unread={!notification.read}
+                onClick={() =>
+                  !notification.read && markAsRead(notification._id)
+                }
+              />
+            ))}
+
+            {/* Pagination */}
+            {pagination?.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <button
+                  onClick={() => setPage((prev) => prev - 1)}
+                  disabled={!pagination.hasPrevPage}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                <span className="text-sm font-medium">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+
+                <button
+                  onClick={() => setPage((prev) => prev + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <div className="space-y-6">
-        <NotificationSummary counts={counts} unreadCount={unreadCount} />
+        <NotificationSummary
+          counts={counts}
+          unreadCount={unreadCount}
+        />
         <NotificationSettings />
       </div>
     </div>
