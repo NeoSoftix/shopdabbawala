@@ -161,7 +161,7 @@ export default function PackagesSection() {
 
   return (
     <section
-      className={`relative min-h-screen w-full py-12 md:py-16 flex flex-col justify-between bg-gradient-to-br ${packages[active]?.gradient || "from-slate-50 to-white"} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
+      className={`relative min-h-screen w-full py-6 md:py-8 flex flex-col justify-center gap-2 bg-gradient-to-br ${packages[active]?.gradient || "from-slate-50 to-white"} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
       id="plans"
     >
       {/* Background Glow Blobs */}
@@ -186,6 +186,7 @@ export default function PackagesSection() {
       <PackageFeaturesModal
         pkg={featureModalData}
         onClose={() => setFeatureModalData(null)}
+        onChoosePlan={openCheckoutModal}
       />
 
       <ViewAllPackagesModal

@@ -42,6 +42,8 @@ import PaymentSuccess from "./components/shared/PaymentSuccess";
 import PaymentFailed from "./components/shared/PaymentFailed";
 import SetDuration from "./components/Admin/SetDuration.jsx"
 import MealTierManager from "./components/Admin/MealTierManager.jsx"
+import AboutUsPage from "./pages/User/AboutUsPage.jsx";
+import ContactUsPage from "./pages/User/ContactUsPage.jsx";
 
 function App() {
   return (
@@ -60,10 +62,7 @@ function App() {
             fontFamily: "'Outfit', 'Inter', sans-serif",
           },
           success: {
-            iconTheme: {
-              primary: "#10B981",
-              secondary: "#FFFFFF",
-            },
+            icon: false,
             style: {
               background: "#ECFDF5",
               color: "#065F46",
@@ -71,10 +70,7 @@ function App() {
             },
           },
           error: {
-            iconTheme: {
-              primary: "#EF4444",
-              secondary: "#FFFFFF",
-            },
+            icon: false,
             style: {
               background: "#FEF2F2",
               color: "#991B1B",
@@ -139,6 +135,10 @@ function App() {
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/payment-cancel" element={<PaymentFailed />} />
+
+<Route path="/about" element={<AboutUsPage />} />
+
+<Route path="/contact-us" element={<ContactUsPage />} />
     </Routes>
     </>
   );

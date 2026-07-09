@@ -60,8 +60,8 @@ export default function HeroHeader() {
     { label: "Home", to: "/", isRouterLink: true },
     { label: "Plans", href: "#plans" },
     { label: "Menu", href: "#menu" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact-us" },
   ];
 
   const scrollToPackages = () => {

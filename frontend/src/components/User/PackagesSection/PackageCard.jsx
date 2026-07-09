@@ -36,7 +36,7 @@ export default function PackageCard({
       whileHover={{
         scale: isActive ? 1.02 : 0.9,
       }}
-      className="absolute w-[265px] sm:w-[310px] md:w-[340px] overflow-visible select-none touch-pan-y"
+      className="absolute w-[230px] sm:w-[265px] md:w-[290px] overflow-visible select-none touch-pan-y"
       style={{
         zIndex: isActive ? 30 : 10,
         backfaceVisibility: "hidden",
@@ -44,7 +44,7 @@ export default function PackageCard({
       }}
     >
       <div
-        className="relative bg-white rounded-[2.5rem] border p-6 flex flex-col justify-between h-full min-h-[440px] sm:min-h-[480px] md:min-h-[510px] cursor-pointer shadow-2xl transition-colors duration-300"
+        className="relative bg-white rounded-[2rem] border p-4 sm:p-5 flex flex-col justify-between h-full min-h-[370px] sm:min-h-[400px] md:min-h-[430px] cursor-pointer shadow-2xl transition-colors duration-300"
         style={{
           boxShadow: isActive
             ? "0 30px 60px rgba(220,38,38,0.15)"

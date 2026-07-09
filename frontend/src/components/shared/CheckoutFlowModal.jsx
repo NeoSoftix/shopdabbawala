@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import ModalShell from "./CheckoutFlowModal/ModalShell";
 import StepIndicator from "./CheckoutFlowModal/StepIndicator";
+import OrderPreviewStep from "./CheckoutFlowModal/OrderPreviewStep";
 import PincodeStep from "./CheckoutFlowModal/PincodeStep";
 import CustomizeStep from "./CheckoutFlowModal/CustomizeStep";
 import PhoneStep from "./CheckoutFlowModal/PhoneStep";
@@ -16,6 +17,8 @@ import useCheckoutFlow from "./CheckoutFlowModal/useCheckoutFlow";
  *
  * mode="create"   → Pincode → Customization(Children) → Phone → OTP → Payment (Redirect)
  *                   → (Returns with ?payment_success) → Details → Thank You
+ *
+ * mode="addons"   → Cart Preview → Pincode → Phone → OTP → Payment (Redirect)
  */
 export default function CheckoutFlowModal({
   isOpen,
@@ -23,6 +26,9 @@ export default function CheckoutFlowModal({
   mode = "packages",
   planId,
   subscriptionData,
+  cart,
+  addonsData,
+  totalCartAmount,
   isCustomizationValid = true,
   customizationErrorMsg = "Please complete your plan configuration.",
   onCustomizationSubmit,
@@ -46,6 +52,7 @@ export default function CheckoutFlowModal({
     currentStepIndex,
     handleClose,
     handlePincodeSubmit,
+    handlePreviewConfirm,
     handleCustomizationNext,
     handlePhoneChange,
     handlePhoneSubmit,
@@ -58,6 +65,7 @@ export default function CheckoutFlowModal({
     mode,
     planId,
     subscriptionData,
+    cart,
     isCustomizationValid,
     customizationErrorMsg,
     onCustomizationSubmit,
@@ -81,7 +89,26 @@ export default function CheckoutFlowModal({
       )}
 
       <AnimatePresence mode="wait">
-        {step === 1 && (
+        {mode === "addons" && step === 1 && (
+          <OrderPreviewStep
+            cart={cart}
+            addonsData={addonsData}
+            totalCartAmount={totalCartAmount}
+            onConfirm={handlePreviewConfirm}
+          />
+        )}
+
+        {mode !== "addons" && step === 1 && (
+          <PincodeStep
+            pincode={pincode}
+            setPincode={setPincode}
+            error={error}
+            loading={loading}
+            onSubmit={handlePincodeSubmit}
+          />
+        )}
+
+        {mode === "addons" && step === 2 && (
           <PincodeStep
             pincode={pincode}
             setPincode={setPincode}
@@ -97,7 +124,7 @@ export default function CheckoutFlowModal({
           </CustomizeStep>
         )}
 
-        {((mode === "packages" && step === 2) || (mode === "create" && step === 3)) && (
+        {((mode === "packages" && step === 2) || (mode === "create" && step === 3) || (mode === "addons" && step === 3)) && (
           <PhoneStep
             phone={phone}
             onPhoneChange={handlePhoneChange}
@@ -108,7 +135,7 @@ export default function CheckoutFlowModal({
           />
         )}
 
-        {((mode === "packages" && step === 3) || (mode === "create" && step === 4)) && (
+        {((mode === "packages" && step === 3) || (mode === "create" && step === 4) || (mode === "addons" && step === 4)) && (
           <OtpStep
             phone={phone}
             otp={otp}

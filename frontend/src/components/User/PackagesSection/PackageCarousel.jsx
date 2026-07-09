@@ -42,7 +42,7 @@ export default function PackageCarousel({
         </svg>
       </button>
 
-      <div className="relative h-[480px] sm:h-[510px] md:h-[550px] w-full flex items-center justify-center overflow-visible mx-2 md:mx-4">
+      <div className="relative h-[400px] sm:h-[430px] md:h-[460px] w-full flex items-center justify-center overflow-visible mx-2 md:mx-4">
         {packages.map((pkg, index) => {
           const isActive = index === active;
           const offsetWidth = getResponsiveOffset();

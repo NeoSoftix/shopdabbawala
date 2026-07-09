@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { checkServiceAvailability } from "../../../services/vendor.service";
 import { sendOtp, verifyOtp } from "../../../services/auth.service";
-import { createPackageCheckout, saveCheckoutDetails, getSessionDetails } from "../../../services/payment.service";
+import { createPackageCheckout, createAddonCheckout, saveCheckoutDetails, getSessionDetails } from "../../../services/payment.service";
 import { createSubscription } from "../../../services/subscription.service";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -14,6 +14,9 @@ import { useAuth } from "../../../context/AuthContext";
  *
  * mode="create"   → Pincode → Customization(Children) → Phone → OTP → Payment (Redirect)
  *                   → (Returns with ?payment_success) → Details → Thank You
+ *
+ * mode="addons"   → Cart Preview → Pincode → Phone → OTP → Payment (Redirect)
+ *                   Logged-in users skip Phone+OTP, same as "packages".
  */
 export default function useCheckoutFlow({
   isOpen,
@@ -21,6 +24,7 @@ export default function useCheckoutFlow({
   mode,
   planId,
   subscriptionData,
+  cart,
   isCustomizationValid,
   customizationErrorMsg,
   onCustomizationSubmit,
@@ -40,6 +44,9 @@ export default function useCheckoutFlow({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Flat {id, quantity} list built from the addons cart map, used by mode="addons".
+  const cartItems = Object.entries(cart || {}).map(([id, quantity]) => ({ id, quantity }));
+
   const redirectToPayment = async () => {
     setLoading(true);
     try {
@@ -47,6 +54,8 @@ export default function useCheckoutFlow({
       let checkoutRes;
       if (mode === "packages") {
         checkoutRes = await createPackageCheckout(planId);
+      } else if (mode === "addons") {
+        checkoutRes = await createAddonCheckout(cartItems);
       } else {
         checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
       }
@@ -109,10 +118,14 @@ export default function useCheckoutFlow({
   // progress bar shouldn't list them either, otherwise they'd render as
   // "completed" checkmarks the user never actually stepped through.
   const stepLabels = user
-    ? (mode === "packages" ? ["Area", "Details"] : ["Area", "Customize", "Details"])
+    ? (mode === "packages" ? ["Area", "Details"]
+        : mode === "addons" ? ["Cart", "Area"]
+        : ["Area", "Customize", "Details"])
     : (mode === "packages"
         ? ["Area", "Mobile", "OTP", "Details"]
-        : ["Area", "Customize", "Mobile", "OTP", "Details"]);
+        : mode === "addons"
+          ? ["Cart", "Area", "Mobile", "OTP"]
+          : ["Area", "Customize", "Mobile", "OTP", "Details"]);
 
   // Maps the real `step` number (which always accounts for every possible
   // step, guest or not) to an index in the possibly-compacted stepLabels
@@ -120,6 +133,7 @@ export default function useCheckoutFlow({
   const stepIndexMaps = {
     packages: { guest: { 1: 0, 2: 1, 3: 2, 4: 3 }, user: { 1: 0, 4: 1 } },
     create: { guest: { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 }, user: { 1: 0, 2: 1, 5: 2 } },
+    addons: { guest: { 1: 0, 2: 1, 3: 2, 4: 3 }, user: { 1: 0, 2: 1 } },
   };
   const stepIndexMap = stepIndexMaps[mode][user ? "user" : "guest"];
   const currentStepIndex = stepIndexMap[step] ?? step - 1;
@@ -155,10 +169,10 @@ export default function useCheckoutFlow({
         // Logged-in users skip Mobile + OTP verification entirely and go
         // straight to payment; guests still verify phone via OTP.
         localStorage.setItem("pincode", pincode.trim());
-        if (mode === "packages" && user) {
+        if ((mode === "packages" || mode === "addons") && user) {
           await redirectToPayment();
         } else {
-          setStep(2);
+          setStep(mode === "addons" ? 3 : 2);
         }
 
       } else {
@@ -169,6 +183,11 @@ export default function useCheckoutFlow({
     } finally {
       setLoading(false);
     }
+  };
+
+  // mode="addons" only: Step 1 (Cart Preview) → Step 2 (Pincode).
+  const handlePreviewConfirm = () => {
+    setStep(2);
   };
 
   const handleCustomizationNext = async (e) => {
@@ -251,6 +270,8 @@ export default function useCheckoutFlow({
           // You may need to update this backend service to accept a successUrl override if supported,
           // or handle it in backend via referer.
           checkoutRes = await createPackageCheckout(planId);
+        } else if (mode === "addons") {
+          checkoutRes = await createAddonCheckout(cartItems);
         } else {
           checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
         }
@@ -308,6 +329,7 @@ export default function useCheckoutFlow({
     currentStepIndex,
     handleClose,
     handlePincodeSubmit,
+    handlePreviewConfirm,
     handleCustomizationNext,
     handlePhoneChange,
     handlePhoneSubmit,

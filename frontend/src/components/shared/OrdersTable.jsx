@@ -65,13 +65,20 @@ export default function OrdersTable({
                 <td>{order.deliveryMethod}</td>
 
                 <td>
-                  <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                      statusStyles[order.status] || "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
+                  <div className="flex flex-col items-start gap-1">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        statusStyles[order.status] || "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                    {order.active === false && (
+                      <span className="text-xs font-black px-2.5 py-1 rounded-full bg-red-600 text-white uppercase tracking-wide whitespace-nowrap">
+                        Inactive by user
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 {showActions && (

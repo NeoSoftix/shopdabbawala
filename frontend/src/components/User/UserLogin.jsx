@@ -56,7 +56,7 @@ export default function UserLogin({ isOpen, onClose }) {
         setUser(res.user);
         toast.success("Logged in successfully! 🎉");
         onClose();
-        navigate("/dashboard");
+        navigate("/");
       } else {
         throw new Error("Verification failed");
       }

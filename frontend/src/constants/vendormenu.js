@@ -3,13 +3,10 @@ import {
   MdShoppingCart,
   MdNotifications,
   MdSettings,
-} from "react-icons/md"; 
-
-import { IoLocationOutline } from "react-icons/io5"; 
+} from "react-icons/md";
 
 import {
   FaUserEdit,
-  FaStore,
 } from "react-icons/fa";
 
 export const vendorMenu = [
@@ -17,11 +14,6 @@ export const vendorMenu = [
     label: "Dashboard",
     path: "/vendor/dashboard",
     icon: MdDashboard,
-  },
-  {
-    label: "Service Area",
-    path: "/vendor/service-area",
-    icon: IoLocationOutline,
   },
   {
     label: "Orders",
@@ -37,11 +29,6 @@ export const vendorMenu = [
     label: "Profile",
     path: "/vendor/profile",
     icon: FaUserEdit,
-  },
-  {
-    label: "Store Status",
-    path: "/vendor/store-status",
-    icon: FaStore,
   },
   {
     label: "Settings",

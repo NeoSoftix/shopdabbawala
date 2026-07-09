@@ -3,7 +3,7 @@ import { DEFAULT_IMAGES } from "./packageUtils";
 
 // Modal showing the full feature list for a single package. Renders nothing
 // when `pkg` is falsy (mirrors the previous inline conditional render).
-export default function PackageFeaturesModal({ pkg, onClose }) {
+export default function PackageFeaturesModal({ pkg, onClose, onChoosePlan }) {
   return (
     <AnimatePresence>
       {pkg && (
@@ -89,10 +89,13 @@ export default function PackageFeaturesModal({ pkg, onClose }) {
             </ul>
 
             <button
-              onClick={onClose}
-              className="w-full bg-slate-950 hover:bg-slate-900 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl shadow-md transition-all focus:outline-none"
+              onClick={() => {
+                onChoosePlan?.(pkg);
+                onClose();
+              }}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-xl shadow-md transition-all focus:outline-none"
             >
-              Got It, Close Details
+              Buy Now
             </button>
           </motion.div>
         </div>

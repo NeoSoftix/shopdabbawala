@@ -15,6 +15,7 @@ import { createSubscription } from "../../services/subscription.service";
 import { getActivePlans } from "../../services/customPlanConfig.service.js";
 import { getActiveMealTiers } from "../../services/mealTier.service.js";
 
+import PincodeCheckBar from "./CreatePackage/PincodeCheckBar";
 import DeliveryMethodToggle from "./CreatePackage/DeliveryMethodToggle";
 import MealPreferenceAndDate from "./CreatePackage/MealPreferenceAndDate";
 import DurationAndMealsCard from "./CreatePackage/DurationAndMealsCard";
@@ -160,6 +161,8 @@ export default function CreatePackage({ isOpen, onClose }) {
       {({ goBack, loading, error: submitError }) => (
       <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased py-3 px-2 sm:px-4 lg:px-5 relative`}>
             <main className="max-w-full bg-white/50 rounded-3xl">
+              <PincodeCheckBar />
+
               {/* ================= HEADER AREA ================= */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-1.5 pb-1.5 border-b border-gray-200/60 px-2">
                 <div>

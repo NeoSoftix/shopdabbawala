@@ -46,13 +46,20 @@ export default function OrderDetailsModal({ order, onClose, onAccept, onReject }
             <h2 className="text-xl font-bold">Order #{order._id.slice(-6).toUpperCase()}</h2>
             <p className="text-xs text-gray-400 mt-1">{order._id}</p>
           </div>
-          <span
-            className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-              statusStyles[order.status] || "bg-slate-100 text-slate-500"
-            }`}
-          >
-            {order.status}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span
+              className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                statusStyles[order.status] || "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {order.status}
+            </span>
+            {order.active === false && (
+              <span className="text-xs font-black px-2.5 py-1 rounded-full bg-red-600 text-white uppercase tracking-wide whitespace-nowrap">
+                Inactive by user
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-5">
@@ -115,16 +122,18 @@ export default function OrderDetailsModal({ order, onClose, onAccept, onReject }
 
         {order.status === "Pending" && (onAccept || onReject) && (
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                onAccept?.(order._id);
-                onClose?.();
-              }}
-              className="flex-1 text-sm font-bold px-4 py-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              Accept
-            </button>
+            {order.active !== false && (
+              <button
+                type="button"
+                onClick={() => {
+                  onAccept?.(order._id);
+                  onClose?.();
+                }}
+                className="flex-1 text-sm font-bold px-4 py-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Accept
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {

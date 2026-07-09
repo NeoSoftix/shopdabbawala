@@ -235,6 +235,13 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
+    if (order.active === false) {
+      return res.status(400).json({
+        success: false,
+        message: "This order was marked inactive by the user. It can't be accepted until they resume it.",
+      });
+    }
+
     order.status = "Accepted";
     await order.save();
 
