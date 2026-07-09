@@ -6,7 +6,7 @@ import PackageSection from "../../components/User/PackagesSection";
 import GettingStarted from "../../components/User/GettingStarted";
 import Footer from "../../components/shared/Footer";
 import TiffinRendor from "../../components/User/TiffinRendor";
-import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
+// import PerfectMatchFoodHero from "../../components/User/PerfectMatchFoodHero";
 import HeroHeader from "../../components/User/HeroHeader";
 import AddonsSection from "../../components/User/AddOnsSection";
 import FAQSection from "../../components/User/FAQSection";
@@ -34,7 +34,7 @@ export default function UserDashboard() {
         autoPlayInterval={3500}
         height="100vh"
       /> */}
-      <PerfectMatchFoodHero />
+      {/* <PerfectMatchFoodHero /> */}
       <AddonsSection />
       <WhyChooseUs />
       <GettingStarted />

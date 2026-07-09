@@ -22,7 +22,7 @@ const menuItems = [
     id: "thali2",
     name: "VEGETARIAN THALI",
     description:
-      "Fresh and healthy home-style tiffin with a variety of delicious curries, breads, and perfect flavors crafted for your daily cravings.",
+      "Fresh home-style meals delivered with love, every day!",
 
     bg: "#FDFBF9",
     waveColor: "#FCEBE1",
@@ -31,12 +31,27 @@ const menuItems = [
 
     mainImage: "/TifinSlider/2.png",
     thumbImage: "/TifinSlider/2.png",
+
+    // Extra content only the Vegetarian Thali slide uses - matches the
+    // reference design exactly, other slides fall back to the plain layout.
+    tagline: "Delicious. Healthy. Affordable.",
+    titleParts: [
+      { text: "VEGETARIAN", color: "#636B2F" },
+      { text: "THALI", color: "#C17A3E" },
+    ],
+    priceBox: {
+      leftMeals: "8 MEALS",
+      leftPrice: "$10",
+      rightMeals: "12 MEALS",
+      rightPrice: "$9",
+      badge: "NOW ONLY",
+    },
   },
   {
     id: "thali3",
     name: "NON-VEG THALI",
     description:
-      "Delicious bite-sized treats crafted with fresh ingredients and bold flavors, perfect for a quick snack, light craving, or anytime enjoyment.",
+      "Fresh home-style non-veg meals delivered with love, every day!",
 
     bg: "#FDFBF9",
     waveColor: "#FCEBE1",
@@ -45,6 +60,29 @@ const menuItems = [
 
     mainImage: "/TifinSlider/3.png",
     thumbImage: "/TifinSlider/3.png",
+
+    // Extra content only the Non-Veg Thali slide uses - matches the
+    // reference design exactly, other slides fall back to the plain layout.
+    tagline: "Rich. Flavorful. Satisfying.",
+    taglineColor: "#A9631C",
+    taglineIcon: "✨",
+    decorColor: "#D9B98A",
+    arrowColor: "#A9631C",
+    titleParts: [
+      { text: "NON-VEG", color: "#915E02" },
+      { text: "THALI", color: "#915E02" },
+    ],
+    titleIcon: "🤎",
+    subtitleIcon: "🔥",
+    priceBox: {
+      leftMeals: "8 MEALS",
+      leftPrice: "$10",
+      rightMeals: "12 MEALS",
+      rightPrice: "$9",
+      badge: "NOW ONLY",
+      badgeColor: "#915E02",
+      decorBursts: true,
+    },
   },
 ];
 
@@ -144,6 +182,42 @@ export default function TiffinRender() {
           {/* Main Animated Container (Upar Dikhega Mobile me) */}
           <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[320px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
             <div className="relative w-[85%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
+              {/* Decorative circle + dashed arrows behind the plate (slides with a priceBox) */}
+              {activeItem.priceBox && (
+                <>
+                  <div className="absolute inset-[6%] rounded-full" style={{ backgroundColor: `${activeItem.decorColor || "#AEBB7C"}80` }} />
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="absolute -top-2 right-4 sm:right-10 w-10 h-10 sm:w-14 sm:h-14"
+                    style={{ color: activeItem.arrowColor || "#C17A3E" }}
+                  >
+                    <path
+                      d="M10,80 Q40,80 60,40"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 6"
+                      strokeLinecap="round"
+                    />
+                    <path d="M52,30 L60,40 L48,44" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="absolute bottom-4 -right-1 sm:right-6 w-8 h-8 sm:w-12 sm:h-12"
+                    style={{ color: activeItem.arrowColor || "#C17A3E" }}
+                  >
+                    <path
+                      d="M20,20 Q30,60 70,70"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 6"
+                      strokeLinecap="round"
+                    />
+                    <path d="M60,64 L70,70 L64,80" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </>
+              )}
               <div className="absolute inset-0 flex items-center justify-center">
                 <AnimatePresence mode="popLayout">
                   <motion.div
@@ -175,17 +249,87 @@ export default function TiffinRender() {
 
           {/* Content Area (Niche Ayega Mobile me) */}
           <div className="flex flex-col justify-center text-center md:text-left order-2 md:order-1 max-w-xl mx-auto md:mx-0 pb-12 md:pb-0 pl-0 md:pl-6 z-20">
-            <h1
-              key={`title-${activeItem.id}`}
-              className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-3 md:mb-6 drop-shadow-md leading-tight uppercase transition-colors duration-500 ${activeItem.textColor}`}
-            >
-              {activeItem.name}
-            </h1>
+            {activeItem.tagline && (
+              <p
+                key={`tagline-${activeItem.id}`}
+                className="font-serif italic text-lg sm:text-xl md:text-2xl mb-1 flex items-center gap-2 justify-center md:justify-start"
+                style={{ color: activeItem.taglineColor || "#C17A3E" }}
+              >
+                {activeItem.tagline} <span className="text-base">{activeItem.taglineIcon || "🌿"}</span>
+              </p>
+            )}
+
+            {activeItem.titleParts ? (
+              <h1
+                key={`title-${activeItem.id}`}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-3 md:mb-4 drop-shadow-md leading-[0.95] uppercase flex items-center gap-3"
+              >
+                <span>
+                  {activeItem.titleParts.map((part, i) => (
+                    <span key={i} className="block" style={{ color: part.color }}>
+                      {part.text}
+                    </span>
+                  ))}
+                </span>
+                {activeItem.titleIcon && <span className="text-3xl sm:text-4xl md:text-5xl">{activeItem.titleIcon}</span>}
+              </h1>
+            ) : (
+              <h1
+                key={`title-${activeItem.id}`}
+                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-3 md:mb-6 drop-shadow-md leading-tight uppercase transition-colors duration-500 ${activeItem.textColor}`}
+              >
+                {activeItem.name}
+              </h1>
+            )}
+
             <p
-              className={`text-sm sm:text-base md:text-xl font-medium leading-relaxed mb-6 transition-colors duration-500 ${activeItem.textColor}`}
+              className={`text-sm sm:text-base md:text-xl font-medium leading-relaxed mb-6 flex items-center gap-2 justify-center md:justify-start transition-colors duration-500 ${activeItem.priceBox ? "text-[#2B2B2B]" : activeItem.textColor}`}
             >
               {activeItem.description}
+              {activeItem.priceBox && <span className="text-base">{activeItem.subtitleIcon || "💞"}</span>}
             </p>
+
+            {/* Price promo box (Vegetarian / Non-Veg Thali) */}
+            {activeItem.priceBox && (
+              <div className={`relative mx-auto md:mx-0 w-max max-w-full ${activeItem.priceBox.banner ? "mb-10 md:mb-9" : "mb-10 md:mb-8"}`}>
+                <div className="relative flex items-center gap-4 sm:gap-6 border-2 border-[#E8DCC8] rounded-2xl px-5 sm:px-7 py-4 bg-white/60">
+                  {activeItem.priceBox.decorBursts &&
+                    ["-top-2 -left-2 rotate-0", "-top-2 -right-2 rotate-90", "-bottom-2 -left-2 -rotate-90", "-bottom-2 -right-2 rotate-180"].map((pos, i) => (
+                      <svg key={i} viewBox="0 0 24 24" className={`absolute ${pos} w-4 h-4 sm:w-5 sm:h-5 text-[#C99354]`}>
+                        <path d="M12 2 L12 8 M12 2 L9 5 M12 2 L15 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    ))}
+
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm font-black text-[#2B2B2B] uppercase tracking-wide">{activeItem.priceBox.leftMeals}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-red-600/80 line-through decoration-2">{activeItem.priceBox.leftPrice}</p>
+                  </div>
+
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-full text-white flex flex-col items-center justify-center text-center font-black uppercase leading-tight text-[10px] sm:text-xs shadow-lg ring-2 ring-offset-2"
+                    style={{ backgroundColor: activeItem.priceBox.badgeColor || "#4A5D23", "--tw-ring-color": `${activeItem.priceBox.badgeColor || "#4A5D23"}4D` }}
+                  >
+                    {activeItem.priceBox.badge.split(" ").map((w, i) => (
+                      <span key={i}>{w}</span>
+                    ))}
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm font-black text-[#2B2B2B] uppercase tracking-wide">{activeItem.priceBox.rightMeals}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-[#2B2B2B]">{activeItem.priceBox.rightPrice}</p>
+                  </div>
+                </div>
+
+                {/* {activeItem.priceBox.banner && (
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 -bottom-4 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider px-4 sm:px-5 py-2 rounded-full shadow-md whitespace-nowrap"
+                    style={{ backgroundColor: activeItem.priceBox.badgeColor || "#C17A3E" }}
+                  >
+                    {activeItem.priceBox.banner}
+                  </div>
+                )} */}
+              </div>
+            )}
 
             {/* Premium Interactive Action Button Area */}
             <div className="mb-8 md:mb-10  flex justify-center md:justify-start">
