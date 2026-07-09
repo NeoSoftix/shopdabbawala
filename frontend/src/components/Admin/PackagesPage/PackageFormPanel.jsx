@@ -75,16 +75,32 @@ const PackageFormPanel = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-              Discount Price ($)
+              Discount (%)
             </label>
             <input
               type="number"
-              name="discountedPrice"
-              value={formData.discountedPrice}
+              name="discountPercentage"
+              value={formData.discountPercentage}
               onChange={onChange}
+              min="0"
+              max="100"
               className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-              placeholder="Optional discounted price"
+              placeholder="Optional discount percentage"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+              Discounted Price
+            </label>
+            <div className="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-600 flex items-center min-h-10.5">
+              {formData.price && formData.discountPercentage
+                ? `$${(
+                    formData.price -
+                    (formData.price * formData.discountPercentage) / 100
+                  ).toFixed(2)}`
+                : "—"}
+            </div>
           </div>
         </div>
 

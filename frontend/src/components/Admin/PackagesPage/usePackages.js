@@ -11,7 +11,7 @@ import { confirmDeleteToast } from "../../../utils/confirmDeleteToast.jsx";
 const emptyFormData = {
   name: "",
   price: "",
-  discountedPrice: "",
+  discountPercentage: "",
   totalMeals: "",
   validityDays: "",
   description: "",
@@ -98,7 +98,7 @@ export default function usePackages() {
     const dataToSend = {
       ...formData,
       features: parsedFeatures,
-      discountedPrice: formData.discountedPrice === "" ? null : formData.discountedPrice,
+      discountPercentage: formData.discountPercentage === "" ? null : formData.discountPercentage,
     };
 
     try {
@@ -151,10 +151,15 @@ export default function usePackages() {
       ? p.features.join(", ")
       : p.features || "";
 
+    const discountPercentage =
+      p.discountedPrice != null && p.price
+        ? Number((((p.price - p.discountedPrice) / p.price) * 100).toFixed(2))
+        : "";
+
     setFormData({
       name: p.name || "",
       price: p.price || "",
-      discountedPrice: p.discountedPrice ?? "",
+      discountPercentage,
       totalMeals: p.totalMeals || "",
       validityDays: p.validityDays || "",
       description: p.description || "",

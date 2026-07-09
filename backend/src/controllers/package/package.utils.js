@@ -1,11 +1,31 @@
-// Shared helpers for package controllers
+export const getRecurring = (days) => {
+  if (days <= 0) {
+    throw new Error("Invalid validity days");
+  }
 
-// Maps supported validityDays values to Stripe recurring price config
-export const recurringMap = {
-  7: { interval: "week", interval_count: 1 },
-  15: { interval: "day", interval_count: 15 },
-  30: { interval: "month", interval_count: 1 },
-  90: { interval: "month", interval_count: 3 },
-  180: { interval: "month", interval_count: 6 },
-  365: { interval: "year", interval_count: 1 },
+  if (days % 365 === 0) {
+    return {
+      interval: "year",
+      interval_count: days / 365,
+    };
+  }
+
+  if (days % 30 === 0) {
+    return {
+      interval: "month",
+      interval_count: days / 30,
+    };
+  }
+
+  if (days % 7 === 0) {
+    return {
+      interval: "week",
+      interval_count: days / 7,
+    };
+  }
+
+  return {
+    interval: "day",
+    interval_count: days,
+  };
 };
