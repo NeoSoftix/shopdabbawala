@@ -99,7 +99,6 @@ export const checkServiceAvailability = async (pincode) => {
     const res = await API.get("/vendor/service-availability", {
       params: { pincode },
     });
-
     return res.data;
   } catch (error) {
     console.error("Check Service Availability Error:", error);

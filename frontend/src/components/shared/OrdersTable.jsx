@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { FiEye } from "react-icons/fi";
+import OrderDetailsModal from "./OrderDetailsModal";
+
 const statusStyles = {
   Pending: "bg-amber-50 text-amber-600",
   Accepted: "bg-emerald-50 text-emerald-600",
@@ -21,6 +25,8 @@ export default function OrdersTable({
   onReject,
 }) {
   const showActions = Boolean(onAccept || onReject);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border">
       <div className="flex justify-between items-center mb-6">
@@ -35,7 +41,6 @@ export default function OrdersTable({
             <tr className="border-b text-left text-gray-500">
               <th className="pb-4">Order ID</th>
               <th className="pb-4">Customer</th>
-              <th className="pb-4">Items</th>
               <th className="pb-4">Order Date</th>
               <th className="pb-4">Delivery</th>
               <th className="pb-4">Status</th>
@@ -55,12 +60,6 @@ export default function OrdersTable({
 
                 <td>{order.user?.name || <span className="text-gray-400 italic">Not set</span>}</td>
 
-                <td className="max-w-xs truncate">
-                  {order.items?.length
-                    ? order.items.map((it) => `${it.name} x${it.qty}`).join(", ")
-                    : <span className="text-gray-400 italic">No items</span>}
-                </td>
-
                 <td>{formatDate(order.orderDate)}</td>
 
                 <td>{order.deliveryMethod}</td>
@@ -77,26 +76,14 @@ export default function OrdersTable({
 
                 {showActions && (
                   <td>
-                    {order.status === "Pending" ? (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onAccept?.(order._id)}
-                          className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onReject?.(order._id)}
-                          className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-600 text-white hover:bg-red-700"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrder(order)}
+                      title="View order details"
+                      className="text-gray-400 hover:text-[#E23747] transition-colors"
+                    >
+                      <FiEye className="w-4 h-4" />
+                    </button>
                   </td>
                 )}
               </tr>
@@ -110,6 +97,13 @@ export default function OrdersTable({
           </div>
         )}
       </div>
+
+      <OrderDetailsModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        onAccept={onAccept}
+        onReject={onReject}
+      />
     </div>
   );
 }

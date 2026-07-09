@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 
 import StatCard from "../../components/shared/StatCard";
-import NotificationFilters from "../../components/vendor/NotificationFilters";
+// import NotificationFilters from "../../components/vendor/NotificationFilters";
 import OrdersTable from "../../components/shared/OrdersTable";
 import { SectionLoader } from "../../components/shared/Loader";
 import {
@@ -25,11 +25,20 @@ export default function OrdersPage() {
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalOrders: 0,
+  });
 
   useEffect(() => {
     fetchOrderStats();
-    fetchOrders();
   }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [page]);
 
   const fetchOrderStats = async () => {
     try {
@@ -45,9 +54,14 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await getAllOrders();
+      const res = await getAllOrders("", page);
       if (res.success) {
         setOrders(res.orders || []);
+        setPagination({
+          currentPage: res.currentPage,
+          totalPages: res.totalPages,
+          totalOrders: res.totalOrders,
+        });
       }
     } catch (error) {
       console.error("Fetch Orders Error:", error);
@@ -123,14 +137,41 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <NotificationFilters />
+      {/* Filters
+      <NotificationFilters /> */}
 
       {/* Orders Table */}
       {loading ? (
         <SectionLoader text="Loading orders..." />
       ) : (
-        <OrdersTable orders={orders} onAccept={handleAccept} onReject={handleReject} />
+        <>
+          <OrdersTable orders={orders} onAccept={handleAccept} onReject={handleReject} />
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <button
+                onClick={() => setPage((prev) => prev - 1)}
+                disabled={pagination.currentPage <= 1}
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm font-medium">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </span>
+
+              <button
+                onClick={() => setPage((prev) => prev + 1)}
+                disabled={pagination.currentPage >= pagination.totalPages}
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
