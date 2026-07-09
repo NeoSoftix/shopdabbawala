@@ -19,34 +19,24 @@ const getRecipientFilter = async (req) => {
   return null;
 };
 
-// ➤ Get latest notifications for the logged-in vendor/user
+// ➤ Get latest notifications for the logged-in vendor/user/admin (paginated)
 export const getMyNotifications = async (req, res) => {
   try {
     const filter = await getRecipientFilter(req);
 
-    if (!vendorId) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor profile not found.",
-      });
-    }
-
-    const { page, limit, skip } = getPagination(req);
     if (!filter) {
       return res.status(404).json({ success: false, message: "Notification recipient not found." });
     }
 
-    const notifications = await Notification.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const { page, limit, skip } = getPagination(req);
 
     const [notifications, total] = await Promise.all([
-      Notification.find({ vendor: vendorId })
+      Notification.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
 
-      Notification.countDocuments({ vendor: vendorId }),
+      Notification.countDocuments(filter),
     ]);
 
     return res.status(200).json({
@@ -62,7 +52,7 @@ export const getMyNotifications = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get Vendor Notifications Error:", error);
+    console.error("Get Notifications Error:", error);
 
     return res.status(500).json({
       success: false,

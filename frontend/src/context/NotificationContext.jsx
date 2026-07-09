@@ -52,7 +52,7 @@ export const NotificationProvider = ({ children }) => {
       socket.off("notification:new", handleNewNotification);
       disconnectSocket();
     };
-  }, [isVendor]);
+  }, [isRecipient, page]);
 
   const markAsRead = async (id) => {
     setNotifications((prev) =>

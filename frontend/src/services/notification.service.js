@@ -1,6 +1,6 @@
 import API from "./api";
 
-export const getVendorNotifications = async (page = 1, limit = 10) => {
+export const getMyNotifications = async (page = 1, limit = 10) => {
   try {
     const res = await API.get("/notifications", {
       params: {
