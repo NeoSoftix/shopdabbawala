@@ -111,7 +111,7 @@ export default function usePackages() {
       }
 
       if (res && res.success) {
-        toast.success(editId ? "✅ Package updated successfully!" : "🎉 Package added successfully!");
+        toast.success(editId ? "Package updated successfully!" : "Package added successfully!");
         resetForm();
         setShowForm(false);
         fetchPackages();

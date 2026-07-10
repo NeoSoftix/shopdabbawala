@@ -220,7 +220,7 @@ export default function useCheckoutFlow({
     try {
       const res = await sendOtp({ phone: `+${phone}` });
       if (res && res.success) {
-        toast.success("📱 OTP sent to your mobile!");
+        toast.success("OTP sent to your mobile!");
         setStep(mode === "packages" ? 3 : 4);
       } else {
         setError(res?.message || "Failed to send OTP.");
@@ -238,7 +238,7 @@ export default function useCheckoutFlow({
     try {
       const res = await sendOtp({ phone: `+${phone}` });
       if (res && res.success) {
-        toast.success("📱 OTP resent to your mobile!");
+        toast.success("OTP resent to your mobile!");
       } else {
         setError(res?.message || "Failed to resend OTP.");
       }
@@ -260,7 +260,7 @@ export default function useCheckoutFlow({
     try {
       const verifyRes = await verifyOtp({ phone: `+${phone}`, otp: otp.trim(), allowNoSubscription: true });
       if (verifyRes && verifyRes.success) {
-        toast.success("✅ Mobile verified! Redirecting to payment...");
+        toast.success("Mobile verified! Redirecting to payment...");
 
         // Pass success URL so it comes back to the same page
         const successUrl = `${window.location.origin}${location.pathname}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
@@ -302,7 +302,7 @@ export default function useCheckoutFlow({
       if (sessionId) {
         await saveCheckoutDetails({ ...formData, sessionId });
       }
-      toast.success("🙌 Your details saved! Welcome aboard!");
+      toast.success("Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
       setError("Failed to save details.");

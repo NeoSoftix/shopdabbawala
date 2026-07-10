@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Calendar, Clock, MapPin, Headphones, ShoppingBag, AlertCircle, Package, Receipt
+  Calendar, Clock, MapPin, Headphones, ShoppingBag, AlertCircle, Package, Receipt, Utensils
 } from 'lucide-react';
 import { SiStripe } from 'react-icons/si';
 import { getMyOrders } from '../../services/order.service';
@@ -184,8 +184,8 @@ export default function UserHistoryDetails({ subscriptions }) {
 
                 {todayOrders.length === 0 ? (
                   <div className="bg-white rounded-xl border border-gray-100 p-10 text-center shadow-sm">
-                    <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-                      🍽️
+                    <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Utensils size={28} />
                     </div>
                     <h3 className="text-lg font-bold text-gray-800 mb-1">No Meals Today</h3>
                     <p className="text-sm text-gray-500">You don't have any meals scheduled for today.</p>

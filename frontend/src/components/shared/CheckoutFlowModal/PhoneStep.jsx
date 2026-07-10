@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FiSmartphone } from "react-icons/fi";
+import { FiSmartphone, FiArrowLeft } from "react-icons/fi";
 import PhoneInputPkg from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { SubmitBtn, ErrorMessage } from "./FormFields";
@@ -37,9 +37,11 @@ export default function PhoneStep({ phone, onPhoneChange, error, loading, onSubm
       </div>
       <div className="mt-2">
         <ErrorMessage error={error} />
-        <SubmitBtn label="Send OTP →" loading={loading} />
+        <SubmitBtn label="Send OTP" loading={loading} />
       </div>
-      <button type="button" onClick={onBack} className="w-full text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">← Go Back</button>
+      <button type="button" onClick={onBack} className="w-full flex items-center justify-center gap-1.5 text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors pt-2">
+        <FiArrowLeft className="w-3.5 h-3.5" /> Go Back
+      </button>
     </motion.form>
   );
 }

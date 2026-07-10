@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UtensilsCrossed, Info, Utensils } from "lucide-react";
 
 // Meal tier grid (Basic / Medium / Premium etc.) with a hover/tap tooltip
 // showing tier features + included items. `hoveredPlan` is purely local UI
@@ -9,7 +10,7 @@ export default function MealPlanSelector({ mealTiers, selectedPlan, onSelectPlan
   return (
     <div className="flex-1 bg-white p-2.5 px-3 rounded-2xl border border-gray-300 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
       <label className="text-xs font-bold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-        <span>🍱</span> Select Your Meal Plan:
+        <UtensilsCrossed size={13} /> Select Your Meal Plan:
       </label>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -60,7 +61,7 @@ export default function MealPlanSelector({ mealTiers, selectedPlan, onSelectPlan
                 >
                   <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-red-100"></div>
                   <div className="text-xs font-black text-[#dc2626] flex items-center gap-1.5 mb-3 uppercase tracking-wide">
-                    <span>ℹ️</span> {planName} Includes:
+                    <Info size={13} /> {planName} Includes:
                   </div>
                   <div className="space-y-3.5">
                     <div className="text-[11px]">
@@ -76,7 +77,7 @@ export default function MealPlanSelector({ mealTiers, selectedPlan, onSelectPlan
                     {tier.items?.length > 0 && (
                       <div className="text-[11px] pt-2 border-t border-slate-100">
                         <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">
-                          🍽️ Items — choose {tier.selectionCount || 1} of {tier.items.length}
+                          <Utensils size={11} className="inline -mt-0.5 mr-1" /> Items — choose {tier.selectionCount || 1} of {tier.items.length}
                         </span>
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {tier.items.map((item) => (

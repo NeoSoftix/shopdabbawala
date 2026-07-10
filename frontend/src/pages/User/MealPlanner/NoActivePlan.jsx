@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { FaLock } from "react-icons/fa6";
+import { ArrowRight } from "lucide-react";
 
 // Shared "no active plan yet" gate shown on the Plan Summary tab and the
 // Build Custom Meal tab until the user actually owns a subscription.
@@ -32,7 +33,7 @@ const NoActivePlan = ({
             onClick={() => navigate("/")}
             className="mt-6 inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 px-6 rounded-xl transition-all shadow-lg shadow-red-100"
           >
-            {buttonText} <span>→</span>
+            {buttonText} <ArrowRight size={16} />
           </button>
 
           <div className="mt-6 flex items-start gap-3 bg-red-50/80 text-red-600 text-xs sm:text-sm font-semibold rounded-2xl px-4 py-3 max-w-md mx-auto md:mx-0">

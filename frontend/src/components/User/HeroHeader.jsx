@@ -206,7 +206,7 @@ export default function HeroHeader() {
                           }}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left"
                         >
-                          👤 Edit Profile
+                          <User size={14} /> Edit Profile
                         </button>
                         <div className="my-1 border-t border-slate-100" />
                         <button

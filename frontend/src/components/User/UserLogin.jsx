@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Phone, Lock, Sparkles } from "lucide-react";
+import { X, Phone, Lock, Sparkles, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendOtp, verifyOtp } from "../../services/auth.service";
 import { useAuth } from "../../context/AuthContext";
@@ -54,7 +54,7 @@ export default function UserLogin({ isOpen, onClose }) {
       const res = await verifyOtp({ phone: `+${phone}`, otp, allowNoSubscription: true });
       if (res.success && res.user) {
         setUser(res.user);
-        toast.success("Logged in successfully! 🎉");
+        toast.success("Logged in successfully!");
         onClose();
         navigate("/");
       } else {
@@ -118,8 +118,8 @@ export default function UserLogin({ isOpen, onClose }) {
             </div>
 
             {error && (
-              <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center">
-                ⚠️ {error}
+              <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center flex items-center justify-center gap-1.5">
+                <AlertCircle size={14} /> {error}
               </div>
             )}
 
@@ -146,7 +146,7 @@ export default function UserLogin({ isOpen, onClose }) {
                   disabled={loading}
                   className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:opacity-60 text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
                 >
-                  {loading ? "Sending OTP..." : "Get OTP →"}
+                  {loading ? "Sending OTP..." : <>Get OTP <ArrowRight size={16} /></>}
                 </button>
               </form>
             ) : (
@@ -173,16 +173,16 @@ export default function UserLogin({ isOpen, onClose }) {
                   disabled={loading}
                   className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:opacity-60 text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
                 >
-                  {loading ? "Verifying..." : "Verify & Login →"}
+                  {loading ? "Verifying..." : <>Verify &amp; Login <ArrowRight size={16} /></>}
                 </button>
 
                 <div className="flex justify-between items-center pt-2">
                   <button
                     type="button"
                     onClick={() => { setOtp(""); setStep("phone"); }}
-                    className="text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors"
+                    className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold hover:text-red-500 transition-colors"
                   >
-                    ← Change Phone
+                    <ArrowLeft size={13} /> Change Phone
                   </button>
                   <button
                     type="button"

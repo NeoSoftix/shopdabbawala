@@ -2,6 +2,20 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import {
+  CheckCircle2,
+  Info,
+  Package,
+  PartyPopper,
+  Star,
+  Heart,
+  User,
+  Mail,
+  MapPin,
+  Calendar,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 import { saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
 import { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
@@ -70,7 +84,7 @@ export default function PaymentSuccess() {
         setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone, address: formData.address }) : null);
       }
 
-      toast.success("🙌 Your details saved! Welcome aboard!");
+      toast.success("Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
       toast.error("Failed to save details. Please try again.");
@@ -105,9 +119,7 @@ export default function PaymentSuccess() {
               transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
               className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-100 relative z-10"
             >
-              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
             </motion.div>
 
             <div className="relative z-10">
@@ -115,16 +127,14 @@ export default function PaymentSuccess() {
                 Payment Successful!
               </h1>
               <p className="text-slate-500 text-sm font-medium leading-relaxed mb-2">
-                Your payment has been processed successfully. 🎉
+                Your payment has been processed successfully.
               </p>
               {/* Removed session ID display as requested */}
 
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-6 text-left">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <Info className="w-4 h-4 text-emerald-600" />
                   </div>
                   <p className="text-emerald-800 text-xs font-semibold leading-relaxed">
                     Please provide your delivery details so we can set up your meal subscription and start delivering fresh meals to your doorstep!
@@ -134,9 +144,9 @@ export default function PaymentSuccess() {
 
               <button
                 onClick={() => setInnerStep("details")}
-                className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100"
+                className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
               >
-                Fill Delivery Details →
+                Fill Delivery Details <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -155,7 +165,7 @@ export default function PaymentSuccess() {
             <div className="h-1 w-full bg-gradient-to-r from-red-500 via-orange-400 to-red-600" />
             <div className="p-8">
               <div className="text-center mb-7">
-                <div className="text-3xl mb-3">📦</div>
+                <Package className="w-8 h-8 text-red-500 mx-auto mb-3" />
                 <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Delivery Details</h2>
                 <p className="text-slate-400 text-xs font-medium mt-1.5">
                   Tell us where to deliver your fresh meals!
@@ -246,13 +256,14 @@ export default function PaymentSuccess() {
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Saving...
                     </span>
-                  ) : "Submit & Complete Order →"}
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Submit &amp; Complete Order <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
                 </button>
               </form>
             </div>
@@ -272,18 +283,17 @@ export default function PaymentSuccess() {
 
             {/* Floating decorative elements */}
             <div className="absolute top-8 left-10 w-2 h-2 bg-red-300 rounded-full opacity-60 animate-bounce" style={{ animationDelay: "0s" }} />
-            <div className="absolute top-16 left-20 text-red-300 opacity-50 text-lg animate-bounce" style={{ animationDelay: "0.2s" }}>★</div>
+            <Star className="absolute top-14 left-16 w-4 h-4 text-red-300 opacity-50 fill-current animate-bounce" style={{ animationDelay: "0.2s" }} />
             <div className="absolute top-6 right-16 w-2 h-2 bg-orange-300 rounded-full opacity-60 animate-bounce" style={{ animationDelay: "0.4s" }} />
-            <div className="absolute top-14 right-8 text-red-300 opacity-50 text-lg animate-bounce" style={{ animationDelay: "0.1s" }}>♥</div>
+            <Heart className="absolute top-12 right-6 w-4 h-4 text-red-300 opacity-50 fill-current animate-bounce" style={{ animationDelay: "0.1s" }} />
 
-            {/* Emoji icon */}
             <motion.div
               initial={{ rotate: -10, scale: 0 }}
               animate={{ rotate: 0, scale: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
-              className="text-6xl mb-6 relative z-10"
+              className="w-16 h-16 mx-auto mb-6 relative z-10 flex items-center justify-center rounded-full bg-red-50 text-red-600"
             >
-              🎉
+              <PartyPopper className="w-8 h-8" />
             </motion.div>
 
             <div className="relative z-10">
@@ -294,31 +304,31 @@ export default function PaymentSuccess() {
                 Your order has been placed successfully.
               </p>
               <p className="text-slate-400 text-xs font-medium mb-6">
-                We're excited to fuel your journey to better health! 🌿
+                We're excited to fuel your journey to better health!
               </p>
 
               {/* Confirmation info */}
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6 text-left space-y-2.5">
                 {formData.name && (
                   <div className="flex items-center gap-2.5">
-                    <span className="text-sm">👤</span>
+                    <User className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="text-xs font-semibold text-slate-700">{formData.name}</span>
                   </div>
                 )}
                 {formData.email && (
                   <div className="flex items-center gap-2.5">
-                    <span className="text-sm">📧</span>
+                    <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="text-xs font-semibold text-slate-700">{formData.email}</span>
                   </div>
                 )}
                 {formData.address && (
                   <div className="flex items-start gap-2.5">
-                    <span className="text-sm mt-0.5">📍</span>
+                    <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                     <span className="text-xs font-semibold text-slate-700">{formData.address}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2.5 pt-1 border-t border-slate-200">
-                  <span className="text-sm">✅</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="text-xs font-semibold text-emerald-700">Confirmation email sent!</span>
                 </div>
               </div>
@@ -327,9 +337,7 @@ export default function PaymentSuccess() {
                 onClick={() => navigate("/dashboard")}
                 className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs tracking-widest uppercase py-4 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <Calendar className="w-4 h-4" />
                 Schedule Your Meals
               </button>
             </div>

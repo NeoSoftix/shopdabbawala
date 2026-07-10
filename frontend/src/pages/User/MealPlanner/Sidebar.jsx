@@ -1,4 +1,5 @@
 import { FaBowlFood, FaCalendarDays, FaCircleInfo } from "react-icons/fa6";
+import { CookingPot, Crown, ArrowRight } from "lucide-react";
 
 const sidebarItems = [
   {
@@ -31,8 +32,8 @@ const Sidebar = ({ activeStep, setActiveStep }) => {
         <p className="text-white/70 text-xs sm:text-sm mt-0.5 font-medium">
           Dashboard
         </p>
-        <span className="absolute right-3 bottom-2 text-5xl opacity-80 filter drop-shadow-md">
-          🍲
+        <span className="absolute right-3 bottom-2 opacity-80 filter drop-shadow-md">
+          <CookingPot size={44} />
         </span>
       </div>
 
@@ -71,8 +72,8 @@ const Sidebar = ({ activeStep, setActiveStep }) => {
 
       {/* Premium Upgrade Card */}
       <div className="bg-[#FFFDF4] rounded-[24px] border border-[#FFEAB2]/40 p-5 text-center relative overflow-hidden flex flex-col items-center">
-        <div className="w-11 h-11 bg-[#FFF9E6] text-[#FFB800] rounded-full flex items-center justify-center text-xl shadow-sm mb-3">
-          👑
+        <div className="w-11 h-11 bg-[#FFF9E6] text-[#FFB800] rounded-full flex items-center justify-center shadow-sm mb-3">
+          <Crown size={20} />
         </div>
         <h4 className="text-sm sm:text-base font-bold text-[#1B254B]">
           Upgrade to Premium
@@ -80,8 +81,8 @@ const Sidebar = ({ activeStep, setActiveStep }) => {
         <p className="text-xs sm:text-sm text-[#A3AED0] font-medium mt-1 max-w-[200px] mx-auto leading-relaxed">
           Unlock exclusive meals and advanced features.
         </p>
-        <button className="mt-4 w-full bg-white border border-[#FFEAB2] hover:bg-[#FFFDF4] text-[#E31A1A] text-xs sm:text-sm font-black py-3 rounded-xl tracking-wider shadow-sm transition-all">
-          UPGRADE NOW <span>➔</span>
+        <button className="mt-4 w-full bg-white border border-[#FFEAB2] hover:bg-[#FFFDF4] text-[#E31A1A] text-xs sm:text-sm font-black py-3 rounded-xl tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5">
+          UPGRADE NOW <ArrowRight size={14} />
         </button>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChefHat, UtensilsCrossed, Phone } from 'lucide-react';
 // 1. Yahan apni image ko direct import karo
 import faqBackground from "../../assets/faqbg.png"; // Path check kar lena agar aapki file kisi aur folder mein hai
 import { useNavigate } from 'react-router-dom';
@@ -111,7 +112,7 @@ const FAQSection = () => {
           <div className="inline-flex items-center space-x-2 mb-2">
             <span className="h-[1px] w-6 bg-red-600"></span>
             <span className="bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-              🍳 FAQ
+              <ChefHat size={13} /> FAQ
             </span>
             <span className="h-[1px] w-6 bg-red-600"></span>
           </div>
@@ -125,7 +126,7 @@ const FAQSection = () => {
 
           <div className="flex items-center justify-center space-x-4 mt-4">
             <span className="h-[1px] w-16 bg-red-300"></span>
-            <span className="text-red-600 text-lg">🍴</span>
+            <UtensilsCrossed className="text-red-600" size={16} />
             <span className="h-[1px] w-16 bg-red-300"></span>
           </div>
         </div>
@@ -202,6 +203,8 @@ const FAQSection = () => {
         <button className="bg-white text-gray-800 hover:bg-gray-100 transition font-bold px-6 py-3 rounded-xl flex items-center space-x-2 text-sm shadow-md whitespace-nowrap">
           <span className="text-red-600">📞</span>
           <span onClick={() => navigate("/contact-us  ")}>Contact Us</span>
+          <Phone className="text-red-600" size={15} />
+          <span>Contact Us</span>
         </button>
       </div>
     </div>

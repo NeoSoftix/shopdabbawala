@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 import { checkServiceAvailability } from "../../services/vendor.service";
@@ -149,8 +150,8 @@ export default function PackagesSection() {
   if (error || packages.length === 0) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
-        <p className="text-red-500 font-black text-xl mb-2">
-          ⚠️ {error || "No Active Packages Found"}
+        <p className="text-red-500 font-black text-xl mb-2 flex items-center justify-center gap-2">
+          <AlertTriangle size={20} /> {error || "No Active Packages Found"}
         </p>
         <p className="text-slate-400 text-sm">
           Please make sure your admin server has activated packages configured.

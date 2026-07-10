@@ -1,4 +1,4 @@
-import { FiLoader, FiX } from "react-icons/fi";
+import { FiLoader, FiX, FiArrowRight } from "react-icons/fi";
 
 /**
  * Small presentational primitives shared across the CheckoutFlowModal steps.
@@ -31,7 +31,12 @@ export const SubmitBtn = ({ label, disabled: isDisabled, loading }) => (
         <FiLoader className="w-4 h-4 animate-spin" />
         Please wait...
       </span>
-    ) : label}
+    ) : (
+      <span className="flex items-center justify-center gap-2">
+        {label}
+        <FiArrowRight className="w-4 h-4" />
+      </span>
+    )}
   </button>
 );
 

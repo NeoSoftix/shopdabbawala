@@ -26,7 +26,7 @@ export default function DetailsStep({ formData, setFormData, sessionId, error, l
       <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
       <div className="mt-2">
         <ErrorMessage error={error} />
-        <SubmitBtn label="Submit Details →" loading={loading} />
+        <SubmitBtn label="Submit Details" loading={loading} />
       </div>
     </motion.form>
   );

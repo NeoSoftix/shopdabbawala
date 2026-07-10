@@ -1,4 +1,5 @@
 import { FaTrashCan } from "react-icons/fa6";
+import { X, ArrowRight } from "lucide-react";
 
 // ================= COMPONENT: SELECTED DAY PLAN SLOTS =================
 const DayPlanSlots = ({
@@ -73,8 +74,8 @@ const DayPlanSlots = ({
                 key={`empty-${index}`}
                 className="flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-2 h-[90px] sm:h-[110px] text-center"
               >
-                <span className="text-gray-300 text-sm font-light">
-                  ✕
+                <span className="text-gray-300">
+                  <X size={16} />
                 </span>
 
                 <span className="text-[#A3AED0] text-[10px] sm:text-xs font-bold tracking-tight uppercase mt-0.5">
@@ -91,9 +92,9 @@ const DayPlanSlots = ({
           type="button"
           disabled={submitting}
           onClick={onSubmit}
-          className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all"
+          className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5"
         >
-          {submitting ? "SUBMITTING..." : "PREVIEW & CONFIRM >"}
+          {submitting ? "SUBMITTING..." : <>PREVIEW &amp; CONFIRM <ArrowRight size={14} /></>}
         </button>
       </div>
     </>

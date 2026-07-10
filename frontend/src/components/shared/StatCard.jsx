@@ -1,3 +1,5 @@
+import { TrendingUp } from "lucide-react";
+
 export default function StatCard({
   title,
   value,
@@ -49,7 +51,7 @@ export default function StatCard({
               font-semibold
             "
             >
-              ↑ {growth}
+              <TrendingUp size={12} /> {growth}
             </span>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { Flame, Plus } from "lucide-react";
 
 import QuantityStepper from "../../shared/QuantityStepper";
 import { FALLBACK_ADDON_IMAGE } from "./addOnsUtils";
@@ -30,10 +31,10 @@ export default function AddOnCard({
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
         {item.tag ? (
           <span
-            className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full text-white shadow-sm
+            className={`flex items-center gap-1 text-[9px] font-black tracking-widest px-3 py-1 rounded-full text-white shadow-sm
             ${item.tag === "BEST SELLER" || item.tag === "POPULAR" ? "bg-red-600" : "bg-amber-500"}`}
           >
-            🔥 {item.tag}
+            <Flame size={10} /> {item.tag}
           </span>
         ) : (
           <div />
@@ -96,7 +97,7 @@ export default function AddOnCard({
             onClick={() => onAdd(item)}
             className="w-full h-[46px] rounded-2xl bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest shadow-md shadow-red-500/10 transition-all focus:outline-none cursor-pointer"
           >
-            <span>+</span> Add
+            <Plus size={14} /> Add
           </button>
         )}
       </div>

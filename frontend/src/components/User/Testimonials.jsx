@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Star, Users, ShieldCheck, Heart, ArrowRight } from 'lucide-react';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -91,9 +92,9 @@ export default function TestimonialsSlider() {
                   {/* कोट्स और स्टार्स */}
                   <div className="mb-4">
                     <div className="text-center text-[#E63946] text-3xl font-serif mb-1">“</div>
-                    <div className="flex justify-center gap-1 text-amber-500 text-xs">
+                    <div className="flex justify-center gap-1 text-amber-500">
                       {Array.from({ length: item.rating }).map((_, i) => (
-                        <span key={i}>★</span>
+                        <Star key={i} size={12} className="fill-current" />
                       ))}
                     </div>
                   </div>
@@ -139,7 +140,7 @@ export default function TestimonialsSlider() {
         <div className="flex flex-col sm:flex-row items-center justify-around w-full md:w-3/4 gap-6">
           
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">👥</div>
+            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center"><Users size={20} /></div>
             <div className="text-left">
               <div className="text-xl md:text-2xl font-bold">2,500+</div>
               <div className="text-xs text-gray-300">Happy Customers</div>
@@ -149,7 +150,7 @@ export default function TestimonialsSlider() {
           <div className="hidden sm:block h-8 w-[1px] bg-white/20"></div>
 
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">⭐</div>
+            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center"><Star size={20} className="fill-current" /></div>
             <div className="text-left">
               <div className="text-xl md:text-2xl font-bold">4.8/5</div>
               <div className="text-xs text-gray-300">Average Rating</div>
@@ -159,7 +160,7 @@ export default function TestimonialsSlider() {
           <div className="hidden sm:block h-8 w-[1px] bg-white/20"></div>
 
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">🛡️</div>
+            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center"><ShieldCheck size={20} /></div>
             <div className="text-left">
               <div className="text-xl md:text-2xl font-bold">99%</div>
               <div className="text-xs text-gray-300">Satisfaction Rate</div>
@@ -168,12 +169,12 @@ export default function TestimonialsSlider() {
         </div>
 
         <div className="text-center md:text-right w-full md:w-auto flex flex-col items-center md:items-end gap-2">
-          <span className="text-xs italic font-serif text-amber-200">Join Our Happy Family ♡</span>
+          <span className="text-xs italic font-serif text-amber-200 flex items-center gap-1">Join Our Happy Family <Heart size={12} className="fill-current" /></span>
           <button
             onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}
             className="bg-white text-[#9E2A2B] font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-gray-100 transition flex items-center gap-2 text-sm uppercase tracking-wider cursor-pointer"
           >
-            Order Now <span>→</span>
+            Order Now <ArrowRight size={16} />
           </button>
         </div>
       </div>

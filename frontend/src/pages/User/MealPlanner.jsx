@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Package } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus } from "../../services/mealSchedule.service";
@@ -213,8 +214,8 @@ console.log(activeSubscription?.maxItemsPerMeal);
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <div className="py-10 text-center">
-                  <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-                    📦
+                  <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package size={28} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">No Delivery History</h3>
                   <p className="text-gray-500 text-sm max-w-sm mx-auto">

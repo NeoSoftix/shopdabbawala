@@ -1,10 +1,12 @@
+import { Zap } from "lucide-react";
+
 // Top hero/header block for the packages section: eyebrow badge, heading and
 // the "View All Packages" trigger.
 export default function PackagesHeader({ onViewAll }) {
   return (
     <div className="text-center relative z-20 px-4 mb-2 md:mb-3 flex-shrink-0">
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-red-200 shadow-md text-red-600 font-extrabold text-[9px] md:text-[11px] tracking-widest mb-2">
-        ⚡ CHOOSE YOUR PLAN
+        <Zap size={11} className="fill-current" /> CHOOSE YOUR PLAN
       </span>
 
       <h2 className="font-black tracking-tight uppercase leading-none">

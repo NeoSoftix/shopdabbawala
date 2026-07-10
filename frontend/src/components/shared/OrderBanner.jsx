@@ -11,7 +11,7 @@ export default function OrderBanner({
         {/* Left */}
         <div>
           <h2 className="text-2xl font-bold">
-            Welcome Back 👋
+            Welcome Back
           </h2>
 
           <p className="mt-2 text-red-100">

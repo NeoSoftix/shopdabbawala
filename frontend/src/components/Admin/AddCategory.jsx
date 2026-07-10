@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { createCategory } from "../../services/category.service.js";
 import { getAllMeals } from "../../services/meal.service.js";
 import { toast } from "react-hot-toast";
@@ -57,7 +58,7 @@ const AddCategory = () => {
       if (image) formData.append("image", image);
 
       await createCategory(formData);
-      toast.success("🎉 Category added successfully!");
+      toast.success("Category added successfully!");
       setName("");
       setMeal("");
       setFoodType("");
@@ -87,7 +88,7 @@ const AddCategory = () => {
           onClick={() => navigate("/admin/categories")}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
         >
-          <span>←</span>
+          <ArrowLeft size={16} />
           <span>Back to Categories</span>
         </button>
       </div>
@@ -110,7 +111,7 @@ const AddCategory = () => {
                   errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-400"
                 }`}
               />
-              {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
+              {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
             </div>
 
             {/* Meal Type */}
@@ -132,7 +133,7 @@ const AddCategory = () => {
                   </option>
                 ))}
               </select>
-              {errors.meal && <p className="text-red-500 text-sm mt-1">⚠ {errors.meal}</p>}
+              {errors.meal && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.meal}</p>}
             </div>
 
             {/* Food Type */}
@@ -151,7 +152,7 @@ const AddCategory = () => {
                 <option value="veg">Veg</option>
                 <option value="non-veg">Non Veg</option>
               </select>
-              {errors.foodType && <p className="text-red-500 text-sm mt-1">⚠ {errors.foodType}</p>}
+              {errors.foodType && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.foodType}</p>}
             </div>
 
             {/* Image Upload */}

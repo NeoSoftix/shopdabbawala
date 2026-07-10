@@ -11,6 +11,7 @@ import {
   LuStar
 } from "react-icons/lu";
 import { BiDish } from "react-icons/bi";
+import { UtensilsCrossed } from "lucide-react";
 
 const features = [
   {
@@ -79,7 +80,7 @@ export default function WhyChooseUs() {
 
           <div className="flex items-center gap-3 mt-2 w-full justify-center">
             <div className="w-12 h-[1px] bg-slate-200" />
-            <span className="text-[#E23747] text-base">🍴</span>
+            <UtensilsCrossed className="text-[#E23747]" size={16} />
             <div className="w-12 h-[1px] bg-slate-200" />
           </div>
 
