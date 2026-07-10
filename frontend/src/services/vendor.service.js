@@ -61,7 +61,7 @@ export const updateVendor = async (id, data) => {
 export const toggleVendorStatus = async (id, isActive) => {
   try {
     // Controller body me { isActive } accept kar raha hai
-    const res = await API.patch(`/vendor/toggle/${id}`, { isActive });
+    const res = await API.patch(`/vendor/${id}/status`, { isActive });
     return res.data;
   } catch (error) {
     console.error("Toggle vendor status error:", error);
@@ -93,11 +93,11 @@ export const getVendorProfile = async () => {
   }
 }
 
-// Check Service Availability By Pincode
-export const checkServiceAvailability = async (pincode) => {
+// Check Service Availability By Pincode (optionally scoped to a package)
+export const checkServiceAvailability = async (pincode, packageId) => {
   try {
     const res = await API.get("/vendor/service-availability", {
-      params: { pincode },
+      params: { pincode, package: packageId },
     });
     return res.data;
   } catch (error) {

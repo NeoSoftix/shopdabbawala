@@ -1,12 +1,26 @@
 import mongoose from "mongoose";
 import Vendor from "../../models/vendor.model.js";
 import User from "../../models/User.model.js";
+import Package from "../../models/package.model.js";
 import cloudinary from "../../config/cloudinary.js";
 import bcrypt from "bcryptjs";
 import passwordGenerator from "../../utils/generatePassword.js";
 import { sendEmail } from "../../utils/email/sendEmail.js";
 import { vendorWelcomeTemplate } from "../../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../../middleware/upload.middleware.js";
+
+// Parses the servicePincodes field sent from the client, which arrives as a
+// JSON-stringified array (multipart form fields can only carry strings).
+const parseServicePincodes = (raw) => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map((p) => String(p).trim()).filter(Boolean);
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map((p) => String(p).trim()).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+};
 
 // contoller for create Vendor
 export const createVendor = async (req, res) => {
@@ -21,7 +35,10 @@ export const createVendor = async (req, res) => {
       city,
       address,
       phone,
+      package: packageId,
     } = req.body;
+
+    const servicePincodes = parseServicePincodes(req.body.servicePincodes);
 
     // 1. Validation (Sabse pehle check taaki faltu DB processing na ho)
     if (
@@ -32,12 +49,46 @@ export const createVendor = async (req, res) => {
       !address ||
       !city ||
       !state ||
-      !pincode
+      !pincode ||
+      !packageId
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Name, Email, Phone, Organization Name, Address, City, State and Pincode are required",
+          "Name, Email, Phone, Organization Name, Address, City, State, Pincode and Package are required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(packageId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Package ID.",
+      });
+    }
+
+    const packageExists = await Package.findById(packageId).lean();
+    if (!packageExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Package not found.",
+      });
+    }
+
+    // A (pincode, package) combination can only ever serve one vendor.
+    // Delivery pincodes are typically assigned later from the Assign Vendor
+    // page, so this only fires if some were provided at creation time.
+    const conflictingVendor = servicePincodes.length
+      ? await Vendor.findOne({
+          package: packageId,
+          servicePincodes: { $in: servicePincodes },
+        }).lean()
+      : null;
+
+    if (conflictingVendor) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "One or more of these pincodes are already served by another vendor for this package.",
       });
     }
 
@@ -96,6 +147,8 @@ export const createVendor = async (req, res) => {
       city: city.trim(),
       state: state.trim(),
       pincode: pincode.trim(),
+      package: packageId,
+      servicePincodes,
       logo: logoData,
       description: description?.trim() || "",
     });
@@ -138,6 +191,7 @@ export const getAllVendors = async (req, res) => {
   try {
     const vendors = await Vendor.find()
       .populate("userId", "name phone email")
+      .populate("package", "name")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -171,6 +225,7 @@ export const getOneVendor = async (req, res) => {
 
     const vendor = await Vendor.findById(id)
       .populate("userId", "name email phone role")
+      .populate("package", "name")
       .lean();
 
     if (!vendor) {
@@ -209,7 +264,13 @@ export const updateVendor = async (req, res) => {
       state,
       pincode,
       description,
+      package: packageId,
     } = req.body;
+
+    const servicePincodes =
+      req.body.servicePincodes !== undefined
+        ? parseServicePincodes(req.body.servicePincodes)
+        : undefined;
 
     // Validate Vendor Id
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -295,6 +356,60 @@ export const updateVendor = async (req, res) => {
       }
     }
 
+    // Package change
+    const packageChanged = packageId && packageId !== String(vendor.package);
+    if (packageId) {
+      if (!mongoose.Types.ObjectId.isValid(packageId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Package ID.",
+        });
+      }
+
+      const packageExists = await Package.findById(packageId).lean();
+      if (!packageExists) {
+        return res.status(404).json({
+          success: false,
+          message: "Package not found.",
+        });
+      }
+    }
+
+    // Service pincodes and/or package change — re-check the (pincode,
+    // package) uniqueness rule against every other vendor. This must also
+    // run when only the package changes (servicePincodes omitted), since
+    // the vendor's existing pincodes now need to be unique under the new
+    // package too. Empty array is allowed (unassigns delivery areas).
+    if (servicePincodes !== undefined || packageChanged) {
+      const effectivePackageId = packageId || vendor.package;
+      const effectivePincodes =
+        servicePincodes !== undefined ? servicePincodes : vendor.servicePincodes;
+
+      const conflictingVendor = effectivePincodes.length
+        ? await Vendor.findOne({
+            _id: { $ne: vendor._id },
+            package: effectivePackageId,
+            servicePincodes: { $in: effectivePincodes },
+          }).lean()
+        : null;
+
+      if (conflictingVendor) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "One or more of these pincodes are already served by another vendor for this package.",
+        });
+      }
+
+      if (servicePincodes !== undefined) {
+        vendor.servicePincodes = servicePincodes;
+      }
+    }
+
+    if (packageId) {
+      vendor.package = packageId;
+    }
+
     // Update User fields
     user.name = name?.trim() || user.name;
 
@@ -313,10 +428,14 @@ export const updateVendor = async (req, res) => {
     vendor.description = description?.trim() || vendor.description;
 
     await user.save();
-    await vendor.save();
+    // validateModifiedOnly so a partial update (e.g. just servicePincodes)
+    // doesn't fail on unrelated fields missing from older vendor documents
+    // created before those fields existed on the schema.
+    await vendor.save({ validateModifiedOnly: true });
 
     const updatedVendor = await Vendor.findById(vendor._id)
       .populate("userId", "name email phone role")
+      .populate("package", "name")
       .lean();
 
     return res.status(200).json({

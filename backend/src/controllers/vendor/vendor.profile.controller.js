@@ -36,9 +36,9 @@ export const checkServiceAvailability = async (req, res) => {
     const {pincode, package: packageId}= req.query
 
     if(!pincode) {
-      return res.status(404).json({
+      return res.status(400).json({
         success:false,
-        message:"Pincode not Found"
+        message:"Pincode is required"
       })
     }
 

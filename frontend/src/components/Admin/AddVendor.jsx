@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { createVendor } from "../../services/vendor.service.js";
+import { getActivePackages } from "../../services/package.service.js";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
@@ -20,6 +21,7 @@ const AddVendor = () => {
     state: "",
     pincode: "",
     description: "",
+    package: "",
   });
 
   const [preview, setPreview] = useState(
@@ -31,51 +33,72 @@ const AddVendor = () => {
   const [areas, setAreas] = useState([]);
   const [errors, setErrors] = useState({});
 
+  // Package this vendor will exclusively serve. Delivery pincodes for the
+  // package are assigned afterwards from the Assign Vendor page.
+  const [packages, setPackages] = useState([]);
+  const [loadingPackages, setLoadingPackages] = useState(true);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const res = await getActivePackages();
+        if (res.success) setPackages(res.data || []);
+      } catch (error) {
+        console.error("Error fetching packages:", error);
+        toast.error("Failed to load packages.");
+      } finally {
+        setLoadingPackages(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (errors[e.target.name]) setErrors((p) => ({ ...p, [e.target.name]: "" }));
   };
 
-  // पिनकोड चेंज होने पर काम करने वाला फंक्शन
+  // Postal Code (Canadian format: A1A 1A1) चेंज होने पर काम करने वाला फंक्शन
   const handlePincodeChange = async (e) => {
-    const pincodeVal = e.target.value;
-
-    // सिर्फ नंबर्स एलाओ करने के लिए
-    if (/[^0-9]/.test(pincodeVal)) return;
+    // सिर्फ लेटर्स और नंबर्स एलाओ करने के लिए, बाकी हटाकर अपरकेस में
+    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (raw.length > 6) raw = raw.slice(0, 6);
+    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
 
     setFormData((prev) => ({
       ...prev,
-      pincode: pincodeVal,
+      pincode: formatted,
       city: "", // पुराना डेटा क्लियर करने के लिए
       state: "",
     }));
     setAreas([]); // पुराना एरिया लिस्ट क्लियर करें
 
-    // जैसे ही पिनकोड 6 डिजिट का होगा, API कॉल होगी
-    if (pincodeVal.length === 6) {
+    // जैसे ही पहले 6 कैरेक्टर पूरे होंगे, API कॉल होगी (FSA = पहले 3 कैरेक्टर)
+    if (raw.length === 6) {
+      const fsa = raw.slice(0, 3);
       try {
         setFetchingLocation(true);
-        const res = await fetch(
-          `https://api.postalpincode.in/pincode/${pincodeVal}`,
-        );
+        const res = await fetch(`https://api.zippopotam.us/ca/${fsa}`);
+        if (!res.ok) throw new Error("Invalid postal code");
         const data = await res.json();
+        const places = data.places || [];
 
-        if (data[0].Status === "Success") {
-          const postOffices = data[0].PostOffice;
-          setAreas(postOffices); // सारे इलाकों की लिस्ट सेट करें
+        if (places.length > 0) {
+          setAreas(places); // सारे इलाकों की लिस्ट सेट करें
 
-          // डिफ़ॉल्ट रूप से पहले वाले पोस्ट ऑफिस के आधार पर City/State सेट करें
+          // डिफ़ॉल्ट रूप से पहले वाले इलाके के आधार पर City/State सेट करें
           setFormData((prev) => ({
             ...prev,
-            city: postOffices[0].District,
-            state: postOffices[0].State,
-            address: postOffices[0].Name + ", ", // शुरुआत में पहला एरिया एड्रेस में डाल सकते हैं
+            city: places[0]["place name"],
+            state: places[0]["state"],
+            address: places[0]["place name"] + ", ",
           }));
         } else {
-          toast.error("Invalid Pincode. Please check again.");
+          toast.error("Invalid Postal Code. Please check again.");
         }
       } catch (error) {
         console.error("Error fetching location:", error);
+        toast.error("Invalid Postal Code. Please check again.");
       } finally {
         setFetchingLocation(false);
       }
@@ -84,10 +107,14 @@ const AddVendor = () => {
 
   // जब यूज़र ड्रॉपडाउन से कोई खास एरिया चुनेगा
   const handleAreaChange = (e) => {
-    const selectedAreaName = e.target.value;
+    const selectedIndex = Number(e.target.value);
+    const selectedArea = areas[selectedIndex];
+    if (!selectedArea) return;
     setFormData((prev) => ({
       ...prev,
-      address: selectedAreaName + ", ",
+      city: selectedArea["place name"],
+      state: selectedArea["state"],
+      address: selectedArea["place name"] + ", ",
     }));
   };
 
@@ -101,10 +128,12 @@ const AddVendor = () => {
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
     else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) newErrors.phone = "Enter a valid 10-digit phone number.";
     if (!formData.organizationName.trim()) newErrors.organizationName = "Organization name is required.";
-    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-    if (!formData.city.trim()) newErrors.city = "City is required (enter a valid pincode).";
-    if (!formData.state.trim()) newErrors.state = "State is required (enter a valid pincode).";
+    if (!formData.pincode.trim()) newErrors.pincode = "Postal code is required.";
+    else if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(formData.pincode)) newErrors.pincode = "Enter a valid Canadian postal code (e.g. A1A 1A1).";
+    if (!formData.city.trim()) newErrors.city = "City is required (enter a valid postal code).";
+    if (!formData.state.trim()) newErrors.state = "Province is required (enter a valid postal code).";
     if (!formData.address.trim()) newErrors.address = "Detailed address is required.";
+    if (!formData.package) newErrors.package = "Please select a package for this vendor.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -124,6 +153,7 @@ const AddVendor = () => {
       data.append("state", formData.state);
       data.append("pincode", formData.pincode);
       data.append("description", formData.description);
+      data.append("package", formData.package);
       if (image) data.append("logo", image);
 
       const response = await createVendor(data);
@@ -233,10 +263,10 @@ const AddVendor = () => {
             {errors.organizationName && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.organizationName}</p>}
           </div>
 
-          {/* Pincode Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}
+          {/* Postal Code Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Pincode{" "}
+              Postal Code{" "}
               {fetchingLocation && (
                 <span className="text-xs text-[#e61e2d] animate-pulse">
                   (Fetching Areas...)
@@ -246,16 +276,17 @@ const AddVendor = () => {
             <input
               type="text"
               name="pincode"
-              maxLength={6}
+              maxLength={7}
               value={formData.pincode}
               onChange={handlePincodeChange}
-              placeholder="Enter 6-digit pincode"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+              placeholder="e.g. A1A 1A1"
+              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.pincode ? "border-red-400" : "border-gray-300"}`}
               required
             />
+            {errors.pincode && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.pincode}</p>}
           </div>
 
-          {/* Specific Area Select Dropdown (बिना Sub Post Office शब्द के) */}
+          {/* Specific Area Select Dropdown */}
           {areas.length > 0 && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -267,19 +298,19 @@ const AddVendor = () => {
                 required
               >
                 {areas.map((area, index) => (
-                  <option key={index} value={area.Name}>
-                    {area.Name}
+                  <option key={index} value={index}>
+                    {area["place name"]}
                   </option>
                 ))}
               </select>
             </div>
           )}
 
-          {/* City and State (यूज़र इन्हें डायरेक्ट एडिट न करे इसलिए readOnly किया है) */}
+          {/* City and Province (यूज़र इन्हें डायरेक्ट एडिट न करे इसलिए readOnly किया है) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                City / District
+                City
               </label>
               <input
                 type="text"
@@ -295,14 +326,14 @@ const AddVendor = () => {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                State
+                Province
               </label>
               <input
                 type="text"
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                placeholder="State will auto-fill"
+                placeholder="Province will auto-fill"
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none"
                 readOnly
                 required
@@ -339,6 +370,34 @@ const AddVendor = () => {
               placeholder="Enter description"
               className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
             />
+          </div>
+
+          {/* Package — a vendor serves exactly one package */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Package (this vendor will serve only this plan)
+            </label>
+            <select
+              name="package"
+              value={formData.package}
+              onChange={handleChange}
+              disabled={loadingPackages}
+              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.package ? "border-red-400" : "border-gray-300"}`}
+              required
+            >
+              <option value="">
+                {loadingPackages ? "Loading packages..." : "Select a package"}
+              </option>
+              {packages.map((pkg) => (
+                <option key={pkg._id} value={pkg._id}>
+                  {pkg.name}
+                </option>
+              ))}
+            </select>
+            {errors.package && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.package}</p>}
+            <p className="mt-1 text-xs text-gray-400">
+              Delivery pincodes for this vendor are set later from the Assign Vendor page.
+            </p>
           </div>
 
           <button

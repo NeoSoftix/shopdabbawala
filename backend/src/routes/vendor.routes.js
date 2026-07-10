@@ -33,7 +33,7 @@ router.put("/:id", verifyToken, allowedRoles("admin", "vendor"), upload.single("
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);
 
 // Get One Vendor
-router.get("/:id",allowedRoles("admin"), getOneVendor);
+router.get("/:id", verifyToken, allowedRoles("admin"), getOneVendor);
 
 
 

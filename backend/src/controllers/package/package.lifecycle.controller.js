@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Package from "../../models/package.model.js";
+import Vendor from "../../models/vendor.model.js";
 import stripe from "../../config/stripe.js";
 
 // toggle status of package
@@ -87,6 +88,19 @@ export const deletePackage = async (req, res) => {
     if (!packageData) {
       return res.status(404).json({
         message: "Package Not found",
+        success: false,
+      });
+    }
+
+    // ---------------- VENDOR REFERENCE CHECK ----------------
+    // A vendor is permanently tied to one fixed package — deleting a
+    // package that's still assigned to a vendor would leave that vendor's
+    // `package` ref pointing at nothing.
+    const vendorUsingPackage = await Vendor.findOne({ package: id }).lean();
+    if (vendorUsingPackage) {
+      return res.status(409).json({
+        message:
+          "This package is still assigned to a vendor and cannot be deleted. Reassign or remove the vendor first.",
         success: false,
       });
     }

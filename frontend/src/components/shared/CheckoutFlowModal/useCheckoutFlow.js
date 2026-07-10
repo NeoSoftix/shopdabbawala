@@ -161,9 +161,18 @@ export default function useCheckoutFlow({
   const handlePincodeSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(pincode.trim())) {
+      setError("Please enter a valid Canadian postal code (e.g. A1A 1A1).");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await checkServiceAvailability(pincode.trim());
+      const res = await checkServiceAvailability(
+        pincode.trim(),
+        mode === "packages" ? planId : undefined,
+      );
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");
         // Logged-in users skip Mobile + OTP verification entirely and go

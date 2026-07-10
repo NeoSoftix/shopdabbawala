@@ -1,32 +1,32 @@
-import { Mail, Phone, MapPin, Pencil, Trash2, Building2, Map } from "lucide-react";
+import { Mail, Phone, MapPin, Pencil, Trash2, Building2, Map, Package } from "lucide-react";
 
 const VendorCard = ({ vendor, onEdit, onDelete }) => {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-5">
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 h-full">
+      <div className="flex items-start justify-between gap-3">
         {/* Profile Info */}
-        <div className="flex items-center gap-4 min-w-[220px]">
+        <div className="flex items-center gap-3 min-w-0">
           <img
             src={vendor.logo?.url || "https://placehold.co/80x80?text=Vendor"}
             alt={vendor.organizationName}
-            className="h-20 w-20 rounded-2xl border-2 border-red-50 object-cover shadow-sm shrink-0"
+            className="h-16 w-16 rounded-2xl border-2 border-red-50 object-cover shadow-sm shrink-0"
             onError={(e) => {
               e.target.src = "https://placehold.co/80x80?text=Vendor";
               e.target.onerror = null;
             }}
           />
           <div className="min-w-0">
-            <h2 className="text-xl font-black text-gray-900 tracking-tight">
+            <h2 className="text-lg font-black text-gray-900 tracking-tight truncate">
               {vendor.organizationName}
             </h2>
-            <p className="text-sm font-medium text-gray-500 mt-0.5">
+            <p className="text-sm font-medium text-gray-500 mt-0.5 truncate">
               Owner:{" "}
               <span className="text-gray-800 font-semibold">
                 {vendor.userId?.name || "N/A"}
               </span>
             </p>
             <span
-              className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${vendor.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${vendor.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${vendor.isActive ? "bg-green-600" : "bg-red-600"}`}
@@ -36,92 +36,110 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
           </div>
         </div>
 
-        {/* Middle Section Contacts */}
-        <div className="flex-1 space-y-2.5 md:border-l md:pl-8 border-gray-100">
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
-              <Mail size={14} />
-            </span>
-            <span className="font-medium truncate">
-              {vendor.userId?.email || "N/A"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
-              <Phone size={14} />
-            </span>
-            <span className="font-semibold">
-              {vendor.userId?.phone || "N/A"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
-              <MapPin size={14} />
-            </span>
-            <span className="font-medium truncate">{vendor.address}</span>
-          </div>
-        </div>
-
         {/* Action Buttons */}
-        <div className="flex gap-2 self-end md:self-start">
+        <div className="flex gap-2 shrink-0">
           <button
             onClick={() => onEdit(vendor)}
-            className="p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition shadow-sm"
+            className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition shadow-sm"
           >
             <Pencil size={16} />
           </button>
           <button
             onClick={() => onDelete(vendor._id)}
-            className="p-2.5 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition shadow-sm"
+            className="p-2 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition shadow-sm"
           >
             <Trash2 size={16} />
           </button>
         </div>
       </div>
 
+      {/* Contacts */}
+      <div className="space-y-2.5 border-t border-gray-100 pt-4">
+        <div className="flex items-center gap-3 text-sm text-gray-600 min-w-0">
+          <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] shrink-0">
+            <Mail size={14} />
+          </span>
+          <span className="font-medium truncate">
+            {vendor.userId?.email || "N/A"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-gray-600">
+          <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] shrink-0">
+            <Phone size={14} />
+          </span>
+          <span className="font-semibold">
+            {vendor.userId?.phone || "N/A"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-gray-600 min-w-0">
+          <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] shrink-0">
+            <MapPin size={14} />
+          </span>
+          <span className="font-medium truncate">{vendor.address}</span>
+        </div>
+      </div>
+
       {/* Bottom Meta Badges */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 border-t pt-4 border-gray-50">
-        <div className="flex items-center gap-3.5 bg-red-50/30 rounded-2xl p-3 border border-red-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
-            <Building2 size={18} />
+      <div className="grid grid-cols-3 gap-2 border-t pt-4 border-gray-50 mt-auto">
+        <div className="flex flex-col items-center text-center gap-1.5 bg-red-50/30 rounded-2xl p-2.5 border border-red-50/50">
+          <span className="p-2 rounded-xl bg-white shadow-sm text-gray-600">
+            <Building2 size={16} />
           </span>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-              City
-            </p>
-            <p className="text-sm font-extrabold text-gray-800 mt-0.5">
-              {vendor.city}
-            </p>
-          </div>
+          <p className="text-[9px] font-bold uppercase text-gray-400 tracking-wider">
+            City
+          </p>
+          <p className="text-xs font-extrabold text-gray-800 truncate w-full">
+            {vendor.city}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3.5 bg-purple-50/30 rounded-2xl p-3 border border-purple-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
-            <Map size={18} />
+        <div className="flex flex-col items-center text-center gap-1.5 bg-purple-50/30 rounded-2xl p-2.5 border border-purple-50/50">
+          <span className="p-2 rounded-xl bg-white shadow-sm text-gray-600">
+            <Map size={16} />
           </span>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-              State
-            </p>
-            <p className="text-sm font-extrabold text-gray-800 mt-0.5">
-              {vendor.state}
-            </p>
-          </div>
+          <p className="text-[9px] font-bold uppercase text-gray-400 tracking-wider">
+            State
+          </p>
+          <p className="text-xs font-extrabold text-gray-800 truncate w-full">
+            {vendor.state}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3.5 bg-green-50/30 rounded-2xl p-3 border border-green-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
-            <MapPin size={18} />
+        <div className="flex flex-col items-center text-center gap-1.5 bg-green-50/30 rounded-2xl p-2.5 border border-green-50/50">
+          <span className="p-2 rounded-xl bg-white shadow-sm text-gray-600">
+            <MapPin size={16} />
           </span>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-              Pincode
-            </p>
-            <p className="text-sm font-extrabold text-gray-800 mt-0.5">
-              {vendor.pincode}
-            </p>
-          </div>
+          <p className="text-[9px] font-bold uppercase text-gray-400 tracking-wider">
+            Pincode
+          </p>
+          <p className="text-xs font-extrabold text-gray-800 truncate w-full">
+            {vendor.pincode}
+          </p>
         </div>
+      </div>
+
+      {/* Package + Delivery Pincodes */}
+      <div className="border-t border-gray-50 pt-4 space-y-2">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="p-1.5 rounded-lg bg-red-50 text-[#e61e2d] shrink-0">
+            <Package size={14} />
+          </span>
+          <span className="font-semibold text-gray-800 truncate">
+            {vendor.package?.name || "No package assigned"}
+          </span>
+        </div>
+        {vendor.servicePincodes?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pl-1">
+            {vendor.servicePincodes.map((p) => (
+              <span
+                key={p}
+                className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600"
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

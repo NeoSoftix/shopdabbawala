@@ -5,6 +5,8 @@ import ScrollToTop from "./components/shared/ScrollToTop";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import AddCategory from "./components/Admin/AddCategory";
 import Categories from "./components/Admin/Categories";
@@ -20,6 +22,7 @@ import Item from "./components/Admin/Item";
 import VendorList from "./components/Admin/Vendor";
 import AddVendor from "./components/Admin/AddVendor";
 import AssignVendor from "./pages/Admin/AssignVendor";
+import DeliveryCharges from "./pages/Admin/DeliveryCharges";
 import CreateAddOns from "./components/Admin/CreateAddOns";
 import AddOns from "./components/Admin/AddOns";
 import PackagesPage from "./components/Admin/PackagesPage";
@@ -86,6 +89,8 @@ function App() {
       />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* admin route */}
       <Route
@@ -109,6 +114,7 @@ function App() {
         <Route path="vendors" element={<VendorList />} />
         <Route path="vendors/add" element={<AddVendor />} />
         <Route path="vendor-assignment" element={<AssignVendor />} />
+        <Route path="delivery-charges" element={<DeliveryCharges />} />
         <Route path="packages" element={<PackagesPage />} />
         <Route path="add-on" element={<AddOns />} />
         <Route path="add-on/add" element={<CreateAddOns />} />

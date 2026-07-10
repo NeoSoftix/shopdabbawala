@@ -19,10 +19,16 @@ export default function PincodeCheckBar() {
     }
   }, [user]);
 
+  const handlePincodeChange = (e) => {
+    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (raw.length > 6) raw = raw.slice(0, 6);
+    setPincode(raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw);
+  };
+
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!pincode || pincode.trim().length !== 6) {
-      setResult({ available: false, message: "Please enter a valid 6-digit pincode." });
+    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(pincode.trim())) {
+      setResult({ available: false, message: "Please enter a valid Canadian postal code (e.g. A1A 1A1)." });
       return;
     }
 
@@ -55,10 +61,10 @@ export default function PincodeCheckBar() {
           <FiMapPin className="text-red-500 text-lg shrink-0" />
           <input
             type="text"
-            maxLength={6}
+            maxLength={7}
             value={pincode}
-            onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-            placeholder="Enter delivery pincode"
+            onChange={handlePincodeChange}
+            placeholder="e.g. A1A 1A1"
             className="w-full bg-transparent text-sm font-semibold text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>

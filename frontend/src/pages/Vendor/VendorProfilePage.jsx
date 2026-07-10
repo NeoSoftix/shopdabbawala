@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { getVendorProfile, updateVendor } from "../../services/vendor.service.js";
 import { SectionLoader } from "../../components/shared/Loader";
+import ChangePasswordModal from "../../components/shared/ChangePasswordModal";
 import toast from "react-hot-toast";
 
 export default function VendorProfilePage() {
@@ -20,6 +21,7 @@ export default function VendorProfilePage() {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const [form, setForm] = useState({
     organizationName: "",
@@ -66,6 +68,14 @@ export default function VendorProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Canadian postal code (A1A 1A1) — same format used on Add/Edit Vendor.
+  const handlePincodeChange = (e) => {
+    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (raw.length > 6) raw = raw.slice(0, 6);
+    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
+    setForm((prev) => ({ ...prev, pincode: formatted }));
+  };
+
   const handleLogoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -76,6 +86,11 @@ export default function VendorProfilePage() {
 
   const handleSave = async () => {
     if (!vendor?._id) return;
+
+    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(form.pincode)) {
+      toast.error("Enter a valid Canadian postal code (e.g. A1A 1A1).");
+      return;
+    }
 
     try {
       setSaving(true);
@@ -204,10 +219,18 @@ export default function VendorProfilePage() {
             </div>
           </div>
 
-          <button className="w-full mt-8 border border-[#E23747] text-[#E23747] rounded-xl py-3 font-medium flex justify-center items-center gap-2">
+          <button
+            onClick={() => setIsChangePasswordOpen(true)}
+            className="w-full mt-8 border border-[#E23747] text-[#E23747] rounded-xl py-3 font-medium flex justify-center items-center gap-2"
+          >
             <FaLock />
             Change Password
           </button>
+
+          <ChangePasswordModal
+            isOpen={isChangePasswordOpen}
+            onClose={() => setIsChangePasswordOpen(false)}
+          />
         </div>
 
         {/* Right Form */}
@@ -318,8 +341,10 @@ export default function VendorProfilePage() {
               <input
                 type="text"
                 name="pincode"
+                maxLength={7}
+                placeholder="e.g. A1A 1A1"
                 value={form.pincode}
-                onChange={handleChange}
+                onChange={handlePincodeChange}
                 disabled={!isEditing}
                 className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
               />

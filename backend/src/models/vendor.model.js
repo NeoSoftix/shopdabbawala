@@ -39,6 +39,21 @@ const vendorSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Fixed plan this vendor serves — a vendor is onboarded for exactly one package.
+    package: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Package",
+      required: true,
+    },
+
+    // Pincodes where this vendor delivers its package. A (pincode, package)
+    // combination may only belong to one vendor — enforced in the controller.
+    servicePincodes: {
+      type: [String],
+      default: [],
+      set: (arr) => (Array.isArray(arr) ? arr.map((p) => p.trim()) : arr),
+    },
+
     logo: {
       url: {
         type: String,

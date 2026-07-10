@@ -81,3 +81,42 @@ export const verifyOtp = async (data) => {
     throw error;
   }
 };
+
+// Forgot Password — sends a reset link to the given email
+export const forgotPassword = async (data) => {
+  try {
+    const res = await API.post("/auth/forgot-password", data);
+
+    return res.data;
+  } catch (error) {
+    console.log("Forgot Password error", error);
+
+    throw error;
+  }
+};
+
+// Reset Password — uses the token from the emailed reset link
+export const resetPassword = async (token, data) => {
+  try {
+    const res = await API.put(`/auth/reset-password/${token}`, data);
+
+    return res.data;
+  } catch (error) {
+    console.log("Reset Password error", error);
+
+    throw error;
+  }
+};
+
+// Change Password — logged-in user changes their own password
+export const changePassword = async (data) => {
+  try {
+    const res = await API.patch("/auth/change-password", data);
+
+    return res.data;
+  } catch (error) {
+    console.log("Change Password error", error);
+
+    throw error;
+  }
+};

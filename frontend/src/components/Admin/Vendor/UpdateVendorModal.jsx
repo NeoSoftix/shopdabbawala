@@ -4,6 +4,7 @@ const UpdateVendorModal = ({
   isOpen,
   formData,
   updating,
+  packages = [],
   onInputChange,
   onFileChange,
   onSubmit,
@@ -131,6 +132,28 @@ const UpdateVendorModal = ({
                 required
                 className="w-full rounded-xl border border-gray-300 p-2 text-sm outline-none focus:border-[#e61e2d]"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Package (vendor serves only this plan)
+              </label>
+              <select
+                name="package"
+                value={formData.package}
+                onChange={onInputChange}
+                required
+                className="w-full rounded-xl border border-gray-300 p-2 text-sm outline-none focus:border-[#e61e2d] bg-white"
+              >
+                <option value="">Select a package</option>
+                {packages.map((pkg) => (
+                  <option key={pkg._id} value={pkg._id}>
+                    {pkg.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-gray-400">
+                Delivery pincodes are managed from the Assign Vendor page.
+              </p>
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-gray-700 mb-1">

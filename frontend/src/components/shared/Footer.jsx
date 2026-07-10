@@ -86,7 +86,7 @@ export default function Footer() {
           <div className="sm:col-span-2 md:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-3">
               <div className="h-5 w-10 rounded-xl" />
-              <div>
+              <div onClick={() => navigate("/")}>
                 <img src="/logo.png" className="h-20" />
               </div>
             </div>

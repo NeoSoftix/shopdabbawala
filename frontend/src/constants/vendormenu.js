@@ -30,9 +30,4 @@ export const vendorMenu = [
     path: "/vendor/profile",
     icon: FaUserEdit,
   },
-  {
-    label: "Settings",
-    path: "/vendor/settings",
-    icon: MdSettings,
-  },
 ];

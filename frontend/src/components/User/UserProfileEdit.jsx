@@ -27,9 +27,22 @@ export default function UserProfileEdit({ isOpen, onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handlePincodeChange = (e) => {
+    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (raw.length > 6) raw = raw.slice(0, 6);
+    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
+    setFormData({ ...formData, pincode: formatted });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(formData.pincode)) {
+      setError("Please enter a valid Canadian postal code (e.g. A1A 1A1).");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -180,9 +193,10 @@ export default function UserProfileEdit({ isOpen, onClose }) {
                     type="text"
                     name="pincode"
                     required
-                    placeholder="e.g. 144001"
+                    maxLength={7}
+                    placeholder="e.g. A1A 1A1"
                     value={formData.pincode}
-                    onChange={handleChange}
+                    onChange={handlePincodeChange}
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
                   />
                 </div>

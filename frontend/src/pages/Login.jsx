@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 // Eye aur EyeOff icons ko import kiya
 import { Mail, Lock, ShieldCheck, Clock3, Eye, EyeOff } from "lucide-react";
 import { login } from "../services/auth.service";
@@ -167,9 +167,9 @@ export default function Login() {
             </div>
 
             <div className="flex justify-between items-center text-sm">
-              <button type="button" className="text-[#E23747] font-medium">
+              <Link to="/forgot-password" className="text-[#E23747] font-medium">
                 Forgot Password?
-              </button>
+              </Link>
             </div>
 
             <button

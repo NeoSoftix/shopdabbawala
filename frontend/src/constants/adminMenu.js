@@ -48,9 +48,9 @@ export const adminMenu = [
     icon: FaStore,
   },
   {
-    label: "Vendor Assignment",
+    label: "Assign Vendor",
     path: "/admin/vendor-assignment",
-    icon: FaStore,
+    icon: MdTune,
   },
 
   {
@@ -70,7 +70,11 @@ export const adminMenu = [
     path: "/admin/packages",
     icon: MdLocalOffer,
   },
-
+  {
+    label:"Delivery Charges",
+    path:"/admin/delivery-charges",
+    icon:MdAddShoppingCart
+  },
 {
     label: "Set Duration",
     path: "/admin/duration",
@@ -78,10 +82,11 @@ export const adminMenu = [
   },
 
   {
-    label: "Meal Tiers",
+    label: "Custom Meal Tiers",
     path: "/admin/meal-tiers",
     icon: MdTune,
   },
+
 
   {
     label: "Settings",

@@ -5,6 +5,7 @@ import {
   deleteVendor,
   updateVendor,
 } from "../../services/vendor.service.js";
+import { getActivePackages } from "../../services/package.service.js";
 import { PageLoader } from "../shared/Loader";
 import VendorAlerts from "./Vendor/VendorAlerts";
 import VendorHeader from "./Vendor/VendorHeader";
@@ -40,11 +41,21 @@ const VendorList = () => {
     state: "",
     pincode: "",
     description: "",
+    package: "",
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
+  // Package options for the edit modal (delivery pincodes are managed
+  // separately from the Assign Vendor page).
+  const [packages, setPackages] = useState([]);
+
   useEffect(() => {
     fetchVendors();
+    getActivePackages()
+      .then((res) => {
+        if (res.success) setPackages(res.data || []);
+      })
+      .catch((err) => console.error("Failed to fetch packages:", err));
   }, []);
 
   // 1. Fetch All Vendors
@@ -99,6 +110,7 @@ const VendorList = () => {
       state: vendor.state || "",
       pincode: vendor.pincode || "",
       description: vendor.description || "",
+      package: vendor.package?._id || vendor.package || "",
     });
     setSelectedFile(null);
     setIsUpdateModalOpen(true);
@@ -116,6 +128,7 @@ const VendorList = () => {
   // 5. Submit Updated Data
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
+
     try {
       setUpdating(true);
       setError("");
@@ -130,6 +143,7 @@ const VendorList = () => {
       dataToSend.append("state", formData.state);
       dataToSend.append("pincode", formData.pincode);
       dataToSend.append("description", formData.description);
+      dataToSend.append("package", formData.package);
 
       if (selectedFile) {
         dataToSend.append("logo", selectedFile);
@@ -191,6 +205,7 @@ const VendorList = () => {
         isOpen={isUpdateModalOpen}
         formData={formData}
         updating={updating}
+        packages={packages}
         onInputChange={handleInputChange}
         onFileChange={handleFileChange}
         onSubmit={handleUpdateSubmit}
