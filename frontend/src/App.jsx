@@ -44,6 +44,9 @@ import SetDuration from "./components/Admin/SetDuration.jsx"
 import MealTierManager from "./components/Admin/MealTierManager.jsx"
 import AboutUsPage from "./pages/User/AboutUsPage.jsx";
 import ContactUsPage from "./pages/User/ContactUsPage.jsx";
+import ThankYouPage from "./pages/User/ThankYouPage";
+import PrivacyPolicyPage from "./pages/User/PrivacyPolicyPage.jsx";
+import TermsAndConditionsPage from "./pages/User/TermsAndConditionsPage.jsx";
 
 function App() {
   return (
@@ -139,6 +142,12 @@ function App() {
 <Route path="/about" element={<AboutUsPage />} />
 
 <Route path="/contact-us" element={<ContactUsPage />} />
+
+<Route path="/thank-you" element={<ThankYouPage />} />
+
+<Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+
+<Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
     </Routes>
     </>
   );

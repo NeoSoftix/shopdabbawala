@@ -12,6 +12,7 @@ import Sidebar from "./MealPlanner/Sidebar";
 import PlanSummary from "./MealPlanner/PlanSummary";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
 import PlanSelector from "./MealPlanner/PlanSelector";
+import NoActivePlan from "./MealPlanner/NoActivePlan";
 
 // ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================
 const MealPlanner = () => {
@@ -181,18 +182,10 @@ console.log(activeSubscription?.maxItemsPerMeal);
           {activeStep === 2 && (
             <div className="fade-in">
               {subscriptions.length === 0 && !loadingPlan ? (
-                <div className="bg-white rounded-[24px] border border-gray-100 p-10 text-center shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-                  <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-                    🔒
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Plan Required</h3>
-                  <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-                    You need an active meal subscription to build a custom schedule. Please purchase a plan to unlock this feature.
-                  </p>
-                  <button onClick={() => navigate("/")} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all">
-                    Browse Plans
-                  </button>
-                </div>
+                <NoActivePlan
+                  description="You need an active meal subscription to build a custom schedule. Please purchase a plan to unlock this feature."
+                  noteText="Meal scheduling and customization are locked until you activate a plan."
+                />
               ) : (
 
               <>
