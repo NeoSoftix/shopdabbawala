@@ -15,6 +15,8 @@ import {
   getAllOrders,
   acceptOrder,
   rejectOrder,
+  markOrderReadyToDeliver,
+  markOrderDelivered,
 } from "../../services/order.service";
 import { toast } from "react-hot-toast";
 
@@ -96,6 +98,32 @@ export default function OrdersPage() {
     }
   };
 
+  const handleReadyToDeliver = async (orderId) => {
+    try {
+      const res = await markOrderReadyToDeliver(orderId);
+      if (res.success) {
+        toast.success("Order marked as ready to deliver");
+        fetchOrders();
+        fetchOrderStats();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update order");
+    }
+  };
+
+  const handleMarkDelivered = async (orderId) => {
+    try {
+      const res = await markOrderDelivered(orderId);
+      if (res.success) {
+        toast.success("Order marked as delivered");
+        fetchOrders();
+        fetchOrderStats();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update order");
+    }
+  };
+
   const processingOrders =
     (orderStats.byStatus?.Preparing || 0) + (orderStats.byStatus?.["On the way"] || 0);
 
@@ -145,7 +173,13 @@ export default function OrdersPage() {
         <SectionLoader text="Loading orders..." />
       ) : (
         <>
-          <OrdersTable orders={orders} onAccept={handleAccept} onReject={handleReject} />
+          <OrdersTable
+            orders={orders}
+            onAccept={handleAccept}
+            onReject={handleReject}
+            onReadyToDeliver={handleReadyToDeliver}
+            onMarkDelivered={handleMarkDelivered}
+          />
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (

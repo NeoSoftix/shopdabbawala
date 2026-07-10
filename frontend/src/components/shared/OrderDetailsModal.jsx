@@ -19,6 +19,17 @@ const formatDate = (date) =>
       })
     : "—";
 
+const isToday = (date) => {
+  if (!date) return false;
+  const d = new Date(date);
+  const today = new Date();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
+};
+
 const Section = ({ label, children }) => (
   <div>
     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
@@ -28,10 +39,11 @@ const Section = ({ label, children }) => (
   </div>
 );
 
-export default function OrderDetailsModal({ order, onClose, onAccept, onReject }) {
+export default function OrderDetailsModal({ order, onClose, onAccept, onReject, onReadyToDeliver, onMarkDelivered }) {
   if (!order) return null;
 
   const hasAddons = order.addons?.length > 0;
+  const orderIsToday = isToday(order.date);
 
   return (
     <ModalShell
@@ -146,6 +158,33 @@ export default function OrderDetailsModal({ order, onClose, onAccept, onReject }
             </button>
           </div>
         )}
+
+        {(order.status === "Accepted" || order.status === "On the way") &&
+          order.active !== false &&
+          (onReadyToDeliver || onMarkDelivered) && (
+            <div className="pt-2">
+              {orderIsToday ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (order.status === "Accepted") {
+                      onReadyToDeliver?.(order._id);
+                    } else {
+                      onMarkDelivered?.(order._id);
+                    }
+                    onClose?.();
+                  }}
+                  className="w-full text-sm font-bold px-4 py-2.5 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  {order.status === "Accepted" ? "Ready to Deliver" : "Delivered"}
+                </button>
+              ) : (
+                <p className="text-xs text-gray-400 italic text-center">
+                  This order is scheduled for {formatDate(order.date)} - delivery actions unlock on that day.
+                </p>
+              )}
+            </div>
+          )}
       </div>
     </ModalShell>
   );

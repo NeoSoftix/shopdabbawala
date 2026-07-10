@@ -174,7 +174,7 @@ export default function TiffinRender() {
         {/* Main Content Layout Container */}
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-20 md:pt-0 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
           {/* Main Animated Container (Upar Dikhega Mobile me) */}
-          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[260px] xs:h-[300px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
+          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[280px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
             <div className="relative w-[85%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
               {/* Decorative circle behind the plate (slides with a priceBox) */}
               {activeItem.priceBox && (

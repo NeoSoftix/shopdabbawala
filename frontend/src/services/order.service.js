@@ -79,3 +79,25 @@ export const rejectOrder = async (orderId) => {
     throw error;
   }
 };
+
+// ➤ 7. Vendor marks an accepted order as ready to deliver (today's orders only)
+export const markOrderReadyToDeliver = async (orderId) => {
+  try {
+    const res = await API.patch(`/orders/${orderId}/ready-to-deliver`);
+    return res.data;
+  } catch (error) {
+    console.error("Mark Order Ready To Deliver Error", error);
+    throw error;
+  }
+};
+
+// ➤ 8. Vendor marks an order that's out for delivery as delivered
+export const markOrderDelivered = async (orderId) => {
+  try {
+    const res = await API.patch(`/orders/${orderId}/delivered`);
+    return res.data;
+  } catch (error) {
+    console.error("Mark Order Delivered Error", error);
+    throw error;
+  }
+};

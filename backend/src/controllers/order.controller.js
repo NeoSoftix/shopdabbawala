@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
 import Vendor from "../models/vendor.model.js";
+import Subscription from "../models/Subcription.model.js";
 import { notifyOrderStatusChange } from "../utils/notifyOrderEvent.js";
 import { getPagination } from "../utils/pagination.js";
 
@@ -9,6 +10,17 @@ import { getPagination } from "../utils/pagination.js";
 // `{}` (all orders) or matching orders that are legitimately unassigned
 // (vendor: null, e.g. no vendor currently serves that pincode).
 const NO_MATCH_ID = new mongoose.Types.ObjectId();
+
+// Two Date instances (ignoring time-of-day) represent the same calendar day.
+const isSameCalendarDay = (a, b) => {
+  const d1 = new Date(a);
+  const d2 = new Date(b);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
 
 // Builds the Order filter for the calling user: unscoped for admins,
 // scoped to their own vendor id for vendors.
@@ -145,14 +157,18 @@ export const getOrderCountsByMonth = async (req, res) => {
     const endDate = new Date(Number(year), Number(month), 1);
     const filter = await getOrderScopeFilter(req);
 
+    // Group by the order's actual scheduled delivery date (`date`), not
+    // `orderDate` (when the record was created) - and skip orders the user
+    // has paused, since those aren't real deliveries for that day.
     const orders = await Order.find({
       ...filter,
-      orderDate: { $gte: startDate, $lt: endDate },
-    }).select("orderDate");
+      date: { $gte: startDate, $lt: endDate },
+      active: { $ne: false },
+    }).select("date");
 
     const counts = {};
     orders.forEach((order) => {
-      const d = order.orderDate;
+      const d = order.date;
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       counts[dateStr] = (counts[dateStr] || 0) + 1;
     });
@@ -188,12 +204,15 @@ export const getOrdersByDate = async (req, res) => {
     const endDate = new Date(year, month - 1, day + 1);
     const filter = await getOrderScopeFilter(req);
 
+    // Same fix as getOrderCountsByMonth: match the scheduled delivery date,
+    // and only show orders the user hasn't paused.
     const orders = await Order.find({
       ...filter,
-      orderDate: { $gte: startDate, $lt: endDate },
+      date: { $gte: startDate, $lt: endDate },
+      active: { $ne: false },
     })
       .populate("user", "name email")
-      .sort({ orderDate: 1 });
+      .sort({ date: 1 });
 
     return res.status(200).json({
       success: true,
@@ -302,6 +321,135 @@ export const rejectOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Something went wrong while rejecting the order",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ 7. Vendor marks an accepted order as ready to deliver - only allowed for
+// today's active orders (never a future or past scheduled date).
+export const markOrderReadyToDeliver = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor profile not found",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      vendor: vendor._id,
+      status: "Accepted",
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Accepted order not found",
+      });
+    }
+
+    if (order.active === false) {
+      return res.status(400).json({
+        success: false,
+        message: "This order was marked inactive by the user. It can't be delivered until they resume it.",
+      });
+    }
+
+    if (!order.date || !isSameCalendarDay(order.date, new Date())) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only mark today's scheduled orders as ready to deliver.",
+      });
+    }
+
+    order.status = "On the way";
+    await order.save();
+
+    notifyOrderStatusChange({ order, status: "On the way", vendorName: vendor.organizationName });
+
+    return res.status(200).json({
+      success: true,
+      message: "Order marked as ready to deliver",
+      order,
+    });
+  } catch (error) {
+    console.error("Mark Order Ready To Deliver Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating the order",
+      error: error.message,
+    });
+  }
+};
+
+// ➤ 8. Vendor marks an order that's out for delivery as delivered - only
+// allowed for today's scheduled date.
+export const markOrderDelivered = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor profile not found",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      vendor: vendor._id,
+      status: "On the way",
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found or not currently out for delivery",
+      });
+    }
+
+    if (!order.date || !isSameCalendarDay(order.date, new Date())) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only deliver today's scheduled orders.",
+      });
+    }
+
+    order.status = "Delivered";
+    await order.save();
+
+    // Each delivered order consumes exactly one "meal" from the customer's
+    // plan quota (a meal = one day's delivery, regardless of how many items
+    // it contains) - so the Plan Usage / Consumed-Remaining counters on the
+    // dashboard stay in sync with what's actually been delivered.
+    if (order.subscription) {
+      try {
+        const subscription = await Subscription.findById(order.subscription);
+        if (subscription && subscription.mealsUsed < subscription.totalMeals) {
+          subscription.mealsUsed += 1;
+          await subscription.save();
+        }
+      } catch (error) {
+        console.error("Mark Order Delivered: failed to increment mealsUsed:", error.message);
+      }
+    }
+
+    notifyOrderStatusChange({ order, status: "Delivered", vendorName: vendor.organizationName });
+
+    return res.status(200).json({
+      success: true,
+      message: "Order marked as delivered",
+      order,
+    });
+  } catch (error) {
+    console.error("Mark Order Delivered Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating the order",
       error: error.message,
     });
   }
