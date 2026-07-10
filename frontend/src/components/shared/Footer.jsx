@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaInstagram,
   FaFacebookF,
@@ -7,11 +7,25 @@ import {
   FaPhoneAlt,
   FaMapMarkerAlt,
 } from "react-icons/fa";
-
 import { MdEmail } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
 
+const quickLinks = [
+  { label: "Home", to: "/" },
+  { label: "Plans", to: "/#plans" },
+  { label: "About", to: "/about" },
+  { label: "Contact Us", to: "/contact-us" },
+];
+
+const serviceLinks = [
+  { label: "Daily Tiffin", to: "/#plans" },
+  { label: "Custom Packages", to: "/create-package" },
+  { label: "Meals", to: "/dashboard" },
+];
+
 export default function Footer() {
+  const navigate = useNavigate();
+
   return (
     <footer className="relative overflow-hidden bg-white pt-12">
       {/* Background Blur Elements */}
@@ -46,13 +60,19 @@ export default function Footer() {
               </p>
 
               <div className="mt-5 flex flex-wrap gap-3">
-                <button className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-red-600 transition hover:scale-105 active:scale-95">
+                <button
+                  onClick={() => navigate("/create-package")}
+                  className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-red-600 transition hover:scale-105 active:scale-95"
+                >
                   Order Now
                 </button>
 
-                <button className="rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-red-600 active:scale-95">
+                <a
+                  href="/#plans"
+                  className="rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-red-600 active:scale-95"
+                >
                   View Packages
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -65,14 +85,9 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 md:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-red-600" />
+              <div className="h-5 w-10 rounded-xl" />
               <div>
-                <h2 className="text-3xl font-black tracking-tight text-red-600">
-                  Tiffinly
-                </h2>
-                <p className="text-xs text-gray-400 font-medium">
-                  Fresh Meals Daily
-                </p>
+                <img src="/logo.png" className="h-20" />
               </div>
             </div>
 
@@ -101,21 +116,15 @@ export default function Footer() {
               Quick Links
             </h3>
             <div className="space-y-2">
-              {[
-                "Home",
-                "Packages",
-                "Meals",
-                "Reviews",
-                "Service Areas",
-                "Contact Us",
-              ].map((item) => (
-                <div
-                  key={item}
+              {quickLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
                   className="flex cursor-pointer items-center justify-between py-1 text-gray-600 transition hover:text-red-600"
                 >
-                  {item}
+                  {item.label}
                   <IoIosArrowForward className="opacity-60" size={14} />
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -126,43 +135,17 @@ export default function Footer() {
               Our Services
             </h3>
             <div className="space-y-2">
-              {[
-                "Daily Tiffin",
-                "Weekly Plans",
-                "Monthly Plans",
-                "Custom Packages",
-                "Corporate Meals",
-                "Family Meals",
-              ].map((item) => (
-                <div
-                  key={item}
+              {serviceLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
                   className="flex cursor-pointer items-center justify-between py-1 text-gray-600 transition hover:text-red-600"
                 >
-                  {item}
+                  {item.label}
                   <IoIosArrowForward className="opacity-60" size={14} />
-                </div>
+                </Link>
               ))}
             </div>
-          </div>
-
-          {/* Areas */}
-          <div>
-            <h3 className="mb-4 text-base font-bold text-gray-900">
-              Service Areas
-            </h3>
-            <div className="space-y-2 text-gray-600">
-              {["Chandigarh", "Mohali", "Panchkula", "Zirakpur", "Kharar"].map(
-                (item) => (
-                  <div key={item} className="py-0.5">
-                    {item}
-                  </div>
-                ),
-              )}
-            </div>
-
-            <button className="mt-4 rounded-lg border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-600 hover:text-white">
-              View All Areas
-            </button>
           </div>
 
           {/* Contact */}
@@ -172,23 +155,34 @@ export default function Footer() {
             </h3>
 
             <div className="space-y-3.5 text-gray-600">
-              <div className="flex items-center gap-2.5">
+              <a
+                href="tel:+17783121686"
+                className="flex items-center gap-2.5 transition hover:text-red-600"
+              >
                 <FaPhoneAlt className="text-red-600 flex-shrink-0" size={14} />
-                <span>+91 98765 43210</span>
-              </div>
+                <span>+1 (778) 312-1686</span>
+              </a>
 
-              <div className="flex items-center gap-2.5">
+              <a
+                href="mailto:info@prepplates.com"
+                className="flex items-center gap-2.5 transition hover:text-red-600"
+              >
                 <MdEmail className="text-red-600 flex-shrink-0" size={15} />
-                <span className="break-all">hello@tiffinly.com</span>
-              </div>
+                <span className="break-all">info@prepplates.com</span>
+              </a>
 
-              <div className="flex items-center gap-2.5">
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=1668+Fosters+Way+Delta+BC+V3M+6S6+Canada"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 transition hover:text-red-600"
+              >
                 <FaMapMarkerAlt
                   className="text-red-600 flex-shrink-0"
                   size={15}
                 />
-                <span>Chandigarh, India</span>
-              </div>
+                <span>1668 Fosters Way Delta, BC V3M 6S6 Canada</span>
+              </a>
             </div>
           </div>
         </div>
@@ -196,26 +190,24 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-14 border-t border-gray-100 pt-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-            <p>© 2026 Tiffinly. All Rights Reserved.</p>
-
-            <div className="flex flex-wrap justify-center gap-4 font-medium text-gray-600">
-              <span>100% Hygienic</span>
-              <span>•</span>
-              <span>On Time Delivery</span>
-              <span>•</span>
-              <span>Fresh Ingredients</span>
-            </div>
+            <p>
+              © {new Date().getFullYear()} SHOP DABBA WALA • ALL RIGHTS RESERVED
+              • DEVELOPED BY NEOSOFTIX PVT. LTD.
+            </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link to="/privacy-policy" className="cursor-pointer hover:text-red-600 transition">
+              <Link
+                to="/privacy-policy"
+                className="cursor-pointer hover:text-red-600 transition"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/terms-and-conditions" className="cursor-pointer hover:text-red-600 transition">
-                Terms
+              <Link
+                to="/terms-and-conditions"
+                className="cursor-pointer hover:text-red-600 transition"
+              >
+                Terms & Condition
               </Link>
-              <span className="cursor-pointer hover:text-red-600 transition">
-                Refund Policy
-              </span>
             </div>
           </div>
         </div>
