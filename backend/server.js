@@ -30,6 +30,8 @@ import durationRoutes from "./src/routes/durationPlan.routes.js"
 import mealTierRoutes from "./src/routes/mealTier.routes.js";
 import orderRoutes from "./src/routes/order.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
+import contactQueryRoutes from "./src/routes/contactQuery.routes.js";
+import vendorAssignmentRoutes from "./src/routes/vendorAssignment.routes.js";
 
 const app = express();
 
@@ -108,6 +110,12 @@ app.use("/api/orders", orderRoutes);
 
 // vendor notification routes
 app.use("/api/notifications", notificationRoutes);
+
+// vendor-pincode-package assignment routes
+app.use("/api/vendor-assignment", vendorAssignmentRoutes);
+
+// contact us form routes
+app.use("/api/contact", contactQueryRoutes);
 
 
 const httpServer = http.createServer(app);
