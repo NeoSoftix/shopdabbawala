@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { createMeal } from "../../services/meal.service.js";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
@@ -36,7 +37,7 @@ const AddMeal = () => {
       if (image) formData.append("image", image);
 
       const res = await createMeal(formData);
-      toast.success(res.message || "🎉 Meal created successfully!");
+      toast.success(res.message || "Meal created successfully!");
       setName("");
       setImage(null);
       setPreviewUrl(null);
@@ -59,9 +60,9 @@ const AddMeal = () => {
         </div>
         <button
           onClick={() => navigate("/admin/meals")}
-          className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-red-600 transition hover:bg-red-100"
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-red-600 transition hover:bg-red-100 flex items-center gap-2"
         >
-          ← Back to Meals
+          <ArrowLeft size={16} /> Back to Meals
         </button>
       </div>
 
@@ -86,7 +87,7 @@ const AddMeal = () => {
                   errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
                 }`}
               />
-              {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
+              {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
             </div>
 
             {/* Image Upload */}

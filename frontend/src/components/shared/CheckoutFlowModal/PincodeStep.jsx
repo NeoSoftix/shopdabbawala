@@ -23,7 +23,7 @@ export default function PincodeStep({ pincode, setPincode, error, loading, onSub
       <InputField label="Pincode" placeholder="e.g. 144001" value={pincode} onChange={(e) => setPincode(e.target.value)} />
       <div className="mt-2">
         <ErrorMessage error={error} />
-        <SubmitBtn label="Continue →" loading={loading} />
+        <SubmitBtn label="Continue" loading={loading} />
       </div>
     </motion.form>
   );

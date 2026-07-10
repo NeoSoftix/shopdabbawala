@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { Bell } from "lucide-react";
 import { useAuth } from "./AuthContext";
 import { connectSocket, disconnectSocket } from "../services/socket";
 import {
@@ -44,7 +45,7 @@ export const NotificationProvider = ({ children }) => {
     const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
-      toast(notification.title, { icon: "🔔" });
+      toast(notification.title, { icon: <Bell size={16} /> });
     };
 
     socket.on("notification:new", handleNewNotification);

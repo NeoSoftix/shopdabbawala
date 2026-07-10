@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { createVendor } from "../../services/vendor.service.js";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
@@ -126,7 +127,7 @@ const AddVendor = () => {
       if (image) data.append("logo", image);
 
       const response = await createVendor(data);
-      toast.success(response?.message || "🎉 Vendor Added Successfully!");
+      toast.success(response?.message || "Vendor Added Successfully!");
       navigate("/admin/vendors");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to create vendor.");
@@ -153,9 +154,9 @@ const AddVendor = () => {
 
         <button
           onClick={() => navigate("/admin/vendors")}
-          className="rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+          className="rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2"
         >
-          ← Back to Vendors
+          <ArrowLeft size={16} /> Back to Vendors
         </button>
       </div>
 
@@ -193,7 +194,7 @@ const AddVendor = () => {
               className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.name ? "border-red-400" : "border-gray-300"}`}
               required
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
+            {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
           </div>
 
           {/* Email & Phone */}
@@ -206,7 +207,7 @@ const AddVendor = () => {
                 className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.email ? "border-red-400" : "border-gray-300"}`}
                 required
               />
-              {errors.email && <p className="text-red-500 text-sm mt-1">⚠ {errors.email}</p>}
+              {errors.email && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.email}</p>}
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
@@ -216,7 +217,7 @@ const AddVendor = () => {
                 className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.phone ? "border-red-400" : "border-gray-300"}`}
                 required
               />
-              {errors.phone && <p className="text-red-500 text-sm mt-1">⚠ {errors.phone}</p>}
+              {errors.phone && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.phone}</p>}
             </div>
           </div>
 
@@ -229,7 +230,7 @@ const AddVendor = () => {
               className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.organizationName ? "border-red-400" : "border-gray-300"}`}
               required
             />
-            {errors.organizationName && <p className="text-red-500 text-sm mt-1">⚠ {errors.organizationName}</p>}
+            {errors.organizationName && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.organizationName}</p>}
           </div>
 
           {/* Pincode Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}

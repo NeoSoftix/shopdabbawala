@@ -6,6 +6,7 @@ import {
   LuSmile,
 } from "react-icons/lu";
 import { FaPlusCircle } from "react-icons/fa";
+import { ChefHat } from "lucide-react";
 
 const steps = [
   {
@@ -44,7 +45,7 @@ export default function GettingStarted() {
         <div className="text-center mb-16 max-w-2xl mx-auto flex flex-col items-center">
           <div className="flex items-center justify-center gap-2 text-red-600 text-xl font-bold mb-1">
             <span className="text-slate-300">─</span> 
-            <span className="text-xl">🍳</span> 
+            <ChefHat size={20} />
             <span className="text-slate-300">─</span>
           </div>
 

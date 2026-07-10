@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createAddOn } from "../../services/addOn.service.js";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
@@ -67,7 +68,7 @@ const CreateAddOns = () => {
       if (image) data.append("image", image);
 
       const response = await createAddOn(data);
-      toast.success(response.message || "🎉 Add-on created successfully!");
+      toast.success(response.message || "Add-on created successfully!");
 
       setFormData({ name: "", description: "", price: "", allergies: "" });
       setImage(null);
@@ -99,9 +100,9 @@ const CreateAddOns = () => {
         <button
           type="button"
           onClick={() => navigate("/admin/add-on")}
-          className="px-5 py-3 border rounded-xl bg-white hover:bg-gray-50 transition-colors"
+          className="px-5 py-3 border rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center gap-2"
         >
-          ← Back to Add-Ons
+          <ArrowLeft size={16} /> Back to Add-Ons
         </button>
       </div>
 
@@ -123,7 +124,7 @@ const CreateAddOns = () => {
                 errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
               }`}
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
+            {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
           </div>
 
           {/* Price */}
@@ -141,7 +142,7 @@ const CreateAddOns = () => {
                 errors.price ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
               }`}
             />
-            {errors.price && <p className="text-red-500 text-sm mt-1">⚠ {errors.price}</p>}
+            {errors.price && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.price}</p>}
           </div>
 
           {/* Description */}
@@ -159,7 +160,7 @@ const CreateAddOns = () => {
                 errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
               }`}
             />
-            {errors.description && <p className="text-red-500 text-sm mt-1">⚠ {errors.description}</p>}
+            {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
           </div>
 
           {/* Image Upload */}

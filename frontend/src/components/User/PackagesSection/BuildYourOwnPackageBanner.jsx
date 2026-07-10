@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+
 // CTA banner promoting the custom "build your own package" flow.
 export default function BuildYourOwnPackageBanner({ onCustomize }) {
   return (
@@ -38,7 +40,7 @@ export default function BuildYourOwnPackageBanner({ onCustomize }) {
         >
           Customize Now
           <span className="transition-transform duration-300 group-hover:translate-x-1">
-            →
+            <ArrowRight size={16} />
           </span>
         </button>
       </div>

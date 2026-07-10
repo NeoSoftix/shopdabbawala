@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, User, Phone, Mail, MapPin, Loader2 } from "lucide-react";
+import { X, User, Phone, Mail, MapPin, Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateCustomerProfile } from "../../services/customer.service";
 import { useAuth } from "../../context/AuthContext";
@@ -36,7 +36,7 @@ export default function UserProfileEdit({ isOpen, onClose }) {
       const res = await updateCustomerProfile(formData);
       if (res.success && res.customer) {
         setUser(res.customer);
-        toast.success("Profile updated successfully! 🎉");
+        toast.success("Profile updated successfully!");
         onClose();
       } else {
         throw new Error(res.message || "Failed to update profile");
@@ -84,16 +84,16 @@ export default function UserProfileEdit({ isOpen, onClose }) {
 
           <div className="p-8">
             <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
-                👤
+              <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <User size={26} />
               </div>
               <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Edit Profile Details</h2>
               <p className="text-slate-400 text-xs font-semibold mt-1">Keep your delivery details up-to-date.</p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center">
-                ⚠️ {error}
+              <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center flex items-center justify-center gap-1.5">
+                <AlertCircle size={14} /> {error}
               </div>
             )}
 

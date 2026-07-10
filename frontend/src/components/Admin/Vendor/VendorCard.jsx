@@ -1,3 +1,5 @@
+import { Mail, Phone, MapPin, Pencil, Trash2, Building2, Map } from "lucide-react";
+
 const VendorCard = ({ vendor, onEdit, onDelete }) => {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-5">
@@ -37,24 +39,24 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
         {/* Middle Section Contacts */}
         <div className="flex-1 space-y-2.5 md:border-l md:pl-8 border-gray-100">
           <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] font-bold text-xs">
-              ✉️
+            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
+              <Mail size={14} />
             </span>
             <span className="font-medium truncate">
               {vendor.userId?.email || "N/A"}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] font-bold text-xs">
-              📞
+            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
+              <Phone size={14} />
             </span>
             <span className="font-semibold">
               {vendor.userId?.phone || "N/A"}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
-            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d] font-bold text-xs">
-              📍
+            <span className="p-2 rounded-xl bg-red-50 text-[#e61e2d]">
+              <MapPin size={14} />
             </span>
             <span className="font-medium truncate">{vendor.address}</span>
           </div>
@@ -64,15 +66,15 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
         <div className="flex gap-2 self-end md:self-start">
           <button
             onClick={() => onEdit(vendor)}
-            className="p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition shadow-sm text-sm"
+            className="p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition shadow-sm"
           >
-            ✏️
+            <Pencil size={16} />
           </button>
           <button
             onClick={() => onDelete(vendor._id)}
-            className="p-2.5 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition shadow-sm text-sm"
+            className="p-2.5 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition shadow-sm"
           >
-            🗑️
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
@@ -80,8 +82,8 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
       {/* Bottom Meta Badges */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 border-t pt-4 border-gray-50">
         <div className="flex items-center gap-3.5 bg-red-50/30 rounded-2xl p-3 border border-red-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-lg">
-            🏢
+          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
+            <Building2 size={18} />
           </span>
           <div>
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
@@ -94,8 +96,8 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
         </div>
 
         <div className="flex items-center gap-3.5 bg-purple-50/30 rounded-2xl p-3 border border-purple-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-lg">
-            🗺️
+          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
+            <Map size={18} />
           </span>
           <div>
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
@@ -108,8 +110,8 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
         </div>
 
         <div className="flex items-center gap-3.5 bg-green-50/30 rounded-2xl p-3 border border-green-50/50">
-          <span className="p-2.5 rounded-xl bg-white shadow-sm text-lg">
-            📍
+          <span className="p-2.5 rounded-xl bg-white shadow-sm text-gray-600">
+            <MapPin size={18} />
           </span>
           <div>
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">

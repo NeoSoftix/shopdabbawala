@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CalendarDays } from "lucide-react";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -35,7 +36,7 @@ export default function DateCalendarPicker({ value, onChange }) {
   return (
     <div className="relative">
       <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-        <span>📅</span> Start Date
+        <CalendarDays size={13} /> Start Date
       </label>
       <div
         onClick={() => setShowCalendar(!showCalendar)}

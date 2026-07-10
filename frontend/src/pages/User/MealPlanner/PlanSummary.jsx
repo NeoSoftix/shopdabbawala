@@ -1,4 +1,5 @@
 import { FaRegCalendar, FaShieldHalved, FaRegClock } from "react-icons/fa6";
+import { CookingPot, Utensils, Ban, ShoppingBasket } from "lucide-react";
 import { SectionLoader } from "../../../components/shared/Loader";
 import NoActivePlan from "./NoActivePlan";
 
@@ -38,8 +39,8 @@ const PlanSummary = ({ subscriptions, loading }) => {
           <div key={sub._id || idx} className="w-full bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50 flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#FFF5F5] rounded-2xl flex items-center justify-center text-3xl shadow-sm">
-                  🍲
+                <div className="w-14 h-14 bg-[#FFF5F5] text-[#E31A1A] rounded-2xl flex items-center justify-center shadow-sm">
+                  <CookingPot size={26} />
                 </div>
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-[#1B254B] tracking-tight capitalize">
@@ -58,8 +59,8 @@ const PlanSummary = ({ subscriptions, loading }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
               <div className="md:col-span-3 bg-gradient-to-b from-[#FF5E5E] to-[#E31A1A] rounded-[24px] p-6 text-center flex flex-col justify-center items-center h-44 shadow-lg shadow-red-100/40 relative overflow-hidden">
-                <span className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white mb-2 text-lg">
-                  🍽️
+                <span className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white mb-2">
+                  <Utensils size={18} />
                 </span>
                 <span className="text-5xl font-black text-white tracking-tight">
                   {totalMeals}
@@ -86,8 +87,8 @@ const PlanSummary = ({ subscriptions, loading }) => {
                 </div>
                 <div className="grid grid-cols-2 text-center relative">
                   <div className="flex items-center justify-center gap-3">
-                    <div className="w-10 h-10 bg-[#FFF5F5] text-[#E31A1A] rounded-xl flex items-center justify-center text-base">
-                      🚫
+                    <div className="w-10 h-10 bg-[#FFF5F5] text-[#E31A1A] rounded-xl flex items-center justify-center">
+                      <Ban size={16} />
                     </div>
                     <div className="text-left">
                       <span className="block text-2xl font-black text-[#E31A1A] leading-none">
@@ -100,8 +101,8 @@ const PlanSummary = ({ subscriptions, loading }) => {
                   </div>
                   <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-[1px] h-10 bg-gray-100"></div>
                   <div className="flex items-center justify-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4F7FE] text-[#1B254B] rounded-xl flex items-center justify-center text-base">
-                      🧺
+                    <div className="w-10 h-10 bg-[#F4F7FE] text-[#1B254B] rounded-xl flex items-center justify-center">
+                      <ShoppingBasket size={16} />
                     </div>
                     <div className="text-left">
                       <span className="block text-2xl font-black text-[#1B254B] leading-none">

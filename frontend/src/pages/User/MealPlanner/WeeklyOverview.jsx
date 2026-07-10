@@ -299,7 +299,7 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
                     {item?.image?.url ? (
                       <img src={item.image.url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
                     ) : (
-                      <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-sm shrink-0">🍽️</span>
+                      <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-slate-400 shrink-0"><Utensils size={16} /></span>
                     )}
                     <span className="flex-1 text-sm font-bold text-[#1B254B] truncate">{item?.name}</span>
                     <span className="text-xs font-semibold text-[#A3AED0] shrink-0">x{item?.quantity || 1}</span>
@@ -312,7 +312,7 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
                     {item?.image?.url ? (
                       <img src={item.image.url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
                     ) : (
-                      <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-sm shrink-0">🍽️</span>
+                      <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-slate-400 shrink-0"><Utensils size={16} /></span>
                     )}
                     <span className="flex-1 text-sm font-bold text-[#1B254B] truncate">{item?.name}</span>
                     <span className="text-xs font-semibold text-[#A3AED0] shrink-0">x{item?.quantity || 1}</span>

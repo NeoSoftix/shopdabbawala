@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { Utensils } from "lucide-react";
 
 // ================= COMPONENT: CATEGORY FILTER PILLS =================
 const CategoryFilter = ({ categories, selectedCategory, setSelectedCategory }) => {
@@ -37,7 +38,7 @@ const CategoryFilter = ({ categories, selectedCategory, setSelectedCategory }) =
             {cat.image?.url ? (
               <img src={cat.image.url} alt={cat.name} className="w-5 h-5 object-cover rounded-full" />
             ) : (
-              <span>{cat.icon || "🍲"}</span>
+              <Utensils size={14} />
             )}
             <span>{cat.name}</span>
           </button>

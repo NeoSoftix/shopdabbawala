@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Zap, Tag } from "lucide-react";
 import { DEFAULT_IMAGES } from "./packageUtils";
 
 // A single plan card within the interactive carousel. Position/scale/rotation
@@ -53,14 +54,14 @@ export default function PackageCard({
         }}
       >
         {pkg.popular && (
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap">
-            ⚡ POPULAR CHOICE
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-md z-30 whitespace-nowrap flex items-center gap-1">
+            <Zap size={10} className="fill-current" /> POPULAR CHOICE
           </div>
         )}
 
         {pkg.hasDiscount && (
-  <div className="absolute -top-4 right-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-2 rounded-full text-xs font-extrabold tracking-wide shadow-xl z-30 whitespace-nowrap border border-white/30">
-    🏷 {pkg.discountPercentage}% OFF
+  <div className="absolute -top-4 right-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-2 rounded-full text-xs font-extrabold tracking-wide shadow-xl z-30 whitespace-nowrap border border-white/30 flex items-center gap-1.5">
+    <Tag size={13} /> {pkg.discountPercentage}% OFF
   </div>
 )}
 

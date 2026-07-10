@@ -1,3 +1,5 @@
+import { CalendarDays, UtensilsCrossed } from "lucide-react";
+
 // Duration tabs + Total Meals options. Duration tabs are dynamically
 // generated from `uniqueDurationLabels` (not a fixed 2-option toggle), so
 // they're kept as their own hand-rolled markup rather than forced into
@@ -15,7 +17,7 @@ export default function DurationAndMealsCard({
     <div className="bg-white p-2.5 px-3 rounded-2xl border border-gray-300 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-3">
       <div>
         <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-          <span>📅</span> Duration
+          <CalendarDays size={13} /> Duration
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* Dynamic labels generated from active db values */}
@@ -34,7 +36,7 @@ export default function DurationAndMealsCard({
 
       <div>
         <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-          <span>🍱</span> Total Meals
+          <UtensilsCrossed size={13} /> Total Meals
         </label>
         <div className="bg-[#f3f1f1] p-1 rounded-3xl border border-gray-200/40 grid grid-cols-1 sm:grid-cols-3 gap-1.5">
           {/* Dynamic custom meal options mapping */}

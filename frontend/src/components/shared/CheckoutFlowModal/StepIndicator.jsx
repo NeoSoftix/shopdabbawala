@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+
 /**
  * Row of numbered dots showing progress through the checkout flow.
  */
@@ -13,7 +15,7 @@ export default function StepIndicator({ stepLabels, currentStepIndex }) {
                 ? "bg-red-600 text-white ring-4 ring-red-100"
                 : "bg-slate-100 text-slate-400"
               }`}>
-              {i < currentStepIndex ? "✓" : i + 1}
+              {i < currentStepIndex ? <Check size={14} /> : i + 1}
             </div>
             <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wide mt-1 whitespace-nowrap ${i === currentStepIndex ? "text-red-600" : "text-slate-400"}`}>
               {label}

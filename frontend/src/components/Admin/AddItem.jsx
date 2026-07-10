@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { getAllCategories } from "../../services/category.service";
 import { createItem } from "../../services/items.service";
 import { toast } from "react-hot-toast";
@@ -85,7 +86,7 @@ const AddItem = () => {
 
       await createItem(formData);
 
-      toast.success("🎉 Item created successfully!");
+      toast.success("Item created successfully!");
       navigate("/admin/items");
     } catch (error) {
       console.log("Create item error", error);
@@ -106,9 +107,9 @@ const AddItem = () => {
         </div>
         <button
           onClick={() => navigate("/admin/items")}
-          className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium transition-colors"
+          className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
         >
-          ← Back to Items
+          <ArrowLeft size={16} /> Back to Items
         </button>
       </div>
 
@@ -132,7 +133,7 @@ const AddItem = () => {
                   className={`w-full border rounded-lg p-3 focus:outline-none focus:ring-2 ${errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
                     }`}
                 />
-                {errors.name && <p className="text-red-500 text-sm mt-1">⚠ {errors.name}</p>}
+                {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
               </div>
 
               {/* Description */}
@@ -149,7 +150,7 @@ const AddItem = () => {
                   className={`w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
                     }`}
                 />
-                {errors.description && <p className="text-red-500 text-sm mt-1">⚠ {errors.description}</p>}
+                {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
               </div>
 
               {/* Allergies */}
@@ -188,7 +189,7 @@ const AddItem = () => {
                     </option>
                   ))}
                 </select>
-                {errors.category && <p className="text-red-500 text-sm mt-1">⚠ {errors.category}</p>}
+                {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
               </div>
 
               {/* Item Image */}

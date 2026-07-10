@@ -15,7 +15,7 @@ export default function ThankYouStep({ formData, onClose }) {
       <FiCheckCircle className="text-6xl text-emerald-500 mx-auto mb-4 drop-shadow-md" />
       <h1 className="text-2xl font-black text-red-600 tracking-tight mb-2">Thank You, {formData.name || "Friend"}!</h1>
       <p className="text-slate-600 text-sm font-medium mb-1">Your order has been placed successfully.</p>
-      <p className="text-slate-400 text-xs mb-6">We're excited to fuel your journey to better health! 🌿</p>
+      <p className="text-slate-400 text-xs mb-6">We're excited to fuel your journey to better health!</p>
       <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-2.5 mb-6">
         <div className="flex gap-2 items-center"><FiMail className="text-sm text-red-500" /><span className="text-xs font-semibold">{formData.email}</span></div>
         {formData.address && (

@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import PillToggleGroup from "../../../components/shared/PillToggleGroup";
 import DateCalendarPicker from "./DateCalendarPicker";
 
@@ -40,7 +41,7 @@ export default function MealPreferenceAndDate({ preference, onPreferenceChange, 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-semibold text-[#dc2626] flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-            <span>🍴</span> Meal Preference
+            <UtensilsCrossed size={13} /> Meal Preference
           </label>
           <PillToggleGroup options={preferenceOptions} value={preference} onChange={onPreferenceChange} />
         </div>
