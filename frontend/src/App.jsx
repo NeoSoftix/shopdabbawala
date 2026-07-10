@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import ScrollToTop from "./components/shared/ScrollToTop";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -51,6 +52,7 @@ import TermsAndConditionsPage from "./pages/User/TermsAndConditionsPage.jsx";
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Toaster
         position="top-center"
         reverseOrder={false}
