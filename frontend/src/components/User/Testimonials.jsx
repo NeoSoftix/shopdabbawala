@@ -5,6 +5,7 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { Navigate } from 'react-router-dom';
 
 const dummyUsers = [
   { id: 1, name: "Priya Sharma", role: "Working Professional", rating: 5, text: "The food is always fresh, hygienic and delivered on time. Feels like home-cooked meals every single day!", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" },
@@ -168,7 +169,10 @@ export default function TestimonialsSlider() {
 
         <div className="text-center md:text-right w-full md:w-auto flex flex-col items-center md:items-end gap-2">
           <span className="text-xs italic font-serif text-amber-200">Join Our Happy Family ♡</span>
-          <button className="bg-white text-[#9E2A2B] font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-gray-100 transition flex items-center gap-2 text-sm uppercase tracking-wider cursor-pointer">
+          <button
+            onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-white text-[#9E2A2B] font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-gray-100 transition flex items-center gap-2 text-sm uppercase tracking-wider cursor-pointer"
+          >
             Order Now <span>→</span>
           </button>
         </div>

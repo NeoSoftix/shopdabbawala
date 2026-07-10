@@ -59,7 +59,6 @@ export default function HeroHeader() {
   const links = [
     { label: "Home", to: "/", isRouterLink: true },
     { label: "Plans", href: "#plans" },
-    { label: "Menu", href: "#menu" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact-us" },
   ];

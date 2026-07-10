@@ -76,17 +76,35 @@ export const getMyOrders = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const orders = await Order.find({ user: userId })
-      .populate("subscription", "mealSize preference duration")
-      .sort({ updatedAt: -1 });
+    const { page, limit, skip } = getPagination(req);
+
+    const filter = { user: userId };
+
+    const [orders, totalOrders] = await Promise.all([
+      Order.find(filter)
+        .populate("subscription", "mealSize preference duration")
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Order.countDocuments(filter),
+    ]);
 
     return res.status(200).json({
       success: true,
-      count: orders.length,
       orders,
+      pagination: {
+        total: totalOrders,
+        page,
+        limit,
+        totalPages: Math.ceil(totalOrders / limit),
+        hasNextPage: page < Math.ceil(totalOrders / limit),
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     console.error("Get My Orders Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching your orders",

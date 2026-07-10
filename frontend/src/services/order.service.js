@@ -48,12 +48,18 @@ export const getOrdersByDate = async (date) => {
 };
 
 // ➤ Get the logged-in user's own orders (Order History / Today's Order tabs)
-export const getMyOrders = async () => {
+export const getMyOrders = async (page = 1, limit = 10) => {
   try {
-    const res = await API.get("/orders/my-orders");
+    const res = await API.get("/orders/my-orders", {
+      params: {
+        page,
+        limit,
+      },
+    });
+
     return res.data;
   } catch (error) {
-    console.error("Get My Orders Error", error);
+    console.error("Get My Orders Error:", error);
     throw error;
   }
 };

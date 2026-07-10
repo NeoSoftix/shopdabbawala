@@ -20,14 +20,17 @@ export default function UserHistoryDetails({ subscriptions }) {
   const [activeTab, setActiveTab] = useState('history');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const data = await getMyOrders();
+        const data = await getMyOrders(page, 10);
         if (data.success) {
           setOrders(data.orders || []);
+          setTotalPages(data.pagination?.totalPages || 1);
         }
       } catch (err) {
         console.error("Failed to fetch orders for history", err);
@@ -36,7 +39,7 @@ export default function UserHistoryDetails({ subscriptions }) {
       }
     };
     fetchOrders();
-  }, []);
+  }, [page]);
 
   // Helper to format Date
   const formatDate = (dateString) => {
@@ -145,6 +148,30 @@ export default function UserHistoryDetails({ subscriptions }) {
                         </span>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setPage((prev) => prev - 1)}
+                      disabled={page <= 1}
+                      className="px-4 py-2 border rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="text-sm font-medium text-gray-600">
+                      Page {page} of {totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => setPage((prev) => prev + 1)}
+                      disabled={page >= totalPages}
+                      className="px-4 py-2 border rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
                   </div>
                 )}
               </section>

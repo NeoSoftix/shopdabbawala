@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 // 1. Yahan apni image ko direct import karo
 import faqBackground from "../../assets/faqbg.png"; // Path check kar lena agar aapki file kisi aur folder mein hai
+import { useNavigate } from 'react-router-dom';
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(0);
+  const navigate = useNavigate()
 
   const faqData = [
     {
@@ -199,7 +201,7 @@ const FAQSection = () => {
         
         <button className="bg-white text-gray-800 hover:bg-gray-100 transition font-bold px-6 py-3 rounded-xl flex items-center space-x-2 text-sm shadow-md whitespace-nowrap">
           <span className="text-red-600">📞</span>
-          <span>Contact Us</span>
+          <span onClick={() => navigate("/contact-us  ")}>Contact Us</span>
         </button>
       </div>
     </div>

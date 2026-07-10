@@ -192,7 +192,14 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
             <p>
               © {new Date().getFullYear()} SHOP DABBA WALA • ALL RIGHTS RESERVED
-              • DEVELOPED BY NEOSOFTIX PVT. LTD.
+              <a
+                href="https://neosoftix.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-red-600 hover:text-red-700 hover:underline transition-colors"
+              >
+                DEVELOPED BY NEOSOFTIX PVT. LTD.
+              </a>
             </p>
 
             <div className="flex flex-wrap gap-4">
