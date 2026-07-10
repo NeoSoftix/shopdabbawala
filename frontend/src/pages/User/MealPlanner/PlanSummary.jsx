@@ -1,5 +1,6 @@
 import { FaRegCalendar, FaShieldHalved, FaRegClock } from "react-icons/fa6";
 import { SectionLoader } from "../../../components/shared/Loader";
+import NoActivePlan from "./NoActivePlan";
 
 // ================= COMPONENT: MEAL PLAN SUMMARY =================
 const PlanSummary = ({ subscriptions, loading }) => {
@@ -8,15 +9,7 @@ const PlanSummary = ({ subscriptions, loading }) => {
   }
 
   if (!subscriptions || subscriptions.length === 0) {
-    return (
-      <div className="w-full bg-white rounded-[32px] p-6 md:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.015)] border border-gray-50 flex flex-col items-center justify-center min-h-[300px]">
-        <div className="w-16 h-16 bg-[#FFF5F5] rounded-2xl flex items-center justify-center text-4xl mb-4">
-          😞
-        </div>
-        <h2 className="text-xl font-bold text-[#1B254B] mb-2">No Active Plan</h2>
-        <p className="text-sm text-[#A3AED0]">You don't have any active meal subscription.</p>
-      </div>
-    );
+    return <NoActivePlan />;
   }
 
   return (

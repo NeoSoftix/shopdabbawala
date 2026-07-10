@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   FaInstagram,
   FaFacebookF,
@@ -206,12 +207,12 @@ export default function Footer() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <span className="cursor-pointer hover:text-red-600 transition">
+              <Link to="/privacy-policy" className="cursor-pointer hover:text-red-600 transition">
                 Privacy Policy
-              </span>
-              <span className="cursor-pointer hover:text-red-600 transition">
+              </Link>
+              <Link to="/terms-and-conditions" className="cursor-pointer hover:text-red-600 transition">
                 Terms
-              </span>
+              </Link>
               <span className="cursor-pointer hover:text-red-600 transition">
                 Refund Policy
               </span>
