@@ -241,7 +241,8 @@ export const saveCheckoutDetails = async (req, res) => {
       refreshedPayment?.subscription
     ) {
       const purchasePincode = pincode || finalPayment.subscription?.pincode || "";
-      const vendor = purchasePincode ? await findServingVendor(purchasePincode) : null;
+      const purchasePackageId = finalPayment.paymentType === "ADMIN_PACKAGE" ? finalPayment.package?._id : undefined;
+      const vendor = purchasePincode ? await findServingVendor(purchasePincode, purchasePackageId) : null;
       const customerName = name || "A customer";
 
       await notifyOrderEvent({

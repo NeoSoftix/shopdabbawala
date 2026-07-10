@@ -7,12 +7,13 @@ import Order from "../../models/Order.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
 
-const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount, isNewOrder, planName }) => {
+const notifyVendorOfOrder = async ({ vendorId, orderId, userName, date, itemCount, isNewOrder, planName }) => {
+  const dayLabel = date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
   const title = isNewOrder ? "New Order Received" : "Order Updated";
   const planSuffix = planName ? ` (${planName} plan)` : "";
   const message = isNewOrder
-    ? `${userName || "A customer"} placed a meal order for ${day}${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
-    : `${userName || "A customer"} updated their ${day} meal order${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
+    ? `${userName || "A customer"} placed a meal order for ${dayLabel}${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+    : `${userName || "A customer"} updated their ${dayLabel} meal order${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
 
   await notifyOrderEvent({
     vendorId,
@@ -23,7 +24,7 @@ const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount
     emailLines: [
       { label: "Customer", value: userName || "A customer" },
       { label: "Plan", value: planName || "N/A" },
-      { label: "Day", value: day },
+      { label: "Date", value: dayLabel },
       { label: "Items", value: itemCount },
     ],
   });
@@ -34,12 +35,12 @@ const notifyVendorOfOrder = async ({ vendorId, orderId, userName, day, itemCount
 // the vendor serving the user's pincode when one can be resolved (so vendor
 // dashboards only see orders for their own service area). Never throws - a
 // failure here shouldn't block the meal schedule itself from being saved.
-const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, formattedItems }) => {
+const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, formattedItems }) => {
   try {
     const user = await User.findById(userId).select("pincode address name");
     const pincode = subscription.pincode || user?.pincode || "";
 
-    const vendor = pincode ? await findServingVendor(pincode) : null;
+    const vendor = pincode ? await findServingVendor(pincode, subscription.package) : null;
 
     if (pincode && !vendor) {
       console.warn(`No serving vendor found for pincode ${pincode}; order will be created without a vendor.`);
@@ -66,7 +67,7 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
     const existingOrder = await Order.findOne({
       user: userId,
       subscription: subscriptionId,
-      day,
+      date,
     });
 
     let orderId;
@@ -87,7 +88,7 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
         subscription: subscriptionId,
         vendor: vendor?._id,
         pincode: pincode || undefined,
-        day,
+        date,
         deliveryAddress,
         planName: planName || undefined,
         items: orderItems,
@@ -97,12 +98,14 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       isNewOrder = true;
     }
 
+    const dayLabel = date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+
     if (vendor?._id) {
       await notifyVendorOfOrder({
         vendorId: vendor._id,
         orderId,
         userName: user?.name,
-        day,
+        date,
         itemCount: orderItems.length,
         isNewOrder,
         planName,
@@ -114,8 +117,8 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, day, form
       orderId,
       title: isNewOrder ? "Order Placed" : "Order Updated",
       message: isNewOrder
-        ? `Your order for ${day}${planName ? ` (${planName} plan)` : ""} has been placed successfully.`
-        : `Your order for ${day}${planName ? ` (${planName} plan)` : ""} has been updated.`,
+        ? `Your order for ${dayLabel}${planName ? ` (${planName} plan)` : ""} has been placed successfully.`
+        : `Your order for ${dayLabel}${planName ? ` (${planName} plan)` : ""} has been updated.`,
     });
   } catch (error) {
     console.error("Sync Vendor Order Error:", error);
@@ -128,16 +131,16 @@ export const createMealSchedule = async (req, res) => {
 
     const {
       subscriptionId,
-      day,
+      date,
       items,
     } = req.body;
 
     // ================= VALIDATION =================
 
-    if (!subscriptionId || !day || !items?.length) {
+    if (!subscriptionId || !date || !items?.length) {
       return res.status(400).json({
         success: false,
-        message: "Subscription ID, day and items are required.",
+        message: "Subscription ID, date and items are required.",
       });
     }
 
@@ -148,20 +151,23 @@ export const createMealSchedule = async (req, res) => {
       });
     }
 
-    const allowedDays = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
+    const requestDate = new Date(date);
+    requestDate.setHours(0, 0, 0, 0);
 
-    if (!allowedDays.includes(day)) {
+    if (isNaN(requestDate.getTime())) {
       return res.status(400).json({
         success: false,
-        message: "Invalid day.",
+        message: "Invalid date.",
+      });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (requestDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot schedule a meal for a past date.",
       });
     }
 
@@ -177,6 +183,19 @@ export const createMealSchedule = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Active subscription not found.",
+      });
+    }
+
+    const subStart = new Date(subscription.startDate);
+    subStart.setHours(0, 0, 0, 0);
+    
+    const subEnd = new Date(subscription.endDate);
+    subEnd.setHours(0, 0, 0, 0);
+
+    if (requestDate < subStart || requestDate > subEnd) {
+      return res.status(400).json({
+        success: false,
+        message: "Selected date is outside your plan's validity period.",
       });
     }
 
@@ -241,25 +260,25 @@ export const createMealSchedule = async (req, res) => {
 
         schedule: [
           {
-            day,
+            date: requestDate,
             items: formattedItems,
           },
         ],
       });
 
-      await syncVendorOrder({ userId, subscriptionId, subscription, day, formattedItems });
+      await syncVendorOrder({ userId, subscriptionId, subscription, date: requestDate, formattedItems });
 
       return res.status(201).json({
         success: true,
-        message: `${day} meal schedule created successfully.`,
+        message: `Meal schedule created successfully.`,
         data: mealSchedule,
       });
     }
 
-    // ================= UPDATE EXISTING DAY =================
+    // ================= UPDATE EXISTING DATE =================
 
     const dayIndex = mealSchedule.schedule.findIndex(
-      (scheduleDay) => scheduleDay.day === day
+      (scheduleDay) => new Date(scheduleDay.date).getTime() === requestDate.getTime()
     );
 
     if (dayIndex !== -1) {
@@ -267,18 +286,18 @@ export const createMealSchedule = async (req, res) => {
         formattedItems;
     } else {
       mealSchedule.schedule.push({
-        day,
+        date: requestDate,
         items: formattedItems,
       });
     }
 
     await mealSchedule.save();
 
-    await syncVendorOrder({ userId, subscriptionId, subscription, day, formattedItems });
+    await syncVendorOrder({ userId, subscriptionId, subscription, date: requestDate, formattedItems });
 
     return res.status(200).json({
       success: true,
-      message: `${day} meal schedule saved successfully.`,
+      message: `Meal schedule saved successfully.`,
       data: mealSchedule,
     });
 
@@ -370,12 +389,13 @@ export const getDayStatuses = async (req, res) => {
       });
     }
 
-    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("day active status");
+    const orders = await Order.find({ user: userId, subscription: subscriptionId }).select("date active status");
 
     const statusByDay = {};
     orders.forEach((order) => {
-      if (order.day) {
-        statusByDay[order.day] = { active: order.active, orderId: order._id, status: order.status };
+      if (order.date) {
+        const key = order.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+        statusByDay[key] = { active: order.active, orderId: order._id, status: order.status };
       }
     });
 
@@ -399,21 +419,24 @@ export const getDayStatuses = async (req, res) => {
 export const updateDayOrderStatus = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { subscriptionId, day, active } = req.body;
+    const { subscriptionId, date, active } = req.body;
 
-    if (!subscriptionId || !day || typeof active !== "boolean") {
+    if (!subscriptionId || !date || typeof active !== "boolean") {
       return res.status(400).json({
         success: false,
-        message: "subscriptionId, day and active are required.",
+        message: "subscriptionId, date and active are required.",
       });
     }
 
-    const order = await Order.findOne({ user: userId, subscription: subscriptionId, day });
+    const requestDate = new Date(date);
+    requestDate.setHours(0, 0, 0, 0);
+
+    const order = await Order.findOne({ user: userId, subscription: subscriptionId, date: requestDate });
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "No order found for this day.",
+        message: "No order found for this date.",
       });
     }
 
@@ -424,22 +447,23 @@ export const updateDayOrderStatus = async (req, res) => {
       const user = await User.findById(userId).select("name");
       const customerName = user?.name || "A customer";
       const planLabel = order.planName ? ` for their ${order.planName} plan` : "";
+      const dayLabel = requestDate.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
       await notifyOrderEvent({
         vendorId: order.vendor,
         orderId: order._id,
         title: active ? "Order Resumed" : "Order Paused",
         message: active
-          ? `${customerName} resumed their ${day} meal order${planLabel} — resume delivery for this day.`
-          : `${customerName} paused their ${day} meal order${planLabel} — do NOT deliver on this day.`,
+          ? `${customerName} resumed their ${dayLabel} meal order${planLabel} — resume delivery for this day.`
+          : `${customerName} paused their ${dayLabel} meal order${planLabel} — do NOT deliver on this day.`,
         emailHeading: active ? "Meal Order Resumed" : "Meal Order Paused",
         emailIntro: active
-          ? `${customerName} has switched their ${day} order${planLabel} back to active. Please resume delivering to them on this day.`
-          : `${customerName} has marked their ${day} order${planLabel} as inactive. This means they should NOT be delivered a meal on this day until they resume it.`,
+          ? `${customerName} has switched their ${dayLabel} order${planLabel} back to active. Please resume delivering to them on this day.`
+          : `${customerName} has marked their ${dayLabel} order${planLabel} as inactive. This means they should NOT be delivered a meal on this day until they resume it.`,
         emailLines: [
           { label: "Customer", value: customerName },
           { label: "Plan", value: order.planName || "N/A" },
-          { label: "Day", value: day },
+          { label: "Date", value: dayLabel },
           { label: "Status", value: active ? "Active — deliver" : "Inactive — do not deliver" },
         ],
       });

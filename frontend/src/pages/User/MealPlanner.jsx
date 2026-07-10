@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus } from "../../services/mealSchedule.service";
+import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
 import Footer from "../../components/shared/Footer";
@@ -13,6 +14,23 @@ import PlanSummary from "./MealPlanner/PlanSummary";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
 import PlanSelector from "./MealPlanner/PlanSelector";
 
+// Default selection: today if it falls within the plan's window, otherwise
+// the nearest valid date (the plan's start if it hasn't started yet, or its
+// last day if it already ended).
+const getDefaultSelectedDate = (subscription) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (!subscription?.startDate || !subscription?.endDate) return today;
+
+  const start = new Date(subscription.startDate);
+  start.setHours(0, 0, 0, 0);
+
+  if (today < start) return start;
+  if (isBeyondSubscription(today, subscription)) return new Date(subscription.endDate);
+  return today;
+};
+
 // ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================
 const MealPlanner = () => {
   const { user, loading } = useAuth();
@@ -22,16 +40,8 @@ const MealPlanner = () => {
   const [loadingPlan, setLoadingPlan] = useState(true);
 
   const [activeStep, setActiveStep] = useState(1);
-  const [selectedDay, setSelectedDay] = useState("Tuesday");
-  const [weeklyPlan, setWeeklyPlan] = useState({
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: [],
-    Sunday: [],
-  });
+  const [selectedDate, setSelectedDate] = useState(() => getDefaultSelectedDate(null));
+  const [weeklyPlan, setWeeklyPlan] = useState({});
   const [dayStatus, setDayStatus] = useState({});
 
   const refreshDayStatuses = async (subscriptionId) => {
@@ -44,25 +54,29 @@ const MealPlanner = () => {
     }
   };
 
-  const handleToggleDayActive = async (day, active) => {
+  const handleToggleDayActive = async (dateKey, active) => {
     if (!activeSubscription?._id) return;
 
     setDayStatus((prev) => ({
       ...prev,
-      [day]: { ...prev[day], active },
+      [dateKey]: { ...prev[dateKey], active },
     }));
 
     try {
-      await updateDayStatus({ subscriptionId: activeSubscription._id, day, active });
+      await updateDayStatus({ subscriptionId: activeSubscription._id, date: dateKey, active });
     } catch (error) {
       console.error("Failed to update day status:", error?.response?.data || error);
       // revert optimistic update on failure
       setDayStatus((prev) => ({
         ...prev,
-        [day]: { ...prev[day], active: !active },
+        [dateKey]: { ...prev[dateKey], active: !active },
       }));
     }
   };
+
+  useEffect(() => {
+    setSelectedDate(getDefaultSelectedDate(activeSubscription));
+  }, [activeSubscription?._id]);
 
   useEffect(() => {
     const fetchSavedMealPlan = async () => {
@@ -75,31 +89,18 @@ const MealPlanner = () => {
           activeSubscription._id
         );
 
-        console.log(
-          "Saved Meal Schedule:",
-          res
-        );
-
         if (!res.success || !res.data) {
           return;
         }
 
-        const initialPlan = {
-          Monday: [],
-          Tuesday: [],
-          Wednesday: [],
-          Thursday: [],
-          Friday: [],
-          Saturday: [],
-          Sunday: [],
-        };
+        const initialPlan = {};
 
         res.data.schedule.forEach((daySchedule) => {
-          if (!daySchedule?.day) {
+          if (!daySchedule?.date) {
             return;
           }
 
-          initialPlan[daySchedule.day] =
+          initialPlan[formatDateKey(daySchedule.date)] =
             (daySchedule.items || [])
               .filter((meal) => meal?.item)
               .map((meal) => ({
@@ -107,11 +108,6 @@ const MealPlanner = () => {
                 quantity: meal.quantity || 1,
               }));
         });
-
-        console.log(
-          "Formatted Weekly Plan:",
-          initialPlan
-        );
 
         setWeeklyPlan(initialPlan);
       } catch (error) {
@@ -203,12 +199,13 @@ console.log(activeSubscription?.maxItemsPerMeal);
                 />
 
                 <MealScheduleBuilder
-                  selectedDay={selectedDay}
-                  setSelectedDay={setSelectedDay}
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
                   weeklyPlan={weeklyPlan}
                   setWeeklyPlan={setWeeklyPlan}
                   mealSize={activeSubscription?.mealSize}
                   mealCount={activeSubscription?.maxItemsPerMeal}
+                  subscription={activeSubscription}
                   subscriptionId={activeSubscription?._id}
                   dayStatus={dayStatus}
                   onToggleDayActive={handleToggleDayActive}

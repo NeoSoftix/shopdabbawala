@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  initializeMealPlan,
   getMyMealPlan,
   updateDaySchedule,
   addMealPlanAddress,

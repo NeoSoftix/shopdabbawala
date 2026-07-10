@@ -18,6 +18,7 @@ import AddItem from "./components/Admin/AddItem";
 import Item from "./components/Admin/Item";
 import VendorList from "./components/Admin/Vendor";
 import AddVendor from "./components/Admin/AddVendor";
+import AssignVendor from "./pages/Admin/AssignVendor";
 import CreateAddOns from "./components/Admin/CreateAddOns";
 import AddOns from "./components/Admin/AddOns";
 import PackagesPage from "./components/Admin/PackagesPage";
@@ -31,7 +32,6 @@ import VendorNotifications from "./pages/Vendor/VendorNotifications";
 import UserLayout from "./pages/User/UserLayout";
 import UserDashboard from "./pages/User/UserDashboard";
 import "./react-calendar.css";
-import ServiceArea from "./pages/Vendor/ServiceArea";
 import CreatePackage from "./pages/User/CreatePackage";
 import MealPlanner from "./pages/User/MealPlanner";
 
@@ -103,6 +103,7 @@ function App() {
         <Route path="settings" element={<Settings />} />
         <Route path="vendors" element={<VendorList />} />
         <Route path="vendors/add" element={<AddVendor />} />
+        <Route path="vendor-assignment" element={<AssignVendor />} />
         <Route path="packages" element={<PackagesPage />} />
         <Route path="add-on" element={<AddOns />} />
         <Route path="add-on/add" element={<CreateAddOns />} />
@@ -121,7 +122,6 @@ function App() {
       >
         <Route path="dashboard" element={<VendorDashboard />} />
         <Route path="orders" element={<VendorOrders />} />
-        <Route path="service-area" element={<ServiceArea />} />
         <Route path="profile" element={<VendorProfile />} />
         <Route path="notifications" element={<VendorNotifications />} />
       </Route>

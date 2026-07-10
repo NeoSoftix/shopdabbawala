@@ -5,7 +5,7 @@
 //   - daySchedule.controller.js   -> daily schedule updates
 //   - address.controller.js       -> meal plan address management
 //   - mealSchedule.controller.js  -> meal schedule create/fetch
-export { initializeMealPlan } from "./mealSchedule/initMealPlan.controller.js";
+
 export { updateDaySchedule } from "./mealSchedule/daySchedule.controller.js";
 export { addMealPlanAddress, deleteMealPlanAddress } from "./mealSchedule/address.controller.js";
 export { createMealSchedule, getMyMealPlan, getDayStatuses, updateDayOrderStatus } from "./mealSchedule/mealSchedule.controller.js";

@@ -33,17 +33,8 @@ const orderSchema = new mongoose.Schema(
       trim: true,
     },
 
-    day: {
-      type: String,
-      enum: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
+    date: {
+      type: Date,
     },
 
     // Lets a user pause/resume a specific day's recurring delivery without

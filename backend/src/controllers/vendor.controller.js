@@ -14,12 +14,6 @@ export {
 } from "./vendor/vendor.crud.controller.js";
 
 export {
-  selectAreaAndCategory,
-  removeAreaAndCategory,
-  getServiceAreaOfvendor,
-} from "./vendor/vendor.serviceArea.controller.js";
-
-export {
   vendorProfile,
   checkServiceAvailability,
 } from "./vendor/vendor.profile.controller.js";

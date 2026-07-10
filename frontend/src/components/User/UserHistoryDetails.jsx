@@ -54,9 +54,10 @@ export default function UserHistoryDetails({ subscriptions }) {
     });
   };
 
-  // Get current day string (e.g., "Monday")
-  const todayString = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-  const todayOrders = orders.filter(order => order.day === todayString);
+  // "YYYY-MM-DD" for today, to match against order.date (stored as a real Date now)
+  const todayKey = new Date().toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD
+  const todayLabel = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  const todayOrders = orders.filter(order => order.date && new Date(order.date).toLocaleDateString('en-CA') === todayKey);
 
   const statusBadgeClass = (status) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-500';
 
@@ -128,7 +129,7 @@ export default function UserHistoryDetails({ subscriptions }) {
                             <ShoppingBag className="w-5 h-5" />
                           </div>
                           <div className="space-y-1">
-                            <span className="font-bold text-gray-900">{order.day}{order.planName ? ` — ${order.planName}` : ''}</span>
+                            <span className="font-bold text-gray-900">{formatDate(order.date)}{order.planName ? ` — ${order.planName}` : ''}</span>
                             <p className="text-xs text-gray-400">Last updated: {formatDate(order.updatedAt)}</p>
                             <div className="flex flex-wrap gap-1.5 mt-2">
                               {(order.items || []).map((it, idx) => (
@@ -152,7 +153,7 @@ export default function UserHistoryDetails({ subscriptions }) {
             {/* --- TODAY'S ORDER SECTION --- */}
             {activeTab === 'today' && (
               <section className="space-y-4 fade-in">
-                <h2 className="text-lg font-bold text-gray-900">Today's Delivery ({todayString})</h2>
+                <h2 className="text-lg font-bold text-gray-900">Today's Delivery ({todayLabel})</h2>
 
                 {todayOrders.length === 0 ? (
                   <div className="bg-white rounded-xl border border-gray-100 p-10 text-center shadow-sm">

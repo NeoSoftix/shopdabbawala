@@ -22,18 +22,9 @@ const mealItemSchema = new mongoose.Schema(
 
 const dayScheduleSchema = new mongoose.Schema(
   {
-    day: {
-      type: String,
+    date: {
+      type: Date,
       required: true,
-      enum: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
     },
 
     items: {
@@ -45,6 +36,7 @@ const dayScheduleSchema = new mongoose.Schema(
     _id: false,
   }
 );
+
 
 const mealScheduleSchema = new mongoose.Schema(
   {

@@ -1,14 +1,11 @@
 import express from "express";
-import { 
+import {
   checkServiceAvailability,
-  createVendor, 
-  deleteVendor, 
-  getAllVendors, 
-  getOneVendor, 
-  getServiceAreaOfvendor, 
-  removeAreaAndCategory, 
-  selectAreaAndCategory, 
-  toggleVendorStatus, 
+  createVendor,
+  deleteVendor,
+  getAllVendors,
+  getOneVendor,
+  toggleVendorStatus,
   updateVendor,
   vendorProfile
 } from "../controllers/vendor.controller.js";
@@ -28,15 +25,6 @@ router.get("/", verifyToken, allowedRoles("admin"), getAllVendors);
 
 // get vendor by pincode 
 router.get("/service-availability", checkServiceAvailability)
-
-// Select Area & Category
-router.patch("/select-zone", verifyToken, allowedRoles("vendor"), selectAreaAndCategory);
-
-// Service Area
-router.get("/service-area", verifyToken, allowedRoles("vendor"), getServiceAreaOfvendor);
-
-// Remove Area & Category
-router.delete("/remove-area-category/:id", verifyToken, allowedRoles("vendor"), removeAreaAndCategory);
 
 // Update Vendor
 router.put("/:id", verifyToken, allowedRoles("admin", "vendor"), upload.single("logo"), updateVendor);

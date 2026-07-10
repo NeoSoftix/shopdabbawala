@@ -47,6 +47,11 @@ export const adminMenu = [
     path: "/admin/vendors",
     icon: FaStore,
   },
+  {
+    label: "Vendor Assignment",
+    path: "/admin/vendor-assignment",
+    icon: FaStore,
+  },
 
   {
     label: "Users",

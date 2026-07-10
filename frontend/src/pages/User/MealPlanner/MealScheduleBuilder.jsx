@@ -9,15 +9,17 @@ import ItemGrid from "./ItemGrid";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayPlanSlots from "./DayPlanSlots";
 import WeeklyOverview from "./WeeklyOverview";
+import { formatDateKey, isSelectableDate, longDate } from "./constants";
 
 // ================= COMPONENT: CUSTOM MEAL PLAN BUILDER =================
 const MealScheduleBuilder = ({
-  selectedDay,
-  setSelectedDay,
+  selectedDate,
+  setSelectedDate,
   weeklyPlan,
   setWeeklyPlan,
   mealSize,
   mealCount,
+  subscription,
   subscriptionId,
   dayStatus,
   onToggleDayActive,
@@ -28,6 +30,8 @@ const MealScheduleBuilder = ({
   const [loadingData, setLoadingData] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedDateKey = formatDateKey(selectedDate);
 
   useEffect(() => {
     Promise.all([getActiveCategory(), getAllItems()])
@@ -55,7 +59,7 @@ const MealScheduleBuilder = ({
     if (!item) return;
 
     setWeeklyPlan((prev) => {
-      const currentDayItems = prev[selectedDay] || [];
+      const currentDayItems = prev[selectedDateKey] || [];
 
       const exists = currentDayItems.some(
         (meal) => meal?._id === item._id,
@@ -65,7 +69,7 @@ const MealScheduleBuilder = ({
       if (exists) {
         return {
           ...prev,
-          [selectedDay]: currentDayItems.filter(
+          [selectedDateKey]: currentDayItems.filter(
             (meal) => meal?._id !== item._id,
           ),
         };
@@ -91,7 +95,7 @@ const MealScheduleBuilder = ({
       return {
         ...prev,
 
-        [selectedDay]: [
+        [selectedDateKey]: [
           ...currentDayItems,
           {
             ...item,
@@ -105,7 +109,7 @@ const MealScheduleBuilder = ({
   const updateItemQuantity = (item, change) => {
     setWeeklyPlan((prev) => {
       const currentDayItems =
-        prev[selectedDay] || [];
+        prev[selectedDateKey] || [];
 
       const existingItem = currentDayItems.find(
         (meal) => meal?._id === item._id,
@@ -134,7 +138,7 @@ const MealScheduleBuilder = ({
           return {
             ...prev,
 
-            [selectedDay]: [
+            [selectedDateKey]: [
               ...currentDayItems,
               {
                 ...item,
@@ -148,7 +152,7 @@ const MealScheduleBuilder = ({
         return {
           ...prev,
 
-          [selectedDay]: currentDayItems.map(
+          [selectedDateKey]: currentDayItems.map(
             (meal) =>
               meal._id === item._id
                 ? {
@@ -157,7 +161,7 @@ const MealScheduleBuilder = ({
                     (meal.quantity || 1) + 1,
                 }
                 : meal,
-          ),  
+          ),
         };
       }
 
@@ -176,7 +180,7 @@ const MealScheduleBuilder = ({
         return {
           ...prev,
 
-          [selectedDay]: currentDayItems.filter(
+          [selectedDateKey]: currentDayItems.filter(
             (meal) => meal._id !== item._id,
           ),
         };
@@ -186,7 +190,7 @@ const MealScheduleBuilder = ({
       return {
         ...prev,
 
-        [selectedDay]: currentDayItems.map(
+        [selectedDateKey]: currentDayItems.map(
           (meal) =>
             meal._id === item._id
               ? {
@@ -199,14 +203,14 @@ const MealScheduleBuilder = ({
     });
   };
 
-  const removeOneItemFromDay = (day, itemId) => {
+  const removeOneItemFromDay = (dateKey, itemId) => {
     setWeeklyPlan((prev) => {
-      const dayItems = prev[day] || [];
+      const dayItems = prev[dateKey] || [];
 
       return {
         ...prev,
 
-        [day]: dayItems
+        [dateKey]: dayItems
           .map((item) => {
             if (item._id !== itemId) {
               return item;
@@ -228,29 +232,10 @@ const MealScheduleBuilder = ({
     });
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const removeItemFromDay = (day, itemId) => {
-    setWeeklyPlan((prev) => ({
-      ...prev,
-
-      [day]: (prev[day] || []).filter(
-        (item) => item?._id !== itemId,
-      ),
-    }));
-  };
-
-  const planItems = {
-    basic: 3,
-    medium: 4,
-    premium: 6,
-  };
-  console.log(mealSize)
-
   const totalSlots =
     mealCount || 0;
-console.log(totalSlots);
 
-  const currentDayMeals = weeklyPlan[selectedDay] || [];
+  const currentDayMeals = weeklyPlan[selectedDateKey] || [];
 
   const expandedDayMeals = currentDayMeals.flatMap((meal) =>
     Array.from(
@@ -264,12 +249,16 @@ console.log(totalSlots);
   const handleSubmitDay = async () => {
     if (!subscriptionId) {
       toast.error("Subscription ID missing");
-      console.log("subscriptionId:", subscriptionId);
       return;
     }
 
     if (totalSelectedMeals === 0) {
       toast.error("Please select at least one meal before confirming.");
+      return;
+    }
+
+    if (!isSelectableDate(selectedDate, subscription)) {
+      toast.error("This date can't be scheduled — it's either in the past or outside your plan's validity.");
       return;
     }
 
@@ -280,29 +269,23 @@ console.log(totalSlots);
 
     const payload = {
       subscriptionId,
-      day: selectedDay,
+      date: selectedDateKey,
       items: selectedItems,
     };
-
-    console.log("Meal Payload:", payload);
 
     setSubmitting(true);
 
     try {
       const res = await createMeal(payload);
 
-      console.log("Create Meal Response:", res);
-
       if (res?.success) {
-        toast.success(`${selectedDay}'s meal plan confirmed!`);
+        toast.success(`${longDate(selectedDate)}'s meal plan confirmed!`);
         if (onDayConfirmed) onDayConfirmed();
       } else {
         toast.error(res?.message || "Failed to confirm meal plan.");
       }
     } catch (error) {
       console.error("FULL ERROR:", error);
-      console.error("ERROR RESPONSE:", error?.response);
-      console.error("ERROR DATA:", error?.response?.data);
 
       toast.error(
         error?.response?.data?.message ||
@@ -368,27 +351,31 @@ console.log(totalSlots);
             </span>
             <div>
               <h3 className="text-sm font-bold text-[#1B254B] tracking-wider uppercase">
-                PICK DELIVERY DAY
+                PICK DELIVERY DATE
               </h3>
               <p className="text-xs font-medium text-[#A3AED0] mt-0.5">
-                Choose your target day to get started
+                Choose any date within your plan's validity
               </p>
             </div>
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 space-y-5 shadow-sm">
             <span className="text-xs font-bold text-[#1B254B] uppercase block tracking-wider">
-              Select Delivery Day
+              Select Delivery Date
             </span>
 
-            <DayOfWeekPicker selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
+            <DayOfWeekPicker
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              subscription={subscription}
+            />
 
             <DayPlanSlots
-              selectedDay={selectedDay}
+              selectedDay={longDate(selectedDate)}
               totalSlots={totalSlots}
               totalSelectedMeals={totalSelectedMeals}
               expandedDayMeals={expandedDayMeals}
-              onRemoveOne={removeOneItemFromDay}
+              onRemoveOne={(_, itemId) => removeOneItemFromDay(selectedDateKey, itemId)}
               onSubmit={handleSubmitDay}
               submitting={submitting}
             />
@@ -400,8 +387,9 @@ console.log(totalSlots);
       <WeeklyOverview
         weeklyPlan={weeklyPlan}
         dayStatus={dayStatus}
+        subscription={subscription}
         onToggleDayActive={onToggleDayActive}
-        setSelectedDay={setSelectedDay}
+        setSelectedDate={setSelectedDate}
       />
     </div>
   );

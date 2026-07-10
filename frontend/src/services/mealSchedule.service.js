@@ -11,7 +11,7 @@ export const getMyMealPlan = async () => {
   }
 };
 
-// Update a single day's schedule (items + optional addressId)
+// Create/update a single date's meal schedule
 export const createMeal = async (data) => {
   try {
     const res = await API.post("/meal-schedule/create", data);
@@ -52,10 +52,10 @@ export const getDayStatuses = async (subscriptionId) => {
   }
 };
 
-// Pause/resume a specific day's order
-export const updateDayStatus = async ({ subscriptionId, day, active }) => {
+// Pause/resume a specific date's order
+export const updateDayStatus = async ({ subscriptionId, date, active }) => {
   try {
-    const res = await API.patch("/meal-schedule/day-status", { subscriptionId, day, active });
+    const res = await API.patch("/meal-schedule/day-status", { subscriptionId, date, active });
     return res.data;
   } catch (error) {
     console.error("Update day status error:", error.response?.data || error.message);
