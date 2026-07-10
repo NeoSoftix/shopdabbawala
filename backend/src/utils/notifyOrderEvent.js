@@ -109,69 +109,118 @@ export const notifyOrderEvent = async ({
   })();
 };
 
-// Vendor accepted/rejected a specific day's order. Unlike notifyOrderEvent
-// (vendor + admin, vendor is the recipient), here the vendor is the *actor*
-// - so the customer whose order it is gets emailed the outcome, and admin
-// gets a separate email about what the vendor just did. Fire-and-forget,
-// never throws.
+// Formats an Order's `date` field (the actual scheduled delivery day) for
+// use in notification copy - falls back to a generic phrase if unset.
+const formatOrderDayLabel = (date) =>
+  date
+    ? new Date(date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+    : "your scheduled day";
+
+// Per-status copy for every vendor-actor-driven order status change. Keeping
+// this as data (rather than branching per status inline) lets
+// notifyOrderStatusChange stay one generic function as new statuses
+// (On the way, Delivered) were added alongside the original Accepted/Rejected.
+const STATUS_NOTIFICATION_CONFIG = {
+  Accepted: {
+    accent: "#16a34a",
+    userTitle: "Order Accepted",
+    userMessage: (dayLabel, vendorName) => `Your order for ${dayLabel} has been accepted by ${vendorName || "the vendor"}.`,
+    userEmailHeading: "Your Order Has Been Accepted! 🎉",
+    userEmailIntro: (dayLabel, vendorName) => `Good news! Your meal order for ${dayLabel} has been accepted by ${vendorName || "your vendor"} and will be prepared for delivery.`,
+    adminTitle: "Vendor Accepted an Order",
+    adminIntro: (customerName, dayLabel, vendorName) => `${vendorName || "A vendor"} has accepted ${customerName}'s order for ${dayLabel}.`,
+  },
+  Rejected: {
+    accent: "#dc2626",
+    userTitle: "Order Rejected",
+    userMessage: (dayLabel, vendorName) => `Your order for ${dayLabel} was rejected by ${vendorName || "the vendor"}.`,
+    userEmailHeading: "Your Order Was Rejected",
+    userEmailIntro: (dayLabel, vendorName) => `We're sorry - your meal order for ${dayLabel} was rejected by ${vendorName || "the vendor"}. Please contact support if you have questions.`,
+    adminTitle: "Vendor Rejected an Order",
+    adminIntro: (customerName, dayLabel, vendorName) => `${vendorName || "A vendor"} has rejected ${customerName}'s order for ${dayLabel}.`,
+  },
+  "On the way": {
+    accent: "#2563eb",
+    userTitle: "Order Out For Delivery",
+    userMessage: (dayLabel, vendorName) => `Your order for ${dayLabel} is ready and on its way with ${vendorName || "the vendor"}!`,
+    userEmailHeading: "Your Order Is On The Way! 🚴",
+    userEmailIntro: (dayLabel, vendorName) => `Good news! ${vendorName || "Your vendor"} has marked your ${dayLabel} meal order as ready to deliver - it'll reach you shortly.`,
+    adminTitle: "Vendor Marked an Order Ready to Deliver",
+    adminIntro: (customerName, dayLabel, vendorName) => `${vendorName || "A vendor"} is out delivering ${customerName}'s order for ${dayLabel}.`,
+  },
+  Delivered: {
+    accent: "#16a34a",
+    userTitle: "Order Delivered",
+    userMessage: (dayLabel, vendorName) => `Your order for ${dayLabel} has been delivered by ${vendorName || "the vendor"}. Enjoy your meal!`,
+    userEmailHeading: "Your Order Has Been Delivered! 🎉",
+    userEmailIntro: (dayLabel, vendorName) => `${vendorName || "Your vendor"} has delivered your ${dayLabel} meal order. We hope you enjoy it!`,
+    adminTitle: "Vendor Delivered an Order",
+    adminIntro: (customerName, dayLabel, vendorName) => `${vendorName || "A vendor"} has delivered ${customerName}'s order for ${dayLabel}.`,
+  },
+};
+
+// Vendor accepted/rejected/marked-ready/delivered a specific order. Unlike
+// notifyOrderEvent (vendor + admin, vendor is the recipient), here the
+// vendor is the *actor* - so the customer whose order it is gets emailed the
+// outcome, and admin gets a separate email about what the vendor just did.
+// Fire-and-forget, never throws.
 export const notifyOrderStatusChange = async ({ order, status, vendorName }) => {
   (async () => {
     try {
-      const isAccepted = status === "Accepted";
-      const accent = isAccepted ? "#16a34a" : "#dc2626";
+      const config = STATUS_NOTIFICATION_CONFIG[status];
+      if (!config) {
+        console.error(`notifyOrderStatusChange: no notification config for status "${status}"`);
+        return;
+      }
+
+      const dayLabel = formatOrderDayLabel(order.date);
       const user = await User.findById(order.user).select("email name");
       const customerName = user?.name || "A customer";
 
       notifyUser({
         userId: order.user,
         orderId: order._id,
-        title: isAccepted ? "Order Accepted" : "Order Rejected",
-        message: isAccepted
-          ? `Your order for ${order.day} has been accepted by ${vendorName || "the vendor"}.`
-          : `Your order for ${order.day} was rejected by ${vendorName || "the vendor"}.`,
+        title: config.userTitle,
+        message: config.userMessage(dayLabel, vendorName),
       });
 
       if (user?.email) {
-        const userHeading = isAccepted ? "Your Order Has Been Accepted! 🎉" : "Your Order Was Rejected";
         const userHtml = orderEventTemplate({
-          heading: userHeading,
-          intro: isAccepted
-            ? `Good news! Your meal order for ${order.day} has been accepted by ${vendorName || "your vendor"} and will be prepared for delivery.`
-            : `We're sorry - your meal order for ${order.day} was rejected by ${vendorName || "the vendor"}. Please contact support if you have questions.`,
+          heading: config.userEmailHeading,
+          intro: config.userEmailIntro(dayLabel, vendorName),
           lines: [
-            { label: "Day", value: order.day },
+            { label: "Date", value: dayLabel },
             { label: "Plan", value: order.planName || "N/A" },
             { label: "Status", value: status },
           ],
-          accent,
+          accent: config.accent,
         });
 
-        sendEmail(user.email, userHeading, userHtml)
+        sendEmail(user.email, config.userEmailHeading, userHtml)
           .then(() => console.log(`notifyOrderStatusChange: user email sent OK to ${user.email} (${status})`))
           .catch((error) => console.error(`notifyOrderStatusChange: user email FAILED for ${user.email}:`, error.response?.data || error.message));
       }
 
       const admins = await User.find({ role: "admin" }).select("email");
       if (admins.length > 0) {
-        const adminHeading = isAccepted ? "Vendor Accepted an Order" : "Vendor Rejected an Order";
-        const adminIntro = `${vendorName || "A vendor"} has ${isAccepted ? "accepted" : "rejected"} ${customerName}'s order for ${order.day}.`;
+        const adminIntro = config.adminIntro(customerName, dayLabel, vendorName);
         const adminHtml = orderEventTemplate({
-          heading: adminHeading,
+          heading: config.adminTitle,
           intro: adminIntro,
           lines: [
             { label: "Customer", value: customerName },
             { label: "Vendor", value: vendorName || "N/A" },
-            { label: "Day", value: order.day },
+            { label: "Date", value: dayLabel },
             { label: "Plan", value: order.planName || "N/A" },
           ],
-          accent,
+          accent: config.accent,
         });
 
         admins.forEach((admin) => {
-          notifyUser({ userId: admin._id, orderId: order._id, title: adminHeading, message: adminIntro });
+          notifyUser({ userId: admin._id, orderId: order._id, title: config.adminTitle, message: adminIntro });
 
           if (!admin.email) return;
-          sendEmail(admin.email, adminHeading, adminHtml)
+          sendEmail(admin.email, config.adminTitle, adminHtml)
             .then(() => console.log(`notifyOrderStatusChange: admin email sent OK to ${admin.email} (${status})`))
             .catch((error) => console.error(`notifyOrderStatusChange: admin email FAILED for ${admin.email}:`, error.response?.data || error.message));
         });

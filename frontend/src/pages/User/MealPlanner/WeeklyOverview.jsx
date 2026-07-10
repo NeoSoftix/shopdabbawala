@@ -11,6 +11,18 @@ const getMonday = (d) => {
   return date;
 };
 
+// Badge color per Order.status - shown on any day that already has a
+// confirmed order (Pending until the vendor progresses/delivers it).
+const ORDER_STATUS_BADGE = {
+  Pending: "bg-amber-500",
+  Accepted: "bg-emerald-500",
+  Rejected: "bg-red-500",
+  Preparing: "bg-indigo-500",
+  "On the way": "bg-blue-500",
+  Delivered: "bg-green-600",
+  Cancelled: "bg-slate-400",
+};
+
 const addDays = (d, n) => {
   const date = new Date(d);
   date.setDate(date.getDate() + n);
@@ -207,11 +219,9 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
                 <span className="absolute left-1/2 -bottom-[9px] -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-green-500" />
               )}
 
-              {(orderStatus === "Accepted" || orderStatus === "Rejected") && (
+              {ORDER_STATUS_BADGE[orderStatus] && (
                 <div
-                  className={`absolute inset-x-0 top-1/2 -translate-y-1/2 py-1.5 text-center text-sm sm:text-base font-black uppercase tracking-widest text-white shadow-md ${
-                    orderStatus === "Accepted" ? "bg-green-500" : "bg-red-500"
-                  }`}
+                  className={`absolute inset-x-0 top-1/2 -translate-y-1/2 py-1.5 text-center text-sm sm:text-base font-black uppercase tracking-widest text-white shadow-md ${ORDER_STATUS_BADGE[orderStatus]}`}
                 >
                   {orderStatus}
                 </div>
@@ -243,11 +253,9 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
                 >
                   {previewActive ? "Active" : "Inactive"}
                 </span>
-                {(previewOrderStatus === "Accepted" || previewOrderStatus === "Rejected") && (
+                {ORDER_STATUS_BADGE[previewOrderStatus] && (
                   <span
-                    className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                      previewOrderStatus === "Accepted" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                    }`}
+                    className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full text-white ${ORDER_STATUS_BADGE[previewOrderStatus]}`}
                   >
                     {previewOrderStatus}
                   </span>

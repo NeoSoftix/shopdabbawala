@@ -6,6 +6,8 @@ import {
   getOrdersByDate,
   acceptOrder,
   rejectOrder,
+  markOrderReadyToDeliver,
+  markOrderDelivered,
   getMyOrders,
 } from "../controllers/order.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
@@ -33,5 +35,9 @@ router.get("/", getAllOrders);
 // Vendor accepts/rejects a pending order
 router.patch("/:id/accept", allowedRoles("vendor"), acceptOrder);
 router.patch("/:id/reject", allowedRoles("vendor"), rejectOrder);
+
+// Vendor progresses an accepted order through delivery (today's orders only)
+router.patch("/:id/ready-to-deliver", allowedRoles("vendor"), markOrderReadyToDeliver);
+router.patch("/:id/delivered", allowedRoles("vendor"), markOrderDelivered);
 
 export default router;

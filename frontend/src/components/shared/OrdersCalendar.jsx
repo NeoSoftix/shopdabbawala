@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FiChevronLeft, FiChevronRight, FiEye, FiLoader } from 'react-icons/fi';
-import { getOrderCountsByMonth, getOrdersByDate } from '../../services/order.service';
+import { toast } from 'react-hot-toast';
+import {
+  getOrderCountsByMonth,
+  getOrdersByDate,
+  markOrderReadyToDeliver,
+  markOrderDelivered,
+} from '../../services/order.service';
+import OrderDetailsModal from './OrderDetailsModal';
 
 const statusStyles = {
   Pending: 'bg-amber-50 text-amber-600',
@@ -19,6 +26,7 @@ export default function OrdersCalendar() {
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [loadingCounts, setLoadingCounts] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [detailsOrder, setDetailsOrder] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -91,6 +99,30 @@ export default function OrdersCalendar() {
   useEffect(() => {
     fetchOrdersForDate(selectedDateStr);
   }, [selectedDateStr, fetchOrdersForDate]);
+
+  const handleReadyToDeliver = async (orderId) => {
+    try {
+      const res = await markOrderReadyToDeliver(orderId);
+      if (res.success) {
+        toast.success("Order marked as ready to deliver");
+        fetchOrdersForDate(selectedDateStr);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update order");
+    }
+  };
+
+  const handleMarkDelivered = async (orderId) => {
+    try {
+      const res = await markOrderDelivered(orderId);
+      if (res.success) {
+        toast.success("Order marked as delivered");
+        fetchOrdersForDate(selectedDateStr);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update order");
+    }
+  };
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 w-full">
@@ -228,7 +260,12 @@ export default function OrdersCalendar() {
                     </span>
                   </div>
                   <div className="col-span-2 flex justify-center">
-                    <button className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors group-hover:scale-105">
+                    <button
+                      type="button"
+                      onClick={() => setDetailsOrder(order)}
+                      title="View order details"
+                      className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors group-hover:scale-105"
+                    >
                       <FiEye className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -238,6 +275,13 @@ export default function OrdersCalendar() {
           )}
         </div>
       </div>
+
+      <OrderDetailsModal
+        order={detailsOrder}
+        onClose={() => setDetailsOrder(null)}
+        onReadyToDeliver={handleReadyToDeliver}
+        onMarkDelivered={handleMarkDelivered}
+      />
     </div>
   );
 }

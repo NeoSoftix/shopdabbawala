@@ -23,6 +23,8 @@ export default function OrdersTable({
   orders = [],
   onAccept,
   onReject,
+  onReadyToDeliver,
+  onMarkDelivered,
 }) {
   const showActions = Boolean(onAccept || onReject);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -110,6 +112,8 @@ export default function OrdersTable({
         onClose={() => setSelectedOrder(null)}
         onAccept={onAccept}
         onReject={onReject}
+        onReadyToDeliver={onReadyToDeliver}
+        onMarkDelivered={onMarkDelivered}
       />
     </div>
   );
