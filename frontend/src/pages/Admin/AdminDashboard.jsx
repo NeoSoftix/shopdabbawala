@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiUsers, FiShoppingBag, FiShoppingCart } from "react-icons/fi";
 
 import { MdRestaurantMenu, MdFastfood } from "react-icons/md";
@@ -16,113 +16,82 @@ import { getAllItems } from "../../services/items.service";
 import { getCustomerStats } from "../../services/customer.service";
 import { getOrderStats } from "../../services/order.service";
 
+const lineData = [
+  { name: "Mon", value: 10 },
+  { name: "Tue", value: 20 },
+  { name: "Wed", value: 15 },
+  { name: "Thu", value: 30 },
+  { name: "Fri", value: 25 },
+  { name: "Sat", value: 40 },
+  { name: "Sun", value: 35 },
+];
+
 export default function AdminDashboard() {
-  const [vendorCount, setVendorCount] = useState(0);
-  const [mealCount, setMealCount] = useState(0);
-  const [itemCount, setItemCount] = useState(0);
-  const [customerCount, setCustomerCount] = useState(0);
-  const [orderCount, setOrderCount] = useState(0);
+  const [dashboardStats, setDashboardStats] = useState({
+    users: 0,
+    vendors: 0,
+    meals: 0,
+    items: 0,
+    orders: 0,
+    revenue: 10000,
+  });
 
   useEffect(() => {
-    fetchVendorCount();
-    fetchMealCount();
-    fetchItemCount();
-    fetchCustomerCount();
-    fetchOrderCount();
+    let cancelled = false;
+
+    const fetchStats = async () => {
+      const [customerRes, vendorRes, mealRes, itemRes, orderRes] = await Promise.all([
+        getCustomerStats().catch((error) => {
+          console.error("Customer Count Error:", error);
+          return null;
+        }),
+        getAllVendors().catch((error) => {
+          console.error("Vendor Count Error:", error);
+          return null;
+        }),
+        getAllMeals().catch((error) => {
+          console.error("Meal Count Error:", error);
+          return null;
+        }),
+        getAllItems().catch((error) => {
+          console.error("Item Count Error:", error);
+          return null;
+        }),
+        getOrderStats().catch((error) => {
+          console.error("Order Count Error:", error);
+          return null;
+        }),
+      ]);
+
+      if (cancelled) return;
+
+      setDashboardStats((prev) => ({
+        ...prev,
+        users: customerRes?.success ? customerRes.stats.totalCustomers || 0 : prev.users,
+        vendors: vendorRes?.success ? vendorRes.count || 0 : prev.vendors,
+        meals: mealRes?.success ? mealRes.count || 0 : prev.meals,
+        items: itemRes?.success ? itemRes.count || 0 : prev.items,
+        orders: orderRes?.success ? orderRes.stats.totalOrders || 0 : prev.orders,
+      }));
+    };
+
+    fetchStats();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const fetchCustomerCount = async () => {
-    try {
-      const res = await getCustomerStats();
-      console.log("Customer Stats Response:", res);
-      if (res.success) {
-        setCustomerCount(res.stats.totalCustomers || 0);
-      }
-    } catch (error) {
-      console.error("Customer Count Error:", error);
-    }
-  };
-
-  const fetchVendorCount = async () => {
-    try {
-      const res = await getAllVendors();
-
-      console.log("Vendor Response:", res);
-
-      if (res.success) {
-        setVendorCount(res.count);
-      }
-    } catch (error) {
-      console.error("Vendor Count Error:", error);
-    }
-  };
-
-  const fetchMealCount = async () => {
-    try {
-      const res = await getAllMeals();
-
-      console.log("Meals Response:", res);
-
-      if (res.success) {
-        setMealCount(res.count || 0);
-      }
-    } catch (error) {
-      console.error("Meal Count Error:", error);
-    }
-  };
-
-  const fetchItemCount = async () => {
-    try {
-      const res = await getAllItems();
-
-      console.log("Items Response:", res);
-
-      if (res.success) {
-        setItemCount(res.count || 0);
-      }
-    } catch (error) {
-      console.error("Item Count Error:", error);
-    }
-  };
-
-  const fetchOrderCount = async () => {
-    try {
-      const res = await getOrderStats();
-
-      if (res.success) {
-        setOrderCount(res.stats.totalOrders || 0);
-      }
-    } catch (error) {
-      console.error("Order Count Error:", error);
-    }
-  };
-
-  const dashboardStats = {
-    users: customerCount,
-    vendors: vendorCount,
-    meals: mealCount,
-    items: itemCount,
-    orders: orderCount,
-    revenue: 10000,
-  };
-
-  const pieData = [
-    { name: "Users", value: dashboardStats.users },
-    { name: "Vendors", value: dashboardStats.vendors },
-    { name: "Meals", value: dashboardStats.meals },
-    { name: "Items", value: dashboardStats.items },
-    { name: "Orders", value: dashboardStats.orders },
-  ];
-
-  const lineData = [
-    { name: "Mon", value: 10 },
-    { name: "Tue", value: 20 },
-    { name: "Wed", value: 15 },
-    { name: "Thu", value: 30 },
-    { name: "Fri", value: 25 },
-    { name: "Sat", value: 40 },
-    { name: "Sun", value: 35 },
-  ];
+  const pieData = useMemo(
+    () => [
+      { name: "Users", value: dashboardStats.users },
+      { name: "Vendors", value: dashboardStats.vendors },
+      { name: "Meals", value: dashboardStats.meals },
+      { name: "Items", value: dashboardStats.items },
+      { name: "Orders", value: dashboardStats.orders },
+    ],
+    [dashboardStats.users, dashboardStats.vendors, dashboardStats.meals, dashboardStats.items, dashboardStats.orders],
+  );
 
   return (
     <div className="space-y-6">

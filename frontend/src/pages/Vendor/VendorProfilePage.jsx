@@ -68,12 +68,10 @@ export default function VendorProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Canadian postal code (A1A 1A1) — same format used on Add/Edit Vendor.
+  // 6-character alphanumeric pincode.
   const handlePincodeChange = (e) => {
-    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (raw.length > 6) raw = raw.slice(0, 6);
-    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
-    setForm((prev) => ({ ...prev, pincode: formatted }));
+    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    setForm((prev) => ({ ...prev, pincode: raw }));
   };
 
   const handleLogoChange = (e) => {
@@ -87,8 +85,8 @@ export default function VendorProfilePage() {
   const handleSave = async () => {
     if (!vendor?._id) return;
 
-    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(form.pincode)) {
-      toast.error("Enter a valid Canadian postal code (e.g. A1A 1A1).");
+    if (!/^[A-Za-z0-9]{6}$/.test(form.pincode)) {
+      toast.error("Enter a valid 6-character pincode.");
       return;
     }
 

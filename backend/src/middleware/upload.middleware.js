@@ -49,9 +49,35 @@ const upload = multer({
   fileFilter,
 
   limits: {
-    fileSize: 2 * 1024 * 1024,
+    fileSize: 1 * 1024 * 1024,
   },
 });
+
+// converts multer errors into JSON instead of Express's default HTML response
+export const handleUploadError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        success: false,
+        message: "Image must be 1MB or smaller",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  if (err) {
+    return res.status(400).json({
+      success: false,
+      message: err.message || "Image upload failed",
+    });
+  }
+
+  next();
+};
 
 // AUTO DELETE helper after cloudinary upload
 export const removeLocalFile = (filePath) => {

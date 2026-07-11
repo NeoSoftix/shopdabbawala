@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Bell } from "lucide-react";
 import { useAuth } from "./AuthContext";
@@ -22,6 +22,7 @@ export const NotificationProvider = ({ children }) => {
 
   const isRecipient = user?.role === "vendor" || user?.role === "user" || user?.role === "admin";
 
+  // Data fetch: re-runs on page change (pagination), but doesn't touch the socket.
   useEffect(() => {
     if (!isRecipient) return;
 
@@ -39,6 +40,12 @@ export const NotificationProvider = ({ children }) => {
         console.log("Notification initial load error", error);
       }
     })();
+  }, [isRecipient, page]);
+
+  // Socket connection: kept separate from the data fetch above so changing
+  // `page` (pagination) doesn't tear down and reconnect the socket.
+  useEffect(() => {
+    if (!isRecipient) return;
 
     const socket = connectSocket();
 
@@ -54,9 +61,9 @@ export const NotificationProvider = ({ children }) => {
       socket.off("notification:new", handleNewNotification);
       disconnectSocket();
     };
-  }, [isRecipient, page]);
+  }, [isRecipient]);
 
-  const markAsRead = async (id) => {
+  const markAsRead = useCallback(async (id) => {
     setNotifications((prev) =>
       prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
     );
@@ -67,24 +74,27 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.log("Mark as read failed", error);
     }
-  };
+  }, []);
 
-  const deleteNotification = async (id) => {
-    const target = notifications.find((n) => n._id === id);
+  const deleteNotification = useCallback(
+    async (id) => {
+      const target = notifications.find((n) => n._id === id);
 
-    setNotifications((prev) => prev.filter((n) => n._id !== id));
-    if (target && !target.read) {
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    }
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+      if (target && !target.read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
 
-    try {
-      await deleteOneNotificationService(id);
-    } catch (error) {
-      console.log("Delete notification failed", error);
-    }
-  };
+      try {
+        await deleteOneNotificationService(id);
+      } catch (error) {
+        console.log("Delete notification failed", error);
+      }
+    },
+    [notifications],
+  );
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
 
@@ -93,21 +103,24 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.log("Mark all as read failed", error);
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      markAsRead,
+      markAllAsRead,
+      deleteNotification,
+      page,
+      setPage,
+      pagination,
+    }),
+    [notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, page, pagination],
+  );
 
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        page,
-        setPage,
-        pagination,
-      }}
-    >
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );

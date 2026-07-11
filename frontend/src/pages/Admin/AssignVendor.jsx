@@ -139,10 +139,9 @@ const AssignVendor = () => {
       return;
     }
 
-    const raw = pincodeInput.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
-    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(formatted)) {
-      toast.error("Enter a valid Canadian postal code (e.g. A1A 1A1).");
+    const formatted = pincodeInput.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    if (!/^[A-Za-z0-9]{6}$/.test(formatted)) {
+      toast.error("Enter a valid 6-character pincode.");
       return;
     }
 
@@ -295,7 +294,7 @@ const AssignVendor = () => {
                   setIsPincodeDropdownOpen(true);
                 }}
                 onFocus={() => setIsPincodeDropdownOpen(true)}
-                maxLength={7}
+                maxLength={6}
                 placeholder="Search pincode..."
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 text-sm focus:border-[#e61e2d] focus:outline-none"
               />

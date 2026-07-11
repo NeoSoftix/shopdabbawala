@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   PieChart,
   Pie,
@@ -7,9 +8,9 @@ import {
   Legend,
 } from "recharts";
 
-export default function DashboardPieChart({ data, title = "Overview" }) {
-  const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
+const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
+function DashboardPieChart({ data, title = "Overview" }) {
   return (
     <div className="w-full h-[350px] bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800">
       
@@ -59,3 +60,5 @@ export default function DashboardPieChart({ data, title = "Overview" }) {
     </div>
   );
 }
+
+export default memo(DashboardPieChart);

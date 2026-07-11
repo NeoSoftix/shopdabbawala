@@ -53,17 +53,15 @@ const DeliveryCharges = () => {
   };
 
   const handlePincodeChange = (e) => {
-    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (raw.length > 6) raw = raw.slice(0, 6);
-    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
-    setPincodeInput(formatted);
+    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    setPincodeInput(raw);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(pincodeInput.trim())) {
-      toast.error("Please enter a valid Canadian postal code (e.g. A1A 1A1).");
+    if (!/^[A-Za-z0-9]{6}$/.test(pincodeInput.trim())) {
+      toast.error("Please enter a valid 6-character pincode.");
       return;
     }
     if (chargeInput === "" || Number(chargeInput) < 0 || Number.isNaN(Number(chargeInput))) {
@@ -151,10 +149,10 @@ const DeliveryCharges = () => {
             </label>
             <input
               type="text"
-              maxLength={7}
+              maxLength={6}
               value={pincodeInput}
               onChange={handlePincodeChange}
-              placeholder="e.g. A1A 1A1"
+              placeholder="e.g. AB1234"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#e61e2d] focus:outline-none"
             />
           </div>
@@ -214,7 +212,7 @@ const DeliveryCharges = () => {
               value={searchTerm}
               onChange={handleSearchChange}
               maxLength={6}
-              placeholder="Search by pincode (e.g. A1A1A1)"
+              placeholder="Search by pincode (e.g. AB1234)"
               className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#e61e2d] focus:outline-none"
             />
           </div>

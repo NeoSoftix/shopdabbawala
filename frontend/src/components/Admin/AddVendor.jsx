@@ -58,16 +58,14 @@ const AddVendor = () => {
     if (errors[e.target.name]) setErrors((p) => ({ ...p, [e.target.name]: "" }));
   };
 
-  // Postal Code (Canadian format: A1A 1A1) चेंज होने पर काम करने वाला फंक्शन
+  // Pincode (6-character alphanumeric) चेंज होने पर काम करने वाला फंक्शन
   const handlePincodeChange = async (e) => {
     // सिर्फ लेटर्स और नंबर्स एलाओ करने के लिए, बाकी हटाकर अपरकेस में
-    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (raw.length > 6) raw = raw.slice(0, 6);
-    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
+    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
 
     setFormData((prev) => ({
       ...prev,
-      pincode: formatted,
+      pincode: raw,
       city: "", // पुराना डेटा क्लियर करने के लिए
       state: "",
     }));
@@ -93,12 +91,12 @@ const AddVendor = () => {
             state: places[0]["state"],
             address: places[0]["place name"] + ", ",
           }));
-        } else {
-          toast.error("Invalid Postal Code. Please check again.");
         }
+        // No match (e.g. non-Canadian pincode) — leave City/Province blank
+        // for the admin to fill in manually below.
       } catch (error) {
         console.error("Error fetching location:", error);
-        toast.error("Invalid Postal Code. Please check again.");
+        // Lookup only supports Canadian FSAs — fall through to manual entry.
       } finally {
         setFetchingLocation(false);
       }
@@ -128,10 +126,10 @@ const AddVendor = () => {
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
     else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) newErrors.phone = "Enter a valid 10-digit phone number.";
     if (!formData.organizationName.trim()) newErrors.organizationName = "Organization name is required.";
-    if (!formData.pincode.trim()) newErrors.pincode = "Postal code is required.";
-    else if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(formData.pincode)) newErrors.pincode = "Enter a valid Canadian postal code (e.g. A1A 1A1).";
-    if (!formData.city.trim()) newErrors.city = "City is required (enter a valid postal code).";
-    if (!formData.state.trim()) newErrors.state = "Province is required (enter a valid postal code).";
+    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+    else if (!/^[A-Za-z0-9]{6}$/.test(formData.pincode)) newErrors.pincode = "Enter a valid 6-character pincode.";
+    if (!formData.city.trim()) newErrors.city = "City is required.";
+    if (!formData.state.trim()) newErrors.state = "Province/State is required.";
     if (!formData.address.trim()) newErrors.address = "Detailed address is required.";
     if (!formData.package) newErrors.package = "Please select a package for this vendor.";
 
@@ -276,10 +274,10 @@ const AddVendor = () => {
             <input
               type="text"
               name="pincode"
-              maxLength={7}
+              maxLength={6}
               value={formData.pincode}
               onChange={handlePincodeChange}
-              placeholder="e.g. A1A 1A1"
+              placeholder="e.g. AB1234"
               className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.pincode ? "border-red-400" : "border-gray-300"}`}
               required
             />
@@ -317,9 +315,8 @@ const AddVendor = () => {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                placeholder="City will auto-fill"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none"
-                readOnly
+                placeholder="City (auto-fills for Canadian pincodes, or enter manually)"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
                 required
               />
             </div>
@@ -333,9 +330,8 @@ const AddVendor = () => {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                placeholder="Province will auto-fill"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none"
-                readOnly
+                placeholder="Province/State (auto-fills for Canadian pincodes, or enter manually)"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
                 required
               />
             </div>

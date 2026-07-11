@@ -127,7 +127,7 @@ export default function OrdersCalendar() {
   return (
     <div className="flex flex-col xl:flex-row gap-6 w-full">
       {/* Left Panel: Calendar */}
-      <div className="flex-grow xl:w-2/3 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+      <div className="flex-grow xl:w-2/3 bg-white rounded-3xl p-3 sm:p-6 shadow-sm border border-slate-100">
 
         {/* Calendar Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -172,7 +172,7 @@ export default function OrdersCalendar() {
           <div className="grid grid-cols-7 auto-rows-fr">
             {calendarDays.map((date, index) => {
               if (!date) {
-                return <div key={`empty-${index}`} className="min-h-[100px] border-b border-r border-slate-100 bg-slate-50/50" />;
+                return <div key={`empty-${index}`} className="min-h-14 sm:min-h-20 md:min-h-25 border-b border-r border-slate-100 bg-slate-50/50" />;
               }
 
               const dateStr = formatDateStr(date);
@@ -185,7 +185,7 @@ export default function OrdersCalendar() {
                 <div
                   key={dateStr}
                   onClick={() => setSelectedDate(date)}
-                  className={`min-h-[100px] p-2 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
+                  className={`min-h-14 sm:min-h-20 md:min-h-25 p-1.5 sm:p-2 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
                     isSelected ? 'bg-red-50/50 ring-2 ring-red-500 ring-inset z-10' : ''
                   }`}
                 >
@@ -197,7 +197,12 @@ export default function OrdersCalendar() {
 
                   {hasOrders && (
                     <div className="mt-1 flex flex-col gap-1">
-                      <div className={`text-[10px] font-bold px-1.5 py-1 rounded-md w-full truncate ${
+                      {/* Mobile: compact dot indicator */}
+                      <div className={`sm:hidden w-full flex justify-center`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-red-600' : 'bg-red-400'}`} />
+                      </div>
+                      {/* Tablet & up: full label */}
+                      <div className={`hidden sm:block text-[10px] font-bold px-1.5 py-1 rounded-md w-full truncate ${
                         isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-red-100 text-red-700 group-hover:bg-red-200'
                       }`}>
                         Deliveries: {count}
@@ -212,7 +217,7 @@ export default function OrdersCalendar() {
       </div>
 
       {/* Right Panel: Selected Bookings */}
-      <div className="xl:w-1/3 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col h-[700px]">
+      <div className="xl:w-1/3 bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-100 flex flex-col h-105 xl:h-175">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-black text-slate-800">Selected Bookings</h3>
           <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">

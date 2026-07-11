@@ -100,7 +100,7 @@ export default function HeroHeader() {
             <img
               src={logoImg}
               alt="Meals Logo"
-              className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${scrolled ? "h-15" : "h-22"}`}
+              className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${scrolled ? "h-10 sm:h-12 md:h-15" : "h-12 sm:h-16 md:h-22"}`}
             />
           </Link>
 

@@ -342,7 +342,15 @@ const AddOns = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setUpdateImage(e.target.files[0])}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file && file.size > 1 * 1024 * 1024) {
+                    toast.error("Image must be 1MB or smaller.");
+                    e.target.value = "";
+                    return;
+                  }
+                  setUpdateImage(file);
+                }}
                 className="w-full border p-3 rounded"
               />
 

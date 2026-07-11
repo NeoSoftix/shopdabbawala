@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   LineChart,
   Line,
@@ -9,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 
-export default function DashboardLineChart({ data, title = "Trend" }) {
+function DashboardLineChart({ data, title = "Trend" }) {
   return (
     <div className="w-full h-[350px] bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800">
       
@@ -43,3 +44,5 @@ export default function DashboardLineChart({ data, title = "Trend" }) {
     </div>
   );
 }
+
+export default memo(DashboardLineChart);

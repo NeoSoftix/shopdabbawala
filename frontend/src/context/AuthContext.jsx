@@ -1,4 +1,4 @@
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState, useEffect, useCallback, useMemo } from "react";
 import { getMe, logout as logoutService } from "../services/auth.service.js";
 
 const AuthContext = createContext();
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logoutService();
       setUser(null);
@@ -31,19 +31,20 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      setUser,
+      loading,
+      logout: handleLogout,
+    }),
+    [user, loading, handleLogout],
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        loading,
-        logout: handleLogout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 };
 

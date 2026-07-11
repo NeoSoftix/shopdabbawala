@@ -325,6 +325,11 @@ const Item = () => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
+                    if (file.size > 1 * 1024 * 1024) {
+                      toast.error("Image must be 1MB or smaller.");
+                      e.target.value = "";
+                      return;
+                    }
                     setSelectedItem({
                       ...selectedItem,
                       imageFile: file,

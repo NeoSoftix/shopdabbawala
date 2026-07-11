@@ -151,8 +151,14 @@ export const createMealSchedule = async (req, res) => {
       });
     }
 
+    // Normalize with setUTCHours (not setHours) - "date" arrives as a
+    // date-only "YYYY-MM-DD" string, which JS parses as UTC midnight. Using
+    // the server's local timezone to zero the time can shift the calendar
+    // day by ±1, causing this order's date to drift from the day-status key
+    // the frontend looks it up by (making a just-scheduled day show as
+    // "inactive" since no status is found for it).
     const requestDate = new Date(date);
-    requestDate.setHours(0, 0, 0, 0);
+    requestDate.setUTCHours(0, 0, 0, 0);
 
     if (isNaN(requestDate.getTime())) {
       return res.status(400).json({
@@ -162,7 +168,7 @@ export const createMealSchedule = async (req, res) => {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     if (requestDate < today) {
       return res.status(400).json({
@@ -187,10 +193,10 @@ export const createMealSchedule = async (req, res) => {
     }
 
     const subStart = new Date(subscription.startDate);
-    subStart.setHours(0, 0, 0, 0);
-    
+    subStart.setUTCHours(0, 0, 0, 0);
+
     const subEnd = new Date(subscription.endDate);
-    subEnd.setHours(0, 0, 0, 0);
+    subEnd.setUTCHours(0, 0, 0, 0);
 
     if (requestDate < subStart || requestDate > subEnd) {
       return res.status(400).json({
@@ -429,7 +435,7 @@ export const updateDayOrderStatus = async (req, res) => {
     }
 
     const requestDate = new Date(date);
-    requestDate.setHours(0, 0, 0, 0);
+    requestDate.setUTCHours(0, 0, 0, 0);
 
     const order = await Order.findOne({ user: userId, subscription: subscriptionId, date: requestDate });
 

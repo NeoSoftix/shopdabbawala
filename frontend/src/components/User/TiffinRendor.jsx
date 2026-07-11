@@ -5,17 +5,29 @@ const menuItems = [
   {
     id: "thali1",
     name: "Protein Meal",
-    description:
-      "A high-protein meal packed with lean proteins, wholesome ingredients, and balanced nutrition, crafted to fuel your body while delivering great taste in every bite.",
+    description: "High-protein, home-style meals delivered with love, every day!",
 
     // Hex values instead of Tailwind for absolute smooth animation syncing
     bg: "#FDFBF9",
     waveColor: "#FCEBE1",
-    textColor: "text-[#881111]",
-    btnBg: "bg-[#881111]", // Added active theme colored buttons
+    textColor: "text-red-600",
+    btnBg: "bg-red-600 hover:bg-red-700", // Matched to site theme red (red-600)
 
     mainImage: "/TifinSlider/1.png",
     thumbImage: "/TifinSlider/1.png",
+
+    titleParts: [
+      { text: "PROTEIN", color: "#DC2626" },
+      { text: "THALI", color: "#D97706" },
+    ],
+    priceBox: {
+      leftMeals: "8 MEALS",
+      leftPrice: "$10",
+      rightMeals: "12 MEALS",
+      rightPrice: "$9",
+      badge: "NOW ONLY",
+      badgeColor: "#DC2626",
+    },
   },
   {
     id: "thali2",
@@ -33,7 +45,7 @@ const menuItems = [
 
     // Extra content only the Vegetarian Thali slide uses - matches the
     // reference design exactly, other slides fall back to the plain layout.
-    tagline: "Delicious. Healthy. Affordable.",
+    // tagline: "Delicious. Healthy. Affordable.",
     titleParts: [
       { text: "VEGETARIAN", color: "#636B2F" },
       { text: "THALI", color: "#C17A3E" },
@@ -54,20 +66,20 @@ const menuItems = [
 
     bg: "#FDFBF9",
     waveColor: "#FCEBE1",
-    textColor: "text-[#915E02]",
-    btnBg: "bg-[#915E02]",
+    textColor: "text-red-700",
+    btnBg: "bg-red-700 hover:bg-red-800", // Matched to site theme red, darker shade to stay distinct from Protein slide
 
     mainImage: "/TifinSlider/3.png",
     thumbImage: "/TifinSlider/3.png",
 
     // Extra content only the Non-Veg Thali slide uses - matches the
     // reference design exactly, other slides fall back to the plain layout.
-    tagline: "Rich. Flavorful. Satisfying.",
-    taglineColor: "#A9631C",
-    decorColor: "#D9B98A",
+    // tagline: "Rich. Flavorful. Satisfying.",
+    taglineColor: "#B45309",
+    decorColor: "#E8B4A8",
     titleParts: [
-      { text: "NON-VEG", color: "#915E02" },
-      { text: "THALI", color: "#915E02" },
+      { text: "NON-VEG", color: "#B91C1C" },
+      { text: "THALI", color: "#B45309" },
     ],
     priceBox: {
       leftMeals: "8 MEALS",
@@ -75,7 +87,7 @@ const menuItems = [
       rightMeals: "12 MEALS",
       rightPrice: "$9",
       badge: "NOW ONLY",
-      badgeColor: "#915E02",
+      badgeColor: "#B91C1C",
     },
   },
 ];
@@ -172,10 +184,10 @@ export default function TiffinRender() {
         </div>
 
         {/* Main Content Layout Container */}
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-20 md:pt-0 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
+        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-28 md:pt-0 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
           {/* Main Animated Container (Upar Dikhega Mobile me) */}
-          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[260px] xs:h-[300px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
-            <div className="relative w-[85%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
+          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[200px] xs:h-[230px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
+            <div className="relative w-[65%] xs:w-[70%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
               {/* Decorative circle behind the plate (slides with a priceBox) */}
               {activeItem.priceBox && (
                 <div className="absolute inset-[6%] rounded-full" style={{ backgroundColor: `${activeItem.decorColor || "#AEBB7C"}80` }} />
@@ -224,7 +236,7 @@ export default function TiffinRender() {
             {activeItem.titleParts ? (
               <h1
                 key={`title-${activeItem.id}`}
-                className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-3 md:mb-4 drop-shadow-md leading-[0.95] uppercase"
+                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-wide mb-3 md:mb-4 drop-shadow-md leading-[0.95] uppercase"
               >
                 {activeItem.titleParts.map((part, i) => (
                   <span key={i} className="block" style={{ color: part.color }}>
@@ -235,14 +247,14 @@ export default function TiffinRender() {
             ) : (
               <h1
                 key={`title-${activeItem.id}`}
-                className={`text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-3 md:mb-6 drop-shadow-md leading-tight uppercase transition-colors duration-500 ${activeItem.textColor}`}
+                className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-wide mb-3 md:mb-6 drop-shadow-md leading-tight uppercase transition-colors duration-500 ${activeItem.textColor}`}
               >
                 {activeItem.name}
               </h1>
             )}
 
             <p
-              className={`text-sm sm:text-base md:text-xl font-medium leading-relaxed mb-6 justify-center md:justify-start transition-colors duration-500 ${activeItem.priceBox ? "text-[#2B2B2B]" : activeItem.textColor}`}
+              className={`text-sm sm:text-base md:text-lg font-medium leading-relaxed mb-6 justify-center md:justify-start transition-colors duration-500 line-clamp-2 max-w-[280px] xs:max-w-[320px] sm:max-w-none mx-auto md:mx-0 ${activeItem.priceBox ? "text-[#2B2B2B]" : activeItem.textColor}`}
             >
               {activeItem.description}
             </p>
@@ -257,7 +269,7 @@ export default function TiffinRender() {
                   </div>
 
                   <div
-                    className="w-14 h-14 xs:w-16 xs:h-16 sm:w-20 sm:h-20 shrink-0 rounded-full text-white flex flex-col items-center justify-center text-center font-black uppercase leading-tight text-[9px] xs:text-[10px] sm:text-xs shadow-lg ring-2 ring-offset-2"
+                    className="w-14 h-14 xs:w-16 xs:h-16 sm:w-20 sm:h-20 shrink-0 rounded-full text-white flex flex-col items-center justify-center text-center font-black uppercase leading-tight text-[9px] xs:text-[10px] sm:text-xs shadow-lg border-2 border-dashed border-white/70 ring-2 ring-offset-2 -rotate-6"
                     style={{ backgroundColor: activeItem.priceBox.badgeColor || "#4A5D23", "--tw-ring-color": `${activeItem.priceBox.badgeColor || "#4A5D23"}4D` }}
                   >
                     {activeItem.priceBox.badge.split(" ").map((w, i) => (

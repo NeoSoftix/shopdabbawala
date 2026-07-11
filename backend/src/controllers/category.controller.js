@@ -70,6 +70,8 @@ export const createCategory = async (req, res) => {
   } catch (error) {
     console.log("Create Category Error", error);
 
+    removeLocalFile(req.file?.path);
+
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -241,6 +243,8 @@ export const updateCategory = async (req, res) => {
     });
   } catch (error) {
     console.log("Update Category Error", error);
+
+    removeLocalFile(req.file?.path);
 
     return res.status(500).json({
       success: false,
