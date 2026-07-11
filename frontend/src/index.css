@@ -75,6 +75,60 @@ button {
   }
 }
 
+/* App loader */
+@keyframes appLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes appLoaderPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+}
+
+@keyframes appLoaderDot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes appLoaderFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.app-loader-ring {
+  animation: appLoaderSpin 1.4s linear infinite;
+}
+
+.app-loader-logo {
+  animation: appLoaderFloat 2.6s ease-in-out infinite;
+}
+
+.app-loader-dot {
+  animation: appLoaderDot 1.4s ease-in-out infinite;
+}
+
 /* Hide scrollbar utility class */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

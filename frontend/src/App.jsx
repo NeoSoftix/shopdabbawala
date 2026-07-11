@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/shared/ScrollToTop";
+import AppLoader from "./components/shared/AppLoader";
+import { useAuth } from "./context/AuthContext";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -53,6 +55,12 @@ import PrivacyPolicyPage from "./pages/User/PrivacyPolicyPage.jsx";
 import TermsAndConditionsPage from "./pages/User/TermsAndConditionsPage.jsx";
 
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <AppLoader />;
+  }
+
   return (
     <>
       <ScrollToTop />

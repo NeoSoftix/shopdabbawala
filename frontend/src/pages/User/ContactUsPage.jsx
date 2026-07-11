@@ -342,7 +342,7 @@ const ContactUsPage = () => {
 
           <div>
 
-            <div className="mb-7 flex items-center gap-3 text-sm">
+            <div className="mb-3 flex items-center gap-3 text-sm mt-5">
 
               <span className="text-slate-400">
                 Home
@@ -359,7 +359,7 @@ const ContactUsPage = () => {
             </div>
 
 
-            <h1 className="max-w-xl text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-xl text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
 
               Let&apos;s Get
 

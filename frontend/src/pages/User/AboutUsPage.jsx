@@ -107,14 +107,23 @@ const AboutUsPage = () => {
 
         <div className="relative z-10 mx-auto flex min-h-[620px] max-w-7xl items-center px-5 py-20 sm:px-8 lg:min-h-[700px] lg:px-10">
           <div className="max-w-2xl">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="h-[2px] w-10 bg-red-500" />
-              <span className="text-sm font-bold uppercase tracking-[0.18em] text-red-500">
-                About Us
+            <div className="mb-3 flex items-center gap-3 text-sm mt-5">
+
+              <span className="text-slate-400">
+                Home
               </span>
+
+              <span className="text-slate-300">
+                ›
+              </span>
+
+              <span className="font-semibold text-slate-800">
+                About   
+              </span>
+
             </div>
 
-            <h1 className="max-w-xl text-4xl font-black leading-[1.08] text-[#10213f] sm:text-5xl lg:text-[64px]">
+            <h1 className="max-w-xl text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
               Good Food.
               <br />
               Timely Delivered.

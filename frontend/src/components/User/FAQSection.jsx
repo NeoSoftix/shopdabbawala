@@ -97,7 +97,7 @@ const FAQSection = () => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat font-sans py-32 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
+      className="min-h-screen bg-cover bg-center bg-no-repeat font-sans py-25 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
       // 2. Yahan imported variable ko use karo
       style={{ backgroundImage: `url(${faqBackground})` }}
     >
@@ -201,14 +201,14 @@ const FAQSection = () => {
         </div>
         
         <button className="bg-white text-gray-800 hover:bg-gray-100 transition font-bold px-6 py-3 rounded-xl flex items-center space-x-2 text-sm shadow-md whitespace-nowrap">
-          <span className="text-red-600">📞</span>
-          <span onClick={() => navigate("/contact-us  ")}>Contact Us</span>
+          {/* <span className="text-red-600">📞</span> */}
           <Phone className="text-red-600" size={15} />
-          <span>Contact Us</span>
+          <span onClick={() => navigate("/contact-us  ")}>Contact Us</span>
+          {/* <span>Contact Us</span> */}
         </button>
       </div>
     </div>
   );
 };
 
-export default FAQSection;
+export default FAQSection;6

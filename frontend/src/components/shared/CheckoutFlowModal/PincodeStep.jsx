@@ -22,13 +22,12 @@ export default function PincodeStep({ pincode, setPincode, error, loading, onSub
       </div>
       <InputField
         label="Pincode"
-        placeholder="e.g. A1A 1A1"
-        maxLength={7}
+        placeholder="e.g. A1B2C3"
+        maxLength={6}
         value={pincode}
         onChange={(e) => {
-          let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-          if (raw.length > 6) raw = raw.slice(0, 6);
-          setPincode(raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw);
+          const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+          setPincode(raw);
         }}
       />
       <div className="mt-2">

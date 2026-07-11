@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import StatCard from "../../components/shared/StatCard";
-import OrderBanner from "../../components/shared/OrderBanner";
+// import OrderBanner from "../../components/shared/OrderBanner";
 import OrdersTable from "../../components/shared/OrdersTable";
 import OrdersCalendar from "../../components/shared/OrdersCalendar";
 
@@ -81,7 +81,7 @@ export default function VendorDashboard() {
         />
       </div>
 
-      <OrderBanner totalOrders={totalOrders} pendingOrders={pendingOrders} />
+      {/* <OrderBanner totalOrders={totalOrders} pendingOrders={pendingOrders} /> */}
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4">Delivery Schedule</h2>

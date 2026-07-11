@@ -1,23 +1,33 @@
 import React from "react";
+import AppLoader from "./AppLoader";
+import logo from "/logo.png";
 
 /**
- * Full-page loader overlay
+ * Full-page loader overlay — branded ShopDabbaWala loader
  */
-export const PageLoader = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-12 h-12 border-4 border-gray-200 border-t-[#E23747] rounded-full animate-spin" />
-      <p className="text-sm font-semibold text-gray-500">Loading...</p>
-    </div>
-  </div>
-);
+export const PageLoader = () => <AppLoader />;
 
 /**
- * Inline section loader (e.g. inside a card)
+ * Inline section loader (e.g. inside a card) — compact branded version
  */
 export const SectionLoader = ({ text = "Loading..." }) => (
   <div className="flex flex-col items-center justify-center py-16 gap-3">
-    <div className="w-10 h-10 border-4 border-gray-200 border-t-[#E23747] rounded-full animate-spin" />
+    <div className="relative flex h-16 w-16 items-center justify-center">
+      <svg className="app-loader-ring absolute inset-0 h-full w-full" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#FDE2E2" strokeWidth="6" />
+        <circle
+          cx="50"
+          cy="50"
+          r="46"
+          fill="none"
+          stroke="#E23747"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray="180 300"
+        />
+      </svg>
+      <img src={logo} alt="ShopDabbaWala" className="relative h-9 w-9 object-contain" />
+    </div>
     <p className="text-sm font-medium text-gray-400">{text}</p>
   </div>
 );

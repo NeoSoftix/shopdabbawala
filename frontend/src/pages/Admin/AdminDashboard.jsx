@@ -125,8 +125,8 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-5">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
         <StatCard
           title="Total Users"
           value={dashboardStats.users}
@@ -169,17 +169,16 @@ export default function AdminDashboard() {
           Icon={FaDollarSign}
         />
       </div>
- <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Delivery Schedule</h2>
+
+      <div>
+        <h2 className="text-xl font-bold mb-3">Delivery Schedule</h2>
         <OrdersCalendar />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DashboardPieChart data={pieData} title="Platform Overview" />
         <DashboardLineChart data={lineData} title="Orders Trend" />
       </div>
-
-     
-
     </div>
   );
 }

@@ -162,8 +162,8 @@ export default function useCheckoutFlow({
     e.preventDefault();
     setError("");
 
-    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(pincode.trim())) {
-      setError("Please enter a valid Canadian postal code (e.g. A1A 1A1).");
+    if (!/^[A-Za-z0-9]{6}$/.test(pincode.trim())) {
+      setError("Please enter a valid 6-character pincode.");
       return;
     }
 
