@@ -1,6 +1,7 @@
 import { fulfillAdminPackage } from "./fulfillAdminPackage.js"
 import { fulfillCustomPackage } from "./fulfillCustomPackage.js"
 import { fulfillRenewal } from "./fulfillRenewal.js"
+import { fulfillAddonOrder } from "./fulfillAddonOrder.js"
 
 // -------- FULFILL ORDER HELPER --------
 export const fulfillOrder = async (session, payment) => {
@@ -23,5 +24,10 @@ export const fulfillOrder = async (session, payment) => {
   // -------- RENEWAL --------
   if (session.metadata?.paymentType === "RENEWAL") {
     await fulfillRenewal(session, payment);
+  }
+
+  // -------- ADDON ORDER --------
+  if (session.metadata?.paymentType === "ADDON_ORDER") {
+    await fulfillAddonOrder(session, payment);
   }
 };

@@ -259,28 +259,38 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
-    const order = await Order.findOne({
+    const existingOrder = await Order.findOne({
       _id: req.params.id,
       vendor: vendor._id,
       status: "Pending",
     });
 
-    if (!order) {
+    if (!existingOrder) {
       return res.status(404).json({
         success: false,
         message: "Pending order not found",
       });
     }
 
-    if (order.active === false) {
+    if (existingOrder.active === false) {
       return res.status(400).json({
         success: false,
         message: "This order was marked inactive by the user. It can't be accepted until they resume it.",
       });
     }
 
-    order.status = "Accepted";
-    await order.save();
+    const order = await Order.findOneAndUpdate(
+      { _id: req.params.id, vendor: vendor._id, status: "Pending", active: { $ne: false } },
+      { $set: { status: "Accepted" } },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(409).json({
+        success: false,
+        message: "Order was already updated by another request",
+      });
+    }
 
     notifyOrderStatusChange({ order, status: "Accepted", vendorName: vendor.organizationName });
 
@@ -311,11 +321,11 @@ export const rejectOrder = async (req, res) => {
       });
     }
 
-    const order = await Order.findOne({
-      _id: req.params.id,
-      vendor: vendor._id,
-      status: "Pending",
-    });
+    const order = await Order.findOneAndUpdate(
+      { _id: req.params.id, vendor: vendor._id, status: "Pending" },
+      { $set: { status: "Rejected" } },
+      { new: true }
+    );
 
     if (!order) {
       return res.status(404).json({
@@ -323,9 +333,6 @@ export const rejectOrder = async (req, res) => {
         message: "Pending order not found",
       });
     }
-
-    order.status = "Rejected";
-    await order.save();
 
     notifyOrderStatusChange({ order, status: "Rejected", vendorName: vendor.organizationName });
 
@@ -357,35 +364,45 @@ export const markOrderReadyToDeliver = async (req, res) => {
       });
     }
 
-    const order = await Order.findOne({
+    const existingOrder = await Order.findOne({
       _id: req.params.id,
       vendor: vendor._id,
       status: "Accepted",
     });
 
-    if (!order) {
+    if (!existingOrder) {
       return res.status(404).json({
         success: false,
         message: "Accepted order not found",
       });
     }
 
-    if (order.active === false) {
+    if (existingOrder.active === false) {
       return res.status(400).json({
         success: false,
         message: "This order was marked inactive by the user. It can't be delivered until they resume it.",
       });
     }
 
-    if (!order.date || !isSameCalendarDay(order.date, new Date())) {
+    if (!existingOrder.date || !isSameCalendarDay(existingOrder.date, new Date())) {
       return res.status(400).json({
         success: false,
         message: "You can only mark today's scheduled orders as ready to deliver.",
       });
     }
 
-    order.status = "On the way";
-    await order.save();
+    const order = await Order.findOneAndUpdate(
+      { _id: req.params.id, vendor: vendor._id, status: "Accepted", active: { $ne: false } },
+      { $set: { status: "On the way" } },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(409).json({
+        success: false,
+        message: "Order was already updated by another request",
+      });
+    }
 
     notifyOrderStatusChange({ order, status: "On the way", vendorName: vendor.organizationName });
 
@@ -417,40 +434,50 @@ export const markOrderDelivered = async (req, res) => {
       });
     }
 
-    const order = await Order.findOne({
+    const existingOrder = await Order.findOne({
       _id: req.params.id,
       vendor: vendor._id,
       status: "On the way",
     });
 
-    if (!order) {
+    if (!existingOrder) {
       return res.status(404).json({
         success: false,
         message: "Order not found or not currently out for delivery",
       });
     }
 
-    if (!order.date || !isSameCalendarDay(order.date, new Date())) {
+    if (!existingOrder.date || !isSameCalendarDay(existingOrder.date, new Date())) {
       return res.status(400).json({
         success: false,
         message: "You can only deliver today's scheduled orders.",
       });
     }
 
-    order.status = "Delivered";
-    await order.save();
+    const order = await Order.findOneAndUpdate(
+      { _id: req.params.id, vendor: vendor._id, status: "On the way" },
+      { $set: { status: "Delivered" } },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(409).json({
+        success: false,
+        message: "Order was already updated by another request",
+      });
+    }
 
     // Each delivered order consumes exactly one "meal" from the customer's
     // plan quota (a meal = one day's delivery, regardless of how many items
     // it contains) - so the Plan Usage / Consumed-Remaining counters on the
-    // dashboard stay in sync with what's actually been delivered.
+    // dashboard stay in sync with what's actually been delivered. $inc with
+    // a mealsUsed-bound filter keeps this atomic across concurrent deliveries.
     if (order.subscription) {
       try {
-        const subscription = await Subscription.findById(order.subscription);
-        if (subscription && subscription.mealsUsed < subscription.totalMeals) {
-          subscription.mealsUsed += 1;
-          await subscription.save();
-        }
+        await Subscription.findOneAndUpdate(
+          { _id: order.subscription, $expr: { $lt: ["$mealsUsed", "$totalMeals"] } },
+          { $inc: { mealsUsed: 1 } }
+        );
       } catch (error) {
         console.error("Mark Order Delivered: failed to increment mealsUsed:", error.message);
       }

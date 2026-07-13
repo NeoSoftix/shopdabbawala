@@ -10,11 +10,17 @@ export const fulfillAdminPackage = async (session, payment) => {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + pkg.validityDays);
 
+    const hasDiscount =
+      pkg.discountedPrice !== null &&
+      pkg.discountedPrice !== undefined &&
+      pkg.discountedPrice < pkg.price;
+    const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
+
     const subscription = await Subscription.create({
       user: session.metadata.userId,
       package: pkg._id,
       mealSize: pkg.name,
-      price: pkg.price,
+      price: effectivePrice,
       totalMeals: pkg.totalMeals,
       mealsUsed: 0,
       maxItemsPerMeal: pkg.maxItemsPerMeal,

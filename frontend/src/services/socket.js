@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 // api.js), so we connect straight to the backend origin. In dev that's
 // always localhost:5000; in prod it's derived from VITE_API_URL.
 const SOCKET_URL = import.meta.env.DEV
-  ? "http://localhost:5000"
+  ? "http://localhost:8000"
   : (import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "") || window.location.origin;
 
 let socket = null;

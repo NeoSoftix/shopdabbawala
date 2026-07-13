@@ -196,7 +196,7 @@ const AboutUsPage = () => {
 
             <div className="relative overflow-hidden rounded-[32px] shadow-2xl">
               <img
-                src="\WhyChooseUsImage.png"
+                src="/abouts_us_image.png"
                 alt="Fresh home-style meals prepared with care"
                 className="h-[420px] w-full object-cover object-center sm:h-[500px]"
               />

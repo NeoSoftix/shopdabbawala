@@ -53,7 +53,7 @@ export const saveCheckoutDetails = async (req, res) => {
                 meals: session.metadata.meals,
                 quantity: Number(session.metadata.quantity),
                 deliveryMethod: session.metadata.deliveryMethod,
-                price: Number(session.metadata.price),
+                price: Number(session.metadata.price) / 100, // metadata.price is stored in cents
                 totalMeals: Number(session.metadata.totalMeals),
                 mealsUsed: 0,
                 maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
