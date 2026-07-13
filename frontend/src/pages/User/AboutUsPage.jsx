@@ -196,21 +196,21 @@ const AboutUsPage = () => {
 
             <div className="relative overflow-hidden rounded-[32px] shadow-2xl">
               <img
-                src="/abouts_us_image.png"
+                src="/about.png"
                 alt="Fresh home-style meals prepared with care"
                 className="h-[420px] w-full object-cover object-center sm:h-[500px]"
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
-              <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/30 bg-white/90 p-5 backdrop-blur-md">
+              {/* <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/30 bg-white/90 p-5 backdrop-blur-md">
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-500">
                   Food made with purpose
                 </p>
                 <h3 className="mt-1 text-xl font-black text-[#10213f]">
                   Fresh. Familiar. Made with care.
                 </h3>
-              </div>
+              </div> */}
             </div>
 
             <div className="absolute -bottom-6 -right-5 hidden h-32 w-32 rounded-full border-[20px] border-red-50 lg:block" />
