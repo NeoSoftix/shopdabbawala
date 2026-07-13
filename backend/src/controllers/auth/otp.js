@@ -78,7 +78,7 @@ export const verifyOtp = async (req, res) => {
     let verificationCheck;
     try {
       verificationCheck = await client.verify.v2
-        .services(process.env.TWIFY_VERIFY_SERVICE_SID)
+        .services(process.env.TWILIO_VERIFY_SERVICE_SID)
         .verificationChecks.create({
           to: formattedPhone,
           code: otp,
