@@ -27,7 +27,7 @@ export default function PackageCard({
         x: xPosition,
         scale: isActive ? 1 : 0.86,
         opacity: 1,
-        rotate: isActive ? 0 : distance * 3,
+        rotate: 0,
       }}
       transition={{
         type: "spring",
@@ -37,7 +37,9 @@ export default function PackageCard({
       whileHover={{
         scale: isActive ? 1.02 : 0.9,
       }}
-      className="absolute w-[230px] sm:w-[265px] md:w-[290px] overflow-visible select-none touch-pan-y"
+      className={`absolute w-[230px] sm:w-[265px] md:w-[290px] overflow-visible select-none touch-pan-y ${
+        !isActive ? "hidden sm:block" : ""
+      }`}
       style={{
         zIndex: isActive ? 30 : 10,
         backfaceVisibility: "hidden",
