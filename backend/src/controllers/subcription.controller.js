@@ -247,7 +247,11 @@ export const createSubscription = async (req, res) => {
 
       stripeSessionId: session.id,
 
-      amount: Math.round(totalAmount * 100),
+      // Stored in standard currency units (dollars), matching every other
+      // Payment.amount write (packageCheckout.js, addonCheckout.js,
+      // renewSubscription below) — only Stripe's own `unit_amount`/`price`
+      // fields need the *100 cents conversion.
+      amount: totalAmount,
 
       currency: "usd",
 

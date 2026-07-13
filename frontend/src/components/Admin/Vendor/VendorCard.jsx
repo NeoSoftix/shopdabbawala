@@ -125,7 +125,9 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
             <Package size={14} />
           </span>
           <span className="font-semibold text-gray-800 truncate">
-            {vendor.package?.name || "No package assigned"}
+            {vendor.isCustomPackageVendor
+              ? "Custom Package Vendor"
+              : vendor.package?.name || "No package assigned"}
           </span>
         </div>
         {vendor.servicePincodes?.length > 0 && (

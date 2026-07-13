@@ -124,7 +124,7 @@ export default function OrderDetailsModal({ order, onClose, onAccept, onReject, 
                 >
                   <span>{ad.name}</span>
                   <span className="text-gray-500">
-                    x{ad.qty} {ad.price ? `· ₹${ad.price}` : ""}
+                    x{ad.qty} {ad.price ? `· $${ad.price}` : ""}
                   </span>
                 </li>
               ))}

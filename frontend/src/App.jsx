@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/shared/ScrollToTop";
+import BackToTopButton from "./components/shared/BackToTopButton";
 import AppLoader from "./components/shared/AppLoader";
 import { useAuth } from "./context/AuthContext";
 
@@ -165,6 +166,7 @@ function App() {
 
 <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
     </Routes>
+      <BackToTopButton />
     </>
   );
 }

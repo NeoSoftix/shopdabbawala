@@ -77,7 +77,8 @@ const AssignVendor = () => {
 
   const selectedVendor = vendors.find((v) => v._id === selectedVendorId);
 
-  const vendorOptionLabel = (v) => `${v.organizationName} (${v.package?.name || "No package"})`;
+  const vendorOptionLabel = (v) =>
+    `${v.organizationName} (${v.isCustomPackageVendor ? "Custom Package" : v.package?.name || "No package"})`;
 
   const filteredVendorOptions = useMemo(() => {
     const term = vendorSearch.trim().toLowerCase();
@@ -121,7 +122,7 @@ const AssignVendor = () => {
       vendorId: v._id,
       vendorName: v.organizationName,
       pincode,
-      packageName: v.package?.name || "No package",
+      packageName: v.isCustomPackageVendor ? "Custom Package" : v.package?.name || "No package",
     })),
   );
 
@@ -134,7 +135,7 @@ const AssignVendor = () => {
     }
 
     const vendor = vendors.find((v) => v._id === selectedVendorId);
-    if (!vendor?.package) {
+    if (!vendor?.package && !vendor?.isCustomPackageVendor) {
       toast.error("This vendor has no package assigned yet. Edit the vendor to set one first.");
       return;
     }
@@ -333,7 +334,7 @@ const AssignVendor = () => {
             {assigning ? "Assigning..." : "Assign Vendor"}
           </button>
         </form>
-        {selectedVendor && !selectedVendor.package && (
+        {selectedVendor && !selectedVendor.package && !selectedVendor.isCustomPackageVendor && (
           <p className="mt-2 text-xs text-[#e61e2d]">
             This vendor has no package assigned yet. Edit the vendor to set one first.
           </p>

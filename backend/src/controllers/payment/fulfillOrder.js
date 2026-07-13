@@ -4,13 +4,10 @@ import { fulfillRenewal } from "./fulfillRenewal.js"
 import { fulfillAddonOrder } from "./fulfillAddonOrder.js"
 
 // -------- FULFILL ORDER HELPER --------
+// `payment` is already marked "paid" atomically by the webhook handler
+// before this runs (see webhook.js) - this only dispatches to the
+// paymentType-specific fulfillment branch.
 export const fulfillOrder = async (session, payment) => {
-  payment.status = "paid";
-  payment.paymentIntentId = session.payment_intent;
-  payment.paidAt = new Date();
-
-  await payment.save();
-
   // -------- ADMIN PACKAGE --------
   if (session.metadata?.paymentType === "ADMIN_PACKAGE") {
     await fulfillAdminPackage(session, payment);

@@ -33,7 +33,7 @@ export const vendorProfile = async (req, res) => {
 // get vendor by pincode
 export const checkServiceAvailability = async (req, res) => {
   try {
-    const {pincode, package: packageId}= req.query
+    const {pincode, package: packageId, isCustom}= req.query
 
     if(!pincode) {
       return res.status(400).json({
@@ -42,7 +42,7 @@ export const checkServiceAvailability = async (req, res) => {
       })
     }
 
-    const vendor = await findServingVendor(pincode, packageId)
+    const vendor = await findServingVendor(pincode, packageId, { isCustom: isCustom === "true" })
 
     if(!vendor) {
       return res.status(404).json({

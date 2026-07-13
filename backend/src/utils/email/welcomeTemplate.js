@@ -6,7 +6,6 @@ export const vendorWelcomeTemplate = (name, email, password) =>
     heading: "Welcome to the Team!",
     subtitle: "Your vendor account is ready.",
     badge: "ACCOUNT CREATED",
-    icon: "🏪",
     intro: `Hi ${name}, your vendor account has been created successfully. Use the credentials below to log in - please change your password after your first login.`,
     lines: [
       { label: "Email", value: email },
@@ -25,7 +24,6 @@ export const resetPasswordTemplate = (name, resetUrl) =>
     heading: "Reset Your Password",
     subtitle: "We received a request to reset your password.",
     badge: "SECURITY",
-    icon: "🔒",
     intro: `Hi ${name}, click the button below to choose a new password. This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.`,
     lines: [],
     ctaText: "Reset Password",

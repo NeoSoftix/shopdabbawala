@@ -25,19 +25,30 @@ export const stripeWebhook = async (req, res) => {
       case "checkout.session.completed": {
         const session = event.data.object;
 
-        const payment = await Payment.findOne({
-          stripeSessionId: session.id,
-        });
+        // Atomically claim this session for fulfillment. Stripe can and
+        // does redeliver the same event, and a slow first delivery could
+        // still be mid-fulfillment when the retry arrives - a plain
+        // findOne + "if not paid" check-then-act lets both deliveries pass
+        // the check and both call fulfillOrder, double-creating the
+        // Subscription/Order. Only one findOneAndUpdate can flip status
+        // from non-"paid" to "paid" and get the document back; the other
+        // gets null and skips fulfillment entirely.
+        const payment = await Payment.findOneAndUpdate(
+          { stripeSessionId: session.id, status: { $ne: "paid" } },
+          {
+            $set: {
+              status: "paid",
+              paymentIntentId: session.payment_intent,
+              paidAt: new Date(),
+            },
+          },
+          { new: true }
+        );
 
         if (!payment) {
-          return res.status(404).json({
-            success: false,
-            message: "Payment not found",
-          });
-        }
-
-        // Duplicate webhook protection
-        if (payment.status === "paid") {
+          // Either no Payment record exists for this session, or another
+          // delivery of this same event already claimed and fulfilled it -
+          // acknowledge so Stripe stops retrying.
           return res.json({ received: true });
         }
 

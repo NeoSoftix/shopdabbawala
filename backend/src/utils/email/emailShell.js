@@ -11,26 +11,6 @@
 const getBrandName = () => process.env.BREVO_SENDER_NAME || "Tiffin Delivery";
 const getLogoUrl = () => `${(process.env.FRONTEND_URL || "").replace(/\/$/, "")}/logo.png`;
 
-// Best-effort icon per row based on its label, so callers that only ever
-// pass { label, value } (no icon) still get the same polished row look.
-const ROW_ICONS = [
-  [/customer|name/i, "👤"],
-  [/vendor/i, "🏪"],
-  [/plan/i, "📦"],
-  [/day|date|delivery/i, "📅"],
-  [/item|meal|quantity/i, "🍽️"],
-  [/amount|price|total/i, "💰"],
-  [/status/i, "✅"],
-  [/email/i, "✉️"],
-  [/phone/i, "📞"],
-  [/password/i, "🔒"],
-  [/pincode|address/i, "📍"],
-];
-const iconForLabel = (label = "") => {
-  const match = ROW_ICONS.find(([pattern]) => pattern.test(label));
-  return match ? match[1] : "•";
-};
-
 // Auto-derives a darker shade of `accent` for the header/footer gradient so
 // callers only ever need to pass one color (e.g. green for "accepted", red
 // for "rejected") and still get a good-looking two-tone gradient.
@@ -45,7 +25,10 @@ const darken = (hex, amount = 0.4) => {
 const POSITIVE_STATUSES = ["accepted", "active", "confirmed", "resumed", "delivered", "paid", "success"];
 const NEGATIVE_STATUSES = ["rejected", "inactive", "cancelled", "canceled", "paused", "failed"];
 
-const renderRow = ({ label, value }) => {
+// Email clients (Gmail app, Outlook, etc.) don't reliably support
+// display:flex/gap, so these rows are laid out with a plain HTML table with
+// inline styles - the only spacing approach that survives across clients.
+const renderRow = ({ label, value }, accent, isLast) => {
   const isStatus = /status/i.test(label);
   let valueHtml = value;
 
@@ -59,21 +42,23 @@ const renderRow = ({ label, value }) => {
     valueHtml = `<span style="display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;${tone}">${value}</span>`;
   }
 
+  const borderBottom = isLast ? "" : "border-bottom:1px solid #eef0f3;";
+
   return `
-    <div class="detail-row">
-      <span class="detail-row-left">
-        <span class="detail-icon">${iconForLabel(label)}</span>
-        <span class="detail-label">${label}</span>
-      </span>
-      <span class="detail-value">${valueHtml}</span>
-    </div>`;
+    <tr>
+      <td style="padding:14px 0;${borderBottom}font-size:13px;color:#4b5563;font-weight:600;white-space:nowrap;vertical-align:middle;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${accent};margin-right:10px;"></span>${label}
+      </td>
+      <td style="padding:14px 0;${borderBottom}font-size:14px;color:#111827;font-weight:800;text-align:right;vertical-align:middle;">
+        ${valueHtml}
+      </td>
+    </tr>`;
 };
 
 export const emailShell = ({
   heading,
   subtitle,
   badge,
-  icon = "📋",
   intro,
   lines = [],
   ctaText,
@@ -82,9 +67,10 @@ export const emailShell = ({
   accentDark,
 }) => {
   const resolvedAccentDark = accentDark || darken(accent);
-  const rows = lines.map(renderRow).join("");
+  const rows = lines.map((line, i) => renderRow(line, accent, i === lines.length - 1)).join("");
   const BRAND_NAME = getBrandName();
   const LOGO_URL = getLogoUrl();
+  const monogram = (heading || BRAND_NAME).trim().charAt(0).toUpperCase();
 
   return `
   <!DOCTYPE html>
@@ -173,35 +159,9 @@ export const emailShell = ({
         background-color: #f9fafb;
         border: 1px solid #eef0f3;
         border-radius: 16px;
-        padding: 8px 22px;
+        padding: 4px 22px;
         text-align: left;
       }
-      .detail-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 14px 0;
-        border-bottom: 1px solid #eef0f3;
-      }
-      .detail-row:last-child { border-bottom: none; }
-      .detail-row-left { display: flex; align-items: center; gap: 10px; }
-      .detail-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #fee2e2;
-        text-align: center;
-        line-height: 30px;
-        font-size: 14px;
-        flex-shrink: 0;
-      }
-      .detail-label {
-        font-size: 13px;
-        color: #4b5563;
-        font-weight: 600;
-      }
-      .detail-value { font-size: 14px; color: #111827; font-weight: 800; text-align: right; }
       .cta-button {
         display: inline-block;
         margin-top: 28px;
@@ -240,17 +200,17 @@ export const emailShell = ({
         </div>
 
         <div class="content">
-          ${badge ? `<div class="pill-badge">⭐ ${badge}</div>` : ""}
-          <div class="icon-badge">${icon}</div>
+          ${badge ? `<div class="pill-badge">${badge}</div>` : ""}
+          <div class="icon-badge">${monogram}</div>
           <h1>${heading}</h1>
           ${subtitle ? `<p class="subtitle">${subtitle}</p>` : ""}
           ${intro ? `<p class="intro">${intro}</p>` : ""}
 
-          ${rows ? `<div class="details-card">${rows}</div>` : ""}
+          ${rows ? `<div class="details-card"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${rows}</table></div>` : ""}
 
           ${ctaText && ctaUrl ? `<a class="cta-button" href="${ctaUrl}">${ctaText} &rarr;</a>` : ""}
 
-          <p class="disclaimer">🛡️ This is an automated message. Please do not reply.</p>
+          <p class="disclaimer">This is an automated message. Please do not reply.</p>
         </div>
 
         <div class="footer">${BRAND_NAME} &bull; Automated notification</div>

@@ -39,15 +39,26 @@ const vendorSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // Fixed plan this vendor serves — a vendor is onboarded for exactly one package.
+    // Fixed plan this vendor serves — a vendor is onboarded for exactly one
+    // package. Left unset when isCustomPackageVendor is true (mutually
+    // exclusive with it — enforced in the controller).
     package: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Package",
-      required: true,
     },
 
-    // Pincodes where this vendor delivers its package. A (pincode, package)
-    // combination may only belong to one vendor — enforced in the controller.
+    // When true, this vendor exclusively serves "Build Your Own Package"
+    // (custom plan) orders instead of a fixed Package. Mutually exclusive
+    // with `package` — enforced in the controller.
+    isCustomPackageVendor: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Pincodes where this vendor delivers its package (or, for a custom
+    // package vendor, its custom-plan orders). A (pincode, package)
+    // combination — or (pincode, custom) — may only belong to one vendor,
+    // enforced in the controller.
     servicePincodes: {
       type: [String],
       default: [],

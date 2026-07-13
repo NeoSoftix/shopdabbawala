@@ -45,7 +45,7 @@ export const saveCheckoutDetails = async (req, res) => {
               const startDateVal = session.metadata.startDate ? new Date(session.metadata.startDate) : new Date();
               const endDateVal = session.metadata.endDate ? new Date(session.metadata.endDate) : new Date();
 
-              subscription = await Subscription.create({
+              const createdSubscription = await Subscription.create({
                 user: session.metadata.userId,
                 mealSize: session.metadata.mealSize,
                 preference: session.metadata.preference,
@@ -63,8 +63,27 @@ export const saveCheckoutDetails = async (req, res) => {
                 pincode: pincode,
               });
 
-              payment.subscription = subscription._id;
-              await payment.save();
+              // Can't reserve this slot before creating the Subscription (we
+              // don't have its id yet), so create optimistically then try to
+              // atomically attach it - only wins if the webhook (or another
+              // concurrent request) hasn't already attached one first. If we
+              // lose the race, discard the extra Subscription we just made
+              // instead of leaving the customer with two active plans.
+              const claimed = await Payment.findOneAndUpdate(
+                { _id: payment._id, subscription: null },
+                { $set: { subscription: createdSubscription._id } },
+                { new: true }
+              );
+
+              if (claimed) {
+                subscription = createdSubscription;
+                payment.subscription = createdSubscription._id;
+              } else {
+                await Subscription.findByIdAndDelete(createdSubscription._id);
+                const winner = await Payment.findById(payment._id).populate("subscription");
+                subscription = winner.subscription;
+                payment.subscription = winner.subscription?._id;
+              }
             }
 
             if (!subscription.stripeSubscriptionScheduleId) {
@@ -118,7 +137,7 @@ export const saveCheckoutDetails = async (req, res) => {
             console.error("Stripe session retrieval error for ADMIN_PACKAGE:", stripeErr.message);
           }
 
-          subscription = await Subscription.create({
+          const createdSubscription = await Subscription.create({
             user: payment.user,
             package: pkg._id,
             mealSize: pkg.name,
@@ -136,9 +155,27 @@ export const saveCheckoutDetails = async (req, res) => {
             status: "active"
           });
 
-          payment.subscription = subscription._id;
-          payment.status = "paid";
-          await payment.save();
+          // Same optimistic-create-then-atomically-claim pattern as the
+          // CUSTOM_PACKAGE branch above - protects against this fallback
+          // racing the Stripe webhook and both creating a Subscription for
+          // the same payment.
+          const claimed = await Payment.findOneAndUpdate(
+            { _id: payment._id, subscription: null },
+            { $set: { subscription: createdSubscription._id, status: "paid" } },
+            { new: true }
+          );
+
+          if (claimed) {
+            subscription = createdSubscription;
+            payment.subscription = createdSubscription._id;
+            payment.status = "paid";
+          } else {
+            await Subscription.findByIdAndDelete(createdSubscription._id);
+            const winner = await Payment.findById(payment._id);
+            subscription = await Subscription.findById(winner.subscription);
+            payment.subscription = winner.subscription;
+            payment.status = winner.status;
+          }
         }
       }
     } else if (payment.paymentType === "ADDON_ORDER") {
@@ -203,6 +240,13 @@ export const saveCheckoutDetails = async (req, res) => {
         updatedSubscription?.pincode
       );
     }
+
+    // Re-fetch with population now that a CUSTOM_PACKAGE/ADMIN_PACKAGE
+    // subscription may have just been created above (payment.subscription
+    // was only ever set to a raw ObjectId in those branches, never a
+    // populated document) — without this, finalPayment.subscription is an
+    // ObjectId and reading .duration/.totalMeals off it below is undefined.
+    finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
 
     // Always update User profile if name/phone/address/pincode is provided
     if (name || req.body.phone || address || pincode) {
@@ -271,13 +315,9 @@ export const saveCheckoutDetails = async (req, res) => {
       await payment.save();
     }
 
-    const customer = await stripe.customers.create({
-      email: email,
-      name: name,
-    });
     // Send the email
     const emailHtml = purchaseSuccessTemplate(name || "Customer", planName, amount, totalMeals);
-    sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed! 🎉", emailHtml)
+    sendEmail(email, "Your Tiffin Delivery Subscription is Confirmed", emailHtml)
       .catch(err => console.error("Background email sending failed:", err));
 
     return res.status(200).json({

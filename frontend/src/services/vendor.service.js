@@ -93,11 +93,12 @@ export const getVendorProfile = async () => {
   }
 }
 
-// Check Service Availability By Pincode (optionally scoped to a package)
-export const checkServiceAvailability = async (pincode, packageId) => {
+// Check Service Availability By Pincode (optionally scoped to a package, or
+// to the vendor assigned to handle custom "Build Your Own Package" orders)
+export const checkServiceAvailability = async (pincode, packageId, isCustom = false) => {
   try {
     const res = await API.get("/vendor/service-availability", {
-      params: { pincode, package: packageId },
+      params: { pincode, package: packageId, isCustom: isCustom || undefined },
     });
     return res.data;
   } catch (error) {

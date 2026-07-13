@@ -5,7 +5,6 @@ export const contactQueryTemplate = ({ name, email, phone, subject, message, ref
   emailShell({
     heading: "New Contact Query",
     badge: "CONTACT FORM",
-    icon: "📩",
     intro: `${name} just submitted a message through the Contact Us page.`,
     lines: [
       { label: "Name", value: name },

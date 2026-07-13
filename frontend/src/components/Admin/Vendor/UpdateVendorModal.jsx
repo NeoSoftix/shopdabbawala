@@ -6,6 +6,7 @@ const UpdateVendorModal = ({
   updating,
   packages = [],
   onInputChange,
+  onCustomToggle,
   onFileChange,
   onSubmit,
   onClose,
@@ -133,28 +134,47 @@ const UpdateVendorModal = ({
                 className="w-full rounded-xl border border-gray-300 p-2 text-sm outline-none focus:border-[#e61e2d]"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Package (vendor serves only this plan)
+            <div className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-gray-200 p-3">
+              <input
+                type="checkbox"
+                id="update-isCustomPackageVendor"
+                checked={formData.isCustomPackageVendor}
+                onChange={onCustomToggle}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-[#e61e2d] focus:ring-[#e61e2d]"
+              />
+              <label htmlFor="update-isCustomPackageVendor" className="text-sm text-gray-700">
+                <span className="font-medium">This vendor handles Custom Package orders</span>
+                <p className="mt-0.5 text-[11px] text-gray-400">
+                  All "Build Your Own Package" orders in this vendor's pincodes go exclusively to
+                  them, instead of a fixed package.
+                </p>
               </label>
-              <select
-                name="package"
-                value={formData.package}
-                onChange={onInputChange}
-                required
-                className="w-full rounded-xl border border-gray-300 p-2 text-sm outline-none focus:border-[#e61e2d] bg-white"
-              >
-                <option value="">Select a package</option>
-                {packages.map((pkg) => (
-                  <option key={pkg._id} value={pkg._id}>
-                    {pkg.name}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-[11px] text-gray-400">
-                Delivery pincodes are managed from the Assign Vendor page.
-              </p>
             </div>
+
+            {!formData.isCustomPackageVendor && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Package (vendor serves only this plan)
+                </label>
+                <select
+                  name="package"
+                  value={formData.package}
+                  onChange={onInputChange}
+                  required
+                  className="w-full rounded-xl border border-gray-300 p-2 text-sm outline-none focus:border-[#e61e2d] bg-white"
+                >
+                  <option value="">Select a package</option>
+                  {packages.map((pkg) => (
+                    <option key={pkg._id} value={pkg._id}>
+                      {pkg.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Delivery pincodes are managed from the Assign Vendor page.
+                </p>
+              </div>
+            )}
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Update Logo (Optional)

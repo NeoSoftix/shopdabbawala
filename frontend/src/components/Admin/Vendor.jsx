@@ -42,6 +42,7 @@ const VendorList = () => {
     pincode: "",
     description: "",
     package: "",
+    isCustomPackageVendor: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -111,6 +112,7 @@ const VendorList = () => {
       pincode: vendor.pincode || "",
       description: vendor.description || "",
       package: vendor.package?._id || vendor.package || "",
+      isCustomPackageVendor: !!vendor.isCustomPackageVendor,
     });
     setSelectedFile(null);
     setIsUpdateModalOpen(true);
@@ -119,6 +121,18 @@ const VendorList = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Toggling "custom package vendor" clears the fixed package selection —
+  // a vendor either serves one fixed package or exclusively serves custom
+  // ("Build Your Own Package") orders, never both.
+  const handleCustomToggle = (e) => {
+    const checked = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      isCustomPackageVendor: checked,
+      package: checked ? "" : prev.package,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -143,7 +157,10 @@ const VendorList = () => {
       dataToSend.append("state", formData.state);
       dataToSend.append("pincode", formData.pincode);
       dataToSend.append("description", formData.description);
-      dataToSend.append("package", formData.package);
+      dataToSend.append("isCustomPackageVendor", formData.isCustomPackageVendor);
+      if (!formData.isCustomPackageVendor) {
+        dataToSend.append("package", formData.package);
+      }
 
       if (selectedFile) {
         dataToSend.append("logo", selectedFile);
@@ -207,6 +224,7 @@ const VendorList = () => {
         updating={updating}
         packages={packages}
         onInputChange={handleInputChange}
+        onCustomToggle={handleCustomToggle}
         onFileChange={handleFileChange}
         onSubmit={handleUpdateSubmit}
         onClose={() => setIsUpdateModalOpen(false)}

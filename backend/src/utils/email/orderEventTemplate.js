@@ -9,7 +9,6 @@ export const orderEventTemplate = ({ heading, intro, lines = [], accent = "#dc26
   emailShell({
     heading,
     badge: "ORDER UPDATE",
-    icon: "📋",
     intro,
     lines,
     accent,

@@ -172,6 +172,7 @@ export default function useCheckoutFlow({
       const res = await checkServiceAvailability(
         pincode.trim(),
         mode === "packages" ? planId : undefined,
+        mode === "create",
       );
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");

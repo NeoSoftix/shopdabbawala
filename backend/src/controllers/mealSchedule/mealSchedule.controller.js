@@ -40,7 +40,14 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, for
     const user = await User.findById(userId).select("pincode address name");
     const pincode = subscription.pincode || user?.pincode || "";
 
-    const vendor = pincode ? await findServingVendor(pincode, subscription.package) : null;
+    // A subscription created via the "Build Your Own Package" flow has no
+    // `package` reference — route those orders only to the vendor assigned
+    // to handle custom-plan orders for this pincode, never a fixed-package
+    // vendor.
+    const isCustom = !subscription.package;
+    const vendor = pincode
+      ? await findServingVendor(pincode, subscription.package, { isCustom })
+      : null;
 
     if (pincode && !vendor) {
       console.warn(`No serving vendor found for pincode ${pincode}; order will be created without a vendor.`);

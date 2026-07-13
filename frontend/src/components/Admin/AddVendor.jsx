@@ -22,6 +22,7 @@ const AddVendor = () => {
     pincode: "",
     description: "",
     package: "",
+    isCustomPackageVendor: false,
   });
 
   const [preview, setPreview] = useState(
@@ -56,6 +57,19 @@ const AddVendor = () => {
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (errors[e.target.name]) setErrors((p) => ({ ...p, [e.target.name]: "" }));
+  };
+
+  // Toggling "custom package vendor" clears the fixed package selection —
+  // a vendor either serves one fixed package or exclusively serves custom
+  // ("Build Your Own Package") orders, never both.
+  const handleCustomToggle = (e) => {
+    const checked = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      isCustomPackageVendor: checked,
+      package: checked ? "" : prev.package,
+    }));
+    if (errors.package) setErrors((p) => ({ ...p, package: "" }));
   };
 
   // Pincode (6-character alphanumeric) चेंज होने पर काम करने वाला फंक्शन
@@ -131,7 +145,8 @@ const AddVendor = () => {
     if (!formData.city.trim()) newErrors.city = "City is required.";
     if (!formData.state.trim()) newErrors.state = "Province/State is required.";
     if (!formData.address.trim()) newErrors.address = "Detailed address is required.";
-    if (!formData.package) newErrors.package = "Please select a package for this vendor.";
+    if (!formData.isCustomPackageVendor && !formData.package)
+      newErrors.package = "Please select a package for this vendor.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -151,7 +166,8 @@ const AddVendor = () => {
       data.append("state", formData.state);
       data.append("pincode", formData.pincode);
       data.append("description", formData.description);
-      data.append("package", formData.package);
+      data.append("isCustomPackageVendor", formData.isCustomPackageVendor);
+      if (!formData.isCustomPackageVendor) data.append("package", formData.package);
       if (image) data.append("logo", image);
 
       const response = await createVendor(data);
@@ -368,33 +384,53 @@ const AddVendor = () => {
             />
           </div>
 
-          {/* Package — a vendor serves exactly one package */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Package (this vendor will serve only this plan)
+          {/* Custom package vendor toggle — mutually exclusive with a fixed package */}
+          <div className="flex items-start gap-3 rounded-xl border border-gray-200 p-4">
+            <input
+              type="checkbox"
+              id="isCustomPackageVendor"
+              checked={formData.isCustomPackageVendor}
+              onChange={handleCustomToggle}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-[#e61e2d] focus:ring-[#e61e2d]"
+            />
+            <label htmlFor="isCustomPackageVendor" className="text-sm text-gray-700">
+              <span className="font-medium">This vendor handles Custom Package orders</span>
+              <p className="mt-0.5 text-xs text-gray-400">
+                All "Build Your Own Package" orders in this vendor's assigned pincodes will go
+                exclusively to them — they won't receive orders for any fixed package.
+              </p>
             </label>
-            <select
-              name="package"
-              value={formData.package}
-              onChange={handleChange}
-              disabled={loadingPackages}
-              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.package ? "border-red-400" : "border-gray-300"}`}
-              required
-            >
-              <option value="">
-                {loadingPackages ? "Loading packages..." : "Select a package"}
-              </option>
-              {packages.map((pkg) => (
-                <option key={pkg._id} value={pkg._id}>
-                  {pkg.name}
-                </option>
-              ))}
-            </select>
-            {errors.package && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.package}</p>}
-            <p className="mt-1 text-xs text-gray-400">
-              Delivery pincodes for this vendor are set later from the Assign Vendor page.
-            </p>
           </div>
+
+          {/* Package — a vendor serves exactly one package (unless it's the custom package vendor) */}
+          {!formData.isCustomPackageVendor && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Package (this vendor will serve only this plan)
+              </label>
+              <select
+                name="package"
+                value={formData.package}
+                onChange={handleChange}
+                disabled={loadingPackages}
+                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.package ? "border-red-400" : "border-gray-300"}`}
+                required
+              >
+                <option value="">
+                  {loadingPackages ? "Loading packages..." : "Select a package"}
+                </option>
+                {packages.map((pkg) => (
+                  <option key={pkg._id} value={pkg._id}>
+                    {pkg.name}
+                  </option>
+                ))}
+              </select>
+              {errors.package && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.package}</p>}
+              <p className="mt-1 text-xs text-gray-400">
+                Delivery pincodes for this vendor are set later from the Assign Vendor page.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

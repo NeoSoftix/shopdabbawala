@@ -3,6 +3,6 @@
 // Kept at this path/name so existing imports (e.g. authRoutes.js) continue
 // to work unchanged.
 
-export { signup, login, getMe, logout } from "./auth/registration.js";
+export { login, getMe, logout } from "./auth/registration.js";
 export { forgotPassword, resetPassword, changedPassword } from "./auth/password.js";
 export { sendOtp, verifyOtp } from "./auth/otp.js";
