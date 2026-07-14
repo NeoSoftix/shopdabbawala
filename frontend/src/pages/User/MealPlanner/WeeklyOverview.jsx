@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
 import { Calendar, Utensils, Pencil, ListChecks, Leaf, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateKey, weekdayLabel, shortDate, longDate, isBeyondSubscription, isPastDate } from "./constants";
+import { formatDateKey, weekdayLabel, shortDate, longDate, isBeyondSubscription, isPastDate, getActiveWeekRange } from "./constants";
 
 const getMonday = (d) => {
   const date = new Date(d);
@@ -270,6 +271,11 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
           <button
             type="button"
             onClick={() => {
+              const activeKeys = getActiveWeekRange(subscription).map(formatDateKey);
+              if (!activeKeys.includes(formatDateKey(previewDate))) {
+                toast.error("You can only schedule/edit meals within your current active week.");
+                return;
+              }
               setSelectedDate && setSelectedDate(previewDate);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}

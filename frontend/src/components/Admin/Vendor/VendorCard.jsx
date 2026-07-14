@@ -118,16 +118,14 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
         </div>
       </div>
 
-      {/* Package + Delivery Pincodes */}
+      {/* Category + Delivery Pincodes */}
       <div className="border-t border-gray-50 pt-4 space-y-2">
         <div className="flex items-center gap-2 text-sm">
           <span className="p-1.5 rounded-lg bg-red-50 text-[#e61e2d] shrink-0">
             <Package size={14} />
           </span>
           <span className="font-semibold text-gray-800 truncate">
-            {vendor.isCustomPackageVendor
-              ? "Custom Package Vendor"
-              : vendor.package?.name || "No package assigned"}
+            {vendor.category?.name || "No category assigned"}
           </span>
         </div>
         {vendor.servicePincodes?.length > 0 && (

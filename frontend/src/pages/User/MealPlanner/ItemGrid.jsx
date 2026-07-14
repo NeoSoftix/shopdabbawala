@@ -14,7 +14,7 @@ const ItemGrid = ({ loadingData, filteredFoodItems, currentDayMeals, onToggleIte
 
   if (filteredFoodItems.length === 0) {
     return (
-      <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items found for this category.</div>
+      <div className="col-span-full py-8 text-center text-sm text-gray-500 font-medium">No items are available for this category on this day yet.</div>
     );
   }
 

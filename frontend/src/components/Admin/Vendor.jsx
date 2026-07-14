@@ -6,8 +6,8 @@ import {
   updateVendor,
   toggleVendorStatus,
 } from "../../services/vendor.service.js";
-import { getActivePackages } from "../../services/package.service.js";
-import { SectionLoader } from "../shared/Loader";
+import { getActiveCategory } from "../../services/category.service.js";
+import { PageLoader } from "../shared/Loader";
 import VendorAlerts from "./Vendor/VendorAlerts";
 import VendorHeader from "./Vendor/VendorHeader";
 import VendorCardList from "./Vendor/VendorCardList";
@@ -48,21 +48,21 @@ const VendorList = () => {
     state: "",
     pincode: "",
     description: "",
-    package: "",
-    isCustomPackageVendor: false,
+    category: "",
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Package options for the edit modal (delivery pincodes are managed
+  // Category options for the edit modal (delivery pincodes are managed
   // separately from the Assign Vendor page).
-  const [packages, setPackages] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    getActivePackages()
+    fetchVendors();
+    getActiveCategory()
       .then((res) => {
-        if (res.success) setPackages(res.data || []);
+        if (res.success) setCategories(res.data || []);
       })
-      .catch((err) => console.error("Failed to fetch packages:", err));
+      .catch((err) => console.error("Failed to fetch categories:", err));
   }, []);
 
   // Reset to page 1 whenever the search term changes
@@ -130,8 +130,7 @@ const VendorList = () => {
       state: vendor.state || "",
       pincode: vendor.pincode || "",
       description: vendor.description || "",
-      package: vendor.package?._id || vendor.package || "",
-      isCustomPackageVendor: !!vendor.isCustomPackageVendor,
+      category: vendor.category?._id || vendor.category || "",
     });
     setSelectedFile(null);
     setSelectedVendorActive(!!vendor.isActive);
@@ -161,18 +160,6 @@ const VendorList = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Toggling "custom package vendor" clears the fixed package selection —
-  // a vendor either serves one fixed package or exclusively serves custom
-  // ("Build Your Own Package") orders, never both.
-  const handleCustomToggle = (e) => {
-    const checked = e.target.checked;
-    setFormData((prev) => ({
-      ...prev,
-      isCustomPackageVendor: checked,
-      package: checked ? "" : prev.package,
-    }));
-  };
-
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
   };
@@ -195,10 +182,7 @@ const VendorList = () => {
       dataToSend.append("state", formData.state);
       dataToSend.append("pincode", formData.pincode);
       dataToSend.append("description", formData.description);
-      dataToSend.append("isCustomPackageVendor", formData.isCustomPackageVendor);
-      if (!formData.isCustomPackageVendor) {
-        dataToSend.append("package", formData.package);
-      }
+      dataToSend.append("category", formData.category);
 
       if (selectedFile) {
         dataToSend.append("logo", selectedFile);
@@ -260,9 +244,8 @@ const VendorList = () => {
         isOpen={isUpdateModalOpen}
         formData={formData}
         updating={updating}
-        packages={packages}
+        categories={categories}
         onInputChange={handleInputChange}
-        onCustomToggle={handleCustomToggle}
         onFileChange={handleFileChange}
         onSubmit={handleUpdateSubmit}
         onClose={() => setIsUpdateModalOpen(false)}

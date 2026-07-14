@@ -370,7 +370,7 @@ export const getItemsByCategory = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: items.length,
-      items,
+      data: items,
     });
   } catch (error) {
     console.error("Get Items By Category Error:", error);

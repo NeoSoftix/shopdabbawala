@@ -6,6 +6,7 @@ import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
+import { getActiveWeekWindow } from "../../utils/getActiveWeekWindow.js";
 
 const notifyVendorOfOrder = async ({ vendorId, orderId, userName, date, itemCount, isNewOrder, planName }) => {
   const dayLabel = date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
@@ -40,13 +41,18 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, for
     const user = await User.findById(userId).select("pincode address name");
     const pincode = subscription.pincode || user?.pincode || "";
 
-    // A subscription created via the "Build Your Own Package" flow has no
-    // `package` reference — route those orders only to the vendor assigned
-    // to handle custom-plan orders for this pincode, never a fixed-package
-    // vendor.
-    const isCustom = !subscription.package;
+    const itemIds = formattedItems.map((meal) => meal.item);
+    const itemDocs = await Item.find({ _id: { $in: itemIds } }).select("name category");
+    const nameById = new Map(itemDocs.map((doc) => [doc._id.toString(), doc.name]));
+
+    // Every item in a day's order belongs to the same category (enforced at
+    // submission time in createMealSchedule) - that category is the sole
+    // key used to find the single vendor in this pincode who should receive
+    // the order/notification.
+    const categoryId = itemDocs[0]?.category;
+
     const vendor = pincode
-      ? await findServingVendor(pincode, subscription.package, { isCustom })
+      ? await findServingVendor(pincode, categoryId)
       : null;
 
     if (pincode && !vendor) {
@@ -54,10 +60,6 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, for
     } else if (!pincode) {
       console.warn(`No pincode found for user ${userId}; order will be created without a vendor.`);
     }
-
-    const itemIds = formattedItems.map((meal) => meal.item);
-    const itemDocs = await Item.find({ _id: { $in: itemIds } }).select("name");
-    const nameById = new Map(itemDocs.map((doc) => [doc._id.toString(), doc.name]));
 
     const orderItems = formattedItems.map((meal) => ({
       item: meal.item,
@@ -212,6 +214,40 @@ export const createMealSchedule = async (req, res) => {
       });
     }
 
+    // Users can only ever schedule within the "current active week": the day
+    // after their plan started through that week's Sunday, then every
+    // Monday..Sunday after that - never any earlier or later week.
+    const { windowStart, windowEnd } = getActiveWeekWindow(subscription, today);
+    if (requestDate < windowStart || requestDate > windowEnd) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only schedule meals within your current active week.",
+      });
+    }
+
+    // Once an order has actually been placed for this date, editing it is
+    // only allowed up to 12 PM (noon) the day before - after that the vendor
+    // needs certainty to start preparing. First-time scheduling for a date
+    // that has no order yet is unaffected by this cutoff.
+    const existingOrderForDate = await Order.findOne({
+      user: userId,
+      subscription: subscriptionId,
+      date: requestDate,
+    }).select("_id");
+
+    if (existingOrderForDate) {
+      const editCutoff = new Date(requestDate);
+      editCutoff.setUTCDate(editCutoff.getUTCDate() - 1);
+      editCutoff.setUTCHours(12, 0, 0, 0);
+
+      if (new Date() > editCutoff) {
+        return res.status(400).json({
+          success: false,
+          message: "This order can no longer be edited - changes are only allowed until 12 PM the day before.",
+        });
+      }
+    }
+
     // ================= FORMAT ITEMS =================
 
     const formattedItems = items.map((meal) => ({
@@ -243,16 +279,29 @@ export const createMealSchedule = async (req, res) => {
       (meal) => meal.item
     );
 
-    const existingItems = await Item.countDocuments({
+    const existingItemDocs = await Item.find({
       _id: {
         $in: itemIds,
       },
-    });
+    }).select("category");
 
-    if (existingItems !== new Set(itemIds).size) {
+    if (existingItemDocs.length !== new Set(itemIds).size) {
       return res.status(400).json({
         success: false,
         message: "One or more selected items do not exist.",
+      });
+    }
+
+    // A single day's order can only contain items from one category (the
+    // category is what determines which single vendor in the customer's
+    // pincode receives the order) - reject a mixed-category submission.
+    const distinctCategories = new Set(
+      existingItemDocs.map((doc) => String(doc.category))
+    );
+    if (distinctCategories.size > 1) {
+      return res.status(400).json({
+        success: false,
+        message: "All meals for a single day must be from the same category.",
       });
     }
 

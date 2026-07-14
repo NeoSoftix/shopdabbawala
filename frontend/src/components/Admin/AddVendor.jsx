@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { createVendor } from "../../services/vendor.service.js";
-import { getActivePackages } from "../../services/package.service.js";
+import { getActiveCategory } from "../../services/category.service.js";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
@@ -21,8 +21,7 @@ const AddVendor = () => {
     state: "",
     pincode: "",
     description: "",
-    package: "",
-    isCustomPackageVendor: false,
+    category: "",
   });
 
   const [preview, setPreview] = useState(
@@ -34,42 +33,29 @@ const AddVendor = () => {
   const [areas, setAreas] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // Package this vendor will exclusively serve. Delivery pincodes for the
-  // package are assigned afterwards from the Assign Vendor page.
-  const [packages, setPackages] = useState([]);
-  const [loadingPackages, setLoadingPackages] = useState(true);
+  // Category this vendor will exclusively serve in its pincodes (a vendor
+  // may only serve one category per pincode - enforced on the backend).
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
-    const fetchPackages = async () => {
+    const fetchCategories = async () => {
       try {
-        const res = await getActivePackages();
-        if (res.success) setPackages(res.data || []);
+        const res = await getActiveCategory();
+        if (res.success) setCategories(res.data || []);
       } catch (error) {
-        console.error("Error fetching packages:", error);
-        toast.error("Failed to load packages.");
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories.");
       } finally {
-        setLoadingPackages(false);
+        setLoadingCategories(false);
       }
     };
-    fetchPackages();
+    fetchCategories();
   }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (errors[e.target.name]) setErrors((p) => ({ ...p, [e.target.name]: "" }));
-  };
-
-  // Toggling "custom package vendor" clears the fixed package selection —
-  // a vendor either serves one fixed package or exclusively serves custom
-  // ("Build Your Own Package") orders, never both.
-  const handleCustomToggle = (e) => {
-    const checked = e.target.checked;
-    setFormData((prev) => ({
-      ...prev,
-      isCustomPackageVendor: checked,
-      package: checked ? "" : prev.package,
-    }));
-    if (errors.package) setErrors((p) => ({ ...p, package: "" }));
   };
 
   // Pincode (6-character alphanumeric) चेंज होने पर काम करने वाला फंक्शन
@@ -145,8 +131,8 @@ const AddVendor = () => {
     if (!formData.city.trim()) newErrors.city = "City is required.";
     if (!formData.state.trim()) newErrors.state = "Province/State is required.";
     if (!formData.address.trim()) newErrors.address = "Detailed address is required.";
-    if (!formData.isCustomPackageVendor && !formData.package)
-      newErrors.package = "Please select a package for this vendor.";
+    if (!formData.category)
+      newErrors.category = "Please select a category for this vendor.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -166,8 +152,7 @@ const AddVendor = () => {
       data.append("state", formData.state);
       data.append("pincode", formData.pincode);
       data.append("description", formData.description);
-      data.append("isCustomPackageVendor", formData.isCustomPackageVendor);
-      if (!formData.isCustomPackageVendor) data.append("package", formData.package);
+      data.append("category", formData.category);
       if (image) data.append("logo", image);
 
       const response = await createVendor(data);
@@ -384,53 +369,34 @@ const AddVendor = () => {
             />
           </div>
 
-          {/* Custom package vendor toggle — mutually exclusive with a fixed package */}
-          <div className="flex items-start gap-3 rounded-xl border border-gray-200 p-4">
-            <input
-              type="checkbox"
-              id="isCustomPackageVendor"
-              checked={formData.isCustomPackageVendor}
-              onChange={handleCustomToggle}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-[#e61e2d] focus:ring-[#e61e2d]"
-            />
-            <label htmlFor="isCustomPackageVendor" className="text-sm text-gray-700">
-              <span className="font-medium">This vendor handles Custom Package orders</span>
-              <p className="mt-0.5 text-xs text-gray-400">
-                All "Build Your Own Package" orders in this vendor's assigned pincodes will go
-                exclusively to them — they won't receive orders for any fixed package.
-              </p>
+          {/* Category — a vendor serves exactly one category per pincode */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Category (this vendor will serve only this category)
             </label>
-          </div>
-
-          {/* Package — a vendor serves exactly one package (unless it's the custom package vendor) */}
-          {!formData.isCustomPackageVendor && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Package (this vendor will serve only this plan)
-              </label>
-              <select
-                name="package"
-                value={formData.package}
-                onChange={handleChange}
-                disabled={loadingPackages}
-                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.package ? "border-red-400" : "border-gray-300"}`}
-                required
-              >
-                <option value="">
-                  {loadingPackages ? "Loading packages..." : "Select a package"}
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              disabled={loadingCategories}
+              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.category ? "border-red-400" : "border-gray-300"}`}
+              required
+            >
+              <option value="">
+                {loadingCategories ? "Loading categories..." : "Select a category"}
+              </option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
                 </option>
-                {packages.map((pkg) => (
-                  <option key={pkg._id} value={pkg._id}>
-                    {pkg.name}
-                  </option>
-                ))}
-              </select>
-              {errors.package && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.package}</p>}
-              <p className="mt-1 text-xs text-gray-400">
-                Delivery pincodes for this vendor are set later from the Assign Vendor page.
-              </p>
-            </div>
-          )}
+              ))}
+            </select>
+            {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
+            <p className="mt-1 text-xs text-gray-400">
+              Orders for this category in this vendor's pincodes will be routed to them only.
+              Delivery pincodes are set later from the Assign Vendor page.
+            </p>
+          </div>
 
           <button
             type="submit"

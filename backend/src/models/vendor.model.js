@@ -39,25 +39,18 @@ const vendorSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // Fixed plan this vendor serves — a vendor is onboarded for exactly one
-    // package. Left unset when isCustomPackageVendor is true (mutually
-    // exclusive with it — enforced in the controller).
-    package: {
+    // The single food category (e.g. "North Indian", "Chinese") this vendor
+    // serves in its pincodes — a vendor may only serve one category per
+    // pincode, enforced in the controller. This is the sole key used to
+    // route a customer's order to a vendor (no package-based assignment).
+    category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Package",
+      ref: "Category",
+      required: true,
     },
 
-    // When true, this vendor exclusively serves "Build Your Own Package"
-    // (custom plan) orders instead of a fixed Package. Mutually exclusive
-    // with `package` — enforced in the controller.
-    isCustomPackageVendor: {
-      type: Boolean,
-      default: false,
-    },
-
-    // Pincodes where this vendor delivers its package (or, for a custom
-    // package vendor, its custom-plan orders). A (pincode, package)
-    // combination — or (pincode, custom) — may only belong to one vendor,
+    // Pincodes where this vendor delivers orders for its category. A
+    // (pincode, category) combination may only belong to one vendor,
     // enforced in the controller.
     servicePincodes: {
       type: [String],
@@ -80,21 +73,6 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    
-    serviceZones: [
-      {
-        area: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        category: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Category",
-          required: true,
-        },
-      },
-    ],
 
     isActive: {
       type: Boolean,
