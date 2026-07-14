@@ -8,7 +8,7 @@ import { sendEmail } from "../../utils/email/sendEmail.js";
 import { vendorWelcomeTemplate } from "../../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../../middleware/upload.middleware.js";
 import { getPagination } from "../../utils/pagination.js";
-
+import Category from "../../models/vendor.model.js"
 // Parses the servicePincodes field sent from the client, which arrives as a
 // JSON-stringified array (multipart form fields can only carry strings).
 const parseServicePincodes = (raw) => {
