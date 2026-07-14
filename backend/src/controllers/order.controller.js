@@ -140,7 +140,7 @@ export const getAllOrders = async (req, res) => {
           as: "user",
         },
       },
-      { $unwind: { path: "$user", preserveNullAndEmptyArray: true } },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
       ...(regex
         ? [
             {

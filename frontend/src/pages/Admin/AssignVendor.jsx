@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { Search, Trash2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { getAllVendors, updateVendor } from "../../services/vendor.service.js";
+import { getAllVendors, getOneVendor, updateVendor } from "../../services/vendor.service.js";
 import { getAllDeliveryCharges } from "../../services/deliveryCharge.service.js";
 
 const PAGE_SIZE = 6;
@@ -153,17 +153,29 @@ const AssignVendor = () => {
 
     try {
       setAssigning(true);
+
+      // Re-fetch this vendor's own record right before merging, instead of
+      // trusting the `vendors` array from the last fetchVendors() call - that
+      // local state can be stale (e.g. an admin assigning a second pincode
+      // before the first assignment's refetch has resolved), and merging
+      // against a stale servicePincodes list silently overwrites/loses the
+      // pincode that was just saved.
+      const latest = await getOneVendor(selectedVendorId);
+      const latestPincodes = latest?.data?.servicePincodes || [];
+
+      if (latestPincodes.includes(formatted)) {
+        toast.error("This pincode is already assigned to this vendor.");
+        return;
+      }
+
       const data = new FormData();
-      data.append(
-        "servicePincodes",
-        JSON.stringify([...(vendor.servicePincodes || []), formatted]),
-      );
+      data.append("servicePincodes", JSON.stringify([...latestPincodes, formatted]));
 
       const res = await updateVendor(selectedVendorId, data);
       if (res.success) {
         toast.success("Vendor assigned successfully!");
         setPincodeInput("");
-        fetchVendors();
+        await fetchVendors();
       }
     } catch (error) {
       toast.error(
@@ -178,8 +190,11 @@ const AssignVendor = () => {
     const key = `${vendorId}:${pincode}`;
     try {
       setRemovingKey(key);
-      const vendor = vendors.find((v) => v._id === vendorId);
-      const updatedPincodes = (vendor?.servicePincodes || []).filter(
+
+      // Same staleness guard as handleAssign - always merge against the
+      // vendor's current DB state, not the last-fetched local copy.
+      const latest = await getOneVendor(vendorId);
+      const updatedPincodes = (latest?.data?.servicePincodes || []).filter(
         (p) => p !== pincode,
       );
 
@@ -189,7 +204,7 @@ const AssignVendor = () => {
       const res = await updateVendor(vendorId, data);
       if (res.success) {
         toast.success("Assignment removed.");
-        fetchVendors();
+        await fetchVendors();
       }
     } catch (error) {
       toast.error(
