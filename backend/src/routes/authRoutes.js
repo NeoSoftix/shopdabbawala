@@ -2,10 +2,11 @@ import express from "express";
 import { login, getMe, logout, forgotPassword, resetPassword, changedPassword, sendOtp, verifyOtp } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
+import {loginLimiter} from "../middleware/ratelimiter.middleware.js"
 
 const router = express.Router();
 
-router.post("/login", login);
+router.post("/login", loginLimiter, login);
 
 router.get("/me", verifyToken, getMe)
 router.post("/logout",verifyToken, logout)
