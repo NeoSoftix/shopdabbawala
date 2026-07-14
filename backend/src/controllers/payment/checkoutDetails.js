@@ -249,15 +249,29 @@ export const saveCheckoutDetails = async (req, res) => {
 
     // Always update User profile if name/email/phone/address/pincode is provided
     if (name || email || req.body.phone || address || pincode) {
-      await User.findByIdAndUpdate(payment.user, {
-        $set: {
-          ...(name && { name }),
-          ...(email && { email }),
-          ...(req.body.phone && { phone: req.body.phone }),
-          ...(address && { address }),
-          ...(pincode && { pincode }),
+      if (email) {
+        const existingUser = await User.findOne({ email, _id: { $ne: payment.user } });
+        if (existingUser) {
+          return res.status(409).json({ success: false, message: "This email is already registered. Please use a different email." });
         }
-      });
+      }
+
+      try {
+        await User.findByIdAndUpdate(payment.user, {
+          $set: {
+            ...(name && { name }),
+            ...(email && { email }),
+            ...(req.body.phone && { phone: req.body.phone }),
+            ...(address && { address }),
+            ...(pincode && { pincode }),
+          }
+        });
+      } catch (updateErr) {
+        if (updateErr.code === 11000) {
+          return res.status(409).json({ success: false, message: "This email is already registered. Please use a different email." });
+        }
+        throw updateErr;
+      }
     }
 
     // Determine plan name and total meals

@@ -87,7 +87,8 @@ export default function PaymentSuccess() {
       toast.success("Your details saved! Welcome aboard!");
       setTimeout(() => setInnerStep("thankyou"), 600);
     } catch (err) {
-      toast.error("Failed to save details. Please try again.");
+      const message = err?.response?.data?.message || "Failed to save details. Please try again.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

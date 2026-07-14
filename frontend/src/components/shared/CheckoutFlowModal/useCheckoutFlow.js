@@ -322,7 +322,7 @@ export default function useCheckoutFlow({
       toast.success("Your details saved! Welcome aboard!");
       setStep(mode === "packages" ? 5 : 6); // Move to Thank you
     } catch (err) {
-      setError("Failed to save details.");
+      setError(err.response?.data?.message || "Failed to save details.");
     } finally {
       setLoading(false);
     }
