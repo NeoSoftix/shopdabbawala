@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { getAllCategories } from "../../services/category.service";
 import { createItem } from "../../services/items.service";
@@ -10,10 +10,18 @@ const DEFAULT_IMG = "https://placehold.co/128x128?text=No+Image";
 
 const AddItem = () => {
   const navigate = useNavigate();
+  // Pre-select the category when arriving from a "+ Add Item" shortcut
+  // elsewhere (e.g. the Weekly Menu page, when a category has no items yet).
+  const [searchParams] = useSearchParams();
+  const preselectedCategory = searchParams.get("category") || "";
+  // If we arrived from the Weekly Menu page's "+ Add Item" shortcut, send
+  // the admin back there after saving instead of the generic Items list.
+  const returnTo = searchParams.get("from") === "weekly-menu" ? "/admin/weekly-menu" : "/admin/items";
+
   const [itemData, setItemData] = useState({
     name: "",
     description: "",
-    category: "",
+    category: preselectedCategory,
     allergies: "",
     image: null,
   });
@@ -92,7 +100,7 @@ const AddItem = () => {
       await createItem(formData);
 
       toast.success("Item created successfully!");
-      navigate("/admin/items");
+      navigate(returnTo);
     } catch (error) {
       console.log("Create item error", error);
 
@@ -111,7 +119,7 @@ const AddItem = () => {
           <p className="text-gray-500 mt-1">Create a new menu item</p>
         </div>
         <button
-          onClick={() => navigate("/admin/items")}
+          onClick={() => navigate(returnTo)}
           className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
         >
           <ArrowLeft size={16} /> Back to Items

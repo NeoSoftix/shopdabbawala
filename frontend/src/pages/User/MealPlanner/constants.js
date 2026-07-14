@@ -33,6 +33,62 @@ export const isBeyondSubscription = (date, subscription) => {
 export const isSelectableDate = (date, subscription) =>
   !isPastDate(date) && !isBeyondSubscription(date, subscription);
 
+// The Monday (00:00) of the calendar week containing `date`.
+const mondayOf = (date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const dow = d.getDay(); // 0 = Sunday .. 6 = Saturday
+  const diff = dow === 0 ? -6 : 1 - dow;
+  d.setDate(d.getDate() + diff);
+  return d;
+};
+
+// The "current active week" the user is allowed to schedule meals within:
+// starts the day after the subscription began (the start day itself was
+// covered by checkout) through that calendar week's Sunday - then every
+// following Monday..Sunday week, rolling forward as today moves past the
+// current window's Sunday. Clamped by the subscription's endDate. Mirrors
+// backend/src/utils/getActiveWeekWindow.js exactly (server re-validates the
+// same window on submit) - keep the two in sync if this logic changes.
+export const getActiveWeekRange = (subscription) => {
+  if (!subscription?.startDate) return [];
+
+  const subStart = new Date(subscription.startDate);
+  subStart.setHours(0, 0, 0, 0);
+
+  const subEnd = subscription.endDate ? new Date(subscription.endDate) : null;
+  if (subEnd) subEnd.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const firstSchedulable = new Date(subStart);
+  firstSchedulable.setDate(firstSchedulable.getDate() + 1);
+
+  const firstMonday = mondayOf(firstSchedulable);
+  const firstSunday = new Date(firstMonday);
+  firstSunday.setDate(firstSunday.getDate() + 6);
+
+  let windowStart = firstSchedulable;
+  let windowEnd = firstSunday;
+
+  if (today > firstSunday) {
+    windowStart = mondayOf(today);
+    windowEnd = new Date(windowStart);
+    windowEnd.setDate(windowEnd.getDate() + 6);
+  }
+
+  if (subEnd && windowEnd > subEnd) windowEnd = subEnd;
+
+  const dates = [];
+  const cur = new Date(windowStart);
+  while (cur <= windowEnd) {
+    dates.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+};
+
 // All calendar dates within [startDate, endDate] inclusive - the full window
 // a subscription is valid for (e.g. every day of a 1-month plan).
 export const getSubscriptionDateRange = (subscription) => {

@@ -30,10 +30,10 @@ export const vendorProfile = async (req, res) => {
   }
 }
 
-// get vendor by pincode
+// get vendor by pincode (optionally scoped to a category)
 export const checkServiceAvailability = async (req, res) => {
   try {
-    const {pincode, package: packageId, isCustom}= req.query
+    const {pincode, category: categoryId}= req.query
 
     if(!pincode) {
       return res.status(400).json({
@@ -42,7 +42,7 @@ export const checkServiceAvailability = async (req, res) => {
       })
     }
 
-    const vendor = await findServingVendor(pincode, packageId, { isCustom: isCustom === "true" })
+    const vendor = await findServingVendor(pincode, categoryId)
 
     if(!vendor) {
       return res.status(404).json({

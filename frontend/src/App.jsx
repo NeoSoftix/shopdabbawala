@@ -29,6 +29,7 @@ import DeliveryCharges from "./pages/Admin/DeliveryCharges";
 import CreateAddOns from "./components/Admin/CreateAddOns";
 import AddOns from "./components/Admin/AddOns";
 import PackagesPage from "./components/Admin/PackagesPage";
+import WeeklyMenuManager from "./pages/Admin/WeeklyMenuManager";
 
 import VendorLayout from "./pages/Vendor/VendorLayout";
 import VendorDashboard from "./pages/Vendor/VendorDashboard";
@@ -129,6 +130,7 @@ function App() {
         <Route path="add-on/add" element={<CreateAddOns />} />
         <Route path="duration" element={<SetDuration />} />
         <Route path="meal-tiers" element={<MealTierManager />} />
+        <Route path="weekly-menu" element={<WeeklyMenuManager />} />
       </Route>
 
       {/* Vendor layout route */}

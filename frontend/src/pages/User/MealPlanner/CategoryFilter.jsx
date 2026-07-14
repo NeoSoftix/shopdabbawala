@@ -25,24 +25,27 @@ const CategoryFilter = ({ categories, selectedCategory, setSelectedCategory }) =
         ref={scrollRef}
         className="flex flex-nowrap gap-2.5 py-1 overflow-x-auto no-scrollbar min-w-0"
       >
-        {categories.map((cat) => (
-          <button
-            key={cat._id}
-            type="button"
-            onClick={() => setSelectedCategory(cat.name)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border shrink-0 whitespace-nowrap ${selectedCategory === cat.name
-              ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
-              : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
-              }`}
-          >
-            {cat.image?.url ? (
-              <img src={cat.image.url} alt={cat.name} className="w-5 h-5 object-cover rounded-full" />
-            ) : (
-              <Utensils size={14} />
-            )}
-            <span>{cat.name}</span>
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const isSelected = selectedCategory === cat._id;
+          return (
+            <button
+              key={cat._id}
+              type="button"
+              onClick={() => setSelectedCategory(cat._id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all border shrink-0 whitespace-nowrap ${isSelected
+                ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
+                : "bg-white text-[#A3AED0] border-gray-200 hover:bg-gray-50"
+                }`}
+            >
+              {cat.image?.url ? (
+                <img src={cat.image.url} alt={cat.name} className="w-5 h-5 object-cover rounded-full" />
+              ) : (
+                <Utensils size={14} />
+              )}
+              <span>{cat.name}</span>
+            </button>
+          );
+        })}
       </div>
 
       <button

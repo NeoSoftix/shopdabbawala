@@ -1,7 +1,7 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { getActiveCategory } from "../../../services/category.service";
-import { getAllItems } from "../../../services/items.service";
+import { getAvailableItemsForDate } from "../../../services/weeklyMenu.service";
 import { createMeal } from "../../../services/mealSchedule.service";
 
 import CategoryFilter from "./CategoryFilter";
@@ -27,36 +27,90 @@ const MealScheduleBuilder = ({
 }) => {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Category the user clicked while the current day already had meals
+  // selected from a different category - awaiting Yes/No confirmation
+  // before clearing that day and switching.
+  const [pendingCategory, setPendingCategory] = useState(null);
 
   const selectedDateKey = formatDateKey(selectedDate);
 
+  // Load the category list once.
   useEffect(() => {
-    Promise.all([getActiveCategory(), getAllItems()])
-      .then(([catsRes, itemsRes]) => {
-        if (catsRes.success) {
-          const cats = catsRes.data || [];
-          setCategories(cats);
-          if (cats.length > 0) setSelectedCategory(cats[0].name);
-        }
-        if (itemsRes.success) {
-          setItems(itemsRes.data || []);
-        }
+    getActiveCategory()
+      .then((res) => {
+        if (res.success) setCategories(res.data || []);
       })
-      .catch((err) => console.error("Failed to fetch custom meal data", err))
-      .finally(() => setLoadingData(false));
+      .catch((err) => console.error("Failed to fetch categories", err))
+      .finally(() => setLoadingCategories(false));
   }, []);
 
-  const filteredFoodItems = useMemo(() => {
-    return items.filter(
-      (item) => item && item.category?.name === selectedCategory,
-    );
-  }, [selectedCategory, items]);
+  // Switching to a different day: follow whichever category that day's
+  // meals already belong to (a single day/order can only ever contain one
+  // category's items), or default to the first available category if that
+  // day is still empty.
+  useEffect(() => {
+    const dayItems = weeklyPlan[selectedDateKey] || [];
+    if (dayItems.length > 0 && dayItems[0]?.category) {
+      const lockedCategoryId = dayItems[0].category?._id || dayItems[0].category;
+      setSelectedCategory(lockedCategoryId);
+    } else if (categories.length > 0) {
+      setSelectedCategory((prev) => prev || categories[0]._id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDateKey, categories]);
+
+  const dayHasItems = (weeklyPlan[selectedDateKey] || []).length > 0;
+
+  // A day can only ever contain one category's items. Switching category
+  // while meals are already picked for this day needs confirmation, since
+  // it discards those selections; switching on an empty day is immediate.
+  const handleCategorySelect = (categoryId) => {
+    if (categoryId === selectedCategory) return;
+    if (dayHasItems) {
+      setPendingCategory(categoryId);
+    } else {
+      setSelectedCategory(categoryId);
+    }
+  };
+
+  const confirmCategorySwitch = () => {
+    setWeeklyPlan((prev) => ({ ...prev, [selectedDateKey]: [] }));
+    setSelectedCategory(pendingCategory);
+    setPendingCategory(null);
+  };
+
+  const cancelCategorySwitch = () => setPendingCategory(null);
+
+  const pendingCategoryName = categories.find((c) => c._id === pendingCategory)?.name;
+
+  // Items available for the currently selected category *on this specific
+  // date* - admin configures this per (category, date) from the Weekly Menu
+  // page, so the picker only ever shows what's actually orderable today.
+  useEffect(() => {
+    if (!selectedCategory || !selectedDateKey) return;
+
+    setLoadingData(true);
+    getAvailableItemsForDate(selectedCategory, selectedDateKey)
+      .then((res) => {
+        if (res.success) setItems(res.data || []);
+      })
+      .catch((err) => console.error("Failed to fetch available items", err))
+      .finally(() => setLoadingData(false));
+  }, [selectedCategory, selectedDateKey]);
+
+  const filteredFoodItems = items;
 
   const toggleItemForDay = (item) => {
     if (!item) return;
+
+    if (editCutoffPassed) {
+      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
+      return;
+    }
 
     setWeeklyPlan((prev) => {
       const currentDayItems = prev[selectedDateKey] || [];
@@ -107,6 +161,11 @@ const MealScheduleBuilder = ({
   };
 
   const updateItemQuantity = (item, change) => {
+    if (editCutoffPassed) {
+      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
+      return;
+    }
+
     setWeeklyPlan((prev) => {
       const currentDayItems =
         prev[selectedDateKey] || [];
@@ -237,6 +296,21 @@ const MealScheduleBuilder = ({
 
   const currentDayMeals = weeklyPlan[selectedDateKey] || [];
 
+  // Once an order has actually been placed for this date (dayStatus has an
+  // entry for it), editing is only allowed up to 12 PM (noon) the day
+  // before - mirrors the backend cutoff in createMealSchedule. A day with no
+  // placed order yet is unaffected (first-time scheduling, any time within
+  // the active week).
+  const hasPlacedOrder = Boolean(dayStatus?.[selectedDateKey]);
+  const editCutoffPassed = (() => {
+    if (!hasPlacedOrder) return false;
+    const cutoff = new Date(selectedDate);
+    cutoff.setUTCHours(0, 0, 0, 0);
+    cutoff.setUTCDate(cutoff.getUTCDate() - 1);
+    cutoff.setUTCHours(12, 0, 0, 0);
+    return new Date() > cutoff;
+  })();
+
   const expandedDayMeals = currentDayMeals.flatMap((meal) =>
     Array.from(
       { length: meal.quantity || 1 },
@@ -259,6 +333,11 @@ const MealScheduleBuilder = ({
 
     if (!isSelectableDate(selectedDate, subscription)) {
       toast.error("This date can't be scheduled — it's either in the past or outside your plan's validity.");
+      return;
+    }
+
+    if (editCutoffPassed) {
+      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
       return;
     }
 
@@ -329,7 +408,7 @@ const MealScheduleBuilder = ({
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
+            setSelectedCategory={handleCategorySelect}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-130 overflow-y-auto no-scrollbar pr-1">
@@ -378,6 +457,7 @@ const MealScheduleBuilder = ({
               onRemoveOne={(_, itemId) => removeOneItemFromDay(selectedDateKey, itemId)}
               onSubmit={handleSubmitDay}
               submitting={submitting}
+              editLocked={editCutoffPassed}
             />
           </div>
         </div>
@@ -391,6 +471,35 @@ const MealScheduleBuilder = ({
         onToggleDayActive={onToggleDayActive}
         setSelectedDate={setSelectedDate}
       />
+
+      {/* CATEGORY SWITCH CONFIRMATION */}
+      {pendingCategory && (
+        <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="text-base font-bold text-[#1B254B]">Switch category?</h3>
+            <p className="mt-2 text-sm text-[#5B6478]">
+              Switching to <span className="font-semibold">{pendingCategoryName}</span> will remove
+              the meals you've already selected for {longDate(selectedDate)}. Continue?
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={cancelCategorySwitch}
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-[#1B254B] hover:bg-gray-50"
+              >
+                No, keep my meals
+              </button>
+              <button
+                type="button"
+                onClick={confirmCategorySwitch}
+                className="rounded-xl bg-[#E31A1A] px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                Yes, switch category
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Vendor from "../../models/vendor.model.js";
 import User from "../../models/User.model.js";
-import Package from "../../models/package.model.js";
+import Category from "../../models/category.model.js";
 import cloudinary from "../../config/cloudinary.js";
 import bcrypt from "bcryptjs";
 import passwordGenerator from "../../utils/generatePassword.js";
@@ -22,21 +22,15 @@ const parseServicePincodes = (raw) => {
   }
 };
 
-// Multipart form fields arrive as strings ("true"/"false"), plain JSON
-// requests may send a real boolean.
-const parseBoolean = (raw) => raw === true || raw === "true";
-
-// A (pincode, package) combination — or (pincode, custom) for the vendor
-// designated to handle "Build Your Own Package" orders — may only ever
-// belong to one vendor. Returns the conflicting vendor, if any.
-const findPincodeConflict = ({ excludeVendorId, isCustomPackageVendor, packageId, pincodes }) => {
-  if (!pincodes.length) return null;
+// A (pincode, category) combination may only ever belong to one vendor -
+// this is the sole key used to route a customer's order/notification to the
+// right vendor for a given pincode.
+const findCategoryPincodeConflict = ({ excludeVendorId, categoryId, pincodes }) => {
+  if (!pincodes.length || !categoryId) return null;
 
   const query = {
     servicePincodes: { $in: pincodes },
-    ...(isCustomPackageVendor
-      ? { isCustomPackageVendor: true }
-      : { package: packageId }),
+    category: categoryId,
   };
   if (excludeVendorId) query._id = { $ne: excludeVendorId };
 
@@ -56,11 +50,10 @@ export const createVendor = async (req, res) => {
       city,
       address,
       phone,
-      package: packageId,
+      category: categoryId,
     } = req.body;
 
     const servicePincodes = parseServicePincodes(req.body.servicePincodes);
-    const isCustomPackageVendor = parseBoolean(req.body.isCustomPackageVendor);
 
     // 1. Validation (Sabse pehle check taaki faltu DB processing na ho)
     if (
@@ -72,56 +65,44 @@ export const createVendor = async (req, res) => {
       !city ||
       !state ||
       !pincode ||
-      (!packageId && !isCustomPackageVendor)
+      !categoryId
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Name, Email, Phone, Organization Name, Address, City, State, Pincode and either a Package or the Custom Package flag are required",
+          "Name, Email, Phone, Organization Name, Address, City, State, Pincode and Category are required",
       });
     }
 
-    if (packageId && isCustomPackageVendor) {
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({
         success: false,
-        message:
-          "A vendor can either serve a fixed package or be the custom package vendor, not both.",
+        message: "Invalid Category ID.",
       });
     }
 
-    if (packageId) {
-      if (!mongoose.Types.ObjectId.isValid(packageId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Package ID.",
-        });
-      }
-
-      const packageExists = await Package.findById(packageId).lean();
-      if (!packageExists) {
-        return res.status(404).json({
-          success: false,
-          message: "Package not found.",
-        });
-      }
+    const categoryExists = await Category.findById(categoryId).lean();
+    if (!categoryExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found.",
+      });
     }
 
-    // A (pincode, package) combination — or (pincode, custom) — can only
-    // ever serve one vendor. Delivery pincodes are typically assigned later
-    // from the Assign Vendor page, so this only fires if some were provided
-    // at creation time.
-    const conflictingVendor = await findPincodeConflict({
-      isCustomPackageVendor,
-      packageId,
+    // A (pincode, category) combination can only ever serve one vendor —
+    // this is the key used to route a customer's order/notification to the
+    // right vendor. Delivery pincodes are typically assigned later from the
+    // Assign Vendor page, so this only fires if some were provided at
+    // creation time.
+    const conflictingCategoryVendor = await findCategoryPincodeConflict({
+      categoryId,
       pincodes: servicePincodes,
     });
 
-    if (conflictingVendor) {
+    if (conflictingCategoryVendor) {
       return res.status(409).json({
         success: false,
-        message: isCustomPackageVendor
-          ? "One or more of these pincodes are already served by another custom package vendor."
-          : "One or more of these pincodes are already served by another vendor for this package.",
+        message: "One or more of these pincodes are already served by another vendor for this category.",
       });
     }
 
@@ -180,8 +161,7 @@ export const createVendor = async (req, res) => {
       city: city.trim(),
       state: state.trim(),
       pincode: pincode.trim(),
-      package: packageId || undefined,
-      isCustomPackageVendor,
+      category: categoryId,
       servicePincodes,
       logo: logoData,
       description: description?.trim() || "",
@@ -225,7 +205,7 @@ export const getAllVendors = async (req, res) => {
   try {
     const vendors = await Vendor.find()
       .populate("userId", "name phone email")
-      .populate("package", "name")
+      .populate("category", "name")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -259,7 +239,7 @@ export const getOneVendor = async (req, res) => {
 
     const vendor = await Vendor.findById(id)
       .populate("userId", "name email phone role")
-      .populate("package", "name")
+      .populate("category", "name")
       .lean();
 
     if (!vendor) {
@@ -298,18 +278,13 @@ export const updateVendor = async (req, res) => {
       state,
       pincode,
       description,
-      package: packageId,
+      category: categoryId,
     } = req.body;
 
     const servicePincodes =
       req.body.servicePincodes !== undefined
         ? parseServicePincodes(req.body.servicePincodes)
         : undefined;
-
-    const isCustomPackageVendorProvided = req.body.isCustomPackageVendor !== undefined;
-    const requestedIsCustomPackageVendor = isCustomPackageVendorProvided
-      ? parseBoolean(req.body.isCustomPackageVendor)
-      : undefined;
 
     // Validate Vendor Id
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -406,73 +381,52 @@ export const updateVendor = async (req, res) => {
       }
     }
 
-    // Package / custom-package-vendor change
-    const effectiveIsCustomPackageVendor =
-      requestedIsCustomPackageVendor !== undefined
-        ? requestedIsCustomPackageVendor
-        : vendor.isCustomPackageVendor;
-
-    if (effectiveIsCustomPackageVendor && packageId) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "A vendor can either serve a fixed package or be the custom package vendor, not both.",
-      });
-    }
-
-    if (packageId) {
-      if (!mongoose.Types.ObjectId.isValid(packageId)) {
+    if (categoryId) {
+      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid Package ID.",
+          message: "Invalid Category ID.",
         });
       }
 
-      const packageExists = await Package.findById(packageId).lean();
-      if (!packageExists) {
+      const categoryExists = await Category.findById(categoryId).lean();
+      if (!categoryExists) {
         return res.status(404).json({
           success: false,
-          message: "Package not found.",
+          message: "Category not found.",
         });
       }
     }
 
-    const effectivePackageId = packageId || vendor.package;
-    if (!effectiveIsCustomPackageVendor && !effectivePackageId) {
+    const effectiveCategoryId = categoryId || vendor.category;
+    if (!effectiveCategoryId) {
       return res.status(400).json({
         success: false,
-        message: "Package is required unless this vendor is the custom package vendor.",
+        message: "Category is required.",
       });
     }
 
-    const packageChanged = packageId && packageId !== String(vendor.package);
-    const customFlagChanged =
-      requestedIsCustomPackageVendor !== undefined &&
-      requestedIsCustomPackageVendor !== vendor.isCustomPackageVendor;
+    const categoryChanged = categoryId && categoryId !== String(vendor.category);
 
-    // Service pincodes and/or package/custom-flag change — re-check the
-    // (pincode, package) or (pincode, custom) uniqueness rule against every
-    // other vendor. This must also run when only the package/flag changes
-    // (servicePincodes omitted), since the vendor's existing pincodes now
-    // need to be unique under the new package/flag too. Empty array is
-    // allowed (unassigns delivery areas).
-    if (servicePincodes !== undefined || packageChanged || customFlagChanged) {
+    // Service pincodes and/or category change — re-check the (pincode,
+    // category) uniqueness rule against every other vendor. This must also
+    // run when only the category changes (servicePincodes omitted), since
+    // the vendor's existing pincodes now need to be unique under the new
+    // category too. Empty array is allowed (unassigns delivery areas).
+    if (servicePincodes !== undefined || categoryChanged) {
       const effectivePincodes =
         servicePincodes !== undefined ? servicePincodes : vendor.servicePincodes;
 
-      const conflictingVendor = await findPincodeConflict({
+      const conflictingCategoryVendor = await findCategoryPincodeConflict({
         excludeVendorId: vendor._id,
-        isCustomPackageVendor: effectiveIsCustomPackageVendor,
-        packageId: effectivePackageId,
+        categoryId: effectiveCategoryId,
         pincodes: effectivePincodes,
       });
 
-      if (conflictingVendor) {
+      if (conflictingCategoryVendor) {
         return res.status(409).json({
           success: false,
-          message: effectiveIsCustomPackageVendor
-            ? "One or more of these pincodes are already served by another custom package vendor."
-            : "One or more of these pincodes are already served by another vendor for this package.",
+          message: "One or more of these pincodes are already served by another vendor for this category.",
         });
       }
 
@@ -481,14 +435,8 @@ export const updateVendor = async (req, res) => {
       }
     }
 
-    if (requestedIsCustomPackageVendor !== undefined) {
-      vendor.isCustomPackageVendor = requestedIsCustomPackageVendor;
-    }
-
-    if (effectiveIsCustomPackageVendor) {
-      vendor.package = null;
-    } else if (packageId) {
-      vendor.package = packageId;
+    if (categoryId) {
+      vendor.category = categoryId;
     }
 
     // Update User fields
@@ -516,7 +464,7 @@ export const updateVendor = async (req, res) => {
 
     const updatedVendor = await Vendor.findById(vendor._id)
       .populate("userId", "name email phone role")
-      .populate("package", "name")
+      .populate("category", "name")
       .lean();
 
     return res.status(200).json({

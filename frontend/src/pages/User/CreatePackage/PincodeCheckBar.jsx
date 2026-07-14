@@ -34,7 +34,7 @@ export default function PincodeCheckBar() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await checkServiceAvailability(pincode.trim(), undefined, true);
+      const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
         setResult({ available: true, message: "Great news! We deliver to your area." });
       } else {

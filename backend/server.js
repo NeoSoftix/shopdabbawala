@@ -32,6 +32,7 @@ import orderRoutes from "./src/routes/order.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import contactQueryRoutes from "./src/routes/contactQuery.routes.js";
 import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
+import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
 
 const app = express();
 
@@ -116,6 +117,9 @@ app.use("/api/contact", contactQueryRoutes);
 
 // delivery charge routes
 app.use("/api/delivery-charges", deliveryChargeRoutes);
+
+// weekly per-category menu routes
+app.use("/api/weekly-menu", weeklyMenuRoutes);
 
 
 const httpServer = http.createServer(app);

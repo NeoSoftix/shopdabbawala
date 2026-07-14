@@ -169,11 +169,10 @@ export default function useCheckoutFlow({
 
     setLoading(true);
     try {
-      const res = await checkServiceAvailability(
-        pincode.trim(),
-        mode === "packages" ? planId : undefined,
-        mode === "create",
-      );
+      // No category is known yet at checkout time (that's chosen later,
+      // per-day, when the customer actually schedules meals) - just check
+      // whether any active vendor covers this pincode at all.
+      const res = await checkServiceAvailability(pincode.trim());
       if (res && res.success) {
         toast.success(" Great news! We deliver to your area.");
         // Logged-in users skip Mobile + OTP verification entirely and go

@@ -87,6 +87,12 @@ export const adminMenu = [
     icon: MdTune,
   },
 
+  {
+    label: "Weekly Menu",
+    path: "/admin/weekly-menu",
+    icon: MdRestaurantMenu,
+  },
+
 
   {
     label: "Settings",
