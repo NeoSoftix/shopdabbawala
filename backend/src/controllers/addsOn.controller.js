@@ -2,6 +2,7 @@ import AddOn from "../models/addOns.model.js";
 import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary.js";
 import { removeLocalFile } from "../middleware/upload.middleware.js";
+import { getPagination } from "../utils/pagination.js";
 
 // for create the Add On
 export const createAddOn = async (req, res) => {
@@ -89,14 +90,28 @@ export const createAddOn = async (req, res) => {
 // for get all addsOn
 export const getAllAddOns = async (req, res) => {
   try {
-    const addOns = await AddOn.find().sort({ createdAt: -1 });
 
-    return res.status(200).json({
-      message: "Successful Fetch all Add Ons",
-      data: addOns,
+    const {page, limit, skip} = getPagination(req)
+
+    const [addOns, total] = await Promise.all([
+      AddOn.find().sort().limit(limit).skip(skip),
+
+      AddOn.countDocuments()
+
+    ])
+
+   return res.status(200).json({
+    message: "Add Ons fetched successfully",
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: addOns.length,
-    });
+      data: addOns,
+   })
+
+
   } catch (error) {
     console.log("Get all Add Ons error", error);
 
@@ -330,13 +345,24 @@ export const toggleStatus = async (req, res) => {
 // get active Add On
 export const getActiveAddOns = async (req, res) => {
   try {
-    const addOns = await AddOn.find({
-      isActive: true,
-    }).sort({ createdAt: -1 });
+    const { page, limit, skip } = getPagination(req);
+
+    const [addOns, total] = await Promise.all([
+      AddOn.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      AddOn.countDocuments({ isActive: true }),
+    ]);
 
     return res.status(200).json({
       message: "Active Add Ons fetched successfully",
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: addOns.length,
       data: addOns,
     });

@@ -8,6 +8,7 @@ import passwordGenerator from "../../utils/generatePassword.js";
 import { sendEmail } from "../../utils/email/sendEmail.js";
 import { vendorWelcomeTemplate } from "../../utils/email/welcomeTemplate.js";
 import { removeLocalFile } from "../../middleware/upload.middleware.js";
+import { getPagination } from "../../utils/pagination.js";
 
 // Parses the servicePincodes field sent from the client, which arrives as a
 // JSON-stringified array (multipart form fields can only carry strings).
@@ -223,14 +224,43 @@ export const createVendor = async (req, res) => {
 // contoller for get all vendor
 export const getAllVendors = async (req, res) => {
   try {
-    const vendors = await Vendor.find()
-      .populate("userId", "name phone email")
-      .populate("package", "name")
-      .sort({ createdAt: -1 })
-      .lean();
+    const { search } = req.query;
+    const { page, limit, skip } = getPagination(req);
+
+    let query = {};
+
+    if (search) {
+      const matchingUsers = await User.find({
+        role: "vendor",
+        name: { $regex: search, $options: "i" },
+      }).select("_id");
+
+      query = {
+        $or: [
+          { organizationName: { $regex: search, $options: "i" } },
+          { userId: { $in: matchingUsers.map((u) => u._id) } },
+        ],
+      };
+    }
+
+    const [vendors, total] = await Promise.all([
+      Vendor.find(query)
+        .populate("userId", "name phone email")
+        .populate("package", "name")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Vendor.countDocuments(query),
+    ]);
 
     return res.status(200).json({
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: vendors.length,
       data: vendors,
     });

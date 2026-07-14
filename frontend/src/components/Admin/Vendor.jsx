@@ -4,14 +4,16 @@ import {
   getAllVendors,
   deleteVendor,
   updateVendor,
+  toggleVendorStatus,
 } from "../../services/vendor.service.js";
 import { getActivePackages } from "../../services/package.service.js";
-import { PageLoader } from "../shared/Loader";
+import { SectionLoader } from "../shared/Loader";
 import VendorAlerts from "./Vendor/VendorAlerts";
 import VendorHeader from "./Vendor/VendorHeader";
 import VendorCardList from "./Vendor/VendorCardList";
 import DeleteVendorModal from "./Vendor/DeleteVendorModal";
 import UpdateVendorModal from "./Vendor/UpdateVendorModal";
+import Pagination from "../shared/Pagination";
 
 const VendorList = () => {
   const navigate = useNavigate();
@@ -21,6 +23,9 @@ const VendorList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVendors, setTotalVendors] = useState(0);
 
   // --- MODALS STATES ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -29,6 +34,8 @@ const VendorList = () => {
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [selectedVendorActive, setSelectedVendorActive] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
 
   // --- UPDATE FORM STATE ---
   const [formData, setFormData] = useState({
@@ -51,7 +58,6 @@ const VendorList = () => {
   const [packages, setPackages] = useState([]);
 
   useEffect(() => {
-    fetchVendors();
     getActivePackages()
       .then((res) => {
         if (res.success) setPackages(res.data || []);
@@ -59,13 +65,26 @@ const VendorList = () => {
       .catch((err) => console.error("Failed to fetch packages:", err));
   }, []);
 
-  // 1. Fetch All Vendors
+  // Reset to page 1 whenever the search term changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    fetchVendors();
+  }, [page, searchTerm]);
+
+  // 1. Fetch Vendors (paginated, optionally filtered by search)
   const fetchVendors = async () => {
     try {
       setLoading(true);
       setError("");
-      const res = await getAllVendors();
-      if (res.success) setVendors(res.data || []);
+      const res = await getAllVendors(page, 10, searchTerm);
+      if (res.success) {
+        setVendors(res.data || []);
+        setTotalPages(res.totalPages || 1);
+        setTotalVendors(res.total || 0);
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -115,7 +134,26 @@ const VendorList = () => {
       isCustomPackageVendor: !!vendor.isCustomPackageVendor,
     });
     setSelectedFile(null);
+    setSelectedVendorActive(!!vendor.isActive);
     setIsUpdateModalOpen(true);
+  };
+
+  // Toggle Active / Inactive Status
+  const handleToggleStatus = async (nextIsActive) => {
+    try {
+      setTogglingStatus(true);
+      const res = await toggleVendorStatus(selectedVendorId, nextIsActive);
+      if (res.success) {
+        setSelectedVendorActive(nextIsActive);
+        setSuccess(res.message || "Vendor status updated successfully!");
+        fetchVendors();
+        setTimeout(() => setSuccess(""), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update vendor status");
+    } finally {
+      setTogglingStatus(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -181,35 +219,35 @@ const VendorList = () => {
     }
   };
 
-  const filteredVendors = vendors.filter(
-    (vendor) =>
-      vendor.organizationName
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      vendor.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  if (loading) {
-    return <PageLoader />;
-  }
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-8">
       <VendorAlerts success={success} error={error} />
 
       <VendorHeader
-        count={filteredVendors.length}
+        count={totalVendors}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAddClick={() => navigate("/admin/vendors/add")}
       />
 
-      <VendorCardList
-        vendors={filteredVendors}
-        error={error}
-        onEdit={handleEditClick}
-        onDelete={handleDeleteClick}
-      />
+      {loading ? (
+        <SectionLoader text="Loading vendors..." />
+      ) : (
+        <>
+          <VendorCardList
+            vendors={vendors}
+            error={error}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
+          />
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
 
       <DeleteVendorModal
         isOpen={isDeleteModalOpen}
@@ -228,6 +266,9 @@ const VendorList = () => {
         onFileChange={handleFileChange}
         onSubmit={handleUpdateSubmit}
         onClose={() => setIsUpdateModalOpen(false)}
+        isActive={selectedVendorActive}
+        togglingStatus={togglingStatus}
+        onToggleStatus={handleToggleStatus}
       />
     </div>
   );

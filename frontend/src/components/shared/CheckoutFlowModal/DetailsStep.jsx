@@ -24,6 +24,9 @@ export default function DetailsStep({ formData, setFormData, sessionId, error, l
       <InputField label="Full Name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
       <InputField label="Email Address" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
       <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+      {formData.pincode && (
+        <InputField label="Pincode" value={formData.pincode} readOnly required={false} onChange={() => {}} />
+      )}
       <div className="mt-2">
         <ErrorMessage error={error} />
         <SubmitBtn label="Submit Details" loading={loading} />

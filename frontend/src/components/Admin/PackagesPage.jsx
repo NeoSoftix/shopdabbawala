@@ -11,6 +11,7 @@ const PackagesPage = () => {
     loadingPackages,
     savingPackage,
     deletingId,
+    togglingId,
     editId,
     formData,
     toggleForm,
@@ -18,8 +19,11 @@ const PackagesPage = () => {
     handleChange,
     handleSavePackage,
     handleDelete,
+    handleToggleStatus,
     handleEditClick,
   } = usePackages();
+
+  const editingPackage = editId ? packages.find((p) => p._id === editId) : null;
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 sm:p-6 lg:p-8 font-sans antialiased text-gray-900">
@@ -72,10 +76,13 @@ const PackagesPage = () => {
           <PackageFormPanel
             formData={formData}
             editId={editId}
+            isActive={editingPackage?.isActive}
             savingPackage={savingPackage}
+            togglingId={togglingId}
             onChange={handleChange}
             onSubmit={handleSavePackage}
             onCancel={closeForm}
+            onToggleStatus={handleToggleStatus}
           />
         )}
       </div>

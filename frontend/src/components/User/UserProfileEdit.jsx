@@ -18,7 +18,7 @@ export default function UserProfileEdit({ isOpen, onClose }) {
         email: user.email || "",
         phone: user.phone || "",
         address: user.address || "",
-        pincode: user.pincode || "",
+        pincode: user.pincode || localStorage.getItem("pincode") || "",
       });
     }
   }, [user, isOpen]);

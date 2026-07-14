@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { SiStripe } from 'react-icons/si';
 import { getMyOrders } from '../../services/order.service';
+import Pagination from '../shared/Pagination';
 
 const STATUS_STYLES = {
   Pending: 'bg-yellow-100 text-yellow-700',
@@ -152,26 +153,12 @@ export default function UserHistoryDetails({ subscriptions }) {
                 )}
 
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-2">
-                    <button
-                      onClick={() => setPage((prev) => prev - 1)}
-                      disabled={page <= 1}
-                      className="px-4 py-2 border rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-
-                    <span className="text-sm font-medium text-gray-600">
-                      Page {page} of {totalPages}
-                    </span>
-
-                    <button
-                      onClick={() => setPage((prev) => prev + 1)}
-                      disabled={page >= totalPages}
-                      className="px-4 py-2 border rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
+                  <div className="pt-2">
+                    <Pagination
+                      currentPage={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                    />
                   </div>
                 )}
               </section>

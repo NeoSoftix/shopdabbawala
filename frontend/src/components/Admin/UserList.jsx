@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react";
-import { FiEye, FiSearch } from "react-icons/fi";
+import { FiEye, FiSearch, FiX } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
-import { getAllCustomers, deleteCustomer } from "../../services/customer.service";
+import { getAllCustomers, deleteCustomer, getOneCustomer } from "../../services/customer.service";
 import { toast } from "react-hot-toast";
 import { SectionLoader } from "../shared/Loader";
+import Pagination from "../shared/Pagination";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const fetchCustomers = async (searchVal = "") => {
+  const fetchCustomers = async (searchVal = "", pageNum = 1) => {
     try {
       setLoading(true);
-      const res = await getAllCustomers(searchVal);
+      const res = await getAllCustomers(searchVal, pageNum);
       if (res.success) {
         setUsers(res.customers || []);
+        setTotalPages(res.totalPages || 1);
       }
     } catch (error) {
       console.error("Fetch Customers Error:", error);
@@ -26,8 +32,26 @@ const Users = () => {
   };
 
   useEffect(() => {
-    fetchCustomers(search);
+    setPage(1);
   }, [search]);
+
+  useEffect(() => {
+    fetchCustomers(search, page);
+  }, [search, page]);
+
+  const handleView = async (id) => {
+    setDetailsLoading(true);
+    try {
+      const res = await getOneCustomer(id);
+      if (res.success) {
+        setSelectedUser(res.customer);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load customer details.");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
 
   const handleDelete = (id, name) => {
     toast(
@@ -43,7 +67,7 @@ const Users = () => {
                   const res = await deleteCustomer(id);
                   if (res.success) {
                     toast.success(res.message || "Customer deleted successfully.");
-                    fetchCustomers(search);
+                    fetchCustomers(search, page);
                   }
                 } catch (error) {
                   toast.error(error.response?.data?.message || "Failed to delete customer.");
@@ -122,8 +146,9 @@ const Users = () => {
 
                       <td className="py-4">
                         <div className="flex justify-center gap-4">
-                          <button 
+                          <button
                             title="View Customer"
+                            onClick={() => handleView(user._id)}
                             className="p-1 hover:bg-gray-100 rounded transition-colors"
                           >
                             <FiEye className="text-gray-500 text-lg" />
@@ -148,10 +173,83 @@ const Users = () => {
                   <p className="text-gray-400 text-base">No Customers Found</p>
                 </div>
               )}
+
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </>
           )}
         </div>
       </div>
+
+      {(selectedUser || detailsLoading) && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelectedUser(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Close"
+            >
+              <FiX className="text-gray-500 text-lg" />
+            </button>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Customer Details</h3>
+
+            {detailsLoading ? (
+              <SectionLoader text="Loading details..." />
+            ) : (
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">Name</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.name || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">Email</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.email || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">Phone</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.phone || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">Address</span>
+                  <span className="text-gray-800 font-medium text-right">
+                    {selectedUser.address || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">Pincode</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.pincode || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Joined On</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.createdAt
+                      ? new Date(selectedUser.createdAt).toLocaleDateString()
+                      : "Not set"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

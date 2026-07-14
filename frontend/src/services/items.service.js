@@ -82,9 +82,9 @@ export const deleteItem = async (id) => {
 
 // get all items service
 
-export const getAllItems = async () => {
+export const getAllItems = async (page = 1, limit = 10) => {
     try {
-        const res = await API.get("/items")
+        const res = await API.get("/items", { params: { page, limit } })
 
         return res.data
     } catch (error) {

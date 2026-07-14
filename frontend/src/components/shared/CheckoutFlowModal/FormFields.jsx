@@ -3,19 +3,20 @@ import { FiLoader, FiX, FiArrowRight } from "react-icons/fi";
 /**
  * Small presentational primitives shared across the CheckoutFlowModal steps.
  */
-export const InputField = ({ label, type = "text", placeholder, value, onChange, maxLength, extraClass = "" }) => (
+export const InputField = ({ label, type = "text", placeholder, value, onChange, maxLength, extraClass = "", readOnly = false, required = true }) => (
   <div>
     <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
       {label}
     </label>
     <input
       type={type}
-      required
+      required={required}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
       maxLength={maxLength}
-      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all ${extraClass}`}
+      readOnly={readOnly}
+      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all ${readOnly ? "opacity-70 cursor-not-allowed" : ""} ${extraClass}`}
     />
   </div>
 );

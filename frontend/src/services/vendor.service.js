@@ -1,9 +1,11 @@
 import API from "./api.js";
 
 // 1. Get All Vendors
-export const getAllVendors = async () => {
+export const getAllVendors = async (page = 1, limit = 10, search = "") => {
   try {
-    const res = await API.get("/vendor");
+    const params = { page, limit };
+    if (search) params.search = search;
+    const res = await API.get("/vendor", { params });
     return res.data;
   } catch (error) {
     console.error("Get all vendors error:", error);

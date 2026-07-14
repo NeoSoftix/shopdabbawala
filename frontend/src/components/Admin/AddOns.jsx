@@ -9,6 +9,7 @@ import {
 } from "../../services/addOn.service.js";
 import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import Pagination from "../shared/Pagination";
 
 const AddOns = () => {
   const navigate = useNavigate();
@@ -19,14 +20,17 @@ const AddOns = () => {
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [errors, setErrors] = useState({});
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchAddOns = async () => {
+  const fetchAddOns = async (pageNum = 1) => {
     try {
       setLoading(true);
 
-      const response = await getAllAddOns();
+      const response = await getAllAddOns(pageNum);
 
       setAddons(response.data || []);
+      setTotalPages(response.totalPages || 1);
     } catch (error) {
       console.log(error);
     } finally {
@@ -35,8 +39,8 @@ const AddOns = () => {
   };
 
   useEffect(() => {
-    fetchAddOns();
-  }, []);
+    fetchAddOns(page);
+  }, [page]);
 
   const getStatusBadge = (isActive) =>
     isActive
@@ -56,7 +60,7 @@ const AddOns = () => {
                 try {
                   await deleteAddOn(id);
                   toast.success("Add-on deleted successfully.");
-                  fetchAddOns();
+                  fetchAddOns(page);
                 } catch (error) {
                   toast.error("Failed to delete add-on.");
                 }
@@ -81,7 +85,7 @@ const AddOns = () => {
   const handleToggleStatus = async (id) => {
     try {
       await toggleStatus(id);
-      fetchAddOns();
+      fetchAddOns(page);
     } catch (error) {
       console.log(error);
     }
@@ -127,7 +131,7 @@ const AddOns = () => {
       setSelectedAddOn(null);
       setUpdateImage(null);
 
-      fetchAddOns();
+      fetchAddOns(page);
       toast.success("Add-on updated successfully.");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to update add-on.");
@@ -263,6 +267,12 @@ const AddOns = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {/* update modal */}
       {showModal && selectedAddOn && (

@@ -9,6 +9,9 @@ import {
 import { getAllMeals } from "../../services/meal.service.js";
 import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import Pagination from "../shared/Pagination";
+
+const PAGE_SIZE = 10;
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ const Categories = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchCategories();
@@ -40,12 +44,19 @@ const Categories = () => {
       setLoading(true);
       const res = await getAllCategories();
       setCategories(res.data);
+      setPage(1);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to fetch categories.");
     } finally {
       setLoading(false);
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(categories.length / PAGE_SIZE));
+  const paginatedCategories = categories.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const handleDelete = (id) => {
     toast(
@@ -163,7 +174,7 @@ const Categories = () => {
           </thead>
 
           <tbody>
-            {categories.map((category, index) => (
+            {paginatedCategories.map((category, index) => (
               <tr
                 key={category._id}
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
@@ -242,6 +253,12 @@ const Categories = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {isEditOpen && selectedCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
