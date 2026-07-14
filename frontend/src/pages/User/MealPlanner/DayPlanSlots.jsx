@@ -10,15 +10,9 @@ const DayPlanSlots = ({
   onRemoveOne,
   onSubmit,
   submitting,
-  editLocked = false,
 }) => {
   return (
     <>
-      {editLocked && (
-        <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-xs font-semibold text-amber-700">
-          This order can no longer be edited — changes are only allowed until 12 PM the day before.
-        </div>
-      )}
       <div className="pt-1">
         <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-[#1B254B] border-b border-gray-100 pb-2 mb-3">
           <span className="uppercase text-[#A3AED0]">
@@ -96,7 +90,7 @@ const DayPlanSlots = ({
       <div className="pt-3 border-t border-gray-100 flex items-center justify-end">
         <button
           type="button"
-          disabled={submitting || editLocked}
+          disabled={submitting}
           onClick={onSubmit}
           className="w-full sm:w-auto bg-[#E31A1A] hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5"
         >

@@ -2,6 +2,7 @@ import express from "express";
 import {
   createPackageCheckout,
   createAddonCheckout,
+  createDayAddonCheckout,
   stripeWebhook,
   saveCheckoutDetails,
   createScheduledSubscription,
@@ -17,6 +18,9 @@ router.post("/package-checkout", verifyToken, createPackageCheckout);
 
 // Add-ons Cart Checkout
 router.post("/addon-checkout", verifyToken, createAddonCheckout);
+
+// Per-day add-ons checkout (extra items on top of an already-scheduled meal)
+router.post("/day-addon-checkout", verifyToken, createDayAddonCheckout);
 
 // Get Checkout Session Details
 router.get("/session/:sessionId", verifyToken, getCheckoutSession);

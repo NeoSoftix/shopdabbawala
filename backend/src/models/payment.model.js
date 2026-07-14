@@ -31,16 +31,23 @@ const paymentSchema = new mongoose.Schema(
     // delivery details are available.
     items: [
       {
-        addon: { type: mongoose.Schema.Types.ObjectId, ref: "AddOns" },
+        addon: { type: mongoose.Schema.Types.ObjectId, ref: "AddOn" },
         name: String,
         qty: { type: Number, default: 1 },
         price: Number,
       },
     ],
 
+    // The specific (subscription, date) a DAY_ADDON_ORDER's add-ons should
+    // be attached to once paid - unused by every other paymentType.
+    dayAddonDate: {
+      type: Date,
+      default: null,
+    },
+
     paymentType: {
       type: String,
-      enum: ["ADMIN_PACKAGE", "CUSTOM_PACKAGE", "ADDON_ORDER"],
+      enum: ["ADMIN_PACKAGE", "CUSTOM_PACKAGE", "ADDON_ORDER", "DAY_ADDON_ORDER"],
       required: true,
     },
 

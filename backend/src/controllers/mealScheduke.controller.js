@@ -9,4 +9,4 @@
 export { updateDaySchedule } from "./mealSchedule/daySchedule.controller.js";
 export { addMealPlanAddress, deleteMealPlanAddress } from "./mealSchedule/address.controller.js";
 export { createMealSchedule, getMyMealPlan, getDayStatuses, updateDayOrderStatus } from "./mealSchedule/mealSchedule.controller.js";
-export { updateDayAddons, getDayAddonsSummary } from "./mealSchedule/dayAddons.controller.js";
+export { getDayAddonsSummary } from "./mealSchedule/dayAddons.controller.js";

@@ -26,7 +26,6 @@ const MealScheduleBuilder = ({
   onToggleDayActive,
   onDayConfirmed,
   dayAddOns,
-  onDayAddOnsSaved,
 }) => {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
@@ -110,11 +109,6 @@ const MealScheduleBuilder = ({
   const toggleItemForDay = (item) => {
     if (!item) return;
 
-    if (editCutoffPassed) {
-      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
-      return;
-    }
-
     setWeeklyPlan((prev) => {
       const currentDayItems = prev[selectedDateKey] || [];
 
@@ -164,11 +158,6 @@ const MealScheduleBuilder = ({
   };
 
   const updateItemQuantity = (item, change) => {
-    if (editCutoffPassed) {
-      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
-      return;
-    }
-
     setWeeklyPlan((prev) => {
       const currentDayItems =
         prev[selectedDateKey] || [];
@@ -299,22 +288,11 @@ const MealScheduleBuilder = ({
 
   const currentDayMeals = weeklyPlan[selectedDateKey] || [];
 
-  // Once an order has actually been placed for this date (dayStatus has an
-  // entry for it), editing is only allowed up to 12 PM IST (noon, India
-  // Standard Time) the day before - mirrors the backend cutoff in
-  // createMealSchedule. Computed as 6:30 AM UTC (= noon IST, since
-  // IST = UTC+5:30) so it matches regardless of the browser's own timezone.
-  // A day with no placed order yet is unaffected (first-time scheduling,
-  // any time within the active week).
+  // Whether an order has actually been placed for this date yet (dayStatus
+  // has an entry for it) - used to gate add-ons (extras can only ride along
+  // on a day that already has a meal scheduled), not to restrict editing:
+  // users can edit their meal for any day, any time.
   const hasPlacedOrder = Boolean(dayStatus?.[selectedDateKey]);
-  const editCutoffPassed = (() => {
-    if (!hasPlacedOrder) return false;
-    const cutoff = new Date(selectedDate);
-    cutoff.setUTCHours(0, 0, 0, 0);
-    cutoff.setUTCDate(cutoff.getUTCDate() - 1);
-    cutoff.setUTCHours(6, 30, 0, 0);
-    return new Date() > cutoff;
-  })();
 
   const expandedDayMeals = currentDayMeals.flatMap((meal) =>
     Array.from(
@@ -338,11 +316,6 @@ const MealScheduleBuilder = ({
 
     if (!isSelectableDate(selectedDate, subscription)) {
       toast.error("This date can't be scheduled — it's either in the past or outside your plan's validity.");
-      return;
-    }
-
-    if (editCutoffPassed) {
-      toast.error("This order can no longer be edited — changes are only allowed until 12 PM the day before.");
       return;
     }
 
@@ -462,7 +435,6 @@ const MealScheduleBuilder = ({
               onRemoveOne={(_, itemId) => removeOneItemFromDay(selectedDateKey, itemId)}
               onSubmit={handleSubmitDay}
               submitting={submitting}
-              editLocked={editCutoffPassed}
             />
           </div>
 
@@ -472,8 +444,6 @@ const MealScheduleBuilder = ({
             subscriptionId={subscriptionId}
             hasScheduledMeal={hasPlacedOrder}
             savedDayAddons={dayAddOns?.[selectedDateKey]}
-            editLocked={editCutoffPassed}
-            onSaved={onDayAddOnsSaved}
           />
         </div>
       </div>

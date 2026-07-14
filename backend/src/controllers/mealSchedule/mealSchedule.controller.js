@@ -225,33 +225,6 @@ export const createMealSchedule = async (req, res) => {
       });
     }
 
-    // Once an order has actually been placed for this date, editing it is
-    // only allowed up to 12 PM (noon) the day before - after that the vendor
-    // needs certainty to start preparing. First-time scheduling for a date
-    // that has no order yet is unaffected by this cutoff.
-    const existingOrderForDate = await Order.findOne({
-      user: userId,
-      subscription: subscriptionId,
-      date: requestDate,
-    }).select("_id");
-
-    if (existingOrderForDate) {
-      // "12 PM" means 12 PM India Standard Time (UTC+5:30) - production runs
-      // in UTC (Render etc. default to UTC regardless of dev machine
-      // timezone), so the cutoff has to be computed as 6:30 AM UTC (= noon
-      // IST), not 12:00 UTC (which would actually be 5:30 PM IST).
-      const editCutoff = new Date(requestDate);
-      editCutoff.setUTCDate(editCutoff.getUTCDate() - 1);
-      editCutoff.setUTCHours(6, 30, 0, 0);
-
-      if (new Date() > editCutoff) {
-        return res.status(400).json({
-          success: false,
-          message: "This order can no longer be edited - changes are only allowed until 12 PM the day before.",
-        });
-      }
-    }
-
     // ================= FORMAT ITEMS =================
 
     const formattedItems = items.map((meal) => ({

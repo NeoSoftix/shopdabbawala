@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Vendor from "../../models/vendor.model.js";
 import User from "../../models/User.model.js";
-import Category from "../../models/category.model.js";
 import cloudinary from "../../config/cloudinary.js";
 import bcrypt from "bcryptjs";
 import passwordGenerator from "../../utils/generatePassword.js";
