@@ -14,6 +14,7 @@ import VendorCardList from "./Vendor/VendorCardList";
 import DeleteVendorModal from "./Vendor/DeleteVendorModal";
 import UpdateVendorModal from "./Vendor/UpdateVendorModal";
 import Pagination from "../shared/Pagination";
+import { SectionLoader } from "../shared/Loader";
 
 const VendorList = () => {
   const navigate = useNavigate();
