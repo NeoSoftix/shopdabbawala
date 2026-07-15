@@ -139,42 +139,42 @@ const Item = () => {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full min-w-[1000px] text-sm text-slate-600">
+      <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <table className="w-full min-w-[1000px] text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-4">Name</th>
-              <th className="px-4 py-4">Description</th>
-              <th className="px-4 py-4">Category</th>
-              <th className="px-4 py-4">Allergies</th>
-              <th className="px-4 py-4">Action</th>
+            <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-4 px-4">Name</th>
+              <th className="py-4 px-4">Description</th>
+              <th className="py-4 px-4">Category</th>
+              <th className="py-4 px-4">Allergies</th>
+              <th className="py-4 px-4 text-right">Action</th>
             </tr>
           </thead>
 
-          <tbody>
-            {items.map((item, index) => (
+          <tbody className="divide-y divide-gray-50">
+            {items.map((item) => (
               <tr
                 key={item._id}
-                className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+                className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="px-4 py-4 align-middle font-medium text-slate-900">
+                <td className="py-4 px-4 text-sm font-semibold text-gray-800">
                   {item.name}
                 </td>
 
-                <td className="px-4 py-4 align-middle text-slate-600 max-w-[200px] truncate">
+                <td className="py-4 px-4 text-sm text-gray-500 max-w-[200px] truncate">
                   {item.description}
                 </td>
 
-                <td className="px-4 py-4 align-middle">
+                <td className="py-4 px-4 text-sm text-gray-600">
                   {item.category?.name}
                 </td>
 
-                <td className="px-4 py-4 align-middle max-w-[200px] truncate">
+                <td className="py-4 px-4 text-sm text-gray-500 max-w-[200px] truncate">
                   {item.allergies?.join(", ")}
                 </td>
 
-                <td className="px-4 py-4 align-middle">
-                  <div className="flex flex-wrap items-center gap-2">
+                <td className="py-4 px-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => {
                         setSelectedItem(item);
@@ -183,7 +183,7 @@ const Item = () => {
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                       aria-label="Edit item"
                     >
-                      <MdEdit size={20} />
+                      <MdEdit size={18} />
                     </button>
 
                     <button
@@ -191,7 +191,7 @@ const Item = () => {
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
                       aria-label="Delete item"
                     >
-                      <MdDelete size={20} />
+                      <MdDelete size={18} />
                     </button>
                   </div>
                 </td>
@@ -210,7 +210,7 @@ const Item = () => {
               <tr>
                 <td
                   colSpan="5"
-                  className="px-4 py-8 text-center text-slate-500"
+                  className="text-center py-8 text-sm text-gray-400"
                 >
                   No items found. Create one to get started.
                 </td>

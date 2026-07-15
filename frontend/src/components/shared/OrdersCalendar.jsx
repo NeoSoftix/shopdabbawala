@@ -149,12 +149,6 @@ export default function OrdersCalendar() {
             {monthNames[month]} {year}
             {loadingCounts && <FiLoader className="w-4 h-4 animate-spin text-slate-400" />}
           </h2>
-
-          <div className="flex bg-slate-900 rounded-lg p-1 text-white text-xs font-semibold">
-            <button className="px-4 py-1.5 bg-slate-700 rounded-md">Month</button>
-            <button className="px-4 py-1.5 hover:bg-slate-800 rounded-md transition-colors">Week</button>
-            <button className="px-4 py-1.5 hover:bg-slate-800 rounded-md transition-colors">Day</button>
-          </div>
         </div>
 
         {/* Calendar Grid */}

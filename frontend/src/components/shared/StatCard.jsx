@@ -13,7 +13,7 @@ export default function StatCard({
       overflow-hidden
       bg-white
       rounded-[24px]
-      p-5
+      p-3
       border border-gray-100
       shadow-[0_8px_25px_rgba(0,0,0,0.05)]
       hover:shadow-[0_15px_35px_rgba(226,55,71,0.10)]
@@ -28,11 +28,11 @@ export default function StatCard({
       <div className="flex items-start justify-between">
         {/* Left */}
         <div>
-          <p className="text-[13px] text-gray-500 font-medium">
+          <p className="text-[12px] text-gray-500 font-medium">
             {title}
           </p>
 
-          <h3 className="mt-2 text-3xl font-black text-gray-900 leading-none">
+          <h3 className="mt-2 text-xl font-black text-gray-900 leading-none">
             {value}
           </h3>
 
@@ -47,7 +47,7 @@ export default function StatCard({
               rounded-full
               bg-green-50
               text-green-600
-              text-[11px]
+              text-[12px]
               font-semibold
             "
             >
@@ -59,8 +59,8 @@ export default function StatCard({
         {/* Icon */}
         <div
           className="
-          w-12
-          h-12
+          w-10
+          h-10
           rounded-2xl
           bg-gradient-to-br
           from-[#E23747]
@@ -72,7 +72,7 @@ export default function StatCard({
         "
         >
           <Icon
-            size={20}
+            size={15}
             className="text-white"
           />
         </div>

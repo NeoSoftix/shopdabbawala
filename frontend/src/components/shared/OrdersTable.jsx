@@ -30,43 +30,45 @@ export default function OrdersTable({
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="font-semibold text-xl">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center justify-between">
+        <h2 className="font-bold text-gray-800 text-base sm:text-lg">
           Recent Orders
         </h2>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b text-left text-gray-500">
-              <th className="pb-4">Order ID</th>
-              <th className="pb-4">Customer</th>
-              <th className="pb-4">Order Date</th>
-              <th className="pb-4">Delivery</th>
-              <th className="pb-4">Status</th>
-              {showActions && <th className="pb-4">Actions</th>}
+            <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-4 px-4">Order ID</th>
+              <th className="py-4 px-4">Customer</th>
+              <th className="py-4 px-4">Order Date</th>
+              <th className="py-4 px-4">Delivery</th>
+              <th className="py-4 px-4">Status</th>
+              {showActions && <th className="py-4 px-4 text-right">Actions</th>}
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-gray-50">
             {orders.map((order) => (
               <tr
                 key={order._id}
-                className="border-b"
+                className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="py-4" title={order._id}>
+                <td className="py-4 px-4 text-sm font-medium text-gray-800" title={order._id}>
                   #{order._id.slice(-6).toUpperCase()}
                 </td>
 
-                <td>{order.user?.name || <span className="text-gray-400 italic">Not set</span>}</td>
+                <td className="py-4 px-4 text-sm text-gray-600">
+                  {order.user?.name || <span className="text-gray-400 italic">Not set</span>}
+                </td>
 
-                <td>{formatDate(order.orderDate)}</td>
+                <td className="py-4 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
 
-                <td>{order.deliveryMethod}</td>
+                <td className="py-4 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
 
-                <td>
+                <td className="py-4 px-4">
                   <div className="flex flex-col items-start gap-1">
                     <span
                       className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -84,15 +86,17 @@ export default function OrdersTable({
                 </td>
 
                 {showActions && (
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedOrder(order)}
-                      title="View order details"
-                      className="text-gray-400 hover:text-[#E23747] transition-colors"
-                    >
-                      <FiEye className="w-4 h-4" />
-                    </button>
+                  <td className="py-4 px-4 text-right">
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrder(order)}
+                        title="View order details"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                      >
+                        <FiEye size={18} />
+                      </button>
+                    </div>
                   </td>
                 )}
               </tr>

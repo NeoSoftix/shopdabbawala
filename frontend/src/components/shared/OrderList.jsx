@@ -55,7 +55,7 @@ const OrderList = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">Orders</h2>
 
@@ -78,41 +78,41 @@ const OrderList = () => {
             <SectionLoader text="Loading orders..." />
           ) : (
             <>
-              <table className="w-full">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-400 text-sm font-medium">
-                    <th className="text-left py-3 font-semibold">Order ID</th>
-                    <th className="text-left py-3 font-semibold">Customer</th>
-                    <th className="text-left py-3 font-semibold">Items</th>
-                    <th className="text-left py-3 font-semibold">Order Date</th>
-                    <th className="text-left py-3 font-semibold">Delivery</th>
-                    <th className="text-center py-3 font-semibold">Status</th>
-                    <th className="text-center py-3 font-semibold">Action</th>
+                  <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                    <th className="py-4 px-4">Order ID</th>
+                    <th className="py-4 px-4">Customer</th>
+                    <th className="py-4 px-4">Items</th>
+                    <th className="py-4 px-4">Order Date</th>
+                    <th className="py-4 px-4">Delivery</th>
+                    <th className="py-4 px-4 text-center">Status</th>
+                    <th className="py-4 px-4 text-center">Action</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-50">
                   {orders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 text-sm font-medium text-gray-800" title={order._id}>
+                    <tr key={order._id} className="hover:bg-gray-50/40 transition-colors duration-150">
+                      <td className="py-4 px-4 text-sm font-medium text-gray-800" title={order._id}>
                         #{order._id.slice(-6).toUpperCase()}
                       </td>
 
-                      <td className="py-4 text-sm text-gray-600">
+                      <td className="py-4 px-4 text-sm text-gray-600">
                         {order.user?.name || <span className="text-gray-400 italic">Not set</span>}
                       </td>
 
-                      <td className="py-4 text-sm text-gray-600 max-w-xs truncate">
+                      <td className="py-4 px-4 text-sm text-gray-600 max-w-xs truncate">
                         {order.items?.length
                           ? order.items.map((it) => `${it.name} x${it.qty}`).join(", ")
                           : <span className="text-gray-400 italic">No items</span>}
                       </td>
 
-                      <td className="py-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
+                      <td className="py-4 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
 
-                      <td className="py-4 text-sm text-gray-600">{order.deliveryMethod}</td>
+                      <td className="py-4 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
 
-                      <td className="py-4">
+                      <td className="py-4 px-4">
                         <div className="flex justify-center">
                           <span
                             className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -124,10 +124,13 @@ const OrderList = () => {
                         </div>
                       </td>
 
-                      <td className="py-4">
-                        <div className="flex justify-center gap-4">
-                          <button title="View Order" className="p-1 hover:bg-gray-100 rounded transition-colors">
-                            <FiEye className="text-gray-500 text-lg" />
+                      <td className="py-4 px-4">
+                        <div className="flex justify-center">
+                          <button
+                            title="View Order"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                          >
+                            <FiEye size={18} />
                           </button>
                         </div>
                       </td>

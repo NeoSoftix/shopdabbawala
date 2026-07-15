@@ -42,7 +42,7 @@ export default function AdminLayout() {
           onNotificationClick={() => setIsNotificationsOpen(true)}
         />
 
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1  overflow-y-auto">
           <Outlet />
         </main>
       </div>

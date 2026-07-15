@@ -148,52 +148,52 @@ const AddOns = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full min-w-[900px] text-sm text-slate-600">
+      <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-4">Name</th>
-              <th className="px-4 py-4">Description</th>
-              <th className="px-4 py-4">Allergies</th>
-              <th className="px-4 py-4">Price</th>
-              <th className="px-4 py-4">Status</th>
-              <th className="px-4 py-4">Action</th>
+            <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-4 px-4">Name</th>
+              <th className="py-4 px-4">Description</th>
+              <th className="py-4 px-4">Allergies</th>
+              <th className="py-4 px-4">Price</th>
+              <th className="py-4 px-4">Status</th>
+              <th className="py-4 px-4 text-right">Action</th>
             </tr>
           </thead>
 
-          <tbody>
-            {addons.map((addon, index) => (
+          <tbody className="divide-y divide-gray-50">
+            {addons.map((addon) => (
               <tr
                 key={addon._id}
-                className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+                className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="px-4 py-4 align-middle font-medium text-slate-900">
+                <td className="py-4 px-4 text-sm font-semibold text-gray-800">
                   {addon.name}
                 </td>
 
-                <td className="px-4 py-4 align-middle text-slate-600 max-w-[260px] truncate">
+                <td className="py-4 px-4 text-sm text-gray-500 max-w-[260px] truncate">
                   {addon.description}
                 </td>
 
-                <td className="px-4 py-4 align-middle text-slate-600 max-w-[220px] truncate">
+                <td className="py-4 px-4 text-sm text-gray-500 max-w-[220px] truncate">
                   {addon.allergies?.join(", ")}
                 </td>
 
-                <td className="px-4 py-4 align-middle font-semibold text-slate-900">
+                <td className="py-4 px-4 text-sm font-bold text-gray-900">
                   ${addon.price}
                 </td>
 
-                <td className="px-4 py-4 align-middle">
+                <td className="py-4 px-4">
                   <span className={getStatusBadge(addon.isActive)}>
                     {addon.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
 
-                <td className="px-4 py-4 align-middle">
-                  <div className="flex flex-wrap items-center gap-2">
+                <td className="py-4 px-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => handleToggleStatus(addon._id)}
-                      className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                      className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-200"
                     >
                       {addon.isActive ? "Disable" : "Enable"}
                     </button>
@@ -210,7 +210,7 @@ const AddOns = () => {
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                       aria-label="Edit add on"
                     >
-                      <MdEdit size={20} />
+                      <MdEdit size={18} />
                     </button>
 
                     <button
@@ -218,7 +218,7 @@ const AddOns = () => {
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
                       aria-label="Delete add on"
                     >
-                      <MdDelete size={20} />
+                      <MdDelete size={18} />
                     </button>
                   </div>
                 </td>
@@ -237,7 +237,7 @@ const AddOns = () => {
               <tr>
                 <td
                   colSpan="6"
-                  className="px-4 py-8 text-center text-slate-500"
+                  className="text-center py-8 text-sm text-gray-400"
                 >
                   No add-ons found. Create one to get started.
                 </td>

@@ -33,11 +33,15 @@ import notificationRoutes from "./src/routes/notification.routes.js";
 import contactQueryRoutes from "./src/routes/contactQuery.routes.js";
 import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
 import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
+import { generalLimiter } from "./src/middleware/ratelimiter.middleware.js";
 
 const app = express();
 
 // helmet use for security
 app.use(helmet());
+
+// baseline rate limit for all routes
+app.use(generalLimiter);
 
 // middleware for cookieparser
 app.use(cookieParser());
