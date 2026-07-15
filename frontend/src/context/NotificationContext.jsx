@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { toast } from "react-hot-toast";
 import { Bell } from "lucide-react";
 import { useAuth } from "./AuthContext";
-import { connectSocket, disconnectSocket } from "../services/socket";
+import { getSocket, connectSocket, disconnectSocket } from "../services/socket";
 import {
   getMyNotifications,
   getUnreadNotificationCount,
@@ -48,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!isRecipient) return;
 
-    const socket = connectSocket();
+    const socket = getSocket();
 
     const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
@@ -61,12 +61,20 @@ export const NotificationProvider = ({ children }) => {
     // disconnected is missed - socket.io doesn't replay events. Re-sync
     // from the REST API whenever a (re)connection is established so the
     // list/badge catch up without needing a manual page refresh.
+    const handleConnectError = (error) => {
+      console.error("Notification socket connect_error:", error.message);
+    };
+
     socket.on("connect", refetch);
     socket.on("notification:new", handleNewNotification);
+    socket.on("connect_error", handleConnectError);
+
+    connectSocket();
 
     return () => {
       socket.off("connect", refetch);
       socket.off("notification:new", handleNewNotification);
+      socket.off("connect_error", handleConnectError);
       disconnectSocket();
     };
   }, [isRecipient, refetch]);

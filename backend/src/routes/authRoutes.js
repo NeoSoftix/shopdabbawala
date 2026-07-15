@@ -1,5 +1,5 @@
 import express from "express";
-import { login, getMe, logout, forgotPassword, resetPassword, changedPassword, sendOtp, verifyOtp } from "../controllers/authController.js";
+import { login, getMe, logout, forgotPassword, resetPassword, changedPassword, sendOtp, verifyOtp, issueSocketToken } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { resetPasswordTemplate } from "../utils/email/welcomeTemplate.js";
 import {loginLimiter} from "../middleware/ratelimiter.middleware.js"
@@ -9,6 +9,7 @@ const router = express.Router();
 router.post("/login", loginLimiter, login);
 
 router.get("/me", verifyToken, getMe)
+router.get("/socket-token", verifyToken, issueSocketToken)
 router.post("/logout",verifyToken, logout)
 router.post("/forgot-password", forgotPassword)
 router.put("/reset-password/:token", resetPassword)

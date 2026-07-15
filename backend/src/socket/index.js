@@ -19,9 +19,17 @@ const parseCookie = (cookieHeader = "", name) => {
 // own connections can receive events emitted to it.
 const authenticateSocket = async (socket, next) => {
   try {
-    const token = parseCookie(socket.handshake.headers.cookie, "token");
+    // Prefer the token passed explicitly in the handshake `auth` payload
+    // (fetched via GET /api/auth/socket-token, which rides the same-origin
+    // Vercel rewrite) - the httpOnly cookie is set cross-site on the
+    // deployed app and gets dropped by browsers that block/partition
+    // third-party cookies (Safari, Firefox, and a growing share of Chrome),
+    // even with SameSite=None; Secure. Cookie stays as a fallback for
+    // same-site setups (e.g. local dev) that never hit that restriction.
+    const token = socket.handshake.auth?.token || parseCookie(socket.handshake.headers.cookie, "token");
 
     if (!token) {
+      console.error("Socket auth failed: no token in handshake auth payload or cookie (cookie header:", socket.handshake.headers.cookie, ")");
       return next(new Error("Unauthorized"));
     }
 
@@ -29,6 +37,7 @@ const authenticateSocket = async (socket, next) => {
     const userId = decoded.userId || decoded.id || decoded._id;
 
     if (!userId) {
+      console.error("Socket auth failed: token decoded but no userId field", decoded);
       return next(new Error("Unauthorized"));
     }
 
@@ -36,6 +45,7 @@ const authenticateSocket = async (socket, next) => {
       const vendor = await Vendor.findOne({ userId }).select("_id");
 
       if (!vendor) {
+        console.error(`Socket auth failed: no Vendor doc for userId ${userId}`);
         return next(new Error("Unauthorized"));
       }
 
@@ -45,11 +55,13 @@ const authenticateSocket = async (socket, next) => {
       // same `user:<id>` room as a regular customer's.
       socket.room = `user:${userId}`;
     } else {
+      console.error(`Socket auth failed: unrecognized role "${decoded.role}"`);
       return next(new Error("Unauthorized"));
     }
 
     next();
   } catch (error) {
+    console.error("Socket auth failed:", error.message);
     next(new Error("Unauthorized"));
   }
 };
