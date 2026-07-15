@@ -22,6 +22,7 @@ const authenticateSocket = async (socket, next) => {
     const token = parseCookie(socket.handshake.headers.cookie, "token");
 
     if (!token) {
+      console.error("Socket auth failed: no token cookie on handshake (cookie header:", socket.handshake.headers.cookie, ")");
       return next(new Error("Unauthorized"));
     }
 
@@ -29,6 +30,7 @@ const authenticateSocket = async (socket, next) => {
     const userId = decoded.userId || decoded.id || decoded._id;
 
     if (!userId) {
+      console.error("Socket auth failed: token decoded but no userId field", decoded);
       return next(new Error("Unauthorized"));
     }
 
@@ -36,6 +38,7 @@ const authenticateSocket = async (socket, next) => {
       const vendor = await Vendor.findOne({ userId }).select("_id");
 
       if (!vendor) {
+        console.error(`Socket auth failed: no Vendor doc for userId ${userId}`);
         return next(new Error("Unauthorized"));
       }
 
@@ -45,11 +48,13 @@ const authenticateSocket = async (socket, next) => {
       // same `user:<id>` room as a regular customer's.
       socket.room = `user:${userId}`;
     } else {
+      console.error(`Socket auth failed: unrecognized role "${decoded.role}"`);
       return next(new Error("Unauthorized"));
     }
 
     next();
   } catch (error) {
+    console.error("Socket auth failed:", error.message);
     next(new Error("Unauthorized"));
   }
 };
