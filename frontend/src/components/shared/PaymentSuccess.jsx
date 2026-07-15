@@ -81,7 +81,7 @@ export default function PaymentSuccess() {
       }
 
       if (setUser) {
-        setUser(prev => prev ? ({ ...prev, name: formData.name, phone: formData.phone, address: formData.address }) : null);
+        setUser(prev => prev ? ({ ...prev, name: formData.name, email: formData.email, phone: formData.phone, address: formData.address }) : null);
       }
 
       toast.success("Your details saved! Welcome aboard!");
@@ -232,22 +232,23 @@ export default function PaymentSuccess() {
                     className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
                   />
                 </div>
-                <div>
+                {formData.pincode && (
                   <div>
-
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                      Pincode
+                    </label>
                     <input
-                      type="hidden"
+                      type="text"
                       name="pincode"
-                      required
+                      readOnly
                       maxLength={6}
                       placeholder="123456"
                       value={formData.pincode}
                       onChange={handleChange}
-                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 opacity-70 cursor-not-allowed focus:outline-none transition-all"
                     />
                   </div>
-
-                </div>
+                )}
 
                 <button
                   type="submit"

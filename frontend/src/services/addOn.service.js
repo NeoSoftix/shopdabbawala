@@ -14,9 +14,9 @@ export const createAddOn = async (data) => {
 };
 
 // Get All Add Ons
-export const getAllAddOns = async () => {
+export const getAllAddOns = async (page = 1, limit = 10) => {
   try {
-    const res = await API.get("/addons");
+    const res = await API.get("/addons", { params: { page, limit } });
 
     return res.data;
   } catch (error) {

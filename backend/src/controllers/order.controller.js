@@ -120,13 +120,6 @@ export const getAllOrders = async (req, res) => {
     const filter = await getOrderScopeFilter(req);
 
     const { page, limit, skip } = getPagination(req);
-
-    // Search spans the joined user's name as well as the order's own _id
-    // and status, so it has to run as an aggregation (with a $lookup for
-    // the user) rather than a plain Order.find() - that's also what lets
-    // $skip/$limit apply at the DB level instead of pulling every matching
-    // order into Node and slicing in memory (the previous approach, which
-    // meant a full collection scan into RAM on every page load).
     const escapedSearch = search ? search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : null;
     const regex = escapedSearch ? new RegExp(escapedSearch, "i") : null;
 

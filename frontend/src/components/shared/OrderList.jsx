@@ -3,6 +3,7 @@ import { FiEye, FiSearch } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { getAllOrders } from "../../services/order.service";
 import { SectionLoader } from "./Loader";
+import Pagination from "./Pagination";
 
 const statusStyles = {
   Pending: "bg-amber-50 text-amber-600",
@@ -25,13 +26,16 @@ const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchOrders = async (searchVal = "") => {
+  const fetchOrders = async (searchVal = "", pageNum = 1) => {
     try {
       setLoading(true);
-      const res = await getAllOrders(searchVal);
+      const res = await getAllOrders(searchVal, pageNum);
       if (res.success) {
         setOrders(res.orders || []);
+        setTotalPages(res.totalPages || 1);
       }
     } catch (error) {
       console.error("Fetch Orders Error:", error);
@@ -42,8 +46,12 @@ const OrderList = () => {
   };
 
   useEffect(() => {
-    fetchOrders(search);
+    setPage(1);
   }, [search]);
+
+  useEffect(() => {
+    fetchOrders(search, page);
+  }, [search, page]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -133,6 +141,12 @@ const OrderList = () => {
                   <p className="text-gray-400 text-base">No Orders Found</p>
                 </div>
               )}
+
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </>
           )}
         </div>

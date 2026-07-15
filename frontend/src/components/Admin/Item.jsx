@@ -9,6 +9,7 @@ import {
 import { getAllCategories } from "../../services/category.service";
 import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import Pagination from "../shared/Pagination";
 
 const Item = () => {
   const navigate = useNavigate();
@@ -20,9 +21,14 @@ const Item = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchItems();
+    fetchItems(page);
+  }, [page]);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
@@ -35,11 +41,12 @@ const Item = () => {
     }
   };
 
-  const fetchItems = async () => {
+  const fetchItems = async (pageNum = 1) => {
     try {
       setLoading(true);
-      const res = await getAllItems();
+      const res = await getAllItems(pageNum);
       setItems(res.data);
+      setTotalPages(res.totalPages || 1);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message || "Failed to load items.");
     } finally {
@@ -60,7 +67,7 @@ const Item = () => {
                 try {
                   await deleteItem(id);
                   toast.success("Item deleted successfully.");
-                  fetchItems();
+                  fetchItems(page);
                 } catch (error) {
                   toast.error(error?.response?.data?.message || "Failed to delete item.");
                 }
@@ -101,7 +108,7 @@ const Item = () => {
       await updateItem(selectedItem._id, formData);
       setSuccess("Item updated successfully");
       setIsEdit(false);
-      fetchItems();
+      fetchItems(page);
     } catch (error) {
       console.log("Update Item Error", error);
       setError(error?.response?.data?.message || "Failed to update item");
@@ -236,6 +243,12 @@ const Item = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {isEdit && selectedItem && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

@@ -4,6 +4,7 @@ import NotificationFilters from "../../components/vendor/NotificationFilters";
 import NotificationSummary from "../../components/vendor/NotificationSummary";
 // import NotificationSettings from "../../components/vendor/NotificationSettings";
 import { useNotifications } from "../../context/NotificationContext";
+import Pagination from "../../components/shared/Pagination";
 
 const formatTimeAgo = (dateStr) => {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -91,27 +92,11 @@ export default function VendorNotifications() {
 
             {/* Pagination */}
             {pagination?.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6">
-                <button
-                  onClick={() => setPage((prev) => prev - 1)}
-                  disabled={!pagination.hasPrevPage}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-
-                <span className="text-sm font-medium">
-                  Page {pagination.page} of {pagination.totalPages}
-                </span>
-
-                <button
-                  onClick={() => setPage((prev) => prev + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
             )}
           </>
         )}

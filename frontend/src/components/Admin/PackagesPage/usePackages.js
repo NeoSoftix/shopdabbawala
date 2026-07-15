@@ -5,6 +5,7 @@ import {
   getAllPackages,
   deletePackage,
   updatePackage,
+  togglePackageStatus,
 } from "../../../services/package.service.js";
 import { confirmDeleteToast } from "../../../utils/confirmDeleteToast.jsx";
 
@@ -30,6 +31,7 @@ export default function usePackages() {
   const [loadingPackages, setLoadingPackages] = useState(true);
   const [savingPackage, setSavingPackage] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
   const [editId, setEditId] = useState(null);
 
   // Single State for Form
@@ -142,7 +144,24 @@ export default function usePackages() {
     });
   };
 
-  // 5. FILL FORM FOR EDITING
+  // 5. TOGGLE ACTIVE/INACTIVE STATUS
+  const handleToggleStatus = async (id) => {
+    try {
+      setTogglingId(id);
+      const res = await togglePackageStatus(id);
+      if (res && res.success) {
+        toast.success(res.message || "Package status updated.");
+        await fetchPackages();
+      }
+    } catch (error) {
+      console.error("Toggle package status error", error);
+      toast.error(error.response?.data?.message || "Failed to update package status.");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  // 6. FILL FORM FOR EDITING
   const handleEditClick = (p) => {
     setEditId(p._id);
 
@@ -180,6 +199,7 @@ export default function usePackages() {
     loadingPackages,
     savingPackage,
     deletingId,
+    togglingId,
     editId,
     formData,
     toggleForm,
@@ -187,6 +207,7 @@ export default function usePackages() {
     handleChange,
     handleSavePackage,
     handleDelete,
+    handleToggleStatus,
     handleEditClick,
   };
 }

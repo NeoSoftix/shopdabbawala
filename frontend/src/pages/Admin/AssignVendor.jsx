@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { Search, Trash2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, Trash2, ChevronDown } from "lucide-react";
 import { getAllVendors, getOneVendor, updateVendor } from "../../services/vendor.service.js";
 import { getAllDeliveryCharges } from "../../services/deliveryCharge.service.js";
+import Pagination from "../../components/shared/Pagination";
 
 const PAGE_SIZE = 6;
 
@@ -415,26 +416,12 @@ const AssignVendor = () => {
         </div>
 
         {filteredAssignments.length > PAGE_SIZE && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
-            <p className="text-xs text-gray-500">
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+          <div className="border-t border-gray-100 px-6 py-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(p) => setPage(Math.max(1, Math.min(totalPages, p)))}
+            />
           </div>
         )}
       </div>

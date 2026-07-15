@@ -9,6 +9,9 @@ const UpdateVendorModal = ({
   onFileChange,
   onSubmit,
   onClose,
+  isActive,
+  togglingStatus,
+  onToggleStatus,
 }) => {
   if (!isOpen) return null;
 
@@ -24,6 +27,31 @@ const UpdateVendorModal = ({
             className="text-gray-400 hover:text-gray-600 text-xl font-bold"
           >
             &times;
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between rounded-xl border border-gray-200 p-3 mb-4">
+          <div>
+            <span className="text-sm font-medium text-gray-700">Vendor Status</span>
+            <p className="mt-0.5 text-[11px] text-gray-400">
+              {isActive ? "Vendor is currently active and can receive orders." : "Vendor is currently inactive and won't receive orders."}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isActive}
+            disabled={togglingStatus}
+            onClick={() => onToggleStatus(!isActive)}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
+              isActive ? "bg-green-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isActive ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
           </button>
         </div>
 

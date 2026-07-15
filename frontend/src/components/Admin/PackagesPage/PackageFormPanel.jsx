@@ -4,11 +4,16 @@
 const PackageFormPanel = ({
   formData,
   editId,
+  isActive,
   savingPackage,
+  togglingId,
   onChange,
   onSubmit,
   onCancel,
+  onToggleStatus,
 }) => {
+  const isToggling = togglingId === editId;
+
   return (
     <form
       onSubmit={onSubmit}
@@ -18,13 +23,33 @@ const PackageFormPanel = ({
         <h2 className="font-bold text-gray-800 text-base sm:text-lg">
           {editId ? "Edit Package" : "Add Package"}
         </h2>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-xs font-semibold text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          Cancel
-        </button>
+        <div className="flex items-center gap-3">
+          {editId && (
+            <button
+              type="button"
+              onClick={() => onToggleStatus(editId)}
+              disabled={isToggling}
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ring-1 transition-colors disabled:opacity-50 ${
+                isActive
+                  ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10 hover:bg-emerald-100"
+                  : "bg-gray-100 text-gray-600 ring-gray-500/10 hover:bg-gray-200"
+              }`}
+            >
+              {isToggling
+                ? "Updating..."
+                : isActive
+                ? "Active"
+                : "Inactive"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-xs font-semibold text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">

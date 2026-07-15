@@ -1,5 +1,6 @@
 import User from "../models/User.model.js";
 import mongoose from "mongoose";
+import { getPagination } from "../utils/pagination.js";
 
 // ➤ 1. Get Customer Count / Stats (Admin Only)
 export const getCustomerStats = async (req, res) => {
@@ -28,10 +29,10 @@ export const getCustomerStats = async (req, res) => {
 export const getAllCustomers = async (req, res) => {
   try {
     const { search } = req.query;
-    // Base query: only select role: "user" (which represents customers)
+    const { page, limit, skip } = getPagination(req);
+
     let query = { role: "user" };
 
-    // Add search criteria if search query parameter is present
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -40,15 +41,28 @@ export const getAllCustomers = async (req, res) => {
       ];
     }
 
-    const customers = await User.find(query).select("-password").sort({ createdAt: -1 });
+    const [customers, total] = await Promise.all([
+      User.find(query)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      User.countDocuments(query),
+    ]);
 
     return res.status(200).json({
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: customers.length,
       customers,
     });
   } catch (error) {
     console.error("Get All Customers Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching customers",

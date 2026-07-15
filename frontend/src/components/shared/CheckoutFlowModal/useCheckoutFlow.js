@@ -99,6 +99,13 @@ export default function useCheckoutFlow({
   useEffect(() => {
     if (paymentSuccess === "true" && isOpen) {
       setStep(mode === "packages" ? 4 : 5); // Jump to Details step
+      // The redirect to Stripe is a full page navigation, so the pincode
+      // typed/verified in Step 1 is lost from React state - recover it from
+      // localStorage (set in handlePincodeSubmit) so it still shows/saves here.
+      const savedPincode = localStorage.getItem("pincode");
+      if (savedPincode) {
+        setFormData(prev => ({ ...prev, pincode: prev.pincode || savedPincode }));
+      }
       if (sessionId) {
         getSessionDetails(sessionId).then(res => {
           if (res.success && res.customer_details) {
@@ -178,6 +185,7 @@ export default function useCheckoutFlow({
         // Logged-in users skip Mobile + OTP verification entirely and go
         // straight to payment; guests still verify phone via OTP.
         localStorage.setItem("pincode", pincode.trim());
+        setFormData(prev => ({ ...prev, pincode: pincode.trim() }));
         if ((mode === "packages" || mode === "addons") && user) {
           await redirectToPayment();
         } else {

@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-hot-toast";
-import { Pencil, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Search } from "lucide-react";
 import {
   createDeliveryCharge,
   getAllDeliveryCharges,
   updateDeliveryCharge,
   deleteDeliveryCharge,
 } from "../../services/deliveryCharge.service.js";
+import Pagination from "../../components/shared/Pagination";
+import AppLoader from "../../components/shared/AppLoader.jsx";
 
 const PAGE_SIZE = 6;
 
@@ -130,6 +132,10 @@ const DeliveryCharges = () => {
     setSearchTerm(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""));
     setPage(1);
   };
+
+  if (loading) {
+  return <AppLoader />;
+}
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-8">
@@ -266,26 +272,12 @@ const DeliveryCharges = () => {
         </div>
 
         {filteredCharges.length > PAGE_SIZE && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
-            <p className="text-xs text-gray-500">
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+          <div className="border-t border-gray-100 px-6 py-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(p) => setPage(Math.max(1, Math.min(totalPages, p)))}
+            />
           </div>
         )}
       </div>

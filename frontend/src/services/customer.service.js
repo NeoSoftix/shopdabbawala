@@ -12,10 +12,11 @@ export const getCustomerStats = async () => {
 };
 
 // ➤ 2. Get All Customers (Admin only)
-export const getAllCustomers = async (search = "") => {
+export const getAllCustomers = async (search = "", page = 1, limit = 10) => {
   try {
-    const url = search ? `/customer?search=${encodeURIComponent(search)}` : "/customer";
-    const res = await API.get(url);
+    const params = { page, limit };
+    if (search) params.search = search;
+    const res = await API.get("/customer", { params });
     return res.data;
   } catch (error) {
     console.error("Get All Customers Error", error);

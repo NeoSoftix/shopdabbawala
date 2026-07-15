@@ -2,6 +2,7 @@ import Item from "../models/item.model.js";
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
 import { v2 as cloudinary } from "cloudinary";
+import {getPagination} from "../utils/pagination.js"
 
 // ➤ Create Item
 export const createItem = async (req, res) => {
@@ -105,14 +106,32 @@ export const createItem = async (req, res) => {
 // ➤ Get All Items
 export const getAllItems = async (req, res) => {
   try {
-    const items = await Item.find()
-      .populate({ path: "category", populate: { path: "meal", select: "name" } })
-      .sort({ createdAt: -1 });
+    const { page, limit, skip } = getPagination(req);
+
+    const [items, total] = await Promise.all([
+      Item.find()
+        .populate({
+          path: "category",
+          populate: {
+            path: "meal",
+            select: "name",
+          },
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Item.countDocuments(),
+    ]);
 
     return res.status(200).json({
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: items.length,
-      data: items
+      data: items,
     });
   } catch (error) {
     return res.status(500).json({

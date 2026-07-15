@@ -20,7 +20,6 @@ export const saveCheckoutDetails = async (req, res) => {
 
     const payment = await Payment.findOne({ stripeSessionId: sessionId }).populate("package").populate("subscription");
     let finalPayment = payment;
-    console.log(payment);
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment not found." });
     }
@@ -248,11 +247,12 @@ export const saveCheckoutDetails = async (req, res) => {
     // ObjectId and reading .duration/.totalMeals off it below is undefined.
     finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
 
-    // Always update User profile if name/phone/address/pincode is provided
-    if (name || req.body.phone || address || pincode) {
+    // Always update User profile if name/email/phone/address/pincode is provided
+    if (name || email || req.body.phone || address || pincode) {
       await User.findByIdAndUpdate(payment.user, {
         $set: {
           ...(name && { name }),
+          ...(email && { email }),
           ...(req.body.phone && { phone: req.body.phone }),
           ...(address && { address }),
           ...(pincode && { pincode }),
