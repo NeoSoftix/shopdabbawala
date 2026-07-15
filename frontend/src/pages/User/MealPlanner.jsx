@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import { Package } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus, getDayAddonsSummary } from "../../services/mealSchedule.service";
+import { saveCheckoutDetails } from "../../services/payment.service";
 import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
@@ -37,6 +39,7 @@ const getDefaultSelectedDate = (subscription) => {
 const MealPlanner = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [subscriptions, setSubscriptions] = useState([]);
   const [activeSubscription, setActiveSubscription] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(true);
@@ -152,6 +155,41 @@ const MealPlanner = () => {
     }
   }, [user, loading, navigate]);
 
+  // Returning from a day-addon Stripe checkout - finalize the purchase
+  // (fallback in case the webhook hasn't landed yet, same pattern used for
+  // package/subscription checkouts), refresh the add-ons for the day it was
+  // bought for, and strip the query params so a page refresh doesn't
+  // re-trigger this.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const addonPayment = params.get("addon_payment");
+    const sessionId = params.get("session_id");
+
+    if (addonPayment === "success" && sessionId && user) {
+      saveCheckoutDetails({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        sessionId,
+      })
+        .then(() => {
+          toast.success("Add-ons purchased successfully!");
+          refreshDayAddOns(activeSubscription?._id);
+        })
+        .catch((error) => {
+          console.error("Failed to finalize add-on payment:", error?.response?.data || error);
+          toast.error("Payment succeeded, but we couldn't confirm your add-ons. They'll appear shortly.");
+        })
+        .finally(() => {
+          navigate(location.pathname, { replace: true });
+        });
+    } else if (addonPayment === "cancelled") {
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, user, activeSubscription?._id]);
+
   useEffect(() => {
     if (user) {
       getMySubscriptions()
@@ -217,7 +255,6 @@ console.log(activeSubscription?.maxItemsPerMeal);
                   onToggleDayActive={handleToggleDayActive}
                   onDayConfirmed={() => refreshDayStatuses(activeSubscription?._id)}
                   dayAddOns={dayAddOns}
-                  onDayAddOnsSaved={() => refreshDayAddOns(activeSubscription?._id)}
                 />
               </>
               )}

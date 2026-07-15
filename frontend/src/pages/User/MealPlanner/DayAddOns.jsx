@@ -2,27 +2,26 @@ import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { PlusCircle } from "lucide-react";
 import { getActiveAddOns } from "../../../services/addOn.service";
-import { updateDayAddons } from "../../../services/mealSchedule.service";
+import { createDayAddonCheckout } from "../../../services/payment.service";
 import QuantityStepper from "../../../components/shared/QuantityStepper";
 import { longDate } from "./constants";
 
-// Lets the user pile extra "add-on" items (charged separately from the plan
-// itself) onto a day that already has a regular meal scheduled. Selections
-// are per-day, saved independently from the meal items, and show their own
-// extra-charge total.
+// Lets the user pile extra "add-on" items (charged separately from the plan)
+// onto a day that already has a regular meal scheduled. Selections are
+// per-day; confirming redirects to a dedicated Stripe checkout for just
+// those add-ons - they only actually get attached to the day's order once
+// paid (see backend payment/dayAddonCheckout.js + fulfillDayAddonOrder.js).
 const DayAddOns = ({
   selectedDate,
   selectedDateKey,
   subscriptionId,
   hasScheduledMeal,
   savedDayAddons,
-  editLocked,
-  onSaved,
 }) => {
   const [addOns, setAddOns] = useState([]);
   const [loadingAddOns, setLoadingAddOns] = useState(true);
-  const [selection, setSelection] = useState({}); // { [addonId]: qty }
-  const [saving, setSaving] = useState(false);
+  const [selection, setSelection] = useState({}); // { [addonId]: qty } - new, unpaid selections only
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     getActiveAddOns()
@@ -33,15 +32,10 @@ const DayAddOns = ({
       .finally(() => setLoadingAddOns(false));
   }, []);
 
-  // Switching days: load whatever's already saved for the newly selected
-  // day (or reset to empty if nothing's been saved for it yet).
+  // Switching days resets the in-progress (unpaid) selection - it's a fresh
+  // cart for whichever day is now selected.
   useEffect(() => {
-    const next = {};
-    (savedDayAddons?.addons || []).forEach((a) => {
-      if (a.addonId) next[a.addonId] = a.qty;
-    });
-    setSelection(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSelection({});
   }, [selectedDateKey]);
 
   const updateQty = (addonId, qty) => {
@@ -56,33 +50,40 @@ const DayAddOns = ({
     });
   };
 
-  const extraTotal = Object.entries(selection).reduce((sum, [addonId, qty]) => {
+  const newTotal = Object.entries(selection).reduce((sum, [addonId, qty]) => {
     const addon = addOns.find((a) => a._id === addonId);
     return sum + (addon?.price || 0) * qty;
   }, 0);
 
-  const handleSave = async () => {
+  const alreadyPaidAddons = savedDayAddons?.addons || [];
+  const alreadyPaidTotal = savedDayAddons?.extraCharge || 0;
+
+  const handleCheckout = async () => {
     if (!subscriptionId) return;
 
-    setSaving(true);
+    const addons = Object.entries(selection).map(([id, quantity]) => ({ id, quantity }));
+    if (addons.length === 0) {
+      toast.error("Select at least one add-on first.");
+      return;
+    }
+
+    setCheckingOut(true);
     try {
-      const payload = Object.entries(selection).map(([addonId, quantity]) => ({ addonId, quantity }));
-      const res = await updateDayAddons({
+      const res = await createDayAddonCheckout({
         subscriptionId,
         date: selectedDateKey,
-        addons: payload,
+        addons,
       });
 
-      if (res?.success) {
-        toast.success(`Add-ons for ${longDate(selectedDate)} saved!`);
-        onSaved?.();
+      if (res?.success && res.checkoutUrl) {
+        window.location.href = res.checkoutUrl;
       } else {
-        toast.error(res?.message || "Failed to save add-ons.");
+        toast.error(res?.message || "Could not start payment.");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to save add-ons.");
+      toast.error(error?.response?.data?.message || "Could not start payment.");
     } finally {
-      setSaving(false);
+      setCheckingOut(false);
     }
   };
 
@@ -95,8 +96,8 @@ const DayAddOns = ({
         <div>
           <h3 className="text-sm font-bold text-[#1B254B] tracking-wider uppercase">Add Ons</h3>
           <p className="text-xs font-medium text-[#A3AED0] mt-0.5">
-            Want something extra? Add it here — extra charges apply separately from your plan,
-            and it'll be delivered along with {longDate(selectedDate)}'s meal.
+            Want something extra? Add it here — extra charges apply separately from your plan
+            and are paid for right away. It'll be delivered along with {longDate(selectedDate)}'s meal.
           </p>
         </div>
       </div>
@@ -105,62 +106,75 @@ const DayAddOns = ({
         <p className="text-xs italic text-gray-400 py-2">
           Schedule a meal for this day first, then you can add extras to it.
         </p>
-      ) : loadingAddOns ? (
-        <p className="text-xs text-gray-400 py-2">Loading add-ons...</p>
-      ) : addOns.length === 0 ? (
-        <p className="text-xs italic text-gray-400 py-2">No add-ons available right now.</p>
       ) : (
         <>
-          {editLocked && (
-            <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-xs font-semibold text-amber-700">
-              Add-ons for this day can no longer be changed — changes are only allowed until 12 PM the day before.
+          {alreadyPaidAddons.length > 0 && (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Already Purchased</span>
+                <span className="text-xs font-bold text-emerald-700">${alreadyPaidTotal.toFixed(2)}</span>
+              </div>
+              {alreadyPaidAddons.map((a, i) => (
+                <div key={a.addonId || i} className="flex items-center justify-between text-xs text-emerald-800">
+                  <span>{a.name} x{a.qty}</span>
+                  <span>${(a.price * a.qty).toFixed(2)}</span>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar pr-1">
-            {addOns.map((addon) => (
-              <div
-                key={addon._id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
-              >
-                <div className="min-w-0 flex items-center gap-2.5">
-                  {addon.image?.url ? (
-                    <img
-                      src={addon.image.url}
-                      alt=""
-                      className="w-9 h-9 rounded-lg object-cover shrink-0"
-                      onError={(e) => { e.target.style.display = "none"; }}
+          {loadingAddOns ? (
+            <p className="text-xs text-gray-400 py-2">Loading add-ons...</p>
+          ) : addOns.length === 0 ? (
+            <p className="text-xs italic text-gray-400 py-2">No add-ons available right now.</p>
+          ) : (
+            <>
+              <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar pr-1">
+                {addOns.map((addon) => (
+                  <div
+                    key={addon._id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
+                  >
+                    <div className="min-w-0 flex items-center gap-2.5">
+                      {addon.image?.url ? (
+                        <img
+                          src={addon.image.url}
+                          alt=""
+                          className="w-9 h-9 rounded-lg object-cover shrink-0"
+                          onError={(e) => { e.target.style.display = "none"; }}
+                        />
+                      ) : null}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[#1B254B] truncate">{addon.name}</p>
+                        <p className="text-xs font-semibold text-[#A3AED0]">${addon.price}</p>
+                      </div>
+                    </div>
+
+                    <QuantityStepper
+                      value={selection[addon._id] || 0}
+                      min={0}
+                      onChange={(qty) => updateQty(addon._id, qty)}
+                      size="md"
                     />
-                  ) : null}
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[#1B254B] truncate">{addon.name}</p>
-                    <p className="text-xs font-semibold text-[#A3AED0]">${addon.price}</p>
                   </div>
-                </div>
-
-                <QuantityStepper
-                  value={selection[addon._id] || 0}
-                  min={0}
-                  onChange={(qty) => !editLocked && updateQty(addon._id, qty)}
-                  size="md"
-                />
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <span className="text-xs font-bold text-[#1B254B] uppercase tracking-wider">
-              Extra Charge: <span className="text-amber-600">${extraTotal.toFixed(2)}</span>
-            </span>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || editLocked}
-              className="bg-amber-500 hover:bg-amber-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs px-5 py-2.5 rounded-xl tracking-wider shadow-sm transition-all"
-            >
-              {saving ? "SAVING..." : "SAVE ADD-ONS"}
-            </button>
-          </div>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <span className="text-xs font-bold text-[#1B254B] uppercase tracking-wider">
+                  New Total: <span className="text-amber-600">${newTotal.toFixed(2)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCheckout}
+                  disabled={checkingOut || newTotal === 0}
+                  className="bg-amber-500 hover:bg-amber-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs px-5 py-2.5 rounded-xl tracking-wider shadow-sm transition-all"
+                >
+                  {checkingOut ? "REDIRECTING..." : "PAY & ADD"}
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

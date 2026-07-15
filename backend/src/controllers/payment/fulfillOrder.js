@@ -2,6 +2,7 @@ import { fulfillAdminPackage } from "./fulfillAdminPackage.js"
 import { fulfillCustomPackage } from "./fulfillCustomPackage.js"
 import { fulfillRenewal } from "./fulfillRenewal.js"
 import { fulfillAddonOrder } from "./fulfillAddonOrder.js"
+import { fulfillDayAddonOrder } from "./fulfillDayAddonOrder.js"
 
 // -------- FULFILL ORDER HELPER --------
 // `payment` is already marked "paid" atomically by the webhook handler
@@ -26,5 +27,10 @@ export const fulfillOrder = async (session, payment) => {
   // -------- ADDON ORDER --------
   if (session.metadata?.paymentType === "ADDON_ORDER") {
     await fulfillAddonOrder(session, payment);
+  }
+
+  // -------- DAY ADDON ORDER --------
+  if (session.metadata?.paymentType === "DAY_ADDON_ORDER") {
+    await fulfillDayAddonOrder(session, payment);
   }
 };

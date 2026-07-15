@@ -13,6 +13,12 @@ export const createAddonCheckout = async (items) => {
   return res.data;
 };
 
+// Per-day add-ons checkout (extra items on top of an already-scheduled meal)
+export const createDayAddonCheckout = async ({ subscriptionId, date, addons }) => {
+  const res = await API.post("/payment/day-addon-checkout", { subscriptionId, date, addons });
+  return res.data;
+};
+
 export const saveCheckoutDetails = async (data) => {
   const res = await API.post("/payment/save-details", data);
   return res.data;

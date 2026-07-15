@@ -8,6 +8,7 @@ import User from "../../models/User.model.js"
 import { setupScheduledSubscription } from "./stripeHelpers.js"
 import { findServingVendor } from "../../utils/findServingVendor.js"
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js"
+import { fulfillDayAddonOrder } from "./fulfillDayAddonOrder.js"
 
 // save check out detilas
 export const saveCheckoutDetails = async (req, res) => {
@@ -204,6 +205,13 @@ export const saveCheckoutDetails = async (req, res) => {
         payment.status = "paid";
         await payment.save();
       }
+    } else if (payment.paymentType === "DAY_ADDON_ORDER") {
+      // Fallback in case the webhook hasn't attached these add-ons to the
+      // day's Order yet - fulfillDayAddonOrder is idempotent (no-ops once
+      // payment.order is set), so it's safe to call again here.
+      payment.status = "paid";
+      await payment.save();
+      await fulfillDayAddonOrder({ metadata: payment.metadata }, payment);
     }
 
 
@@ -273,6 +281,9 @@ export const saveCheckoutDetails = async (req, res) => {
       totalMeals = finalPayment.subscription.totalMeals;
     } else if (finalPayment.paymentType === "ADDON_ORDER") {
       planName = "Add-on Order";
+      totalMeals = "N/A";
+    } else if (finalPayment.paymentType === "DAY_ADDON_ORDER") {
+      planName = "Meal Add-ons";
       totalMeals = "N/A";
     }
 
