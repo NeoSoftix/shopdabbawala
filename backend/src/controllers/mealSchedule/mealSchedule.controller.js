@@ -4,6 +4,7 @@ import Item from "../../models/item.model.js";
 import MealSchedule from "../../models/mealSchedule.model.js";
 import User from "../../models/User.model.js";
 import Order from "../../models/Order.model.js";
+import WeeklyMenu from "../../models/weeklyMenu.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
 import { getActiveWeekWindow } from "../../utils/getActiveWeekWindow.js";
@@ -214,23 +215,61 @@ export const createMealSchedule = async (req, res) => {
       });
     }
 
-    // Users can only ever schedule within the "current active week": the day
-    // after their plan started through that week's Sunday, then every
-    // Monday..Sunday after that - never any earlier or later week.
-    const { windowStart, windowEnd } = getActiveWeekWindow(subscription, today);
-    if (requestDate < windowStart || requestDate > windowEnd) {
+    // Users can only schedule on dates that the admin has explicitly
+    // configured in WeeklyMenu - no cap to "this week only" here, so any
+    // future week the admin has already published is schedulable.
+    const weekStart = new Date(requestDate);
+    weekStart.setUTCHours(0, 0, 0, 0);
+    const dow = weekStart.getUTCDay();
+    const weekDiff = dow === 0 ? -6 : 1 - dow;
+    weekStart.setUTCDate(weekStart.getUTCDate() + weekDiff);
+
+    const weeklyMenu = await WeeklyMenu.findOne({
+      category: subscription.category,
+      weekStartDate: weekStart
+    }).lean();
+
+    const dayMenu = weeklyMenu?.days?.find(
+      (d) => new Date(d.date).getTime() === requestDate.getTime()
+    );
+
+    if (!dayMenu || !dayMenu.sections || dayMenu.sections.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "You can only schedule meals within your current active week.",
+        message: "No menu available for the selected date.",
       });
     }
 
     // ================= FORMAT ITEMS =================
-
     const formattedItems = items.map((meal) => ({
-      item: meal.item,
+      item: String(meal.item),
       quantity: Number(meal.quantity) || 1,
     }));
+
+    // ================= VALIDATE SECTIONS =================
+    // Ensure the submitted items strictly match the section rules
+    let submittedItemCounts = {};
+    for (const meal of formattedItems) {
+      submittedItemCounts[meal.item] = (submittedItemCounts[meal.item] || 0) + meal.quantity;
+    }
+
+    for (const section of dayMenu.sections) {
+      const sectionItemIds = section.items.map(id => String(id));
+      let selectedInSection = 0;
+
+      for (const [itemId, qty] of Object.entries(submittedItemCounts)) {
+        if (sectionItemIds.includes(itemId)) {
+          selectedInSection += qty;
+        }
+      }
+
+      if (selectedInSection !== section.requiredQuantity) {
+        return res.status(400).json({
+          success: false,
+          message: `You must select exactly ${section.requiredQuantity} items from the "${section.label}" section.`,
+        });
+      }
+    }
 
     // ================= VALIDATE ITEM IDS =================
 

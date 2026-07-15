@@ -1,22 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { getActiveCategory } from "../../services/category.service.js";
 import { getItemsByCategory } from "../../services/items.service.js";
 import { getWeeklyMenu, saveWeeklyMenu } from "../../services/weeklyMenu.service.js";
 import { PageLoader } from "../../components/shared/Loader";
-
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-const mondayOf = (date) => {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const dow = d.getDay();
-  const diff = dow === 0 ? -6 : 1 - dow;
-  d.setDate(d.getDate() + diff);
-  return d;
-};
 
 const dateKey = (date) => {
   const d = new Date(date);
@@ -26,30 +15,19 @@ const dateKey = (date) => {
   return `${y}-${m}-${day}`;
 };
 
-// Admin picks a category + week, then for each of that week's 7 dates
-// checks off which items (from that category) are available to order on
-// that specific date. Saved as a WeeklyMenu doc keyed by (category, week) -
-// re-done every week, not a permanent recurring template.
-const WeeklyMenuManager = () => {
+export default function WeeklyMenuManager() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
   const [categoryItems, setCategoryItems] = useState([]);
-  // { "YYYY-MM-DD": Set(itemId) }
-  const [selection, setSelection] = useState({});
+  const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
+  
+  // Array of sections: { id, label, requiredQuantity, items: Set }
+  const [sections, setSections] = useState([]);
+  
   const [loading, setLoading] = useState(true);
-  const [loadingWeek, setLoadingWeek] = useState(false);
+  const [loadingMenu, setLoadingMenu] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const weekDates = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(weekStart);
-      d.setDate(d.getDate() + i);
-      return d;
-    }),
-    [weekStart]
-  );
 
   useEffect(() => {
     getActiveCategory()
@@ -67,76 +45,116 @@ const WeeklyMenuManager = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const loadWeek = useCallback(async () => {
-    if (!selectedCategory) return;
-    setLoadingWeek(true);
+  const loadMenuForDate = useCallback(async () => {
+    if (!selectedCategory || !selectedDate) return;
+    setLoadingMenu(true);
     try {
       const [itemsRes, menuRes] = await Promise.all([
         getItemsByCategory(selectedCategory),
-        getWeeklyMenu(selectedCategory, dateKey(weekStart)),
+        getWeeklyMenu(selectedCategory, selectedDate),
       ]);
 
       if (itemsRes.success) setCategoryItems(itemsRes.data || []);
 
-      const nextSelection = {};
-      weekDates.forEach((d) => {
-        nextSelection[dateKey(d)] = new Set();
-      });
-
-      if (menuRes.success && menuRes.data) {
-        (menuRes.data.days || []).forEach((day) => {
-          const key = dateKey(day.date);
-          if (nextSelection[key]) {
-            nextSelection[key] = new Set((day.items || []).map((it) => it._id || it));
-          }
-        });
+      if (menuRes.success && menuRes.data && menuRes.data.sections) {
+        const loadedSections = menuRes.data.sections.map((sec, idx) => ({
+          id: sec._id || Date.now() + idx,
+          label: sec.label || "",
+          requiredQuantity: sec.requiredQuantity || 1,
+          items: new Set(sec.items.map(i => i._id || i))
+        }));
+        setSections(loadedSections);
+      } else {
+        setSections([]); // No menu for this date
       }
-
-      setSelection(nextSelection);
     } catch (error) {
-      console.error("Failed to load weekly menu:", error);
-      toast.error("Failed to load this week's menu.");
+      console.error("Failed to load daily menu:", error);
+      toast.error("Failed to load menu for the selected date.");
     } finally {
-      setLoadingWeek(false);
+      setLoadingMenu(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, weekStart]);
+  }, [selectedCategory, selectedDate]);
 
   useEffect(() => {
-    loadWeek();
-  }, [loadWeek]);
+    loadMenuForDate();
+  }, [loadMenuForDate]);
 
-  const toggleItemForDay = (dayKey, itemId) => {
-    setSelection((prev) => {
-      const daySet = new Set(prev[dayKey] || []);
-      if (daySet.has(itemId)) {
-        daySet.delete(itemId);
-      } else {
-        daySet.add(itemId);
+  const addSection = () => {
+    setSections([
+      ...sections,
+      {
+        id: Date.now(),
+        label: "",
+        requiredQuantity: 1,
+        items: new Set(),
       }
-      return { ...prev, [dayKey]: daySet };
-    });
+    ]);
+  };
+
+  const removeSection = (id) => {
+    setSections(sections.filter(s => s.id !== id));
+  };
+
+  const updateSection = (id, field, value) => {
+    setSections(sections.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const toggleItemInSection = (sectionId, itemId) => {
+    setSections(sections.map(s => {
+      if (s.id !== sectionId) return s;
+      const newItems = new Set(s.items);
+      if (newItems.has(itemId)) newItems.delete(itemId);
+      else newItems.add(itemId);
+      return { ...s, items: newItems };
+    }));
   };
 
   const handleSave = async () => {
+    // Validate sections
+    if (sections.length === 0) {
+      toast.error("Please add at least one step/section.");
+      return;
+    }
+
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i];
+      if (!s.label.trim()) {
+        toast.error(`Step ${i + 1} is missing a label.`);
+        return;
+      }
+      if (s.requiredQuantity < 1) {
+        toast.error(`Step ${i + 1} required quantity must be at least 1.`);
+        return;
+      }
+      if (s.items.size === 0) {
+        toast.error(`Step ${i + 1} has no items selected.`);
+        return;
+      }
+      if (s.items.size < s.requiredQuantity) {
+        toast.error(`Step ${i + 1} requires ${s.requiredQuantity} items but you only selected ${s.items.size}.`);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      const days = weekDates.map((d) => {
-        const key = dateKey(d);
-        return { date: key, items: Array.from(selection[key] || []) };
-      });
+      const formattedSections = sections.map(s => ({
+        label: s.label,
+        requiredQuantity: s.requiredQuantity,
+        items: Array.from(s.items)
+      }));
 
       const res = await saveWeeklyMenu({
         category: selectedCategory,
-        weekStartDate: dateKey(weekStart),
-        days,
+        date: selectedDate,
+        sections: formattedSections,
       });
 
       if (res.success) {
-        toast.success("Weekly menu saved successfully!");
+        toast.success("Daily menu saved successfully!");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to save weekly menu.");
+      toast.error(error?.response?.data?.message || "Failed to save daily menu.");
     } finally {
       setSaving(false);
     }
@@ -146,127 +164,157 @@ const WeeklyMenuManager = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">Weekly Menu</h1>
-        <p className="text-gray-500">
-          Choose which items are available, per day, for each category this week.
-        </p>
+      <div className="mb-6 flex flex-col justify-between sm:flex-row sm:items-end">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Daily Menu Builder</h1>
+          <p className="text-gray-500">
+            Configure meal sections and limits for a specific date and category.
+          </p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving || loadingMenu}
+          className="mt-4 flex items-center gap-2 rounded-xl bg-[#e61e2d] px-6 py-2.5 font-bold text-white transition-all hover:bg-red-700 disabled:opacity-50 sm:mt-0 shadow-sm"
+        >
+          {saving ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save size={18} />}
+          {saving ? "Saving..." : "Save Menu"}
+        </button>
       </div>
 
-      <div className="mx-auto w-full max-w-5xl rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
-          <div className="flex items-end gap-3">
-            <div className="max-w-xs">
-              <label className="mb-1.5 block text-xs font-medium text-gray-500">Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize focus:border-[#e61e2d] focus:outline-none bg-white"
-              >
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id} className="capitalize">
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+      <div className="mx-auto w-full max-w-4xl space-y-6">
+        
+        {/* Top Controls */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6">
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Select Category</label>
+              <button onClick={() => navigate('/admin/categories')} className="text-xs text-[#e61e2d] hover:underline font-semibold">
+                + Add Category
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/items/add?category=${selectedCategory}&from=weekly-menu`)}
-              disabled={!selectedCategory}
-              className="flex items-center gap-1.5 rounded-lg border border-[#e61e2d] px-3 py-2 text-sm font-semibold text-[#e61e2d] hover:bg-red-50 disabled:opacity-50 whitespace-nowrap"
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium focus:border-[#e61e2d] focus:outline-none bg-gray-50"
             >
-              <Plus size={15} /> Add Item
-            </button>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id} className="capitalize">
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setWeekStart((prev) => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; })}
-              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">
-              {weekDates[0].toLocaleDateString("en-US", { day: "numeric", month: "short" })} - {weekDates[6].toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
-            </span>
-            <button
-              type="button"
-              onClick={() => setWeekStart((prev) => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; })}
-              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
-            >
-              <ChevronRight size={16} />
-            </button>
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wide">Select Date</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium focus:border-[#e61e2d] focus:outline-none bg-gray-50"
+            />
           </div>
         </div>
 
-        {loadingWeek ? (
-          <div className="py-16 text-center text-sm text-gray-400">Loading week...</div>
-        ) : categoryItems.length === 0 ? (
-          <div className="py-16 text-center text-sm text-gray-400 space-y-3">
-            <p>No items exist in this category yet.</p>
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/items/add?category=${selectedCategory}&from=weekly-menu`)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e61e2d] px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
-            >
-              <Plus size={15} /> Add an item to this category
-            </button>
-          </div>
+        {/* Dynamic Sections */}
+        {loadingMenu ? (
+          <div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-[#e61e2d] border-t-transparent" /></div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-              {weekDates.map((date, i) => {
-                const key = dateKey(date);
-                const daySelection = selection[key] || new Set();
+          <div className="space-y-6">
+            {sections.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-500 shadow-sm">
+                <p className="mb-4 text-sm font-medium">No menu sections configured for this date yet.</p>
+                <button onClick={addSection} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white hover:bg-black">
+                  <Plus size={16} /> Add First Step
+                </button>
+              </div>
+            ) : (
+              sections.map((section, index) => (
+                <div key={section.id} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm relative group overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#e61e2d]" />
+                  
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-xs text-[#e61e2d]">{index + 1}</span>
+                      Step {index + 1}
+                    </h3>
+                    <button onClick={() => removeSection(section.id)} className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
 
-                return (
-                  <div key={key} className="rounded-xl border border-gray-100 bg-gray-50/50 p-3">
-                    <p className="text-xs font-bold text-gray-800 uppercase tracking-wide">
-                      {DAY_LABELS[i]}
-                    </p>
-                    <p className="text-[11px] text-gray-400 mb-2">
-                      {date.toLocaleDateString("en-US", { day: "numeric", month: "short" })}
-                    </p>
-
-                    <div className="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar pr-0.5">
-                      {categoryItems.map((item) => (
-                        <label
-                          key={item._id}
-                          className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={daySelection.has(item._id)}
-                            onChange={() => toggleItemForDay(key, item._id)}
-                            className="h-3.5 w-3.5 rounded border-gray-300 text-[#e61e2d] focus:ring-[#e61e2d]"
-                          />
-                          <span className="truncate">{item.name}</span>
-                        </label>
-                      ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wide">Section Label</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Vegetables, Roti/Rice"
+                        value={section.label}
+                        onChange={(e) => updateSection(section.id, "label", e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-[#e61e2d] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wide">Required Selection Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 2"
+                        value={section.requiredQuantity}
+                        onChange={(e) => updateSection(section.id, "requiredQuantity", parseInt(e.target.value) || 1)}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-[#e61e2d] focus:outline-none"
+                      />
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            <div className="mt-6 flex justify-end">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Select Items Available</label>
+                      <button onClick={() => navigate(`/admin/items/add?category=${selectedCategory}&from=weekly-menu`)} className="text-xs text-[#e61e2d] hover:underline font-semibold">
+                        + Create New Item
+                      </button>
+                    </div>
+                    {categoryItems.length === 0 ? (
+                      <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">No items exist in this category. Please create some first.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-1">
+                        {categoryItems.map(item => {
+                          const isSelected = section.items.has(item._id);
+                          return (
+                            <div
+                              key={item._id}
+                              onClick={() => toggleItemInSection(section.id, item._id)}
+                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                                isSelected ? "border-[#e61e2d] bg-red-50 shadow-sm" : "border-gray-200 hover:border-gray-300 bg-white"
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                                isSelected ? "bg-[#e61e2d] border-[#e61e2d]" : "border-gray-300"
+                              }`}>
+                                {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 truncate">{item.name}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+
+            {sections.length > 0 && (
               <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-xl bg-[#e61e2d] px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
+                onClick={addSection}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 p-4 text-sm font-bold text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors bg-white"
               >
-                {saving ? "Saving..." : "Save Weekly Menu"}
+                <Plus size={18} /> Add Another Step
               </button>
-            </div>
-          </>
+            )}
+          </div>
         )}
       </div>
     </div>
   );
-};
-
-export default WeeklyMenuManager;
+}

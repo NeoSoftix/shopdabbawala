@@ -1,14 +1,11 @@
 import mongoose from "mongoose";
 
-// One entry per calendar date within the week this document covers - which
-// Items (within `category`) the admin has made available on that specific
-// date. A date with no matching entry (or an empty `items` array) means
-// nothing is available for that day yet.
-const dayMenuSchema = new mongoose.Schema(
+const sectionSchema = new mongoose.Schema(
   {
-    date: {
-      type: Date,
+    label: {
+      type: String,
       required: true,
+      trim: true,
     },
     items: [
       {
@@ -16,6 +13,24 @@ const dayMenuSchema = new mongoose.Schema(
         ref: "Item",
       },
     ],
+    requiredQuantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+  },
+  { _id: true } // Generate IDs for sections so frontend can map them easily
+);
+
+// One entry per calendar date within the week this document covers.
+// A date with no matching entry means nothing is available for that day yet.
+const dayMenuSchema = new mongoose.Schema(
+  {
+    date: {
+      type: Date,
+      required: true,
+    },
+    sections: [sectionSchema],
   },
   { _id: false }
 );

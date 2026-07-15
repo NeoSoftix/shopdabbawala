@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus, getDayAddonsSummary } from "../../services/mealSchedule.service";
 import { saveCheckoutDetails } from "../../services/payment.service";
+import { getAvailableMenuDates } from "../../services/weeklyMenu.service";
 import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
@@ -13,8 +14,8 @@ import Footer from "../../components/shared/Footer";
 import UserHistorydetails from "../../components/User/UserHistoryDetails";
 
 import Sidebar from "./MealPlanner/Sidebar";
-import PlanSummary from "./MealPlanner/PlanSummary";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
+import MySchedule from "./MealPlanner/MySchedule";
 import PlanSelector from "./MealPlanner/PlanSelector";
 import NoActivePlan from "./MealPlanner/NoActivePlan";
 
@@ -49,6 +50,7 @@ const MealPlanner = () => {
   const [weeklyPlan, setWeeklyPlan] = useState({});
   const [dayStatus, setDayStatus] = useState({});
   const [dayAddOns, setDayAddOns] = useState({});
+  const [availableDates, setAvailableDates] = useState([]);
 
   const refreshDayStatuses = async (subscriptionId) => {
     if (!subscriptionId) return;
@@ -96,25 +98,14 @@ const MealPlanner = () => {
 
   useEffect(() => {
     const fetchSavedMealPlan = async () => {
-      if (!activeSubscription?._id) {
-        return;
-      }
-
+      if (!activeSubscription?._id) return;
       try {
-        const res = await getMealSchedule(
-          activeSubscription._id
-        );
-
-        if (!res.success || !res.data) {
-          return;
-        }
+        const res = await getMealSchedule(activeSubscription._id);
+        if (!res.success || !res.data) return;
 
         const initialPlan = {};
-
-        res.data.schedule.forEach((daySchedule) => {
-          if (!daySchedule?.date) {
-            return;
-          }
+        (res.data.schedule || []).forEach((daySchedule) => {
+          if (!daySchedule.date) return;
 
           initialPlan[formatDateKey(daySchedule.date)] =
             (daySchedule.items || [])
@@ -127,10 +118,7 @@ const MealPlanner = () => {
 
         setWeeklyPlan(initialPlan);
       } catch (error) {
-        console.error(
-          "Failed to load saved meal plan:",
-          error?.response?.data || error
-        );
+        console.error("Failed to load saved meal plan:", error?.response?.data || error);
       }
     };
 
@@ -144,8 +132,31 @@ const MealPlanner = () => {
       }
     };
 
+    const fetchAvailableDates = async () => {
+      if (!activeSubscription?.category?._id) return;
+      try {
+        // Every date the admin has published a menu for, across all weeks
+        // (not just the current one) and including past/confirmed dates -
+        // filtering to what's actually selectable happens in the UI.
+        const res = await getAvailableMenuDates(activeSubscription.category._id);
+        if (res.success) {
+          const formattedDates = (res.availableDates || [])
+            .map((d) => d.split("T")[0])
+            .filter((d) => {
+              const [y, m, dayNum] = d.split("-").map(Number);
+              const dateObj = new Date(y, m - 1, dayNum);
+              return !isBeyondSubscription(dateObj, activeSubscription);
+            });
+          setAvailableDates(formattedDates);
+        }
+      } catch (error) {
+        console.error("Failed to load available dates:", error);
+      }
+    };
+
     fetchSavedMealPlan();
     fetchDayStatuses();
+    fetchAvailableDates();
     refreshDayAddOns(activeSubscription?._id);
   }, [activeSubscription?._id]);
 
@@ -207,7 +218,6 @@ const MealPlanner = () => {
       setLoadingPlan(false);
     }
   }, [user, loading]);
-console.log(activeSubscription?.maxItemsPerMeal);
 
   return (
     <div className="min-h-screen bg-[#F4F7FE] font-sans antialiased flex flex-col">
@@ -222,34 +232,25 @@ console.log(activeSubscription?.maxItemsPerMeal);
         <section className="lg:col-span-9 w-full">
           {activeStep === 1 && (
             <div className="fade-in">
-              <PlanSummary subscriptions={subscriptions} loading={loadingPlan} />
-            </div>
-          )}
-
-          {activeStep === 2 && (
-            <div className="fade-in">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <NoActivePlan
                   description="You need an active meal subscription to build a custom schedule. Please purchase a plan to unlock this feature."
                   noteText="Meal scheduling and customization are locked until you activate a plan."
                 />
               ) : (
-
               <>
                 <PlanSelector
                   subscriptions={subscriptions}
                   activeSubscription={activeSubscription}
                   onChange={setActiveSubscription}
                 />
-
                 <MealScheduleBuilder
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
                   weeklyPlan={weeklyPlan}
                   setWeeklyPlan={setWeeklyPlan}
-                  mealSize={activeSubscription?.mealSize}
-                  mealCount={activeSubscription?.maxItemsPerMeal}
                   subscription={activeSubscription}
+                  availableDates={availableDates}
                   subscriptionId={activeSubscription?._id}
                   dayStatus={dayStatus}
                   onToggleDayActive={handleToggleDayActive}
@@ -261,7 +262,7 @@ console.log(activeSubscription?.maxItemsPerMeal);
             </div>
           )}
 
-          {activeStep === 3 && (
+          {activeStep === 2 && (
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <div className="py-10 text-center">
@@ -275,6 +276,23 @@ console.log(activeSubscription?.maxItemsPerMeal);
                 </div>
               ) : (
                 <UserHistorydetails subscriptions={subscriptions} />
+              )}
+            </div>
+          )}
+
+          {activeStep === 3 && (
+            <div className="fade-in">
+              {subscriptions.length === 0 && !loadingPlan ? (
+                <NoActivePlan
+                  description="You need an active meal subscription to have a meal schedule."
+                  noteText="Your scheduled meals and their delivery status will appear here once you have an active plan."
+                />
+              ) : (
+                <MySchedule
+                  weeklyPlan={weeklyPlan}
+                  dayStatus={dayStatus}
+                  subscription={activeSubscription}
+                />
               )}
             </div>
           )}

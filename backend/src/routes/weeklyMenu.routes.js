@@ -3,6 +3,7 @@ import {
   upsertWeeklyMenu,
   getWeeklyMenu,
   getAvailableItemsForDate,
+  getAvailableMenuDates,
 } from "../controllers/weeklyMenu.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
 
@@ -14,5 +15,6 @@ router.get("/", verifyToken, allowedRoles("admin"), getWeeklyMenu);
 
 // Customer-facing: items available for a category on a specific date.
 router.get("/available-items", verifyToken, getAvailableItemsForDate);
+router.get("/available-dates/:categoryId", verifyToken, getAvailableMenuDates);
 
 export default router;

@@ -19,7 +19,7 @@ const mondayOf = (date) => {
 // Monday..Sunday week, rolling forward automatically as `referenceDate`
 // (normally "today") moves past the current window's Sunday. Clamped by the
 // subscription's own endDate so it never extends past plan validity.
-export const getActiveWeekWindow = (subscription, referenceDate = new Date()) => {
+export const getActiveWeekWindow = (subscription, referenceDate = new Date(), maxWeeklyMenuDate = null) => {
   const subStart = new Date(subscription.startDate);
   subStart.setUTCHours(0, 0, 0, 0);
 
@@ -43,6 +43,15 @@ export const getActiveWeekWindow = (subscription, referenceDate = new Date()) =>
     windowStart = mondayOf(today);
     windowEnd = new Date(windowStart);
     windowEnd.setUTCDate(windowEnd.getUTCDate() + 6);
+  }
+
+  // Extend the window to the furthest date populated in the weekly menu (if provided)
+  if (maxWeeklyMenuDate) {
+    const maxDate = new Date(maxWeeklyMenuDate);
+    maxDate.setUTCHours(0, 0, 0, 0);
+    if (maxDate > windowEnd) {
+      windowEnd = maxDate;
+    }
   }
 
   if (subEnd && windowEnd > subEnd) windowEnd = subEnd;

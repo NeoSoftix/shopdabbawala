@@ -1,24 +1,24 @@
-import { FaBowlFood, FaCalendarDays, FaCircleInfo } from "react-icons/fa6";
+import { FaBowlFood, FaCalendarDays, FaClipboardList, FaCircleInfo } from "react-icons/fa6";
 import { CookingPot, Crown, ArrowRight } from "lucide-react";
 
 const sidebarItems = [
   {
     id: 1,
-    label: "Plan Summary",
-    desc: "Overview of your current plan",
-    icon: <FaCircleInfo size={16} />,
-  },
-  {
-    id: 2,
     label: "Build Custom Meal",
     desc: "Create your perfect plan",
     icon: <FaBowlFood size={16} />,
   },
   {
-    id: 3,
+    id: 2,
     label: "My Orders",
     desc: "Track your orders & history",
     icon: <FaCalendarDays size={16} />,
+  },
+  {
+    id: 3,
+    label: "My Schedule",
+    desc: "See your meals by day",
+    icon: <FaClipboardList size={16} />,
   },
 ];
 

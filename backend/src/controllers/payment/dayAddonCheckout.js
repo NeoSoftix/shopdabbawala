@@ -45,11 +45,26 @@ export const createDayAddonCheckout = async (req, res) => {
       return res.status(404).json({ success: false, message: "Active subscription not found." });
     }
 
-    const { windowStart, windowEnd } = getActiveWeekWindow(subscription, new Date());
-    if (requestDate < windowStart || requestDate > windowEnd) {
+    const WeeklyMenu = mongoose.model("WeeklyMenu");
+    const weekStart = new Date(requestDate);
+    weekStart.setUTCHours(0, 0, 0, 0);
+    const dow = weekStart.getUTCDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    weekStart.setUTCDate(weekStart.getUTCDate() + diff);
+
+    const weeklyMenu = await WeeklyMenu.findOne({
+      category: subscription.category,
+      weekStartDate: weekStart
+    }).lean();
+
+    const dayMenu = weeklyMenu?.days?.find(
+      (d) => new Date(d.date).getTime() === requestDate.getTime()
+    );
+
+    if (!dayMenu || !dayMenu.sections || dayMenu.sections.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "You can only add add-ons within your current active week.",
+        message: "No menu available for the selected date.",
       });
     }
 

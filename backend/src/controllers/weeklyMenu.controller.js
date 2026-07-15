@@ -3,9 +3,6 @@ import WeeklyMenu from "../models/weeklyMenu.model.js";
 import Category from "../models/category.model.js";
 import Item from "../models/item.model.js";
 
-// The Monday (00:00 UTC) of the calendar week containing `date` - mirrors
-// backend/src/utils/getActiveWeekWindow.js's mondayOf, kept local here since
-// this is the only other place that needs it.
 const mondayOf = (date) => {
   const d = new Date(date);
   d.setUTCHours(0, 0, 0, 0);
@@ -15,23 +12,19 @@ const mondayOf = (date) => {
   return d;
 };
 
-// ➤ Admin: create/update the week's menu for a category. Upserts by
-// (category, weekStartDate) - saving the same week again overwrites it
-// rather than creating a duplicate.
+// ➤ Admin: create/update the menu for a specific date (upserts into WeeklyMenu).
 export const upsertWeeklyMenu = async (req, res) => {
   try {
-    const { category: categoryId, weekStartDate, days } = req.body;
+    const { category: categoryId, date, sections } = req.body;
 
     if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({ success: false, message: "A valid category is required." });
     }
-
-    if (!weekStartDate || isNaN(new Date(weekStartDate).getTime())) {
-      return res.status(400).json({ success: false, message: "A valid weekStartDate is required." });
+    if (!date || isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ success: false, message: "A valid date is required." });
     }
-
-    if (!Array.isArray(days)) {
-      return res.status(400).json({ success: false, message: "days must be an array." });
+    if (!Array.isArray(sections)) {
+      return res.status(400).json({ success: false, message: "sections must be an array." });
     }
 
     const categoryExists = await Category.findById(categoryId).lean();
@@ -39,18 +32,17 @@ export const upsertWeeklyMenu = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found." });
     }
 
-    const normalizedWeekStart = mondayOf(weekStartDate);
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    const normalizedWeekStart = mondayOf(targetDate);
 
-    // Every item referenced must actually belong to this category - an
-    // admin picking items for "North Indian" week menu shouldn't be able to
-    // slip in a "Chinese" item by mistake.
-    const allItemIds = days.flatMap((d) => (Array.isArray(d.items) ? d.items : []));
+    // Validate items
+    const allItemIds = sections.flatMap((s) => (Array.isArray(s.items) ? s.items : []));
     for (const itemId of allItemIds) {
       if (!mongoose.Types.ObjectId.isValid(itemId)) {
         return res.status(400).json({ success: false, message: `Invalid item ID: ${itemId}` });
       }
     }
-
     if (allItemIds.length > 0) {
       const validItemCount = await Item.countDocuments({
         _id: { $in: allItemIds },
@@ -64,69 +56,76 @@ export const upsertWeeklyMenu = async (req, res) => {
       }
     }
 
-    const normalizedDays = days
-      .filter((d) => d.date && !isNaN(new Date(d.date).getTime()))
-      .map((d) => {
-        const dayDate = new Date(d.date);
-        dayDate.setUTCHours(0, 0, 0, 0);
-        return { date: dayDate, items: Array.isArray(d.items) ? d.items : [] };
-      });
+    let weeklyMenu = await WeeklyMenu.findOne({
+      category: categoryId,
+      weekStartDate: normalizedWeekStart,
+    });
 
-    const weeklyMenu = await WeeklyMenu.findOneAndUpdate(
-      { category: categoryId, weekStartDate: normalizedWeekStart },
-      {
-        $set: {
-          days: normalizedDays,
-          createdBy: req.user.id,
-        },
-      },
-      { new: true, upsert: true, runValidators: true }
+    if (!weeklyMenu) {
+      weeklyMenu = new WeeklyMenu({
+        category: categoryId,
+        weekStartDate: normalizedWeekStart,
+        days: [],
+        createdBy: req.user.id,
+      });
+    }
+
+    const dayIndex = weeklyMenu.days.findIndex(
+      (d) => new Date(d.date).getTime() === targetDate.getTime()
     );
+
+    if (dayIndex >= 0) {
+      weeklyMenu.days[dayIndex].sections = sections;
+    } else {
+      weeklyMenu.days.push({ date: targetDate, sections });
+    }
+
+    await weeklyMenu.save();
 
     return res.status(200).json({
       success: true,
-      message: "Weekly menu saved successfully.",
+      message: "Daily menu saved successfully.",
       data: weeklyMenu,
     });
   } catch (error) {
-    console.error("Upsert Weekly Menu Error:", error);
+    console.error("Upsert Daily Menu Error:", error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// ➤ Admin: fetch the configured menu for a category+week (to prefill the
-// edit UI). Returns null data if nothing's been configured for that week yet.
+// ➤ Admin: fetch the configured menu for a category+date.
 export const getWeeklyMenu = async (req, res) => {
   try {
-    const { category: categoryId, weekStartDate } = req.query;
+    const { category: categoryId, date } = req.query;
 
     if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({ success: false, message: "A valid category is required." });
     }
-    if (!weekStartDate || isNaN(new Date(weekStartDate).getTime())) {
-      return res.status(400).json({ success: false, message: "A valid weekStartDate is required." });
+    if (!date || isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ success: false, message: "A valid date is required." });
     }
 
-    const normalizedWeekStart = mondayOf(weekStartDate);
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    const normalizedWeekStart = mondayOf(targetDate);
 
     const weeklyMenu = await WeeklyMenu.findOne({
       category: categoryId,
       weekStartDate: normalizedWeekStart,
-    }).populate("days.items", "name image isActive");
+    }).populate("days.sections.items", "name image isActive");
 
-    return res.status(200).json({ success: true, data: weeklyMenu || null });
+    const dayMenu = weeklyMenu?.days?.find(
+      (d) => new Date(d.date).getTime() === targetDate.getTime()
+    );
+
+    return res.status(200).json({ success: true, data: dayMenu || null });
   } catch (error) {
-    console.error("Get Weekly Menu Error:", error);
+    console.error("Get Daily Menu Error:", error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// ➤ Customer-facing: which items are available for a specific category on a
-// specific date - powers the day-scoped item picker in the meal scheduler.
-// Returns an empty list (not an error) when the admin hasn't configured a
-// menu for that week/category/date yet, so the UI can show a clear
-// "nothing available yet" state rather than falling back to showing every
-// item in the category.
+// ➤ Customer-facing: Get sections available for a specific category on a date.
 export const getAvailableItemsForDate = async (req, res) => {
   try {
     const { category: categoryId, date } = req.query;
@@ -146,7 +145,7 @@ export const getAvailableItemsForDate = async (req, res) => {
       category: categoryId,
       weekStartDate: weekStart,
     }).populate({
-      path: "days.items",
+      path: "days.sections.items",
       match: { isActive: true },
       select: "name description image allergies category",
     });
@@ -155,11 +154,44 @@ export const getAvailableItemsForDate = async (req, res) => {
       (d) => new Date(d.date).getTime() === targetDate.getTime()
     );
 
-    const items = (dayEntry?.items || []).filter(Boolean);
+    const sections = dayEntry?.sections || [];
 
-    return res.status(200).json({ success: true, data: items });
+    return res.status(200).json({ success: true, data: sections });
   } catch (error) {
     console.error("Get Available Items For Date Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// ➤ Customer-facing: Get an array of all dates that have a menu for a category.
+export const getAvailableMenuDates = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({ success: false, message: "A valid category ID is required." });
+    }
+
+    // Get all weekly menus for this category
+    const menus = await WeeklyMenu.find({ category: categoryId }).lean();
+    
+    let availableDates = [];
+    menus.forEach((menu) => {
+      if (menu.days) {
+        menu.days.forEach((day) => {
+          if (day.sections && day.sections.length > 0) {
+            availableDates.push(new Date(day.date).toISOString());
+          }
+        });
+      }
+    });
+
+    // Deduplicate and sort
+    availableDates = [...new Set(availableDates)].sort((a, b) => new Date(a) - new Date(b));
+
+    return res.status(200).json({ success: true, availableDates });
+  } catch (error) {
+    console.error("Get Available Menu Dates Error:", error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

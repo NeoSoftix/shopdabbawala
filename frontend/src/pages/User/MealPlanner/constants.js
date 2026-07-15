@@ -34,7 +34,7 @@ export const isSelectableDate = (date, subscription) =>
   !isPastDate(date) && !isBeyondSubscription(date, subscription);
 
 // The Monday (00:00) of the calendar week containing `date`.
-const mondayOf = (date) => {
+export const mondayOf = (date) => {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   const dow = d.getDay(); // 0 = Sunday .. 6 = Saturday
@@ -50,7 +50,7 @@ const mondayOf = (date) => {
 // current window's Sunday. Clamped by the subscription's endDate. Mirrors
 // backend/src/utils/getActiveWeekWindow.js exactly (server re-validates the
 // same window on submit) - keep the two in sync if this logic changes.
-export const getActiveWeekRange = (subscription) => {
+export const getActiveWeekRange = (subscription, maxWeeklyMenuDate = null) => {
   if (!subscription?.startDate) return [];
 
   const subStart = new Date(subscription.startDate);
@@ -76,6 +76,15 @@ export const getActiveWeekRange = (subscription) => {
     windowStart = mondayOf(today);
     windowEnd = new Date(windowStart);
     windowEnd.setDate(windowEnd.getDate() + 6);
+  }
+
+  // Extend the window to the furthest date populated in the weekly menu (if provided)
+  if (maxWeeklyMenuDate) {
+    const maxDate = new Date(maxWeeklyMenuDate);
+    maxDate.setHours(0, 0, 0, 0);
+    if (maxDate > windowEnd) {
+      windowEnd = maxDate;
+    }
   }
 
   if (subEnd && windowEnd > subEnd) windowEnd = subEnd;
