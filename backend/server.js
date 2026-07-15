@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import dns from "dns";
 import dotenv from "dotenv";
+import helmet from "helmet"
 dotenv.config();
 
 // Render (and several other cloud hosts) don't route outbound IPv6, but
@@ -36,11 +37,17 @@ import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
 
 const app = express();
 
+// helmet use for security
+app.use(helmet());
 
+// middleware for cookieparser
 app.use(cookieParser());
+
 connectDB();
 
+//middelare for jso parsing 
 app.use(express.json());
+
 
 const allowedOrigins = [
   "http://localhost:5173",
