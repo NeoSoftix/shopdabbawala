@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import { ChevronDown } from "lucide-react";
 import { getAvailableItemsForDate } from "../../../services/weeklyMenu.service";
 import { createMeal } from "../../../services/mealSchedule.service";
 
@@ -24,6 +25,7 @@ const MealScheduleBuilder = ({
   const [sections, setSections] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState(null);
 
   const categoryId = category?._id || category;
   const selectedDateKey = formatDateKey(selectedDate);
@@ -40,9 +42,12 @@ const MealScheduleBuilder = ({
       try {
         const res = await getAvailableItemsForDate(categoryId, selectedDateKey);
         if (res.success) {
-          setSections(res.data || []);
+          const fetchedSections = res.data || [];
+          setSections(fetchedSections);
+          setActiveSectionId(fetchedSections[0]?._id || null);
         } else {
           setSections([]);
+          setActiveSectionId(null);
         }
       } catch (err) {
         console.error("Failed to fetch available items:", err);
@@ -166,7 +171,7 @@ const MealScheduleBuilder = ({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                Menu for {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+                Select your meals for {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
               </h2>
               {isConfirmed ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-semibold mt-2">
@@ -179,7 +184,7 @@ const MealScheduleBuilder = ({
                 </span>
               ) : (
                 <p className="text-gray-500 text-sm mt-1">
-                  Select your preferred items for this day.
+                  Choose your items from each category.
                 </p>
               )}
             </div>
@@ -218,80 +223,106 @@ const MealScheduleBuilder = ({
             <div className="flex justify-center py-12">
               <div className="w-10 h-10 border-4 border-[#e61e2d] border-t-transparent rounded-full animate-spin"></div>
             </div>
+          ) : sections.length === 0 ? (
+            <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No Items Found</h3>
+              <p className="text-gray-500 text-sm">There are no items configured for this date.</p>
+            </div>
           ) : (
-            <div className="space-y-8">
-              {sections.length === 0 ? (
-                 <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                   <h3 className="text-lg font-bold text-gray-900 mb-2">No Items Found</h3>
-                   <p className="text-gray-500 text-sm">There are no items configured for this date.</p>
-                 </div>
-              ) : (
-                sections.map((section, idx) => {
-                  const required = section.requiredQuantity || 1;
-                  const selected = sectionCounts[section._id] || 0;
-                  const isComplete = selected === required;
+            <div>
+              <div className="flex flex-col gap-6">
+                {/* SECTIONS: active one expanded, rest collapsed */}
+                <div className="flex-1 min-w-0 space-y-3">
+                  {sections.map((section, idx) => {
+                    const required = section.requiredQuantity || 1;
+                    const selected = sectionCounts[section._id] || 0;
+                    const isComplete = selected === required;
+                    const isExpanded = section._id === activeSectionId;
 
-                  return (
-                    <div key={section._id} className="relative">
-                      <div className="flex justify-between items-end mb-4">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-xs text-[#e61e2d]">
+                    if (!isExpanded) {
+                      return (
+                        <button
+                          key={section._id}
+                          type="button"
+                          onClick={() => setActiveSectionId(section._id)}
+                          className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors text-left"
+                        >
+                          <span className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-500">
                               {idx + 1}
                             </span>
                             {section.label}
-                          </h3>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Select exactly <span className="font-bold text-gray-700">{required}</span> items from this section.
-                          </p>
-                        </div>
-                        <div className={`text-sm font-bold px-3 py-1 rounded-full ${isComplete ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
-                          {selected} / {required} Selected
-                        </div>
-                      </div>
+                          </span>
+                          <span className="flex items-center gap-3">
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isComplete ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                              {selected} / {required} Selected
+                            </span>
+                            <ChevronDown size={16} className="text-gray-400" />
+                          </span>
+                        </button>
+                      );
+                    }
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {section.items.map((item) => {
-                          const isSelected = currentDayItems.some(meal => meal._id === item._id);
-                          const isDisabled = !isSelected && selected >= required && !isLocked;
-
-                          return (
-                            <button
-                              key={item._id}
-                              onClick={() => !isLocked && handleItemToggle(item, section._id, required)}
-                              disabled={isDisabled || isLocked}
-                              className={`
-                                flex items-center p-3 rounded-xl border text-left transition-all duration-200
-                                ${isSelected
-                                  ? "border-[#e61e2d] bg-red-50 ring-1 ring-[#e61e2d] ring-opacity-50"
-                                  : "border-gray-200 bg-white hover:border-gray-300"}
-                                ${isDisabled || isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-sm"}
-                              `}
-                            >
-                              <div className={`
-                                w-5 h-5 flex-shrink-0 rounded border flex items-center justify-center mr-3 transition-colors
-                                ${isSelected ? "bg-[#e61e2d] border-[#e61e2d]" : "border-gray-300 bg-white"}
-                              `}>
-                                {isSelected && (
-                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                )}
-                              </div>
-                              <span className={`font-semibold text-sm ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
-                                {item.name}
+                    return (
+                      <div key={section._id} className="relative p-3.5 rounded-xl border border-[#e61e2d]/20 bg-red-50/30">
+                        <div className="flex justify-between items-end mb-4">
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-xs text-[#e61e2d]">
+                                {idx + 1}
                               </span>
-                            </button>
-                          );
-                        })}
+                              {section.label}
+                              <span className="text-sm font-normal text-gray-500">(Select {required})</span>
+                            </h3>
+                          </div>
+                          <div className={`text-sm font-bold px-3 py-1 rounded-full ${isComplete ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                            {selected} / {required} Selected
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {section.items.map((item) => {
+                            const isSelected = currentDayItems.some(meal => meal._id === item._id);
+                            const isDisabled = !isSelected && selected >= required && !isLocked;
+
+                            return (
+                              <button
+                                key={item._id}
+                                onClick={() => !isLocked && handleItemToggle(item, section._id, required)}
+                                disabled={isDisabled || isLocked}
+                                className={`
+                                  flex items-center p-3 rounded-xl border text-left transition-all duration-200 bg-white
+                                  ${isSelected
+                                    ? "border-[#e61e2d] bg-red-50 ring-1 ring-[#e61e2d] ring-opacity-50"
+                                    : "border-gray-200 bg-white hover:border-gray-300"}
+                                  ${isDisabled || isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-sm"}
+                                `}
+                              >
+                                <div className={`
+                                  w-5 h-5 flex-shrink-0 rounded border flex items-center justify-center mr-3 transition-colors
+                                  ${isSelected ? "bg-[#e61e2d] border-[#e61e2d]" : "border-gray-300 bg-white"}
+                                `}>
+                                  {isSelected && (
+                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <span className={`font-semibold text-sm ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
+                                  {item.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
-              )}
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* SAVE BUTTON */}
-              <div className="pt-6 border-t border-gray-100 flex justify-end">
+              <div className="pt-6 mt-6 border-t border-gray-100 flex justify-end">
                 <button
                   onClick={handleConfirmDay}
                   disabled={submitting || isLocked || sections.length === 0 || !isScheduleValid()}

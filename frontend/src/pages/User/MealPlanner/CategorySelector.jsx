@@ -1,6 +1,7 @@
 // Shown above the meal-schedule builder, right next to PlanSelector. A plan
 // can offer more than one category (e.g. "chinese", "north-indian") - the
 // subscriber picks one at a time to schedule a given day's meal against.
+// Rendered as a horizontal scrollable slider of pills rather than a dropdown.
 export default function CategorySelector({ categories, selectedCategory, onChange }) {
   if (!categories || categories.length === 0) return null;
 
@@ -20,24 +21,29 @@ export default function CategorySelector({ categories, selectedCategory, onChang
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-1">
+    <div className="flex items-center gap-3 mb-4 px-1">
       <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider shrink-0">
         Category:
       </span>
-      <select
-        value={selectedId || ""}
-        onChange={(e) => {
-          const next = categories.find((cat) => cat._id === e.target.value);
-          if (next) onChange(next);
-        }}
-        className="text-sm font-black text-[#1B254B] bg-white border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#E31A1A] shadow-sm max-w-full sm:max-w-xs capitalize"
-      >
-        {categories.map((cat) => (
-          <option key={cat._id} value={cat._id} className="capitalize">
-            {cat.name}
-          </option>
-        ))}
-      </select>
+      <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {categories.map((cat) => {
+          const isSelected = selectedId === cat._id;
+          return (
+            <button
+              key={cat._id}
+              type="button"
+              onClick={() => onChange(cat)}
+              className={`text-sm font-bold px-4 py-2 rounded-xl capitalize shrink-0 transition-colors border ${
+                isSelected
+                  ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
+                  : "bg-white text-[#1B254B] border-gray-200 hover:border-[#E31A1A]/50 hover:bg-red-50/40"
+              }`}
+            >
+              {cat.name}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
