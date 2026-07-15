@@ -1,3 +1,4 @@
+import Payment from "../../models/payment.model.js";
 import Order from "../../models/Order.model.js";
 import User from "../../models/User.model.js";
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
@@ -6,11 +7,18 @@ import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
 // Attaches the paid add-ons snapshot to the specific (subscription, date)
 // Order they were bought for - appends rather than replaces, so buying
 // add-ons for the same day twice never erases a previous paid purchase.
-// Idempotent (safe to call more than once for the same Payment, e.g. once
-// from the webhook and again from saveCheckoutDetails as a fallback) since
-// it no-ops once `payment.order` is already set.
+//
+// This can be called twice for the same Payment - once from the webhook
+// and once more from saveCheckoutDetails as a fallback (in case the webhook
+// hasn't fired yet when the success page loads). A plain "if payment.order
+// is already set, skip" check is NOT safe here: both calls can read
+// payment.order as unset before either has saved it, so both would append
+// the add-ons, double-charging the order (while Stripe itself only charged
+// once). Instead, atomically claim the payment by flipping `order` from
+// null to the target order's id - only one caller can win that update, so
+// only one caller ever appends the add-ons.
 export const fulfillDayAddonOrder = async (session, payment) => {
-  if (payment.order || !Array.isArray(payment.items) || payment.items.length === 0) {
+  if (!Array.isArray(payment.items) || payment.items.length === 0) {
     return;
   }
 
@@ -42,6 +50,20 @@ export const fulfillDayAddonOrder = async (session, payment) => {
     return;
   }
 
+  const claimed = await Payment.findOneAndUpdate(
+    { _id: payment._id, order: null },
+    { $set: { order: order._id } },
+    { new: true }
+  );
+
+  if (!claimed) {
+    // Another concurrent call (webhook vs. saveCheckoutDetails fallback)
+    // already claimed and attached the add-ons - skip to avoid duplicating them.
+    return;
+  }
+
+  payment.order = claimed.order;
+
   const newAddons = payment.items.map((it) => ({
     addon: it.addon,
     name: it.name,
@@ -51,9 +73,6 @@ export const fulfillDayAddonOrder = async (session, payment) => {
 
   order.addons = [...(order.addons || []), ...newAddons];
   await order.save();
-
-  payment.order = order._id;
-  await payment.save();
 
   const extraCharge = newAddons.reduce((sum, a) => sum + (a.price || 0) * (a.qty || 0), 0);
   const dayLabel = normalizedDate.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
