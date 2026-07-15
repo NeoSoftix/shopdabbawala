@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiUsers, FiShoppingBag, FiShoppingCart } from "react-icons/fi";
 
-import { MdRestaurantMenu, MdFastfood } from "react-icons/md";
+import { MdFastfood } from "react-icons/md";
 
 import { FaDollarSign } from "react-icons/fa";
 
@@ -11,7 +11,6 @@ import OrdersCalendar from "../../components/shared/OrdersCalendar";
 import StatCard from "../../components/shared/StatCard";
 
 import { getAllVendors } from "../../services/vendor.service";
-import { getAllMeals } from "../../services/meal.service";
 import { getAllItems } from "../../services/items.service";
 import { getCustomerStats } from "../../services/customer.service";
 import { getOrderStats } from "../../services/order.service";
@@ -30,7 +29,6 @@ export default function AdminDashboard() {
   const [dashboardStats, setDashboardStats] = useState({
     users: 0,
     vendors: 0,
-    meals: 0,
     items: 0,
     orders: 0,
     revenue: 10000,
@@ -40,17 +38,13 @@ export default function AdminDashboard() {
     let cancelled = false;
 
     const fetchStats = async () => {
-      const [customerRes, vendorRes, mealRes, itemRes, orderRes] = await Promise.all([
+      const [customerRes, vendorRes, itemRes, orderRes] = await Promise.all([
         getCustomerStats().catch((error) => {
           console.error("Customer Count Error:", error);
           return null;
         }),
         getAllVendors().catch((error) => {
           console.error("Vendor Count Error:", error);
-          return null;
-        }),
-        getAllMeals().catch((error) => {
-          console.error("Meal Count Error:", error);
           return null;
         }),
         getAllItems().catch((error) => {
@@ -69,7 +63,6 @@ export default function AdminDashboard() {
         ...prev,
         users: customerRes?.success ? customerRes.stats.totalCustomers || 0 : prev.users,
         vendors: vendorRes?.success ? vendorRes.count || 0 : prev.vendors,
-        meals: mealRes?.success ? mealRes.count || 0 : prev.meals,
         items: itemRes?.success ? itemRes.count || 0 : prev.items,
         orders: orderRes?.success ? orderRes.stats.totalOrders || 0 : prev.orders,
       }));
@@ -86,11 +79,10 @@ export default function AdminDashboard() {
     () => [
       { name: "Users", value: dashboardStats.users },
       { name: "Vendors", value: dashboardStats.vendors },
-      { name: "Meals", value: dashboardStats.meals },
       { name: "Items", value: dashboardStats.items },
       { name: "Orders", value: dashboardStats.orders },
     ],
-    [dashboardStats.users, dashboardStats.vendors, dashboardStats.meals, dashboardStats.items, dashboardStats.orders],
+    [dashboardStats.users, dashboardStats.vendors, dashboardStats.items, dashboardStats.orders],
   );
 
   return (
@@ -108,13 +100,6 @@ export default function AdminDashboard() {
           value={dashboardStats.vendors}
           growth="0%"
           Icon={FiShoppingBag}
-        />
-
-        <StatCard
-          title="Total Meals"
-          value={dashboardStats.meals}
-          growth="0%"
-          Icon={MdRestaurantMenu}
         />
 
         <StatCard

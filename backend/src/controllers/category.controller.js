@@ -1,19 +1,11 @@
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
-import cloudinary from "../config/cloudinary.js";
-import { removeLocalFile } from "../middleware/upload.middleware.js";
-import Meal from "../models/meals.model.js";
 
 // contoller for create category
 export const createCategory = async (req, res) => {
   try {
-    const { name, meal, foodType } = req.body;
+    const { name, foodType } = req.body;
     const normalizedFoodType = foodType?.toLowerCase();
-
-    let image = {
-      url: "",
-      public_id: "",
-    };
 
     if (!name?.trim()) {
       return res.status(400).json({
@@ -22,44 +14,10 @@ export const createCategory = async (req, res) => {
       });
     }
 
-    if (!meal) {
-      return res.status(400).json({
-        success: false,
-        message: "Meal is required",
-      });
-    }
-    
-    if (req.file) {
-      const uploaded = await cloudinary.uploader.upload(req.file.path, {
-        folder: "categories",
-      });
-
-      image = {
-        url: uploaded.secure_url,
-        public_id: uploaded.public_id,
-      };
-
-      removeLocalFile(req.file.path);
-    }
-
-    const mealExists = await Meal.findById(meal);
-
-    if (!mealExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Meal not found",
-      });
-    }
-
     const category = await Category.create({
       name: name.trim(),
-      meal,
       foodType: normalizedFoodType,
       createdBy: req.user?.id || null,
-      image: {
-        url: image?.url || "",
-        public_id: image?.public_id || "",
-      },
     });
 
     return res.status(201).json({
@@ -69,8 +27,6 @@ export const createCategory = async (req, res) => {
     });
   } catch (error) {
     console.log("Create Category Error", error);
-
-    removeLocalFile(req.file?.path);
 
     return res.status(500).json({
       success: false,
@@ -83,9 +39,7 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const allCategories = await Category.find()
-      .populate("meal", "name")
-      .sort({ createdAt: -1 });
+    const allCategories = await Category.find().sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -113,7 +67,7 @@ export const getSingleCategory = async (req, res) => {
       });
     }
 
-    const category = await Category.findById(id).populate("meal", "name");
+    const category = await Category.findById(id);
 
     if (!category) {
       return res.status(404).json({
@@ -167,7 +121,7 @@ export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { name, meal, foodType } = req.body;
+    const { name, foodType } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -203,35 +157,9 @@ export const updateCategory = async (req, res) => {
       category.name = trimmedName;
     }
 
-    // update meal
-    if (meal !== undefined) {
-      category.meal = meal;
-    }
-
     // update food type
     if (foodType !== undefined) {
       category.foodType = foodType.toLowerCase();
-    }
-
-    // update image
-    if (req.file) {
-      // delete old cloudinary image
-      if (category.image?.public_id) {
-        await cloudinary.uploader.destroy(category.image.public_id);
-      }
-
-      // upload new image
-      const uploaded = await cloudinary.uploader.upload(req.file.path, {
-        folder: "categories",
-      });
-
-      category.image = {
-        url: uploaded.secure_url,
-        public_id: uploaded.public_id,
-      };
-
-      // delete local file
-      removeLocalFile(req.file.path);
     }
 
     await category.save();
@@ -243,8 +171,6 @@ export const updateCategory = async (req, res) => {
     });
   } catch (error) {
     console.log("Update Category Error", error);
-
-    removeLocalFile(req.file?.path);
 
     return res.status(500).json({
       success: false,
@@ -319,23 +245,6 @@ export const deleteCategory = async (req, res) => {
       });
     }
 
-    // check linked meals
-
-    const linkedMeals = await Meal.findOne({
-      category: id,
-    });
-
-    if (linkedMeals) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot delete category linked with meals",
-      });
-    }
-
-    if (category.image?.public_id) {
-      await cloudinary.uploader.destroy(category.image.public_id);
-    }
-
     await category.deleteOne();
 
     return res.status(200).json({
@@ -371,9 +280,7 @@ export const getCategoryByFoodType = async (req, res) => {
       foodType: foodType.toLowerCase(),
 
       isActive: true,
-    })
-      .sort({ createdAt: -1 })
-      .populate("meal", "name");
+    }).sort({ createdAt: -1 });
 
     return res.status(200).json({
       message: `${foodType} categories fetched successfully`,

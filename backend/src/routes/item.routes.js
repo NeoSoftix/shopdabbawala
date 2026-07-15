@@ -10,13 +10,12 @@ import {
   toggleItemStatus,
   getItemsByCategory,
 } from "../controllers/item.controller.js";
-import upload from "../middleware/upload.middleware.js";
 import {verifyToken, allowedRoles} from "../middleware/auth.middleware.js"
 
 const router = express.Router();
 
 // Create
-router.post("/", verifyToken, allowedRoles("admin") ,upload.single("image"), createItem);
+router.post("/", verifyToken, allowedRoles("admin"), createItem);
 
 // Read
 router.get("/", getAllItems);
@@ -42,7 +41,7 @@ router.patch(
 router.get("/:id", getSingleItem);
 
 // Update
-router.put("/:id",verifyToken, allowedRoles("admin"), upload.single("image"), updateItem);
+router.put("/:id",verifyToken, allowedRoles("admin"), updateItem);
 
 // Delete
 router.delete("/:id",verifyToken, allowedRoles("admin"), deleteItem);

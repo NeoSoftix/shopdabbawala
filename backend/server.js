@@ -18,7 +18,6 @@ import { connectDB } from "./src/config/db.js";
 import { initSocket } from "./src/socket/index.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/category.routes.js";
-import mealRoutes from "./src/routes/meal.route.js";
 import itemRoutes from "./src/routes/item.routes.js";
 import addOnRoutes from "./src/routes/addOns.routes.js";
 import vendorRoutes from "./src/routes/vendor.routes.js";
@@ -76,9 +75,6 @@ app.use(
 
 // auth routes
 app.use("/api/auth", authRoutes);
-
-// meals route
-app.use("/api/meal", mealRoutes);
 
 // category route
 app.use("/api/category", categoryRoutes);

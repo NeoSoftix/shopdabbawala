@@ -13,17 +13,6 @@ const itemSchema = new mongoose.Schema(
       trim: true,
     },
 
-    image: {
-      url: {
-        type: String,
-        default: ""
-      },
-      public_id: {
-        type: String,
-        default: ""
-      },
-    },
-    
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

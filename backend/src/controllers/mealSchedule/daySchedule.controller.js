@@ -47,20 +47,12 @@ export const updateDaySchedule = async (req, res) => {
     const finalItems = items !== undefined ? items : currentDaySchedule.items;
     const finalAddressId = addressId !== undefined ? addressId : currentDaySchedule.addressId;
 
-    // Items limit check (only if new items list is provided)
-    if (items !== undefined) {
-      if (!Array.isArray(items)) {
-        return res.status(400).json({
-          success: false,
-          message: "Items must be an array of ObjectIds",
-        });
-      }
-      if (items.length > subscription.maxItemsPerMeal) {
-        return res.status(400).json({
-          success: false,
-          message: `Aap is plan me 1 din me maximum ${subscription.maxItemsPerMeal} items hi add kar sakte hain`,
-        });
-      }
+    // Items must be an array (only if new items list is provided)
+    if (items !== undefined && !Array.isArray(items)) {
+      return res.status(400).json({
+        success: false,
+        message: "Items must be an array of ObjectIds",
+      });
     }
 
     // Address verification check (only if new addressId is provided)

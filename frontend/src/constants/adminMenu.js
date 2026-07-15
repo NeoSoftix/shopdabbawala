@@ -21,11 +21,6 @@ export const adminMenu = [
     icon: MdDashboard,
   },
   {
-    label: "Meals",
-    path: "/admin/meals",
-    icon: MdRestaurantMenu,
-  },
-  {
     label: "Categories",
     path: "/admin/categories",
     icon: BiCategoryAlt,

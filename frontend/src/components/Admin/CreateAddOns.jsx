@@ -5,8 +5,6 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
-const DEFAULT_IMG = "https://placehold.co/160x160?text=No+Image";
-
 const CreateAddOns = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -17,21 +15,6 @@ const CreateAddOns = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 1 * 1024 * 1024) {
-        toast.error("Image must be 1MB or smaller.");
-        e.target.value = "";
-        return;
-      }
-      setImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -60,24 +43,21 @@ const CreateAddOns = () => {
 
     try {
       setLoading(true);
-      const data = new FormData();
-      data.append("name", formData.name);
-      data.append("description", formData.description);
-      data.append("price", formData.price);
 
-      formData.allergies
+      const allergies = formData.allergies
         .split(",")
         .map((item) => item.trim())
-        .forEach((item) => { if (item) data.append("allergies", item); });
+        .filter(Boolean);
 
-      if (image) data.append("image", image);
-
-      const response = await createAddOn(data);
+      const response = await createAddOn({
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        allergies,
+      });
       toast.success(response.message || "Add-on created successfully!");
 
       setFormData({ name: "", description: "", price: "", allergies: "" });
-      setImage(null);
-      setPreviewUrl(null);
       setErrors({});
     } catch (error) {
       let errMessage = error?.response?.data?.message;
@@ -166,24 +146,6 @@ const CreateAddOns = () => {
               }`}
             />
             {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label className="block mb-1.5 font-medium text-gray-700">Add-On Image</label>
-            <label className="border-2 border-dashed rounded-xl h-40 flex items-center justify-center cursor-pointer hover:border-red-400 transition-colors overflow-hidden">
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  className="h-full w-full object-cover rounded-xl"
-                  onError={(e) => { e.target.src = DEFAULT_IMG; e.target.onerror = null; }}
-                />
-              ) : (
-                <span className="text-gray-400 text-sm">Click to upload image</span>
-              )}
-              <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
-            </label>
           </div>
 
           {/* Allergies */}

@@ -46,7 +46,6 @@ export function formatPackages(rawPackages) {
       : [
           "Healthy Meals",
           "Fresh Ingredients",
-          `Max Items: ${pkg.maxItemsPerMeal || 3}`,
           "Macro-Friendly Plan",
         ],
     popular: index === 1,

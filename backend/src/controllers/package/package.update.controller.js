@@ -16,7 +16,6 @@ export const updatePackage = async (req, res) => {
       discountPercentage,
       totalMeals,
       validityDays,
-      maxItemsPerMeal,
       isAddOnAllowed,
       features,
     } = req.body;
@@ -131,23 +130,6 @@ export const updatePackage = async (req, res) => {
       packageData.totalMeals = numericMeal;
     }
 
-    if (maxItemsPerMeal !== undefined) {
-      const numericMaxItems = Number(maxItemsPerMeal);
-
-      if (isNaN(numericMaxItems) || numericMaxItems <= 0) {
-        return res.status(400).json({
-          message: "Max items per meal should be a positive number",
-          success: false,
-        });
-      }
-
-      if (numericMaxItems !== packageData.maxItemsPerMeal) {
-        stripeMetadataChanged = true;
-      }
-
-      packageData.maxItemsPerMeal = numericMaxItems;
-    }
-
     let numericValidityDays = packageData.validityDays;
     if (validityDays !== undefined) {
       numericValidityDays = Number(validityDays);
@@ -237,7 +219,6 @@ export const updatePackage = async (req, res) => {
             metadata: {
               validityDays: packageData.validityDays.toString(),
               totalMeals: packageData.totalMeals.toString(),
-              maxItemsPerMeal: packageData.maxItemsPerMeal.toString(),
               features: JSON.stringify(packageData.features),
               discountedPrice:
                 packageData.discountedPrice !== null && packageData.discountedPrice !== undefined

@@ -32,7 +32,6 @@ const PackagesTable = ({
               <th className="py-3 px-4">Price</th>
               <th className="py-3 px-4">Meals</th>
               <th className="py-3 px-4">Validity</th>
-              <th className="py-3 px-4">Max Items</th>
               <th className="py-3 px-4">Description</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4 text-right">Action</th>
@@ -41,7 +40,7 @@ const PackagesTable = ({
           <tbody className="divide-y divide-gray-50">
             {loadingPackages ? (
               <tr>
-                <td colSpan="9" className="py-10">
+                <td colSpan="8" className="py-10">
                   <SectionLoader text="Loading packages..." />
                 </td>
               </tr>
@@ -74,7 +73,6 @@ const PackagesTable = ({
                 <td className="py-3.5 px-4 text-sm text-gray-500">
                   {p.validityDays} Days
                 </td>
-                <td className="py-3.5 px-4 text-sm">{p.maxItemsPerMeal}</td>
                 <td
                   className="py-3.5 px-4 text-sm text-gray-400 max-w-[180px] truncate"
                   title={p.description}

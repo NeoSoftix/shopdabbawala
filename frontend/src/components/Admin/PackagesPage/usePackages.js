@@ -16,7 +16,6 @@ const emptyFormData = {
   totalMeals: "",
   validityDays: "",
   description: "",
-  maxItemsPerMeal: "",
   features: "" // UI में यह string की तरह रहेगा
 };
 
@@ -86,8 +85,7 @@ export default function usePackages() {
       !formData.name ||
       !formData.price ||
       !formData.totalMeals ||
-      !formData.validityDays ||
-      !formData.maxItemsPerMeal
+      !formData.validityDays
     ) {
       toast.error("Please fill all required fields.");
       return;
@@ -182,7 +180,6 @@ export default function usePackages() {
       totalMeals: p.totalMeals || "",
       validityDays: p.validityDays || "",
       description: p.description || "",
-      maxItemsPerMeal: p.maxItemsPerMeal || "",
       features: featuresString // ✅ अब एडिट करते समय फॉर्म में डेटा दिखेगा
     });
     setShowForm(true);

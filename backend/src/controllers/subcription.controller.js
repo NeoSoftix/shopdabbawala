@@ -1,7 +1,6 @@
 import mongoose from "mongoose"
 import stripe from "../config/stripe.js";
 import Subscription from "../models/Subcription.model.js";
-import Meal from "../models/meals.model.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/User.model.js";
 import Package from "../models/package.model.js";
@@ -15,7 +14,6 @@ export const createSubscription = async (req, res) => {
       mealSize,
       preference,
       duration,
-      meals,
       quantity = 1,
       deliveryMethod,
       totalMeals,
@@ -35,26 +33,6 @@ export const createSubscription = async (req, res) => {
         success: false,
         message: "All required fields are mandatory.",
       });
-    }
-
-    // Meal Timing is optional
-    let meal = null;
-    if (meals) {
-      if (!mongoose.Types.ObjectId.isValid(meals)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Meal Id.",
-        });
-      }
-
-      meal = await Meal.findById(meals);
-
-      if (!meal) {
-        return res.status(404).json({
-          success: false,
-          message: "Meal not found.",
-        });
-      }
     }
 
     // Find the matching duration plan configured by the admin (DurationPlan collection)
@@ -155,13 +133,11 @@ export const createSubscription = async (req, res) => {
           mealSize,
           preference,
           duration: normalizedDuration,
-          ...(meal && { meals: meal._id.toString() }),
           quantity: quantity.toString(),
           deliveryMethod,
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
-          durationDays: durationPlanDoc.durationDays.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
           isScheduled: "true",
@@ -197,13 +173,11 @@ export const createSubscription = async (req, res) => {
           mealSize,
           preference,
           duration: normalizedDuration,
-          ...(meal && { meals: meal._id.toString() }),
           quantity: quantity.toString(),
           deliveryMethod,
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
-          durationDays: durationPlanDoc.durationDays.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
         },
@@ -416,7 +390,6 @@ export const instantUpgrade = async (req, res) => {
       price: pkg.price,
       totalMeals: pkg.totalMeals,
       mealsUsed: 0,
-      maxItemsPerMeal: pkg.maxItemsPerMeal,
       preference: "Veg",
       duration: "Monthly",
       quantity: 1,
@@ -439,7 +412,6 @@ export const getMySubscriptions = async (req, res) => {
     const userId = req.user.id;
     const subscriptions = await Subscription.find({ user: userId })
       .populate("package")
-      .populate("meals")
       .sort({ createdAt: -1 });
 
     // Attach the matching Payment (transaction id, gateway, paid-at time) to

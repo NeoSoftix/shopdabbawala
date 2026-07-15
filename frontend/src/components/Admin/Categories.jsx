@@ -6,7 +6,6 @@ import {
   updateCategory,
   deleteCategory,
 } from "../../services/category.service.js";
-import { getAllMeals } from "../../services/meal.service.js";
 import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
@@ -18,7 +17,6 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -27,17 +25,7 @@ const Categories = () => {
 
   useEffect(() => {
     fetchCategories();
-    fetchMeals();
   }, []);
-
-  const fetchMeals = async () => {
-    try {
-      const res = await getAllMeals();
-      setMeals(res.data || []);
-    } catch (error) {
-      console.log("Get all meals error", error);
-    }
-  };
 
   const fetchCategories = async () => {
     try {
@@ -106,19 +94,10 @@ const Categories = () => {
       setError("");
       setSuccess("");
 
-      const formData = new FormData();
-      formData.append("name", selectedCategory.name);
-      formData.append(
-        "meal",
-        selectedCategory.meal?._id || selectedCategory.meal || "",
-      );
-      formData.append("foodType", selectedCategory.foodType);
-
-      if (selectedCategory.imageFile) {
-        formData.append("image", selectedCategory.imageFile);
-      }
-
-      await updateCategory(selectedCategory._id, formData);
+      await updateCategory(selectedCategory._id, {
+        name: selectedCategory.name,
+        foodType: selectedCategory.foodType,
+      });
       await fetchCategories();
       setSuccess("Category updated successfully");
       setIsEditOpen(false);
@@ -165,9 +144,7 @@ const Categories = () => {
         <table className="w-full min-w-[900px] text-sm text-slate-600">
           <thead>
             <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-4">Image</th>
               <th className="px-4 py-4">Category Name</th>
-              <th className="px-4 py-4">Meal Type</th>
               <th className="px-4 py-4">Food Type</th>
               <th className="px-4 py-4">Action</th>
             </tr>
@@ -179,23 +156,8 @@ const Categories = () => {
                 key={category._id}
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
-                <td className="px-4 py-4 align-middle">
-                  <img
-                    src={category.image?.url || "https://placehold.co/56x56?text=No+Img"}
-                    alt={category.name}
-                    className="h-14 w-14 rounded-xl object-cover"
-                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
-                  />
-                </td>
-
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
                   {category.name}
-                </td>
-
-                <td className="px-4 py-4 align-middle">
-                  <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {category.meal?.name || category.meal}
-                  </span>
                 </td>
 
                 <td className="px-4 py-4 align-middle">
@@ -234,7 +196,7 @@ const Categories = () => {
 
             {loading && (
               <tr>
-                <td colSpan="5">
+                <td colSpan="3">
                   <SectionLoader text="Loading categories..." />
                 </td>
               </tr>
@@ -243,7 +205,7 @@ const Categories = () => {
             {!loading && categories.length === 0 && (
               <tr>
                 <td
-                  colSpan="5"
+                  colSpan="3"
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   No categories found. Create one to get started.
@@ -281,29 +243,6 @@ const Categories = () => {
             </div>
 
             <div className="mb-3">
-              <label className="block mb-2">Meal</label>
-              <select
-                value={
-                  selectedCategory.meal?._id || selectedCategory.meal || ""
-                }
-                onChange={(e) =>
-                  setSelectedCategory({
-                    ...selectedCategory,
-                    meal: e.target.value,
-                  })
-                }
-                className="w-full border p-3 rounded mb-3"
-              >
-                <option value="">Select Meal</option>
-                {meals.map((meal) => (
-                  <option key={meal._id} value={meal._id}>
-                    {meal.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mb-3">
               <label className="block mb-2">Food Type</label>
               <select
                 value={selectedCategory.foodType}
@@ -318,46 +257,6 @@ const Categories = () => {
                 <option value="veg">Veg</option>
                 <option value="non-veg">Non Veg</option>
               </select>
-            </div>
-
-            <div className="mb-3">
-              <label className="block mb-2">Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    if (file.size > 1 * 1024 * 1024) {
-                      toast.error("Image must be 1MB or smaller.");
-                      e.target.value = "";
-                      return;
-                    }
-                    setSelectedCategory({
-                      ...selectedCategory,
-                      imageFile: file,
-                      previewImage: URL.createObjectURL(file),
-                    });
-                  }
-                }}
-                className="w-full border p-3 rounded mb-3"
-              />
-
-              <div className="mb-3">
-                {(selectedCategory.previewImage ||
-                  selectedCategory.image?.url) && (
-                  <img
-                    src={
-                      selectedCategory.previewImage ||
-                      selectedCategory.image?.url ||
-                      "https://placehold.co/96x96?text=No+Img"
-                    }
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded"
-                    onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
-                  />
-                )}
-              </div>
             </div>
 
             <div className="flex justify-end gap-3">

@@ -16,7 +16,6 @@ export const fulfillCustomPackage = async (session, payment) => {
     price: Number(session.metadata.price) / 100, // metadata.price is stored in cents
     totalMeals: Number(session.metadata.totalMeals),
     mealsUsed: 0,
-    maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
     startDate: new Date(session.metadata.startDate),
     endDate: new Date(session.metadata.endDate),
   });

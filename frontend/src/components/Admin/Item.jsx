@@ -92,20 +92,13 @@ const Item = () => {
   const handleUpdate = async () => {
     try {
       setUpdating(true);
-      const formData = new FormData();
-      formData.append("name", selectedItem.name);
-      formData.append("description", selectedItem.description);
-      formData.append(
-        "category",
-        selectedItem.category._id || selectedItem.category,
-      );
-      formData.append("allergies", selectedItem.allergies.join(","));
 
-      if (selectedItem.imageFile) {
-        formData.append("image", selectedItem.imageFile);
-      }
-
-      await updateItem(selectedItem._id, formData);
+      await updateItem(selectedItem._id, {
+        name: selectedItem.name,
+        description: selectedItem.description,
+        category: selectedItem.category._id || selectedItem.category,
+        allergies: selectedItem.allergies,
+      });
       setSuccess("Item updated successfully");
       setIsEdit(false);
       fetchItems(page);
@@ -150,11 +143,9 @@ const Item = () => {
         <table className="w-full min-w-[1000px] text-sm text-slate-600">
           <thead>
             <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-4">Image</th>
               <th className="px-4 py-4">Name</th>
               <th className="px-4 py-4">Description</th>
               <th className="px-4 py-4">Category</th>
-              <th className="px-4 py-4">Meal Type</th>
               <th className="px-4 py-4">Allergies</th>
               <th className="px-4 py-4">Action</th>
             </tr>
@@ -166,15 +157,6 @@ const Item = () => {
                 key={item._id}
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
-                <td className="px-4 py-4 align-middle">
-                  <img
-                    src={item.image?.url || "https://placehold.co/56x56?text=No+Img"}
-                    alt={item.name}
-                    className="h-14 w-14 rounded-xl object-cover"
-                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
-                  />
-                </td>
-
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
                   {item.name}
                 </td>
@@ -185,12 +167,6 @@ const Item = () => {
 
                 <td className="px-4 py-4 align-middle">
                   {item.category?.name}
-                </td>
-
-                <td className="px-4 py-4 align-middle">
-                  <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {item.category?.meal?.name}
-                  </span>
                 </td>
 
                 <td className="px-4 py-4 align-middle max-w-[200px] truncate">
@@ -224,7 +200,7 @@ const Item = () => {
 
             {loading && (
               <tr>
-                <td colSpan="7">
+                <td colSpan="5">
                   <SectionLoader text="Loading items..." />
                 </td>
               </tr>
@@ -233,7 +209,7 @@ const Item = () => {
             {!loading && items.length === 0 && (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="5"
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   No items found. Create one to get started.
@@ -328,45 +304,6 @@ const Item = () => {
                 className="w-full border p-3 rounded mb-3"
                 placeholder="Comma separated"
               />
-            </div>
-
-            <div className="mb-3">
-              <label className="block mb-2">Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    if (file.size > 1 * 1024 * 1024) {
-                      toast.error("Image must be 1MB or smaller.");
-                      e.target.value = "";
-                      return;
-                    }
-                    setSelectedItem({
-                      ...selectedItem,
-                      imageFile: file,
-                      previewImage: URL.createObjectURL(file),
-                    });
-                  }
-                }}
-                className="w-full border p-3 rounded mb-3"
-              />
-
-              <div className="mb-3">
-                {(selectedItem.previewImage || selectedItem.image?.url) && (
-                  <img
-                    src={
-                      selectedItem.previewImage ||
-                      selectedItem.image?.url ||
-                      "https://placehold.co/96x96?text=No+Img"
-                    }
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded"
-                    onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
-                  />
-                )}
-              </div>
             </div>
 
             <div className="flex justify-end gap-3">

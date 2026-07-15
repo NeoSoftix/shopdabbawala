@@ -14,7 +14,6 @@ export const createPackage = async (req, res) => {
       price,
       description,
       discountPercentage,
-      maxItemsPerMeal,
       features,
     } = req.body;
 
@@ -24,13 +23,12 @@ export const createPackage = async (req, res) => {
       !validityDays ||
       !totalMeals ||
       !price ||
-      !maxItemsPerMeal ||
       !features
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Name, Price, Total Meals, Validity Days, Max Items Per Meal and Features are required.",
+          "Name, Price, Total Meals, Validity Days and Features are required.",
       });
     }
 
@@ -72,7 +70,6 @@ export const createPackage = async (req, res) => {
     const numericPrice = Number(price);
     const numericMeals = Number(totalMeals);
     const numericValidityDays = Number(validityDays);
-    const numericMaxItems = Number(maxItemsPerMeal);
 
     // Numeric Validations
     if (isNaN(numericPrice) || numericPrice <= 0) {
@@ -121,13 +118,6 @@ export const createPackage = async (req, res) => {
       });
     }
 
-    if (isNaN(numericMaxItems) || numericMaxItems <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Max items per meal must be greater than 0.",
-      });
-    }
-
     const recurring = getRecurring(numericValidityDays);
 
     if (!recurring) {
@@ -144,7 +134,6 @@ export const createPackage = async (req, res) => {
       metadata: {
         validityDays: numericValidityDays.toString(),
         totalMeals: numericMeals.toString(),
-        maxItemsPerMeal: numericMaxItems.toString(),
         features: JSON.stringify(cleanedFeatures),
         discountedPrice:
           numericDiscountedPrice !== null ? numericDiscountedPrice.toString() : "",
@@ -167,7 +156,6 @@ export const createPackage = async (req, res) => {
       discountedPrice: numericDiscountedPrice,
       totalMeals: numericMeals,
       validityDays: numericValidityDays,
-      maxItemsPerMeal: numericMaxItems,
       features: cleanedFeatures,
       stripeProductId: stripeProduct.id,
       stripePriceId: stripePrice.id,

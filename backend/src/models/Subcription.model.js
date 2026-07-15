@@ -37,12 +37,6 @@ const subscriptionSchema = new mongoose.Schema(
       min: 0,
     },
 
-    maxItemsPerMeal: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
     preference: {
       type: String,
       enum: ["Veg", "Non-Veg"],
@@ -63,12 +57,6 @@ const subscriptionSchema = new mongoose.Schema(
     durationDays: {
       type: Number,
       min: 1,
-    },
-
-    meals: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Meal",
-      required: false,
     },
 
     quantity: {

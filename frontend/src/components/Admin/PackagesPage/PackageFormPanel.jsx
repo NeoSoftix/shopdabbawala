@@ -129,34 +129,18 @@ const PackageFormPanel = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-              Validity (Days) *
-            </label>
-            <input
-              type="number"
-              name="validityDays"
-              value={formData.validityDays}
-              onChange={onChange}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-              placeholder="Validity (Days)"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-              Max Items Per Meal *
-            </label>
-            <input
-              type="number"
-              name="maxItemsPerMeal"
-              value={formData.maxItemsPerMeal}
-              onChange={onChange}
-              placeholder="e.g. 6"
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-            />
-          </div>
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+            Validity (Days) *
+          </label>
+          <input
+            type="number"
+            name="validityDays"
+            value={formData.validityDays}
+            onChange={onChange}
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+            placeholder="Validity (Days)"
+          />
         </div>
 
         {/* 💡 यहाँ NEW Features UI Input Field ऐड कर दी गई है */}

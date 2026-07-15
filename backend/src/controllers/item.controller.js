@@ -1,7 +1,6 @@
 import Item from "../models/item.model.js";
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
-import { v2 as cloudinary } from "cloudinary";
 import {getPagination} from "../utils/pagination.js"
 
 // ➤ Create Item
@@ -47,23 +46,6 @@ export const createItem = async (req, res) => {
       });
     }
 
-    let imageData = {
-      url: "",
-      public_id: "",
-    };
-
-    // Image uploaded?
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "items",
-      });
-
-      imageData = {
-        url: result.secure_url,
-        public_id: result.public_id,
-      };
-    }
-
     let parsedAllergies = [];
 
     if (allergies) {
@@ -86,7 +68,6 @@ export const createItem = async (req, res) => {
       name,
       description,
       category,
-      image: imageData,
       allergies: parsedAllergies,
     });
 
@@ -110,13 +91,7 @@ export const getAllItems = async (req, res) => {
 
     const [items, total] = await Promise.all([
       Item.find()
-        .populate({
-          path: "category",
-          populate: {
-            path: "meal",
-            select: "name",
-          },
-        })
+        .populate("category")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -212,29 +187,11 @@ export const updateItem = async (req, res) => {
       }
     }
 
-    // New image uploaded
-    if (req.file) {
-      // delete old image
-      if (item.image?.public_id) {
-        await cloudinary.uploader.destroy(item.image.public_id);
-      }
-
-      // upload new image
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "items",
-      });
-
-      updateData.image = {
-        url: result.secure_url,
-        public_id: result.public_id,
-      };
-    }
-
     // findByIdAndUpdate short syntax defaults to returning old document unless specified
     const updatedItem = await Item.findByIdAndUpdate(id, updateData, {
       new: true, // Yeh 'returnDocument: "after"' ki jagah standard Mongoose syntax hai
       runValidators: true,
-    }).populate({ path: "category", populate: { path: "meal", select: "name" } });
+    }).populate("category");
 
     return res.status(200).json({
       success: true,
@@ -271,11 +228,6 @@ export const deleteItem = async (req, res) => {
         success: false,
         message: "Item not found",
       });
-    }
-
-    // Delete image from Cloudinary
-    if (item.image?.public_id) {
-      await cloudinary.uploader.destroy(item.image.public_id);
     }
 
     await item.deleteOne();
@@ -363,7 +315,7 @@ export const getItemsByCategory = async (req, res) => {
       category: categoryId,
       isActive: true,
     })
-      .populate({ path: "category", populate: { path: "meal", select: "name" } })
+      .populate("category")
       .sort({ createdAt: -1 })
       .lean();
 

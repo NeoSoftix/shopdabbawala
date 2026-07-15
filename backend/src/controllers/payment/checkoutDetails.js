@@ -57,7 +57,6 @@ export const saveCheckoutDetails = async (req, res) => {
                 price: Number(session.metadata.price) / 100, // metadata.price is stored in cents
                 totalMeals: Number(session.metadata.totalMeals),
                 mealsUsed: 0,
-                maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
                 stripeSubscriptionId: session.subscription,
                 startDate: startDateVal,
                 endDate: endDateVal,
@@ -145,7 +144,6 @@ export const saveCheckoutDetails = async (req, res) => {
             price: effectivePrice,
             totalMeals: pkg.totalMeals,
             mealsUsed: 0,
-            maxItemsPerMeal: pkg.maxItemsPerMeal,
             preference: "Veg",
             duration: "Monthly",
             quantity: 1,

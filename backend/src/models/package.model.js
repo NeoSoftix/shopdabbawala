@@ -44,12 +44,6 @@ const packageSchema = new mongoose.Schema(
       default: true,
     },
 
-    maxItemsPerMeal: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
     features: {
       type: [String],
       required: [true, "Features are required"],
