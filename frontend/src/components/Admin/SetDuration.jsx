@@ -116,6 +116,7 @@ export default function SetDuration() {
     setForm({
       durationLabel: plan.durationLabel,
       totalMeals: String(plan.totalMeals),
+      durationDays: String(plan.durationDays ?? ""),
       frequencyLabel: plan.frequencyLabel,
       sortOrder: String(plan.sortOrder ?? 0),
       labelOrder: String(plan.labelOrder ?? 0),
@@ -152,6 +153,7 @@ export default function SetDuration() {
     const errors = {};
     if (!form.durationLabel.trim()) errors.durationLabel = "Duration label is required";
     if (!form.totalMeals || Number(form.totalMeals) <= 0) errors.totalMeals = "Enter a positive number";
+    if (!form.durationDays || Number(form.durationDays) <= 0) errors.durationDays = "Enter a positive number of days";
     if (!form.frequencyLabel.trim()) errors.frequencyLabel = "Frequency label is required";
 
     mealTiers.forEach((tier) => {
@@ -177,6 +179,7 @@ export default function SetDuration() {
     const payload = {
       durationLabel: form.durationLabel.trim(),
       totalMeals: Number(form.totalMeals),
+      durationDays: Number(form.durationDays),
       frequencyLabel: form.frequencyLabel.trim(),
       sortOrder: form.sortOrder ? Number(form.sortOrder) : 0,
       labelOrder: form.labelOrder,

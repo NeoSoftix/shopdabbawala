@@ -71,6 +71,15 @@ export const createSubscription = async (req, res) => {
       });
     }
 
+    // Pre-existing plans created before `durationDays` was added won't have
+    // it set yet - the admin needs to edit the plan in "Set Duration" once.
+    if (!durationPlanDoc.durationDays) {
+      return res.status(400).json({
+        success: false,
+        message: `The "${durationPlanDoc.durationLabel}" duration plan is missing its Duration (Days) setting. Please ask the admin to edit it under Set Duration.`,
+      });
+    }
+
     // Selected meal tier (Basic/Medium/Premium) ki apni price use karo — har
     // tier ki alag price ho sakti hai, base price sirf fallback hai jab is
     // duration+meal-count combo ke liye us tier ki price set nahi ki gayi.
@@ -97,56 +106,17 @@ export const createSubscription = async (req, res) => {
       });
     }
 
+    // Duration math is driven entirely by the DurationPlan's `durationDays` -
+    // not by string-matching `duration` against a fixed Trial/Weekly/Monthly/
+    // Quarterly set, so any custom label the admin types (e.g. "One") works.
     const endDate = new Date(calculatedStartDate);
-    const durationKey = duration.trim().toLowerCase();
-    // Subscription model's `duration` enum expects Capitalized values (Trial/Weekly/Monthly/Quarterly)
-    const normalizedDuration = durationKey.charAt(0).toUpperCase() + durationKey.slice(1);
+    endDate.setDate(endDate.getDate() + durationPlanDoc.durationDays);
 
-    switch (durationKey) {
-      case "trial":
-        endDate.setDate(endDate.getDate() + 1);
-        break;
+    const normalizedDuration = duration.trim();
 
-      case "weekly":
-        endDate.setDate(endDate.getDate() + 7);
-        break;
-
-      case "monthly":
-        endDate.setMonth(endDate.getMonth() + 1);
-        break;
-
-      case "quarterly":
-        endDate.setMonth(endDate.getMonth() + 3);
-        break;
-
-      default:
-        return res.status(400).json({
-          success: false,
-          message: "Invalid duration.",
-        });
-    }
-
-    // Recurring Mapping
-    const recurringMap = {
-      trial: {
-        interval: "day",
-        interval_count: 1,
-      },
-      weekly: {
-        interval: "week",
-        interval_count: 1,
-      },
-      monthly: {
-        interval: "month",
-        interval_count: 1,
-      },
-      quarterly: {
-        interval: "month",
-        interval_count: 3,
-      },
-    };
-
-    const recurring = recurringMap[durationKey];
+    // Stripe's day-based recurring interval works uniformly for any duration
+    // length (max 365 days), so no per-label lookup is needed here either.
+    const recurring = { interval: "day", interval_count: durationPlanDoc.durationDays };
 
     // Calculate trial_end if startDate is at least 48 hours in the future
     // const nowSec = Math.floor(Date.now() / 1000);
@@ -191,6 +161,7 @@ export const createSubscription = async (req, res) => {
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
+          durationDays: durationPlanDoc.durationDays.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
           isScheduled: "true",
@@ -232,6 +203,7 @@ export const createSubscription = async (req, res) => {
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
+          durationDays: durationPlanDoc.durationDays.toString(),
           startDate: calculatedStartDate.toISOString(),
           endDate: endDate.toISOString(),
         },
@@ -300,16 +272,9 @@ export const renewSubscription = async (req, res) => {
       });
     }
 
-    // 2. Duration mapping (Trial, Weekly, Monthly, Quarterly handles dynamically)
-    const recurringMap = {
-      trial: { interval: "day", interval_count: 1 },
-      weekly: { interval: "week", interval_count: 1 },
-      monthly: { interval: "month", interval_count: 1 },
-      quarterly: { interval: "month", interval_count: 3 },
-    };
-
-    const recurring =
-      recurringMap[oldSubscription.duration?.trim().toLowerCase()] || { interval: "month", interval_count: 1 };
+    // 2. Day-based interval works uniformly for any duration length - older
+    // subscriptions predating `durationDays` fall back to 30 days.
+    const recurring = { interval: "day", interval_count: oldSubscription.durationDays || 30 };
 
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
     const session = await stripe.checkout.sessions.create({
@@ -338,6 +303,7 @@ export const renewSubscription = async (req, res) => {
         paymentType: "RENEWAL",
         subscriptionId: oldSubscription._id.toString(),
         duration: oldSubscription.duration,
+        durationDays: String(oldSubscription.durationDays || 30),
       },
       success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,

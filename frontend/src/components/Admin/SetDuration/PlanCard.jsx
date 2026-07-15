@@ -22,6 +22,15 @@ const PlanCard = ({ plan, onEdit, onToggle, onDeleteRequest }) => {
           <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mt-1">
             {plan.frequencyLabel}
           </div>
+          {plan.durationDays ? (
+            <div className="text-[10px] font-bold text-gray-500 mt-0.5">
+              {plan.durationDays} day{plan.durationDays === 1 ? "" : "s"}
+            </div>
+          ) : (
+            <div className="text-[10px] font-bold text-red-500 mt-0.5">
+              ⚠ Duration (Days) not set
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-end gap-1">
           <span

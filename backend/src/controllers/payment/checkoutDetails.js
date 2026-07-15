@@ -50,6 +50,7 @@ export const saveCheckoutDetails = async (req, res) => {
                 mealSize: session.metadata.mealSize,
                 preference: session.metadata.preference,
                 duration: session.metadata.duration,
+                durationDays: Number(session.metadata.durationDays) || undefined,
                 meals: session.metadata.meals,
                 quantity: Number(session.metadata.quantity),
                 deliveryMethod: session.metadata.deliveryMethod,

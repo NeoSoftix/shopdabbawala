@@ -31,13 +31,12 @@ export const setupScheduledSubscription = async (session, payment, subscriptionO
       description: `${session.metadata.duration} Plan`,
     });
 
-    const recurringMap = {
-      Trial: { interval: "day", interval_count: 1 },
-      Weekly: { interval: "week", interval_count: 1 },
-      Monthly: { interval: "month", interval_count: 1 },
-      Quarterly: { interval: "month", interval_count: 3 },
+    // Day-based interval works uniformly for any duration length the admin
+    // configured (not just Trial/Weekly/Monthly/Quarterly).
+    const recurring = {
+      interval: "day",
+      interval_count: Number(session.metadata.durationDays) || 30,
     };
-    const recurring = recurringMap[session.metadata.duration] || { interval: "month", interval_count: 1 };
 
     const price = await stripe.prices.create({
       product: product.id,
@@ -79,6 +78,7 @@ export const setupScheduledSubscription = async (session, payment, subscriptionO
         mealSize: session.metadata.mealSize,
         preference: session.metadata.preference,
         duration: session.metadata.duration,
+        durationDays: Number(session.metadata.durationDays) || undefined,
         meals: session.metadata.meals,
         quantity: Number(session.metadata.quantity),
         deliveryMethod: session.metadata.deliveryMethod,

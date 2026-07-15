@@ -49,10 +49,20 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Free-text label (whatever the admin named the DurationPlan - "Trial",
+    // "Weekly", "One", etc.) - display only, not used for date math.
     duration: {
       type: String,
-      enum: ["Trial", "Weekly", "Monthly", "Quarterly"],
       required: true,
+      trim: true,
+    },
+
+    // Copied from the DurationPlan at purchase time - the actual number of
+    // days this subscription runs for. Drives endDate/renewal calculations
+    // and Stripe's billing interval, regardless of what `duration` says.
+    durationDays: {
+      type: Number,
+      min: 1,
     },
 
     meals: {
