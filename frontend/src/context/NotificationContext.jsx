@@ -22,25 +22,26 @@ export const NotificationProvider = ({ children }) => {
 
   const isRecipient = user?.role === "vendor" || user?.role === "user" || user?.role === "admin";
 
+  const refetch = useCallback(async () => {
+    try {
+      const [listRes, countRes] = await Promise.all([
+        getMyNotifications(page, 10),
+        getUnreadNotificationCount(),
+      ]);
+
+      if (listRes?.success) setNotifications(listRes.notifications);
+      setPagination(listRes.pagination);
+      if (countRes?.success) setUnreadCount(countRes.count);
+    } catch (error) {
+      console.log("Notification load error", error);
+    }
+  }, [page]);
+
   // Data fetch: re-runs on page change (pagination), but doesn't touch the socket.
   useEffect(() => {
     if (!isRecipient) return;
-
-    (async () => {
-      try {
-        const [listRes, countRes] = await Promise.all([
-          getMyNotifications(page, 10),
-          getUnreadNotificationCount(),
-        ]);
-
-        if (listRes?.success) setNotifications(listRes.notifications);
-        setPagination(listRes.pagination);
-        if (countRes?.success) setUnreadCount(countRes.count);
-      } catch (error) {
-        console.log("Notification initial load error", error);
-      }
-    })();
-  }, [isRecipient, page]);
+    refetch();
+  }, [isRecipient, refetch]);
 
   // Socket connection: kept separate from the data fetch above so changing
   // `page` (pagination) doesn't tear down and reconnect the socket.
@@ -55,13 +56,20 @@ export const NotificationProvider = ({ children }) => {
       toast(notification.title, { icon: <Bell size={16} /> });
     };
 
+    // The socket auto-reconnects after a drop (tab backgrounded, network
+    // blip, server restart), but any notification created while it was
+    // disconnected is missed - socket.io doesn't replay events. Re-sync
+    // from the REST API whenever a (re)connection is established so the
+    // list/badge catch up without needing a manual page refresh.
+    socket.on("connect", refetch);
     socket.on("notification:new", handleNewNotification);
 
     return () => {
+      socket.off("connect", refetch);
       socket.off("notification:new", handleNewNotification);
       disconnectSocket();
     };
-  }, [isRecipient]);
+  }, [isRecipient, refetch]);
 
   const markAsRead = useCallback(async (id) => {
     setNotifications((prev) =>
