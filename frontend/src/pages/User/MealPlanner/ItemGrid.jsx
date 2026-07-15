@@ -66,27 +66,6 @@ const ItemGrid = ({ loadingData, filteredFoodItems, currentDayMeals, onToggleIte
               {item.description}
             </p>
           </div>
-
-          {/* QUANTITY CONTROLS */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <span className="text-xs font-bold text-[#A3AED0]">
-              Quantity
-            </span>
-
-            <div
-              className="bg-gray-50 rounded-full p-1"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <QuantityStepper
-                value={quantity}
-                min={0}
-                onChange={(newQuantity) =>
-                  onUpdateQuantity(item, newQuantity > quantity ? 1 : -1)
-                }
-                size="md"
-              />
-            </div>
-          </div>
         </div>
       </div>
     );
