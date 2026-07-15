@@ -13,8 +13,8 @@ const MealScheduleBuilder = ({
   setSelectedDate,
   weeklyPlan,
   setWeeklyPlan,
-  subscription,
   subscriptionId,
+  category,
   dayStatus,
   onToggleDayActive,
   onDayConfirmed,
@@ -25,19 +25,20 @@ const MealScheduleBuilder = ({
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const categoryId = category?._id || category;
   const selectedDateKey = formatDateKey(selectedDate);
   const isDateAvailable = availableDates.includes(selectedDateKey);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoadingData(true);
-      if (!subscription?.category?._id || !selectedDateKey || !isDateAvailable) {
+      if (!categoryId || !selectedDateKey || !isDateAvailable) {
         setSections([]);
         setLoadingData(false);
         return;
       }
       try {
-        const res = await getAvailableItemsForDate(subscription.category._id, selectedDateKey);
+        const res = await getAvailableItemsForDate(categoryId, selectedDateKey);
         if (res.success) {
           setSections(res.data || []);
         } else {
@@ -50,7 +51,7 @@ const MealScheduleBuilder = ({
       }
     };
     fetchData();
-  }, [subscription?.category?._id, selectedDateKey, isDateAvailable]);
+  }, [categoryId, selectedDateKey, isDateAvailable]);
 
   const currentDayItems = weeklyPlan[selectedDateKey] || [];
   
@@ -110,7 +111,7 @@ const MealScheduleBuilder = ({
   };
 
   const handleConfirmDay = async () => {
-    if (!subscriptionId) return;
+    if (!subscriptionId || !categoryId) return;
 
     if (!isScheduleValid()) {
       toast.error("Please complete your selections for all sections.");
@@ -127,6 +128,7 @@ const MealScheduleBuilder = ({
       const res = await createMeal({
         subscriptionId,
         date: selectedDateKey,
+        category: categoryId,
         items: formattedItems,
       });
 

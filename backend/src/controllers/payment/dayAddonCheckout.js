@@ -3,6 +3,7 @@ import stripe from "../../config/stripe.js";
 import Payment from "../../models/payment.model.js";
 import AddOn from "../../models/addOns.model.js";
 import Order from "../../models/Order.model.js";
+import Item from "../../models/item.model.js";
 import Subscription from "../../models/Subcription.model.js";
 import { getActiveWeekWindow } from "../../utils/getActiveWeekWindow.js";
 
@@ -45,31 +46,11 @@ export const createDayAddonCheckout = async (req, res) => {
       return res.status(404).json({ success: false, message: "Active subscription not found." });
     }
 
-    const WeeklyMenu = mongoose.model("WeeklyMenu");
-    const weekStart = new Date(requestDate);
-    weekStart.setUTCHours(0, 0, 0, 0);
-    const dow = weekStart.getUTCDay();
-    const diff = dow === 0 ? -6 : 1 - dow;
-    weekStart.setUTCDate(weekStart.getUTCDate() + diff);
-
-    const weeklyMenu = await WeeklyMenu.findOne({
-      category: subscription.category,
-      weekStartDate: weekStart
-    }).lean();
-
-    const dayMenu = weeklyMenu?.days?.find(
-      (d) => new Date(d.date).getTime() === requestDate.getTime()
-    );
-
-    if (!dayMenu || !dayMenu.sections || dayMenu.sections.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No menu available for the selected date.",
-      });
-    }
-
     // Add-ons are extras riding along on a day that already has a meal
-    // scheduled - they aren't tied to any Category/vendor of their own.
+    // scheduled - they aren't tied to any Category/vendor of their own. The
+    // subscriber may hold multiple categories, so which one applies to this
+    // day is derived from the already-confirmed order's items rather than
+    // asked for again.
     const dayOrder = await Order.findOne({
       user: userId,
       subscription: subscriptionId,
@@ -80,6 +61,34 @@ export const createDayAddonCheckout = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Please schedule a meal for this day before adding add-ons.",
+      });
+    }
+
+    const firstScheduledItem = await Item.findById(dayOrder.items[0].item).select("category");
+    const dayCategory = firstScheduledItem?.category;
+
+    const WeeklyMenu = mongoose.model("WeeklyMenu");
+    const weekStart = new Date(requestDate);
+    weekStart.setUTCHours(0, 0, 0, 0);
+    const dow = weekStart.getUTCDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    weekStart.setUTCDate(weekStart.getUTCDate() + diff);
+
+    const weeklyMenu = dayCategory
+      ? await WeeklyMenu.findOne({
+          category: dayCategory,
+          weekStartDate: weekStart
+        }).lean()
+      : null;
+
+    const dayMenu = weeklyMenu?.days?.find(
+      (d) => new Date(d.date).getTime() === requestDate.getTime()
+    );
+
+    if (!dayMenu || !dayMenu.sections || dayMenu.sections.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No menu available for the selected date.",
       });
     }
 

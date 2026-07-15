@@ -7,6 +7,7 @@ import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus, getDayAddonsSummary } from "../../services/mealSchedule.service";
 import { saveCheckoutDetails } from "../../services/payment.service";
 import { getAvailableMenuDates } from "../../services/weeklyMenu.service";
+import { getActiveCategory } from "../../services/category.service";
 import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
@@ -17,6 +18,7 @@ import Sidebar from "./MealPlanner/Sidebar";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
 import MySchedule from "./MealPlanner/MySchedule";
 import PlanSelector from "./MealPlanner/PlanSelector";
+import CategorySelector from "./MealPlanner/CategorySelector";
 import NoActivePlan from "./MealPlanner/NoActivePlan";
 
 // Default selection: today if it falls within the plan's window, otherwise
@@ -47,6 +49,8 @@ const MealPlanner = () => {
 
   const [activeStep, setActiveStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(() => getDefaultSelectedDate(null));
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [weeklyPlan, setWeeklyPlan] = useState({});
   const [dayStatus, setDayStatus] = useState({});
   const [dayAddOns, setDayAddOns] = useState({});
@@ -92,9 +96,28 @@ const MealPlanner = () => {
     }
   };
 
+  // Every active category is available to every plan (packages don't
+  // restrict which categories a subscriber can order from) - fetched once
+  // and offered via the category selector regardless of the active plan.
+  useEffect(() => {
+    getActiveCategory()
+      .then((res) => {
+        if (res?.success) setCategories(res.data || []);
+      })
+      .catch((error) => console.error("Failed to load categories:", error));
+  }, []);
+
   useEffect(() => {
     setSelectedDate(getDefaultSelectedDate(activeSubscription));
   }, [activeSubscription?._id]);
+
+  // Default to the first category whenever the list loads (and none is
+  // selected yet) - the subscriber can then pick a different one.
+  useEffect(() => {
+    if (!selectedCategory && categories.length > 0) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories, selectedCategory]);
 
   useEffect(() => {
     const fetchSavedMealPlan = async () => {
@@ -133,12 +156,13 @@ const MealPlanner = () => {
     };
 
     const fetchAvailableDates = async () => {
-      if (!activeSubscription?.category?._id) return;
+      const categoryId = selectedCategory?._id || selectedCategory;
+      if (!categoryId) return;
       try {
         // Every date the admin has published a menu for, across all weeks
         // (not just the current one) and including past/confirmed dates -
         // filtering to what's actually selectable happens in the UI.
-        const res = await getAvailableMenuDates(activeSubscription.category._id);
+        const res = await getAvailableMenuDates(categoryId);
         if (res.success) {
           const formattedDates = (res.availableDates || [])
             .map((d) => d.split("T")[0])
@@ -158,7 +182,7 @@ const MealPlanner = () => {
     fetchDayStatuses();
     fetchAvailableDates();
     refreshDayAddOns(activeSubscription?._id);
-  }, [activeSubscription?._id]);
+  }, [activeSubscription?._id, selectedCategory]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -244,12 +268,17 @@ const MealPlanner = () => {
                   activeSubscription={activeSubscription}
                   onChange={setActiveSubscription}
                 />
+                <CategorySelector
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onChange={setSelectedCategory}
+                />
                 <MealScheduleBuilder
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
                   weeklyPlan={weeklyPlan}
                   setWeeklyPlan={setWeeklyPlan}
-                  subscription={activeSubscription}
+                  category={selectedCategory}
                   availableDates={availableDates}
                   subscriptionId={activeSubscription?._id}
                   dayStatus={dayStatus}

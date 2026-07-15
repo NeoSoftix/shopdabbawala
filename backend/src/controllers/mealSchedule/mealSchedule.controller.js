@@ -143,14 +143,15 @@ export const createMealSchedule = async (req, res) => {
       subscriptionId,
       date,
       items,
+      category,
     } = req.body;
 
     // ================= VALIDATION =================
 
-    if (!subscriptionId || !date || !items?.length) {
+    if (!subscriptionId || !date || !items?.length || !category) {
       return res.status(400).json({
         success: false,
-        message: "Subscription ID, date and items are required.",
+        message: "Subscription ID, date, category and items are required.",
       });
     }
 
@@ -158,6 +159,13 @@ export const createMealSchedule = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid subscription ID.",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category.",
       });
     }
 
@@ -225,7 +233,7 @@ export const createMealSchedule = async (req, res) => {
     weekStart.setUTCDate(weekStart.getUTCDate() + weekDiff);
 
     const weeklyMenu = await WeeklyMenu.findOne({
-      category: subscription.category,
+      category,
       weekStartDate: weekStart
     }).lean();
 
@@ -318,6 +326,13 @@ export const createMealSchedule = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "All meals for a single day must be from the same category.",
+      });
+    }
+
+    if (distinctCategories.size === 1 && !distinctCategories.has(String(category))) {
+      return res.status(400).json({
+        success: false,
+        message: "Selected items do not belong to the chosen category.",
       });
     }
 
