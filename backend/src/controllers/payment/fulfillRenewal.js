@@ -3,15 +3,11 @@ import Subscription from "../../models/Subcription.model.js"
 // -------- RENEWAL fulfillment branch (extracted from fulfillOrder) --------
 export const fulfillRenewal = async (session, payment) => {
   const subId = session.metadata.subscriptionId;
-  const duration = session.metadata.duration;
+  const durationDays = Number(session.metadata.durationDays) || 30;
 
   const newStartDate = new Date();
   const newEndDate = new Date(newStartDate);
-
-  if (duration === "Trial") newEndDate.setDate(newEndDate.getDate() + 1);
-  else if (duration === "Weekly") newEndDate.setDate(newEndDate.getDate() + 7);
-  else if (duration === "Monthly") newEndDate.setMonth(newEndDate.getMonth() + 1);
-  else if (duration === "Quarterly") newEndDate.setMonth(newEndDate.getMonth() + 3);
+  newEndDate.setDate(newEndDate.getDate() + durationDays);
 
   const subscription = await Subscription.findByIdAndUpdate(
     subId,
@@ -19,6 +15,7 @@ export const fulfillRenewal = async (session, payment) => {
       status: "active",
       startDate: newStartDate,
       endDate: newEndDate,
+      durationDays,
       mealsUsed: 0,
       cancelAtPeriodEnd: false,
       stripeSubscriptionId: session.subscription,

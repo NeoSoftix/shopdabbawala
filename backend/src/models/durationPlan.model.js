@@ -8,6 +8,16 @@ const durationPlanSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // How many calendar days this plan actually runs for - drives the
+    // subscription's endDate and Stripe's billing interval directly, so any
+    // custom durationLabel the admin types (not just Trial/Weekly/Monthly/
+    // Quarterly) works without special-casing.
+    durationDays: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
     totalMeals: {
       type: Number,
       required: true,

@@ -100,6 +100,31 @@ const DurationFormPanel = ({
           </div>
 
           <div>
+            <label className="text-xs font-bold text-gray-700 mb-1 block">
+              Duration (Days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={form.durationDays}
+              onChange={(e) => onChange("durationDays", e.target.value)}
+              placeholder="e.g. 7"
+              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
+                formErrors.durationDays
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
+              }`}
+            />
+            {formErrors.durationDays && (
+              <p className="text-[11px] text-red-600 mt-1">{formErrors.durationDays}</p>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">
+              How many calendar days this plan actually runs for - sets the subscription's
+              end date and billing cycle, regardless of the label above.
+            </p>
+          </div>
+
+          <div>
             <label className="text-xs font-bold text-gray-700 mb-2 block">
               Price Per Meal Tier
             </label>

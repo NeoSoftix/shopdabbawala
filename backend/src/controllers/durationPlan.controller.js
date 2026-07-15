@@ -79,12 +79,12 @@ export const createDurationPlan = async (req, res) => {
   let stripeProduct = null;
 
   try {
-    const { durationLabel, totalMeals, frequencyLabel, sortOrder, labelOrder, tierPricing } = req.body;
+    const { durationLabel, totalMeals, durationDays, frequencyLabel, sortOrder, labelOrder, tierPricing } = req.body;
 
-    if (!durationLabel || !totalMeals || !frequencyLabel) {
+    if (!durationLabel || !totalMeals || !durationDays || !frequencyLabel) {
       return res.status(400).json({
         success: false,
-        message: "durationLabel, totalMeals and frequencyLabel are required",
+        message: "durationLabel, totalMeals, durationDays and frequencyLabel are required",
       });
     }
 
@@ -94,6 +94,15 @@ export const createDurationPlan = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "totalMeals must be a positive number",
+      });
+    }
+
+    const numericDurationDays = Number(durationDays);
+
+    if (isNaN(numericDurationDays) || numericDurationDays <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "durationDays must be a positive number",
       });
     }
 
@@ -153,6 +162,7 @@ export const createDurationPlan = async (req, res) => {
     const plan = await DurationPlan.create({
       durationLabel: trimmedLabel,
       totalMeals: numericTotalMeals,
+      durationDays: numericDurationDays,
       pricePerMeal: numericPrice,
       discountPercentage: numericDiscount,
       frequencyLabel: trimmedFrequency,
@@ -240,7 +250,7 @@ export const updateDurationPlan = async (req, res) => {
       return res.status(404).json({ success: false, message: "Duration plan not found" });
     }
 
-    const { durationLabel, totalMeals, frequencyLabel, sortOrder, labelOrder, tierPricing } = req.body;
+    const { durationLabel, totalMeals, durationDays, frequencyLabel, sortOrder, labelOrder, tierPricing } = req.body;
 
     // Track karo ki Stripe-relevant fields mein se koi actually change hua ya nahi
     let stripeMetadataChanged = false;
@@ -285,6 +295,19 @@ export const updateDurationPlan = async (req, res) => {
       }
 
       plan.totalMeals = numericTotalMeals;
+    }
+
+    if (durationDays !== undefined) {
+      const numericDurationDays = Number(durationDays);
+
+      if (isNaN(numericDurationDays) || numericDurationDays <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "durationDays must be a positive number",
+        });
+      }
+
+      plan.durationDays = numericDurationDays;
     }
 
     if (frequencyLabel !== undefined) {
