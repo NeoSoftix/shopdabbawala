@@ -320,7 +320,9 @@ const MealPlanner = () => {
                 <MySchedule
                   weeklyPlan={weeklyPlan}
                   dayStatus={dayStatus}
+                  dayAddOns={dayAddOns}
                   subscription={activeSubscription}
+                  onEditPlan={() => setActiveStep(1)}
                 />
               )}
             </div>
