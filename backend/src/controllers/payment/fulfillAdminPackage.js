@@ -23,7 +23,6 @@ export const fulfillAdminPackage = async (session, payment) => {
       price: effectivePrice,
       totalMeals: pkg.totalMeals,
       mealsUsed: 0,
-      maxItemsPerMeal: pkg.maxItemsPerMeal,
       preference: "Veg",
       duration: "Monthly",
       quantity: 1,

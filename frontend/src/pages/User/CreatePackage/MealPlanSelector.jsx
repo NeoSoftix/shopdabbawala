@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UtensilsCrossed, Info, Utensils } from "lucide-react";
+import { UtensilsCrossed, Info } from "lucide-react";
 
 // Meal tier grid (Basic / Medium / Premium etc.) with a hover/tap tooltip
 // showing tier features + included items. `hoveredPlan` is purely local UI
@@ -74,23 +74,6 @@ export default function MealPlanSelector({ mealTiers, selectedPlan, onSelectPlan
                         ))}
                       </ul>
                     </div>
-                    {tier.items?.length > 0 && (
-                      <div className="text-[11px] pt-2 border-t border-slate-100">
-                        <span className="font-extrabold text-slate-800 block mb-1 uppercase tracking-wider text-[10px]">
-                          <Utensils size={11} className="inline -mt-0.5 mr-1" /> Items — choose {tier.selectionCount || 1} of {tier.items.length}
-                        </span>
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {tier.items.map((item) => (
-                            <span
-                              key={item._id}
-                              className="text-[10px] font-semibold text-slate-600 bg-slate-100 rounded-md px-1.5 py-0.5"
-                            >
-                              {item.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

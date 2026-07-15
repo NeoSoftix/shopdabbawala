@@ -26,17 +26,6 @@ const addOnsSchema = new mongoose.Schema(
       min: [0, "Price cannot be negative"]
     },
 
-    image: {
-      url: {
-        type: String,
-        default: "",
-      },
-      public_id: {
-        type: String,
-        default: "",
-      },
-    },
-
     isAvailable: {
       type: Boolean,
       default: true,

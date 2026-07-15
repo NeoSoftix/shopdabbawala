@@ -14,7 +14,6 @@ import Pagination from "../shared/Pagination";
 const AddOns = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [updateImage, setUpdateImage] = useState(null);
   const [selectedAddOn, setSelectedAddOn] = useState(null);
   const [addons, setAddons] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -106,30 +105,21 @@ const AddOns = () => {
     if (!validateAddOn()) return;
     try {
       setUpdating(true);
-      const formData = new FormData();
 
-      formData.append("name", selectedAddOn.name);
-      formData.append("description", selectedAddOn.description);
-      formData.append("price", selectedAddOn.price);
-
-      selectedAddOn.allergies
+      const allergies = selectedAddOn.allergies
         .split(",")
         .map((item) => item.trim())
-        .forEach((item) => {
-          if (item) {
-            formData.append("allergies", item);
-          }
-        });
+        .filter(Boolean);
 
-      if (updateImage) {
-        formData.append("image", updateImage);
-      }
-
-      await updateAddOn(selectedAddOn._id, formData);
+      await updateAddOn(selectedAddOn._id, {
+        name: selectedAddOn.name,
+        description: selectedAddOn.description,
+        price: selectedAddOn.price,
+        allergies,
+      });
 
       setShowModal(false);
       setSelectedAddOn(null);
-      setUpdateImage(null);
 
       fetchAddOns(page);
       toast.success("Add-on updated successfully.");
@@ -162,7 +152,6 @@ const AddOns = () => {
         <table className="w-full min-w-[900px] text-sm text-slate-600">
           <thead>
             <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-4">Image</th>
               <th className="px-4 py-4">Name</th>
               <th className="px-4 py-4">Description</th>
               <th className="px-4 py-4">Allergies</th>
@@ -178,15 +167,6 @@ const AddOns = () => {
                 key={addon._id}
                 className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
               >
-                <td className="px-4 py-4 align-middle">
-                  <img
-                    src={addon.image?.url || "https://placehold.co/56x56?text=No+Img"}
-                    alt={addon.name}
-                    className="h-14 w-14 rounded-xl object-cover"
-                    onError={(e) => { e.target.src = "https://placehold.co/56x56?text=No+Img"; e.target.onerror = null; }}
-                  />
-                </td>
-
                 <td className="px-4 py-4 align-middle font-medium text-slate-900">
                   {addon.name}
                 </td>
@@ -224,7 +204,6 @@ const AddOns = () => {
                           ...addon,
                           allergies: addon.allergies?.join(", "),
                         });
-                        setUpdateImage(null);
                         setErrors({});
                         setShowModal(true);
                       }}
@@ -248,7 +227,7 @@ const AddOns = () => {
 
             {loading && (
               <tr>
-                <td colSpan="7">
+                <td colSpan="6">
                   <SectionLoader text="Loading add-ons..." />
                 </td>
               </tr>
@@ -257,7 +236,7 @@ const AddOns = () => {
             {!loading && addons.length === 0 && (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="6"
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   No add-ons found. Create one to get started.
@@ -346,44 +325,11 @@ const AddOns = () => {
               className="w-full border p-3 rounded mb-3"
             />
 
-            <div className="mb-3">
-              <label className="block mb-2">Image</label>
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file && file.size > 1 * 1024 * 1024) {
-                    toast.error("Image must be 1MB or smaller.");
-                    e.target.value = "";
-                    return;
-                  }
-                  setUpdateImage(file);
-                }}
-                className="w-full border p-3 rounded"
-              />
-
-              <div className="mb-3">
-                <img
-                  src={
-                    (updateImage
-                      ? URL.createObjectURL(updateImage)
-                      : selectedAddOn.image?.url) || "https://placehold.co/96x96?text=No+Img"
-                  }
-                  alt="preview"
-                  className="w-24 h-24 object-cover rounded"
-                  onError={(e) => { e.target.src = "https://placehold.co/96x96?text=No+Img"; e.target.onerror = null; }}
-                />
-              </div>
-            </div>
-
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
                   setShowModal(false);
                   setSelectedAddOn(null);
-                  setUpdateImage(null);
                   setErrors({});
                 }}
                 disabled={updating}

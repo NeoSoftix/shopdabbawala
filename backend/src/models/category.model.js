@@ -10,23 +10,6 @@ const categorySchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    image: {
-      url: {
-        type: String,
-        default: "",
-      },
-      public_id: {
-        type: String,
-        default: "",
-      },
-    },
-
-    meal: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Meal",
-      required: true,
-    },
-
     foodType: {
       type: String,
       enum: ["veg", "non-veg"],

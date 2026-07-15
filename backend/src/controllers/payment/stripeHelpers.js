@@ -79,13 +79,11 @@ export const setupScheduledSubscription = async (session, payment, subscriptionO
         mealSize: session.metadata.mealSize,
         preference: session.metadata.preference,
         duration: session.metadata.duration,
-        meals: session.metadata.meals,
         quantity: Number(session.metadata.quantity),
         deliveryMethod: session.metadata.deliveryMethod,
         price: Number(session.metadata.price) / 100, // convert back to standard currency amount
         totalMeals: Number(session.metadata.totalMeals),
         mealsUsed: 0,
-        maxItemsPerMeal: Number(session.metadata.maxItemsPerMeal),
         stripeSubscriptionId: schedule.subscription || "",
         stripeSubscriptionScheduleId: schedule.id,
         startDate: new Date(session.metadata.startDate),

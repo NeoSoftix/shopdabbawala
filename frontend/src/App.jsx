@@ -13,8 +13,6 @@ import ResetPassword from "./pages/ResetPassword";
 
 import AddCategory from "./components/Admin/AddCategory";
 import Categories from "./components/Admin/Categories";
-import AddMeal from "./components/Admin/AddMeal";
-import Meal from "./components/Admin/Meal";
 import UsersList from "./components/Admin/UserList";
 
 import "./index.css";
@@ -114,8 +112,6 @@ function App() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="categories" element={<Categories />} />
         <Route path="categories/add" element={<AddCategory />} />
-        <Route path="meals" element={<Meal />} />
-        <Route path="meals/add" element={<AddMeal />} />
         <Route path="items" element={<Item />} />
         <Route path="items/add" element={<AddItem />} />
         <Route path="users" element={<UsersList />} />

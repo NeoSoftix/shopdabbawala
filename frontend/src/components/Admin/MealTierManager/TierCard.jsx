@@ -1,5 +1,5 @@
-// Single tier card shown in the tier grid — name, status pill, features,
-// item summary and the edit/hide/delete row actions.
+// Single tier card shown in the tier grid — name, status pill, features
+// and the edit/hide/delete row actions.
 export default function TierCard({ tier, onEdit, onToggle, onDeleteRequest }) {
   return (
     <div
@@ -30,34 +30,7 @@ export default function TierCard({ tier, onEdit, onToggle, onDeleteRequest }) {
         ))}
       </ul>
 
-      {/* Items */}
-      <div className="bg-[#f4f5f7] rounded-xl p-2.5 mt-auto">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-            Items ({tier.items?.length || 0})
-          </span>
-          {tier.items?.length > 0 && (
-            <span className="text-[10px] font-black text-[#dc2626]">
-              Choose {tier.selectionCount || 1} of {tier.items.length}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {(tier.items || []).map((item) => (
-            <span
-              key={item._id}
-              className="text-[10px] font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-2 py-0.5"
-            >
-              {item.name}
-            </span>
-          ))}
-          {(!tier.items || tier.items.length === 0) && (
-            <span className="text-[10px] text-gray-400">No items selected</span>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1.5 mt-3">
+      <div className="flex items-center gap-1.5 mt-auto">
         <button
           onClick={() => onEdit(tier)}
           className="flex-1 text-[11px] font-bold text-gray-600 hover:text-[#dc2626] bg-gray-50 hover:bg-red-50 rounded-lg py-1.5 transition-all focus:outline-none"

@@ -112,7 +112,7 @@ export const getWeeklyMenu = async (req, res) => {
     const weeklyMenu = await WeeklyMenu.findOne({
       category: categoryId,
       weekStartDate: normalizedWeekStart,
-    }).populate("days.sections.items", "name image isActive");
+    }).populate("days.sections.items", "name isActive");
 
     const dayMenu = weeklyMenu?.days?.find(
       (d) => new Date(d.date).getTime() === targetDate.getTime()
@@ -147,7 +147,7 @@ export const getAvailableItemsForDate = async (req, res) => {
     }).populate({
       path: "days.sections.items",
       match: { isActive: true },
-      select: "name description image allergies category",
+      select: "name description allergies category",
     });
 
     const dayEntry = weeklyMenu?.days.find(

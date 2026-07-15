@@ -4,12 +4,12 @@ import MealTier from "../models/mealTier.model.js"
 // create meal tier
 export const createMealTier = async (req, res) => {
   try {
-    const { name, features, items, selectionCount } = req.body;
+    const { name, features } = req.body;
 
-    if (!name || !features || !items) {
+    if (!name || !features) {
       return res.status(400).json({
         success: false,
-        message: "Name, Features and Items are required.",
+        message: "Name and Features are required.",
       });
     }
 
@@ -29,24 +29,6 @@ export const createMealTier = async (req, res) => {
       });
     }
 
-    if (!Array.isArray(items) || items.length < 1) {
-      return res.status(400).json({
-        success: false,
-        message: "Items must be a non-empty array.",
-      });
-    }
-
-    let cleanedSelectionCount = 1;
-    if (selectionCount !== undefined) {
-      cleanedSelectionCount = Number(selectionCount);
-      if (!Number.isInteger(cleanedSelectionCount) || cleanedSelectionCount < 1 || cleanedSelectionCount > items.length) {
-        return res.status(400).json({
-          success: false,
-          message: `Selection count must be a whole number between 1 and ${items.length} (total items).`,
-        });
-      }
-    }
-
     const normalizedName = name.trim();
 
     const existingTier = await MealTier.findOne({ name: normalizedName });
@@ -60,8 +42,6 @@ export const createMealTier = async (req, res) => {
     const tier = await MealTier.create({
       name: normalizedName,
       features: cleanedFeatures,
-      items,
-      selectionCount: cleanedSelectionCount,
     });
 
     return res.status(201).json({
@@ -81,7 +61,7 @@ export const createMealTier = async (req, res) => {
 // get all meal tiers (admin)
 export const getAllMealTiers = async (req, res) => {
   try {
-    const tiers = await MealTier.find().populate("items", "name").sort({ createdAt: -1 }).lean();
+    const tiers = await MealTier.find().sort({ createdAt: -1 }).lean();
 
     return res.status(200).json({
       success: true,
@@ -108,7 +88,7 @@ export const getOneMealTier = async (req, res) => {
       });
     }
 
-    const tier = await MealTier.findById(id).populate("items", "name").lean();
+    const tier = await MealTier.findById(id).lean();
 
     if (!tier) {
       return res.status(404).json({
@@ -151,7 +131,7 @@ export const updateMealTier = async (req, res) => {
       });
     }
 
-    const { name, features, items, selectionCount } = req.body;
+    const { name, features } = req.body;
 
     if (name !== undefined) {
       const normalizedName = name.trim();
@@ -189,30 +169,6 @@ export const updateMealTier = async (req, res) => {
       }
 
       tier.features = cleanedFeatures;
-    }
-
-    if (items !== undefined) {
-      if (!Array.isArray(items) || items.length < 1) {
-        return res.status(400).json({
-          success: false,
-          message: "Items must be a non-empty array.",
-        });
-      }
-
-      tier.items = items;
-    }
-
-    if (selectionCount !== undefined) {
-      const cleanedSelectionCount = Number(selectionCount);
-      if (!Number.isInteger(cleanedSelectionCount) || cleanedSelectionCount < 1 || cleanedSelectionCount > tier.items.length) {
-        return res.status(400).json({
-          success: false,
-          message: `Selection count must be a whole number between 1 and ${tier.items.length} (total items).`,
-        });
-      }
-      tier.selectionCount = cleanedSelectionCount;
-    } else if (tier.selectionCount > tier.items.length) {
-      tier.selectionCount = tier.items.length;
     }
 
     await tier.save();
@@ -308,7 +264,7 @@ export const toggleMealTierStatus = async (req, res) => {
 // user-facing — sirf active tiers
 export const getActiveMealTiers = async (req, res) => {
   try {
-    const tiers = await MealTier.find({ isActive: true }).populate("items", "name").lean();
+    const tiers = await MealTier.find({ isActive: true }).lean();
 
     return res.status(200).json({
       success: true,

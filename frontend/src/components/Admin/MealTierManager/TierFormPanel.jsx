@@ -1,9 +1,8 @@
 import FeatureListInput from "./FeatureListInput.jsx";
-import ItemPicker from "./ItemPicker.jsx";
 import { MAX_FEATURES } from "./constants.js";
 
-// Slide-over add/edit tier panel — name, features, item picker and the
-// per-meal selection count, wired to the state/handlers from useTierForm.
+// Slide-over add/edit tier panel — name and features, wired to the
+// state/handlers from useTierForm.
 export default function TierFormPanel({ tierForm }) {
   const {
     isFormOpen,
@@ -11,22 +10,11 @@ export default function TierFormPanel({ tierForm }) {
     form,
     formErrors,
     submitting,
-    allItems,
-    itemsLoading,
-    itemSearch,
-    isItemPickerOpen,
-    itemNameById,
-    filteredItems,
     closeForm,
     handleNameChange,
     handleFeatureChange,
     addFeatureField,
     removeFeatureField,
-    toggleItemSelection,
-    removeSelectedItem,
-    handleSelectionCountChange,
-    setItemSearch,
-    setIsItemPickerOpen,
     handleSubmit,
   } = tierForm;
 
@@ -84,47 +72,6 @@ export default function TierFormPanel({ tierForm }) {
             onRemoveFeature={removeFeatureField}
             max={MAX_FEATURES}
           />
-
-          <ItemPicker
-            allItems={allItems}
-            filteredItems={filteredItems}
-            itemNameById={itemNameById}
-            itemsLoading={itemsLoading}
-            itemSearch={itemSearch}
-            onSearchChange={setItemSearch}
-            isOpen={isItemPickerOpen}
-            onToggleOpen={() => setIsItemPickerOpen((prev) => !prev)}
-            selectedIds={form.items}
-            onToggleItem={toggleItemSelection}
-            onRemoveItem={removeSelectedItem}
-            error={formErrors.items}
-          />
-
-          {/* Selection count — how many of the tier's items a customer picks per order */}
-          <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Items Per Meal (customer selects)
-            </label>
-            <input
-              type="number"
-              min="1"
-              max={form.items.length || 1}
-              value={form.selectionCount}
-              onChange={(e) => handleSelectionCountChange(e.target.value)}
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.selectionCount
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
-            />
-            {formErrors.selectionCount && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.selectionCount}</p>
-            )}
-            <p className="text-[10px] text-gray-400 mt-1">
-              e.g. "{form.items.length || 0} items included, choose {form.selectionCount || 1}" — shown to
-              the customer while ordering.
-            </p>
-          </div>
         </form>
 
         <div className="flex items-center gap-2 px-5 py-4 border-t border-gray-100">

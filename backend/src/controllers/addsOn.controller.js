@@ -1,18 +1,11 @@
 import AddOn from "../models/addOns.model.js";
 import mongoose from "mongoose";
-import cloudinary from "../config/cloudinary.js";
-import { removeLocalFile } from "../middleware/upload.middleware.js";
 import { getPagination } from "../utils/pagination.js";
 
 // for create the Add On
 export const createAddOn = async (req, res) => {
   try {
     const { name, description, price, allergies } = req.body;
-
-    let image = {
-      url: "",
-      public_id: "",
-    };
 
     if (!name?.trim()) {
       return res.status(400).json({
@@ -37,21 +30,6 @@ export const createAddOn = async (req, res) => {
       });
     }
 
-    if (req.file) {
-      try {
-        const uploaded = await cloudinary.uploader.upload(req.file.path, {
-          folder: "addons",
-        });
-
-        image = {
-          url: uploaded.secure_url,
-          public_id: uploaded.public_id,
-        };
-      } finally {
-        removeLocalFile(req.file.path);
-      }
-    }
-
     const existingAddOns = await AddOn.findOne({
       name: name.trim().toLowerCase(),
     });
@@ -68,7 +46,6 @@ export const createAddOn = async (req, res) => {
       description,
       price: numericPrice,
       allergies,
-      image,
       createdBy: req.user?.id || null,
     });
 
@@ -219,27 +196,6 @@ export const updateAddOn = async (req, res) => {
       addOn.allergies = allergies;
     }
 
-    if (req.file) {
-      try {
-        const uploaded = await cloudinary.uploader.upload(req.file.path, {
-          folder: "addons",
-        });
-
-        const oldPublicId = addOn.image?.public_id;
-
-        addOn.image = {
-          url: uploaded.secure_url,
-          public_id: uploaded.public_id,
-        };
-
-        if (oldPublicId) {
-          await cloudinary.uploader.destroy(oldPublicId);
-        }
-      } finally {
-        removeLocalFile(req.file.path);
-      }
-    }
-
     await addOn.save();
 
     return res.status(200).json({
@@ -276,11 +232,6 @@ export const deleteAddOn = async (req, res) => {
         message: "Add On not found",
         success: false,
       });
-    }
-
-    // delete image from cloudinary
-    if (addOn.image?.public_id) {
-      await cloudinary.uploader.destroy(addOn.image.public_id);
     }
 
     await addOn.deleteOne();
