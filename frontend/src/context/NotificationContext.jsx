@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { toast } from "react-hot-toast";
 import { Bell } from "lucide-react";
 import { useAuth } from "./AuthContext";
-import { connectSocket, disconnectSocket } from "../services/socket";
+import { getSocket, connectSocket, disconnectSocket } from "../services/socket";
 import {
   getMyNotifications,
   getUnreadNotificationCount,
@@ -48,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!isRecipient) return;
 
-    const socket = connectSocket();
+    const socket = getSocket();
 
     const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
@@ -68,6 +68,8 @@ export const NotificationProvider = ({ children }) => {
     socket.on("connect", refetch);
     socket.on("notification:new", handleNewNotification);
     socket.on("connect_error", handleConnectError);
+
+    connectSocket();
 
     return () => {
       socket.off("connect", refetch);

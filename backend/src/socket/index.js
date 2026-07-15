@@ -19,10 +19,17 @@ const parseCookie = (cookieHeader = "", name) => {
 // own connections can receive events emitted to it.
 const authenticateSocket = async (socket, next) => {
   try {
-    const token = parseCookie(socket.handshake.headers.cookie, "token");
+    // Prefer the token passed explicitly in the handshake `auth` payload
+    // (fetched via GET /api/auth/socket-token, which rides the same-origin
+    // Vercel rewrite) - the httpOnly cookie is set cross-site on the
+    // deployed app and gets dropped by browsers that block/partition
+    // third-party cookies (Safari, Firefox, and a growing share of Chrome),
+    // even with SameSite=None; Secure. Cookie stays as a fallback for
+    // same-site setups (e.g. local dev) that never hit that restriction.
+    const token = socket.handshake.auth?.token || parseCookie(socket.handshake.headers.cookie, "token");
 
     if (!token) {
-      console.error("Socket auth failed: no token cookie on handshake (cookie header:", socket.handshake.headers.cookie, ")");
+      console.error("Socket auth failed: no token in handshake auth payload or cookie (cookie header:", socket.handshake.headers.cookie, ")");
       return next(new Error("Unauthorized"));
     }
 

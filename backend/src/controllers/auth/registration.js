@@ -95,6 +95,33 @@ export const getMe = async (req, res) => {
   }
 };
 
+// Issues a short-lived JWT for the socket.io handshake. The main `token`
+// cookie is httpOnly and, on the deployed app, cross-site (Vercel frontend
+// -> Render backend) - browsers with third-party cookie blocking (Safari,
+// Firefox, and a growing share of Chrome users) drop it on the socket
+// handshake even with SameSite=None; Secure set. This endpoint rides the
+// same-origin Vercel rewrite (like every other REST call), so the httpOnly
+// cookie reaches it reliably; the token it returns is then sent explicitly
+// in the socket connection's `auth` payload instead of depending on cookies.
+export const issueSocketToken = async (req, res) => {
+  try {
+    const token = jwt.sign(
+      { id: req.user.userId, role: req.user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+
+    return res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.log("Issue socket token error", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 // log out
 export const logout = async (req, res) => {
   try {
