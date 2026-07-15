@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Package } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
-import { getMealSchedule, getDayStatuses, updateDayStatus } from "../../services/mealSchedule.service";
+import { getMealSchedule, getDayStatuses, updateDayStatus, getDayAddonsSummary } from "../../services/mealSchedule.service";
 import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
@@ -45,6 +45,7 @@ const MealPlanner = () => {
   const [selectedDate, setSelectedDate] = useState(() => getDefaultSelectedDate(null));
   const [weeklyPlan, setWeeklyPlan] = useState({});
   const [dayStatus, setDayStatus] = useState({});
+  const [dayAddOns, setDayAddOns] = useState({});
 
   const refreshDayStatuses = async (subscriptionId) => {
     if (!subscriptionId) return;
@@ -53,6 +54,16 @@ const MealPlanner = () => {
       if (res.success) setDayStatus(res.statusByDay || {});
     } catch (error) {
       console.error("Failed to load day statuses:", error?.response?.data || error);
+    }
+  };
+
+  const refreshDayAddOns = async (subscriptionId) => {
+    if (!subscriptionId) return;
+    try {
+      const res = await getDayAddonsSummary(subscriptionId);
+      if (res.success) setDayAddOns(res.addonsByDay || {});
+    } catch (error) {
+      console.error("Failed to load day add-ons:", error?.response?.data || error);
     }
   };
 
@@ -132,6 +143,7 @@ const MealPlanner = () => {
 
     fetchSavedMealPlan();
     fetchDayStatuses();
+    refreshDayAddOns(activeSubscription?._id);
   }, [activeSubscription?._id]);
 
   useEffect(() => {
@@ -204,6 +216,8 @@ console.log(activeSubscription?.maxItemsPerMeal);
                   dayStatus={dayStatus}
                   onToggleDayActive={handleToggleDayActive}
                   onDayConfirmed={() => refreshDayStatuses(activeSubscription?._id)}
+                  dayAddOns={dayAddOns}
+                  onDayAddOnsSaved={() => refreshDayAddOns(activeSubscription?._id)}
                 />
               </>
               )}

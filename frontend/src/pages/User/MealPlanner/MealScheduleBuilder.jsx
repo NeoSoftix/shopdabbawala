@@ -8,6 +8,7 @@ import CategoryFilter from "./CategoryFilter";
 import ItemGrid from "./ItemGrid";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayPlanSlots from "./DayPlanSlots";
+import DayAddOns from "./DayAddOns";
 import WeeklyOverview from "./WeeklyOverview";
 import { formatDateKey, isSelectableDate, longDate } from "./constants";
 
@@ -24,6 +25,8 @@ const MealScheduleBuilder = ({
   dayStatus,
   onToggleDayActive,
   onDayConfirmed,
+  dayAddOns,
+  onDayAddOnsSaved,
 }) => {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
@@ -297,17 +300,19 @@ const MealScheduleBuilder = ({
   const currentDayMeals = weeklyPlan[selectedDateKey] || [];
 
   // Once an order has actually been placed for this date (dayStatus has an
-  // entry for it), editing is only allowed up to 12 PM (noon) the day
-  // before - mirrors the backend cutoff in createMealSchedule. A day with no
-  // placed order yet is unaffected (first-time scheduling, any time within
-  // the active week).
+  // entry for it), editing is only allowed up to 12 PM IST (noon, India
+  // Standard Time) the day before - mirrors the backend cutoff in
+  // createMealSchedule. Computed as 6:30 AM UTC (= noon IST, since
+  // IST = UTC+5:30) so it matches regardless of the browser's own timezone.
+  // A day with no placed order yet is unaffected (first-time scheduling,
+  // any time within the active week).
   const hasPlacedOrder = Boolean(dayStatus?.[selectedDateKey]);
   const editCutoffPassed = (() => {
     if (!hasPlacedOrder) return false;
     const cutoff = new Date(selectedDate);
     cutoff.setUTCHours(0, 0, 0, 0);
     cutoff.setUTCDate(cutoff.getUTCDate() - 1);
-    cutoff.setUTCHours(12, 0, 0, 0);
+    cutoff.setUTCHours(6, 30, 0, 0);
     return new Date() > cutoff;
   })();
 
@@ -460,6 +465,16 @@ const MealScheduleBuilder = ({
               editLocked={editCutoffPassed}
             />
           </div>
+
+          <DayAddOns
+            selectedDate={selectedDate}
+            selectedDateKey={selectedDateKey}
+            subscriptionId={subscriptionId}
+            hasScheduledMeal={hasPlacedOrder}
+            savedDayAddons={dayAddOns?.[selectedDateKey]}
+            editLocked={editCutoffPassed}
+            onSaved={onDayAddOnsSaved}
+          />
         </div>
       </div>
 
@@ -467,6 +482,7 @@ const MealScheduleBuilder = ({
       <WeeklyOverview
         weeklyPlan={weeklyPlan}
         dayStatus={dayStatus}
+        dayAddOns={dayAddOns}
         subscription={subscription}
         onToggleDayActive={onToggleDayActive}
         setSelectedDate={setSelectedDate}

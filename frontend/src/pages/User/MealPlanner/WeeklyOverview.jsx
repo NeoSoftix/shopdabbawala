@@ -67,7 +67,7 @@ const Toggle = ({ checked, disabled, onClick }) => (
 // Shows a 7-day window that the user can page through (prev/next), bounded
 // by the subscription's startDate..endDate so they can review/edit any date
 // within their plan's validity, not just the current calendar week.
-const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayActive, setSelectedDate }) => {
+const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, dayAddOns = {}, subscription, onToggleDayActive, setSelectedDate }) => {
   const [weekStart, setWeekStart] = useState(() =>
     getMonday(clampToSubscription(new Date(), subscription))
   );
@@ -95,6 +95,8 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
   const half = Math.ceil(previewItems.length / 2);
   const leftItems = previewItems.slice(0, half);
   const rightItems = previewItems.slice(half);
+  const previewAddOns = dayAddOns[previewKey]?.addons || [];
+  const previewExtraCharge = dayAddOns[previewKey]?.extraCharge || 0;
 
   return (
     <div className="bg-white rounded-[24px] border border-gray-100 p-5 space-y-5 shadow-sm">
@@ -143,6 +145,7 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
 
           const items = weeklyPlan[key] || [];
           const hasItems = items.length > 0;
+          const dayExtraCharge = dayAddOns[key]?.extraCharge || 0;
           const status = dayStatus[key];
           const isActive = status?.active !== false;
           const orderStatus = status?.status;
@@ -198,6 +201,11 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
                     ))}
                     {extraCount > 0 && (
                       <span className="block text-[10px] font-bold text-[#A3AED0] pl-2.5">+{extraCount} more</span>
+                    )}
+                    {dayExtraCharge > 0 && (
+                      <span className="inline-block mt-1 text-[9px] font-bold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">
+                        +${dayExtraCharge.toFixed(2)} add-ons
+                      </span>
                     )}
                   </div>
                 ) : (
@@ -331,6 +339,21 @@ const WeeklyOverview = ({ weeklyPlan, dayStatus = {}, subscription, onToggleDayA
               <Leaf size={14} className="text-green-500 shrink-0" />
               <span className="text-xs font-semibold text-[#5B6478]">Balanced choices for a wholesome day.</span>
             </div>
+
+            {previewAddOns.length > 0 && (
+              <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Add-ons</span>
+                  <span className="text-xs font-bold text-amber-700">+${previewExtraCharge.toFixed(2)}</span>
+                </div>
+                {previewAddOns.map((a, i) => (
+                  <div key={a.addonId || i} className="flex items-center justify-between text-xs text-amber-800">
+                    <span>{a.name} x{a.qty}</span>
+                    <span>${(a.price * a.qty).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-6 text-gray-400">

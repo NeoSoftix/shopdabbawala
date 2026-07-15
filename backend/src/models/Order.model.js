@@ -69,7 +69,7 @@ const orderSchema = new mongoose.Schema(
 
     addons: [
       {
-        addon: { type: mongoose.Schema.Types.ObjectId, ref: "AddOns" },
+        addon: { type: mongoose.Schema.Types.ObjectId, ref: "AddOn" },
         name: String,
         qty: { type: Number, default: 1 },
         price: Number,

@@ -7,6 +7,8 @@ import {
   createMealSchedule,
   getDayStatuses,
   updateDayOrderStatus,
+  updateDayAddons,
+  getDayAddonsSummary,
 } from "../controllers/mealScheduke.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
@@ -19,6 +21,10 @@ router.get("/my-plan/:subscriptionId", verifyToken, getMyMealPlan);
 // Per-day active/inactive toggle (pause/resume a day's delivery)
 router.get("/day-status/:subscriptionId", verifyToken, getDayStatuses);
 router.patch("/day-status", verifyToken, updateDayOrderStatus);
+
+// Per-day add-ons (extra items on top of an already-scheduled meal)
+router.get("/day-addons/:subscriptionId", verifyToken, getDayAddonsSummary);
+router.patch("/day-addons", verifyToken, updateDayAddons);
 
 // Update day's schedule
 router.put("/update-day", verifyToken, updateDaySchedule);
