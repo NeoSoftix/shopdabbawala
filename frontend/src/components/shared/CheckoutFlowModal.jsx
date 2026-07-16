@@ -119,7 +119,7 @@ export default function CheckoutFlowModal({
         )}
 
         {mode === "create" && step === 2 && (
-          <CustomizeStep onSubmit={handleCustomizationNext} goBack={goBack} loading={loading} error={error}>
+          <CustomizeStep onSubmit={handleCustomizationNext} goBack={goBack} loading={loading} error={error} pincode={pincode}>
             {children}
           </CustomizeStep>
         )}

@@ -158,10 +158,10 @@ export default function CreatePackage({ isOpen, onClose }) {
         startDate,
       }}
     >
-      {({ goBack, loading, error: submitError }) => (
+      {({ goBack, loading, error: submitError, pincode: verifiedPincode }) => (
       <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased py-3 px-2 sm:px-4 lg:px-5 relative`}>
             <main className="max-w-full bg-white/50 rounded-3xl">
-              <PincodeCheckBar />
+              <PincodeCheckBar pincode={verifiedPincode} />
 
               {/* ================= HEADER AREA ================= */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-1.5 pb-1.5 border-b border-gray-200/60 px-2">
