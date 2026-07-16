@@ -40,17 +40,17 @@ const PackageStatsCards = ({ packages }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6 sm:mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-5">
       {stats.map((s, i) => (
         <div
           key={i}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between"
+          className="bg-white p-3 sm:p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between"
         >
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               {s.title}
             </p>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mt-0.5">
               {s.value}
             </h3>
             {s.sub && (
@@ -60,7 +60,7 @@ const PackageStatsCards = ({ packages }) => {
             )}
           </div>
           <div
-            className={`p-2.5 sm:p-3 rounded-xl ${s.bgColor} ${s.textColor} text-lg sm:text-xl`}
+            className={`p-2 sm:p-2.5 rounded-xl ${s.bgColor} ${s.textColor} text-lg sm:text-xl`}
           >
             {s.icon}
           </div>

@@ -129,7 +129,7 @@ const AddItem = () => {
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  rows="5"
+                  rows="3"
                   name="description"
                   value={itemData.description}
                   onChange={handleChange}
@@ -138,20 +138,6 @@ const AddItem = () => {
                     }`}
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
-              </div>
-
-              {/* Allergies */}
-              <div>
-                <label className="block mb-1.5 font-medium text-gray-700">Allergies</label>
-                <input
-                  type="text"
-                  name="allergies"
-                  value={itemData.allergies}
-                  onChange={handleChange}
-                  placeholder="Milk, Nuts, Gluten"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-200"
-                />
-                <p className="text-sm text-gray-400 mt-1">Separate allergies with commas.</p>
               </div>
             </div>
 
@@ -177,6 +163,20 @@ const AddItem = () => {
                   ))}
                 </select>
                 {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
+              </div>
+
+              {/* Allergies */}
+              <div>
+                <label className="block mb-1.5 font-medium text-gray-700">Allergies</label>
+                <input
+                  type="text"
+                  name="allergies"
+                  value={itemData.allergies}
+                  onChange={handleChange}
+                  placeholder="Milk, Nuts, Gluten"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-200"
+                />
+                <p className="text-sm text-gray-400 mt-1">Separate allergies with commas.</p>
               </div>
             </div >
           </div >

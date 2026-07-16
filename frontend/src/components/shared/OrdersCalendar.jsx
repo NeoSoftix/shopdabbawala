@@ -127,25 +127,25 @@ export default function OrdersCalendar() {
   return (
     <div className="flex flex-col xl:flex-row gap-6 w-full">
       {/* Left Panel: Calendar */}
-      <div className="flex-grow xl:w-2/3 bg-white rounded-3xl p-3 sm:p-6 shadow-sm border border-slate-100">
+      <div className="flex-grow xl:w-2/3 bg-white rounded-3xl p-3 sm:p-4 shadow-sm border border-slate-100">
 
         {/* Calendar Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex bg-slate-100 rounded-lg p-1">
-              <button onClick={prevMonth} className="p-2 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-600">
-                <FiChevronLeft className="w-5 h-5" />
+            <div className="flex bg-slate-100 rounded-lg p-0.5">
+              <button onClick={prevMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-600">
+                <FiChevronLeft className="w-4 h-4" />
               </button>
-              <button onClick={nextMonth} className="p-2 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-600">
-                <FiChevronRight className="w-5 h-5" />
+              <button onClick={nextMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-600">
+                <FiChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <button onClick={goToToday} className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+            <button onClick={goToToday} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors">
               Today
             </button>
           </div>
 
-          <h2 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">
+          <h2 className="text-lg md:text-xl font-black text-slate-800 flex items-center gap-2">
             {monthNames[month]} {year}
             {loadingCounts && <FiLoader className="w-4 h-4 animate-spin text-slate-400" />}
           </h2>
@@ -156,7 +156,7 @@ export default function OrdersCalendar() {
           {/* Weekday Headers */}
           <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
             {weekDays.map(day => (
-              <div key={day} className="py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <div key={day} className="py-2 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 {day}
               </div>
             ))}
@@ -166,7 +166,7 @@ export default function OrdersCalendar() {
           <div className="grid grid-cols-7 auto-rows-fr">
             {calendarDays.map((date, index) => {
               if (!date) {
-                return <div key={`empty-${index}`} className="min-h-14 sm:min-h-20 md:min-h-25 border-b border-r border-slate-100 bg-slate-50/50" />;
+                return <div key={`empty-${index}`} className="min-h-10 sm:min-h-14 md:min-h-18 border-b border-r border-slate-100 bg-slate-50/50" />;
               }
 
               const dateStr = formatDateStr(date);
@@ -179,14 +179,14 @@ export default function OrdersCalendar() {
                 <div
                   key={dateStr}
                   onClick={() => setSelectedDate(date)}
-                  className={`min-h-14 sm:min-h-20 md:min-h-25 p-1.5 sm:p-2 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
+                  className={`min-h-10 sm:min-h-14 md:min-h-18 p-1 sm:p-1.5 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
                     isSelected ? 'bg-red-50/50 ring-2 ring-red-500 ring-inset z-10' : ''
                   }`}
                 >
-                  <div className={`text-right text-sm font-semibold mb-1 ${
+                  <div className={`text-right text-xs font-semibold mb-1 ${
                     isToday ? 'text-red-600' : 'text-slate-700'
                   }`}>
-                    {isToday ? <span className="bg-red-600 text-white w-6 h-6 inline-flex items-center justify-center rounded-full text-xs">{date.getDate()}</span> : date.getDate()}
+                    {isToday ? <span className="bg-red-600 text-white w-5 h-5 inline-flex items-center justify-center rounded-full text-[11px]">{date.getDate()}</span> : date.getDate()}
                   </div>
 
                   {hasOrders && (
@@ -211,8 +211,8 @@ export default function OrdersCalendar() {
       </div>
 
       {/* Right Panel: Selected Bookings */}
-      <div className="xl:w-1/3 bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-100 flex flex-col h-105 xl:h-175">
-        <div className="flex justify-between items-center mb-6">
+      <div className="xl:w-1/3 bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100 flex flex-col min-h-0">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-black text-slate-800">Selected Bookings</h3>
           <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
             {selectedDateStr}

@@ -26,16 +26,16 @@ const PackagesPage = () => {
   const editingPackage = editId ? packages.find((p) => p._id === editId) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 sm:p-6 lg:p-8 font-sans antialiased text-gray-900">
+    <div className="min-h-screen bg-gray-50/50 p-3 sm:p-4 lg:p-5 font-sans antialiased text-gray-900">
       {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-5">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-xl sm:text-xl font-bold tracking-tight text-gray-900">
             Packages
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
+          {/* <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
             Dashboard / Packages
-          </p>
+          </p> */}
         </div>
         <button
           onClick={toggleForm}
@@ -46,21 +46,17 @@ const PackagesPage = () => {
           }`}
         >
           <FaPlus
-            className={`w-3 h-3 transition-transform duration-200 ${showForm ? "rotate-45" : ""}`}
+            className={`w-2 h-2 transition-transform duration-200 ${showForm ? "rotate-45" : ""}`}
           />
           {showForm ? "Close Form" : "Add Package"}
         </button>
-      </div>
-
-      <div className="mb-4">
-        {/* Errors/success now handled by toast - kept empty div for layout */}
       </div>
 
       {/* STATS GRID */}
       <PackageStatsCards packages={packages} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
         {/* TABLE SECTION */}
         <PackagesTable
           packages={packages}

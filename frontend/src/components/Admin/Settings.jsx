@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Settings = () => {
-  const [admin] = useState({
-    name: "Admin",
-    email: "admin@gmail.com",
-    phone: "9876543210",
-  });
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <div className="p-6">
@@ -21,7 +24,7 @@ const Settings = () => {
                 Name
               </td>
               <td className="py-4">
-                {admin.name}
+                {user?.name || "-"}
               </td>
             </tr>
 
@@ -30,7 +33,7 @@ const Settings = () => {
                 Email
               </td>
               <td className="py-4">
-                {admin.email}
+                {user?.email || "-"}
               </td>
             </tr>
 
@@ -39,14 +42,17 @@ const Settings = () => {
                 Phone
               </td>
               <td className="py-4">
-                {admin.phone}
+                {user?.phone || "-"}
               </td>
             </tr>
           </tbody>
         </table>
 
         <div className="mt-6">
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg"
+          >
             Logout
           </button>
         </div>
