@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { getAvailableItemsForDate } from "../../../services/weeklyMenu.service";
 import { createMeal } from "../../../services/mealSchedule.service";
 
+import PlanSelector from "./PlanSelector";
+import CategorySelector from "./CategorySelector";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayAddOns from "./DayAddOns";
 import { formatDateKey, isPastDate } from "./constants";
@@ -21,11 +23,16 @@ const MealScheduleBuilder = ({
   onDayConfirmed,
   dayAddOns,
   availableDates,
+  subscriptions,
+  activeSubscription,
+  onSubscriptionChange,
+  categories,
+  selectedCategory,
+  onCategoryChange,
 }) => {
   const [sections, setSections] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [activeSectionId, setActiveSectionId] = useState(null);
 
   const categoryId = category?._id || category;
   const selectedDateKey = formatDateKey(selectedDate);
@@ -42,12 +49,9 @@ const MealScheduleBuilder = ({
       try {
         const res = await getAvailableItemsForDate(categoryId, selectedDateKey);
         if (res.success) {
-          const fetchedSections = res.data || [];
-          setSections(fetchedSections);
-          setActiveSectionId(fetchedSections[0]?._id || null);
+          setSections(res.data || []);
         } else {
           setSections([]);
-          setActiveSectionId(null);
         }
       } catch (err) {
         console.error("Failed to fetch available items:", err);
@@ -59,7 +63,7 @@ const MealScheduleBuilder = ({
   }, [categoryId, selectedDateKey, isDateAvailable]);
 
   const currentDayItems = weeklyPlan[selectedDateKey] || [];
-  
+
   // Calculate selection counts per section
   const sectionCounts = sections.reduce((acc, section) => {
     const sectionItemIds = section.items.map(i => i._id);
@@ -156,10 +160,20 @@ const MealScheduleBuilder = ({
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 mt-6">
-      {/* LEFT COLUMN: Date Picker & Builder */}
-      <div className="flex-1 space-y-6">
-        
-        {/* DAY SELECTOR */}
+      {/* LEFT COLUMN: everything in one card */}
+      <div className="flex-1 bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-5">
+        <PlanSelector
+          subscriptions={subscriptions}
+          activeSubscription={activeSubscription}
+          onChange={onSubscriptionChange}
+        />
+
+        <CategorySelector
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onChange={onCategoryChange}
+        />
+
         <DayOfWeekPicker
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
@@ -167,176 +181,118 @@ const MealScheduleBuilder = ({
           availableDates={availableDates}
         />
 
-        <div className="bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                Select your meals for {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
-              </h2>
-              {isConfirmed ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-semibold mt-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  Confirmed & Locked
-                </span>
-              ) : isPast ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-semibold mt-2">
-                  Past date — read only
-                </span>
-              ) : (
-                <p className="text-gray-500 text-sm mt-1">
-                  Choose your items from each category.
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl">
-              <span className="text-sm font-bold text-gray-700 pl-2">Delivery Status:</span>
-              <button
-                onClick={toggleDayStatus}
-                disabled={isLocked}
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  isActive ? "bg-green-500" : "bg-gray-300"
-                } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isActive ? "translate-x-5" : "translate-x-0"}`} />
-              </button>
-              <span className={`text-sm font-bold pr-2 ${isActive ? "text-green-600" : "text-gray-500"}`}>
-                {isActive ? "Active" : "Paused"}
-              </span>
-            </div>
+        {!isDateAvailable ? (
+          <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <h3 className="text-sm text-gray-900 mb-2">No Menu Available</h3>
+            <p className="text-gray-500 text-xs">The kitchen hasn't prepared a menu for this date yet.</p>
           </div>
+        ) : !isActive ? (
+          <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <h3 className="text-sm text-gray-900 mb-2">Delivery Paused</h3>
+            <p className="text-gray-500 text-xs mb-4">You have paused your delivery for this day.</p>
+            <button onClick={toggleDayStatus} className="text-[#e61e2d] text-xs hover:underline">
+              Resume Delivery
+            </button>
+          </div>
+        ) : loadingData ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-[#e61e2d] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : sections.length === 0 ? (
+          <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <h3 className="text-sm text-gray-900 mb-2">No Items Found</h3>
+            <p className="text-gray-500 text-xs">There are no items configured for this date.</p>
+          </div>
+        ) : (
+          <div>
+            <div className="space-y-6">
+              {sections.map((section, idx) => {
+                const required = section.requiredQuantity || 1;
+                const selected = sectionCounts[section._id] || 0;
+                const isComplete = selected === required;
+                const isSingleSelect = required === 1;
 
-          {!isDateAvailable ? (
-            <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">No Menu Available</h3>
-              <p className="text-gray-500 text-sm">The kitchen hasn't prepared a menu for this date yet.</p>
-            </div>
-          ) : !isActive ? (
-            <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Delivery Paused</h3>
-              <p className="text-gray-500 text-sm mb-4">You have paused your delivery for this day.</p>
-              <button onClick={toggleDayStatus} className="text-[#e61e2d] font-bold text-sm hover:underline">
-                Resume Delivery
-              </button>
-            </div>
-          ) : loadingData ? (
-            <div className="flex justify-center py-12">
-              <div className="w-10 h-10 border-4 border-[#e61e2d] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : sections.length === 0 ? (
-            <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">No Items Found</h3>
-              <p className="text-gray-500 text-sm">There are no items configured for this date.</p>
-            </div>
-          ) : (
-            <div>
-              <div className="flex flex-col gap-6">
-                {/* SECTIONS: active one expanded, rest collapsed */}
-                <div className="flex-1 min-w-0 space-y-3">
-                  {sections.map((section, idx) => {
-                    const required = section.requiredQuantity || 1;
-                    const selected = sectionCounts[section._id] || 0;
-                    const isComplete = selected === required;
-                    const isExpanded = section._id === activeSectionId;
+                return (
+                  <div key={section._id} className="mb-8">
+                    <div className="mb-4 flex items-center justify-between">
+                      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                        Step {idx + 2} — {isSingleSelect ? section.label : `Choose Up To ${required} ${section.label}`}
+                      </p>
+                      <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full shrink-0 ${isComplete || selected > 0 ? "bg-red-50 text-[#E31A1A]" : "bg-gray-100 text-gray-500"}`}>
+                        {selected}/{required} selected
+                      </span>
+                    </div>
 
-                    if (!isExpanded) {
-                      return (
-                        <button
-                          key={section._id}
-                          type="button"
-                          onClick={() => setActiveSectionId(section._id)}
-                          className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors text-left"
-                        >
-                          <span className="flex items-center gap-2 font-bold text-gray-900 text-sm">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-500">
-                              {idx + 1}
-                            </span>
-                            {section.label}
-                          </span>
-                          <span className="flex items-center gap-3">
-                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isComplete ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                              {selected} / {required} Selected
-                            </span>
-                            <ChevronDown size={16} className="text-gray-400" />
-                          </span>
-                        </button>
-                      );
-                    }
+                    <div className={`grid gap-4 ${isSingleSelect ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
+                      {section.items.map((item) => {
+                        const isSelected = currentDayItems.some(meal => meal._id === item._id);
+                        const isDisabled = !isSelected && selected >= required && !isLocked;
 
-                    return (
-                      <div key={section._id} className="relative p-3.5 rounded-xl border border-[#e61e2d]/20 bg-red-50/30">
-                        <div className="flex justify-between items-end mb-4">
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-xs text-[#e61e2d]">
-                                {idx + 1}
+                        return (
+                          <button
+                            key={item._id}
+                            onClick={() => !isLocked && handleItemToggle(item, section._id, required)}
+                            disabled={isDisabled || isLocked}
+                            className={`
+                              flex items-center p-4 rounded-xl border text-left transition-all duration-200 bg-white min-h-[60px]
+                              ${isSelected
+                                ? "border-green-500 bg-green-50/30"
+                                : "border-gray-200 bg-white hover:border-gray-300"}
+                              ${isDisabled || isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-sm"}
+                            `}
+                          >
+                            {isSingleSelect ? (
+                              <span className={`
+                                w-5 h-5 flex-shrink-0 rounded-full border-[1.5px] flex items-center justify-center mr-3 transition-colors
+                                ${isSelected ? "border-green-500 bg-white" : "border-gray-300"}
+                              `}>
+                                {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-green-500" />}
                               </span>
-                              {section.label}
-                              <span className="text-sm font-normal text-gray-500">(Select {required})</span>
-                            </h3>
-                          </div>
-                          <div className={`text-sm font-bold px-3 py-1 rounded-full ${isComplete ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
-                            {selected} / {required} Selected
-                          </div>
-                        </div>
+                            ) : (
+                              <span className={`
+                                w-5 h-5 flex-shrink-0 rounded border flex items-center justify-center mr-3 transition-colors
+                                ${isSelected ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"}
+                              `}>
+                                {isSelected && <Check size={14} strokeWidth={3} className="text-white" />}
+                              </span>
+                            )}
+                            <span className={`text-sm font-medium ${isSelected ? "text-green-600" : "text-[#1B254B]"}`}>
+                              {item.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {section.items.map((item) => {
-                            const isSelected = currentDayItems.some(meal => meal._id === item._id);
-                            const isDisabled = !isSelected && selected >= required && !isLocked;
-
-                            return (
-                              <button
-                                key={item._id}
-                                onClick={() => !isLocked && handleItemToggle(item, section._id, required)}
-                                disabled={isDisabled || isLocked}
-                                className={`
-                                  flex items-center p-3 rounded-xl border text-left transition-all duration-200 bg-white
-                                  ${isSelected
-                                    ? "border-[#e61e2d] bg-red-50 ring-1 ring-[#e61e2d] ring-opacity-50"
-                                    : "border-gray-200 bg-white hover:border-gray-300"}
-                                  ${isDisabled || isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-sm"}
-                                `}
-                              >
-                                <div className={`
-                                  w-5 h-5 flex-shrink-0 rounded border flex items-center justify-center mr-3 transition-colors
-                                  ${isSelected ? "bg-[#e61e2d] border-[#e61e2d]" : "border-gray-300 bg-white"}
-                                `}>
-                                  {isSelected && (
-                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  )}
-                                </div>
-                                <span className={`font-semibold text-sm ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
-                                  {item.name}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* SAVE BUTTON */}
-              <div className="pt-6 mt-6 border-t border-gray-100 flex justify-end">
+            {/* SAVE BUTTON / SAVED STATE */}
+            <div className="pt-6 mt-6 border-t border-gray-100 flex flex-wrap items-center gap-4">
+              {isConfirmed ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#22C55E] shrink-0 tracking-wide">
+                    <Check size={16} strokeWidth={4} />
+                    Saved for {selectedDate.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()}!
+                  </span>
+                  <span className="text-sm font-medium text-[#22C55E]">Your meal has been confirmed.</span>
+                </>
+              ) : (
                 <button
                   onClick={handleConfirmDay}
                   disabled={submitting || isLocked || sections.length === 0 || !isScheduleValid()}
-                  className="px-8 py-3 rounded-xl font-bold text-white bg-[#e61e2d] hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#E31A1A] hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 tracking-wide"
                 >
                   {submitting && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   )}
-                  {isConfirmed ? "Confirmed" : isPast ? "Past Date" : "Confirm Day"}
+                  {isPast ? "PAST DATE" : "SAVE MEALS"}
                 </button>
-              </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* RIGHT COLUMN: Add Ons */}

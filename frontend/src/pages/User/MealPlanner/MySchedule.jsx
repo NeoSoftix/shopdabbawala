@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Utensils } from "lucide-react";
-import { formatDateKey, weekdayLabel, mondayOf } from "./constants";
+import { formatDateKey, weekdayLabel, mondayOf, isPastDate } from "./constants";
 
 const STATUS_STYLES = {
   confirmed: "bg-green-100 text-green-700",
@@ -30,7 +30,7 @@ const statusKey = (dayStatus) => {
 // off to the "Build Custom Meal" tab. Clicking a day expands a full preview
 // below (every scheduled item, plus any paid add-ons for that day). Purely
 // informational, no editing here.
-const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan }) => {
+const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan, onToggleDayActive }) => {
   const [page, setPage] = useState(0);
   const [selectedKey, setSelectedKey] = useState(() => formatDateKey(new Date()));
 
@@ -118,12 +118,17 @@ const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan
             const isToday = key === todayKey;
             const isSelected = key === selectedKey;
 
+            const isDayActive = status?.active ?? true;
+            const isDayLocked =
+              isPastDate(date) || status?.status === "confirmed" || status?.status === "delivered";
+
             return (
-              <button
+              <div
                 key={key}
-                type="button"
                 onClick={() => setSelectedKey(key)}
-                className={`flex flex-col rounded-2xl border p-3.5 text-left transition-colors ${
+                role="button"
+                tabIndex={0}
+                className={`flex flex-col rounded-2xl border p-3.5 text-left transition-colors cursor-pointer ${
                   isSelected
                     ? "border-[#e61e2d] bg-red-50/40 ring-1 ring-[#e61e2d]/30"
                     : isToday
@@ -132,15 +137,40 @@ const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan
                 }`}
               >
                 <div className="flex items-center justify-between gap-1 mb-2">
-                  <span className="text-xs font-bold text-gray-900">
+                  <span className="text-xs text-gray-900">
                     {weekdayLabel(date)} {date.getDate()}
                   </span>
                   {items.length > 0 && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${badgeClass}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${badgeClass}`}>
                       {statusLabel(status)}
                     </span>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isDayLocked && onToggleDayActive) onToggleDayActive(key, !isDayActive);
+                  }}
+                  disabled={isDayLocked}
+                  className={`flex items-center gap-1.5 mb-2 ${isDayLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <span
+                    className={`relative inline-flex h-4 w-7 shrink-0 rounded-full transition-colors ${
+                      isDayActive ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-3 w-3 mt-0.5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                        isDayActive ? "translate-x-3.5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </span>
+                  <span className={`text-[10px] ${isDayActive ? "text-green-600" : "text-gray-500"}`}>
+                    {isDayActive ? "Active" : "Paused"}
+                  </span>
+                </button>
 
                 <div className="w-9 h-9 rounded-full bg-red-50 text-[#e61e2d] flex items-center justify-center my-2 mx-auto">
                   <Utensils size={15} />
@@ -150,7 +180,7 @@ const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan
                   <p className="text-xs text-gray-400 italic text-center py-2">No meal scheduled</p>
                 ) : (
                   <>
-                    <p className="text-xs font-bold text-gray-900 text-center mb-1.5 line-clamp-2">
+                    <p className="text-xs text-gray-900 text-center mb-1.5 line-clamp-2">
                       {items[0].name}
                     </p>
                     {items.length > 1 && (
@@ -164,7 +194,7 @@ const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan
                       </ul>
                     )}
                     <span
-                      className={`mt-auto self-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      className={`mt-auto self-center text-[10px] px-2 py-0.5 rounded-full ${
                         preference === "Veg" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                       }`}
                     >
@@ -172,7 +202,7 @@ const MySchedule = ({ weeklyPlan, dayStatus, dayAddOns, subscription, onEditPlan
                     </span>
                   </>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

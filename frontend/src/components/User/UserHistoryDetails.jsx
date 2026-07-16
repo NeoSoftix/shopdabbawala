@@ -66,13 +66,13 @@ export default function UserHistoryDetails({ subscriptions }) {
   const statusBadgeClass = (status) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-500';
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans relative">
+    <div className="w-full text-gray-800 font-sans relative">
 
       {/* Main Content Container */}
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="w-full space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Delivery Schedule</h1>
-          <p className="text-sm text-gray-500 mt-1">View your subscription history, today's order and your upcoming schedule.</p>
+          <h1 className="text-lg font-bold text-[#1B254B]">Delivery Schedule</h1>
+          <p className="text-xs text-gray-800 mt-1">View your subscription history, today's order and your upcoming schedule.</p>
         </div>
 
         {/* Tab Sub-Navigation */}

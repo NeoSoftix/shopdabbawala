@@ -11,14 +11,13 @@ import { getActiveCategory } from "../../services/category.service";
 import { formatDateKey, isBeyondSubscription } from "./MealPlanner/constants";
 
 import Header from "../../components/User/HeroHeader";
-import Footer from "../../components/shared/Footer";
 import UserHistorydetails from "../../components/User/UserHistoryDetails";
 
 import Sidebar from "./MealPlanner/Sidebar";
 import MealScheduleBuilder from "./MealPlanner/MealScheduleBuilder";
 import MySchedule from "./MealPlanner/MySchedule";
-import PlanSelector from "./MealPlanner/PlanSelector";
-import CategorySelector from "./MealPlanner/CategorySelector";
+import MyPlan from "./MealPlanner/MyPlan";
+import MyAccount from "./MealPlanner/MyAccount";
 import NoActivePlan from "./MealPlanner/NoActivePlan";
 
 // Default selection: today if it falls within the plan's window, otherwise
@@ -244,35 +243,21 @@ const MealPlanner = () => {
   }, [user, loading]);
 
   return (
-    <div className="min-h-screen bg-[#F4F7FE] font-sans antialiased flex flex-col">
+    <div className="h-screen w-full bg-[#f8f9fa] flex flex-col font-sans antialiased overflow-hidden">
       <Header />
-
-      {/* ================= MAIN CONTENT LAYOUT ================= */}
-      <main className="flex-grow max-w-[1440px] mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start pt-24 md:pt-28 pb-12">
-        {/* ================= LEFT SIDEBAR ================= */}
+      <div className="flex-1 flex overflow-hidden w-full">
         <Sidebar activeStep={activeStep} setActiveStep={setActiveStep} />
 
-        {/* ================= RIGHT MAIN AREA (DYNAMIC CONTENT) ================= */}
-        <section className="lg:col-span-9 w-full">
+        <div className="flex-1 flex flex-col h-full overflow-hidden pt-[60px]">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
           {activeStep === 1 && (
-            <div className="fade-in">
+            <div className="fade-in h-full">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <NoActivePlan
                   description="You need an active meal subscription to build a custom schedule. Please purchase a plan to unlock this feature."
                   noteText="Meal scheduling and customization are locked until you activate a plan."
                 />
               ) : (
-              <>
-                <PlanSelector
-                  subscriptions={subscriptions}
-                  activeSubscription={activeSubscription}
-                  onChange={setActiveSubscription}
-                />
-                <CategorySelector
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  onChange={setSelectedCategory}
-                />
                 <MealScheduleBuilder
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
@@ -285,20 +270,42 @@ const MealPlanner = () => {
                   onToggleDayActive={handleToggleDayActive}
                   onDayConfirmed={() => refreshDayStatuses(activeSubscription?._id)}
                   dayAddOns={dayAddOns}
+                  subscriptions={subscriptions}
+                  activeSubscription={activeSubscription}
+                  onSubscriptionChange={setActiveSubscription}
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategoryChange={setSelectedCategory}
                 />
-              </>
               )}
             </div>
           )}
 
           {activeStep === 2 && (
-            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in">
+            <div className="fade-in w-full">
+              {subscriptions.length === 0 && !loadingPlan ? (
+                <NoActivePlan
+                  description="You need an active meal subscription to see your plan details."
+                  noteText="Your plan details will appear here once you have an active subscription."
+                />
+              ) : (
+                <MyPlan
+                  subscriptions={subscriptions}
+                  activeSubscription={activeSubscription}
+                  onChange={setActiveSubscription}
+                />
+              )}
+            </div>
+          )}
+
+          {activeStep === 3 && (
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.02)] fade-in w-full">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <div className="py-10 text-center">
                   <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Package size={28} />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Delivery History</h3>
+                  <h3 className="text-base text-gray-900 mb-2">No Delivery History</h3>
                   <p className="text-gray-500 text-sm max-w-sm mx-auto">
                     Purchase a plan to start receiving deliveries and track your history here.
                   </p>
@@ -309,8 +316,8 @@ const MealPlanner = () => {
             </div>
           )}
 
-          {activeStep === 3 && (
-            <div className="fade-in">
+          {activeStep === 4 && (
+            <div className="fade-in w-full">
               {subscriptions.length === 0 && !loadingPlan ? (
                 <NoActivePlan
                   description="You need an active meal subscription to have a meal schedule."
@@ -323,14 +330,20 @@ const MealPlanner = () => {
                   dayAddOns={dayAddOns}
                   subscription={activeSubscription}
                   onEditPlan={() => setActiveStep(1)}
+                  onToggleDayActive={handleToggleDayActive}
                 />
               )}
             </div>
           )}
-        </section>
-      </main>
 
-      <Footer />
+          {activeStep === 5 && (
+            <div className="fade-in w-full">
+              <MyAccount user={user} />
+            </div>
+          )}
+        </main>
+      </div>
+      </div>
     </div>
   );
 };
