@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { getActiveCategory } from "../../services/category.service.js";
 import { getItemsByCategory } from "../../services/items.service.js";
 import { getWeeklyMenu, saveWeeklyMenu } from "../../services/weeklyMenu.service.js";
@@ -15,12 +15,29 @@ const dateKey = (date) => {
   return `${y}-${m}-${day}`;
 };
 
+const getMondayOfCurrentWeek = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Adjust to Monday
+  d.setDate(d.getDate() + diff);
+  return dateKey(d);
+};
+
+const getWeekLabel = (dateStr) => {
+  const start = new Date(dateStr);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const opts = { day: '2-digit', month: 'short' };
+  return `${start.toLocaleDateString('en-GB', opts)} - ${end.toLocaleDateString('en-GB', opts)}`;
+};
+
 export default function WeeklyMenuManager() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categoryItems, setCategoryItems] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
+  const [selectedDate, setSelectedDate] = useState(getMondayOfCurrentWeek());
   
   // Array of sections: { id, label, requiredQuantity, items: Set }
   const [sections, setSections] = useState([]);
@@ -148,13 +165,14 @@ export default function WeeklyMenuManager() {
         category: selectedCategory,
         date: selectedDate,
         sections: formattedSections,
+        applyToEntireWeek: true,
       });
 
       if (res.success) {
-        toast.success("Daily menu saved successfully!");
+        toast.success("Weekly menu saved successfully!");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to save daily menu.");
+      toast.error(error?.response?.data?.message || "Failed to save weekly menu.");
     } finally {
       setSaving(false);
     }
@@ -172,7 +190,7 @@ export default function WeeklyMenuManager() {
     <div className="min-h-screen bg-[#f8f9fa] p-4">
       <div className="mb-4 flex flex-col justify-between sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Daily Menu Builder</h1>
+          <h1 className="text-xl font-bold text-slate-900">Weekly Menu Builder</h1>
           {/* <p className="text-gray-500">
             Configure meal sections and limits for a specific date and category.
           </p> */}
@@ -212,13 +230,34 @@ export default function WeeklyMenuManager() {
           </div>
 
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wide">Select Date</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium focus:border-[#e61e2d] focus:outline-none bg-gray-50"
-            />
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Select Week</label>
+            </div>
+            <div className="flex items-center justify-between w-full rounded-lg border border-gray-300 px-2 py-1.5 bg-white shadow-sm">
+              <button 
+                onClick={() => {
+                  const d = new Date(selectedDate);
+                  d.setDate(d.getDate() - 7);
+                  setSelectedDate(dateKey(d));
+                }}
+                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="text-sm font-bold text-slate-800 tracking-wide">
+                {getWeekLabel(selectedDate)}
+              </span>
+              <button 
+                onClick={() => {
+                  const d = new Date(selectedDate);
+                  d.setDate(d.getDate() + 7);
+                  setSelectedDate(dateKey(d));
+                }}
+                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         </div>
 

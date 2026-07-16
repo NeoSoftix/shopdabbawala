@@ -46,15 +46,14 @@ const Sidebar = ({ activeStep, setActiveStep, isOpen, setIsOpen }) => {
         fixed lg:static top-0 left-0 h-full bg-white z-[1020]
         flex flex-col flex-shrink-0 overflow-y-auto border-r border-gray-100
         transition-transform duration-300 ease-in-out
-        w-[280px] lg:w-[220px] lg:pt-22.5
+        w-[280px] lg:w-[220px]
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         
-        {/* Logo header (shown for both the mobile drawer and the static desktop sidebar) */}
-        <div className="bg-white border-b border-gray-100 p-5 flex items-center justify-between shrink-0">
-          <img src={logoImg} alt="Meals Logo" className="h-9 lg:h-10 w-auto object-contain" />
-          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-800 p-1 lg:hidden">
-            <X size={20} />
+        <div className="bg-white border-b border-gray-100 p-4 lg:p-6 flex items-center justify-center relative shrink-0">
+          <img src={logoImg} alt="Meals Logo" className="h-16 lg:h-28 w-auto object-contain" />
+          <button onClick={() => setIsOpen(false)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 lg:hidden">
+            <X size={24} />
           </button>
         </div>
 

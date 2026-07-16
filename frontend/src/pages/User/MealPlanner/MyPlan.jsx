@@ -8,7 +8,7 @@ const fieldRow = (label, value) => (
 );
 
 // ================= COMPONENT: ACTIVE PLAN DETAILS =================
-const MyPlan = ({ subscriptions, activeSubscription, onChange }) => {
+const MyPlan = ({ subscriptions, activeSubscription, onChange, dayStatus }) => {
   if (!subscriptions || subscriptions.length === 0) return null;
 
   return (
@@ -25,11 +25,17 @@ const MyPlan = ({ subscriptions, activeSubscription, onChange }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
         {subscriptions.map((sub) => {
-          const mealsUsed = sub.mealsUsed ?? 0;
+          const isActive = activeSubscription?._id === sub._id;
+          let mealsUsed = sub.mealsUsed ?? 0;
+          
+          // Dynamically compute meals used/scheduled for the active plan
+          if (isActive && dayStatus && Object.keys(dayStatus).length > 0) {
+            mealsUsed = Object.values(dayStatus).filter(d => d.active).length;
+          }
+
           const totalMeals = sub.totalMeals ?? 0;
           const mealsRemaining = Math.max(totalMeals - mealsUsed, 0);
           const progressPct = totalMeals > 0 ? Math.min((mealsUsed / totalMeals) * 100, 100) : 0;
-          const isActive = activeSubscription?._id === sub._id;
 
           return (
             <div 

@@ -245,18 +245,11 @@ const MealPlanner = () => {
 
   return (
     <div className="h-screen w-full bg-[#f8f9fa] flex flex-col font-sans antialiased overflow-hidden">
-      <Header />
+      <Header showSidebarToggle={true} onOpenSidebar={() => setIsSidebarOpen(true)} />
       <div className="flex-1 flex overflow-hidden w-full relative">
         <Sidebar activeStep={activeStep} setActiveStep={setActiveStep} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-        <div className="flex-1 flex flex-col h-full overflow-hidden pt-[60px]">
-          {/* Mobile Sidebar Toggle Header */}
-          <div className="lg:hidden p-4 bg-white border-b border-gray-100 flex items-center justify-between">
-            <h1 className="font-bold text-[#1B254B]">User Dashboard</h1>
-            <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-red-50 text-red-600 rounded-lg shrink-0">
-              <Menu size={20} />
-            </button>
-          </div>
+        <div className="flex-1 flex flex-col h-full overflow-hidden pt-[80px] lg:pt-[60px]">
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5">
           {activeStep === 1 && (
@@ -302,6 +295,7 @@ const MealPlanner = () => {
                   subscriptions={subscriptions}
                   activeSubscription={activeSubscription}
                   onChange={setActiveSubscription}
+                  dayStatus={dayStatus}
                 />
               )}
             </div>
