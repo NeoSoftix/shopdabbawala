@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Package } from "lucide-react";
+import { Package, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getMySubscriptions } from "../../services/subscription.service";
 import { getMealSchedule, getDayStatuses, updateDayStatus, getDayAddonsSummary } from "../../services/mealSchedule.service";
@@ -45,6 +45,7 @@ const MealPlanner = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [activeSubscription, setActiveSubscription] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [activeStep, setActiveStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(() => getDefaultSelectedDate(null));
@@ -245,10 +246,18 @@ const MealPlanner = () => {
   return (
     <div className="h-screen w-full bg-[#f8f9fa] flex flex-col font-sans antialiased overflow-hidden">
       <Header />
-      <div className="flex-1 flex overflow-hidden w-full">
-        <Sidebar activeStep={activeStep} setActiveStep={setActiveStep} />
+      <div className="flex-1 flex overflow-hidden w-full relative">
+        <Sidebar activeStep={activeStep} setActiveStep={setActiveStep} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
         <div className="flex-1 flex flex-col h-full overflow-hidden pt-[60px]">
+          {/* Mobile Sidebar Toggle Header */}
+          <div className="lg:hidden p-4 bg-white border-b border-gray-100 flex items-center justify-between">
+            <h1 className="font-bold text-[#1B254B]">User Dashboard</h1>
+            <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-red-50 text-red-600 rounded-lg shrink-0">
+              <Menu size={20} />
+            </button>
+          </div>
+
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           {activeStep === 1 && (
             <div className="fade-in h-full">
