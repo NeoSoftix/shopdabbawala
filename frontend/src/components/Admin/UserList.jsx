@@ -91,9 +91,9 @@ const Users = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Customers</h2>
           
           {/* Search bar */}
@@ -119,10 +119,10 @@ const Users = () => {
               <table className="w-full min-w-[700px] text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    <th className="py-4 px-4">Name</th>
-                    <th className="py-4 px-4">Email</th>
-                    <th className="py-4 px-4">Phone</th>
-                    <th className="py-4 px-4 text-center">Action</th>
+                    <th className="py-2.5 px-4">Name</th>
+                    <th className="py-2.5 px-4">Email</th>
+                    <th className="py-2.5 px-4">Phone</th>
+                    <th className="py-2.5 px-4 text-center">Action</th>
                   </tr>
                 </thead>
 
@@ -132,34 +132,34 @@ const Users = () => {
                       key={user._id}
                       className="hover:bg-gray-50/40 transition-colors duration-150"
                     >
-                      <td className="px-4 py-4 text-sm font-medium text-gray-800">
+                      <td className="px-4 py-2.5 text-sm font-medium text-gray-800">
                         {user.name || <span className="text-gray-400 italic">Not set</span>}
                       </td>
 
-                      <td className="px-4 py-4 text-sm text-gray-600">
+                      <td className="px-4 py-2.5 text-sm text-gray-600">
                         {user.email || <span className="text-gray-400 italic">Not set</span>}
                       </td>
 
-                      <td className="px-4 py-4 text-sm text-gray-600">
+                      <td className="px-4 py-2.5 text-sm text-gray-600">
                         {user.phone || <span className="text-gray-400 italic">Not set</span>}
                       </td>
 
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-2.5">
                         <div className="flex justify-center gap-2">
                           <button
                             title="View Customer"
                             onClick={() => handleView(user._id)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                           >
-                            <FiEye size={20} />
+                            <FiEye size={16} />
                           </button>
 
                           <button
                             title="Delete Customer"
                             onClick={() => handleDelete(user._id, user.name || user.phone)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
                           >
-                            <MdDeleteOutline size={20} />
+                            <MdDeleteOutline size={16} />
                           </button>
                         </div>
                       </td>

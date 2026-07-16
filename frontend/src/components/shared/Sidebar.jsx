@@ -23,15 +23,15 @@ export default function Sidebar({
 
       {/* Sidebar Panel */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 w-[270px] h-full bg-white border-r border-gray-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out shrink-0
+        className={`fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 w-55 h-full bg-white border-r border-gray-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out shrink-0
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Logo Section */}
-        <div className="bg-[#E23747] text-white px-6 py-7 relative flex flex-col justify-center">
-          <h2 className="text-2xl font-bold tracking-wide pr-8 truncate">
+        <div className="bg-[#E23747] text-white px-5 py-4 relative flex flex-col justify-center">
+          <h2 className="text-xl font-bold tracking-wide pr-8 truncate">
             {title}
           </h2>
-          <p className="text-xs mt-1 uppercase tracking-widest text-red-100 truncate">
+          <p className="text-xs mt-0.5 uppercase tracking-widest text-red-100 truncate">
             {subtitle}
           </p>
           
@@ -45,8 +45,8 @@ export default function Sidebar({
         </div>
 
         {/* Menu Section */}
-        <div className="flex-1 overflow-y-auto px-4 py-5">
-          <div className="space-y-2">
+        <div className="flex-1 overflow-y-auto px-3 py-3">
+          <div className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const badgeCount = badges[item.path] || 0;
@@ -58,7 +58,7 @@ export default function Sidebar({
                   end
                   onClick={onClose} // Link click hote hi responsive drawer auto-close ho jaye
                   className={({ isActive }) =>
-                    `group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium relative
+                    `group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 font-medium relative text-sm
                     ${
                       isActive
                         ? "bg-[#E23747] text-white shadow-md"
@@ -73,7 +73,7 @@ export default function Sidebar({
                       )}
 
                       <Icon
-                        size={21}
+                        size={18}
                         className="flex-shrink-0"
                       />
 
@@ -96,12 +96,12 @@ export default function Sidebar({
         </div>
 
         {/* Logout Section */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 p-3">
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 bg-[#E23747] hover:bg-[#cc2030] text-white py-3 rounded-xl font-medium transition-all duration-200 shadow-sm"
+            className="w-full flex items-center justify-center gap-2 bg-[#E23747] hover:bg-[#cc2030] text-white py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
           >
-            <FiLogOut size={18} />
+            <FiLogOut size={16} />
             Logout
           </button>
         </div>

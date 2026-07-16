@@ -163,13 +163,13 @@ export default function WeeklyMenuManager() {
   if (loading) return <PageLoader />;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8">
-      <div className="mb-6 flex flex-col justify-between sm:flex-row sm:items-end">
+    <div className="min-h-screen bg-[#f8f9fa] p-4">
+      <div className="mb-4 flex flex-col justify-between sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Daily Menu Builder</h1>
-          <p className="text-gray-500">
+          <h1 className="text-xl font-bold text-slate-900">Daily Menu Builder</h1>
+          {/* <p className="text-gray-500">
             Configure meal sections and limits for a specific date and category.
-          </p>
+          </p> */}
         </div>
         <button
           onClick={handleSave}
@@ -181,10 +181,10 @@ export default function WeeklyMenuManager() {
         </button>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl space-y-6">
-        
+      <div className="w-full space-y-4">
+
         {/* Top Controls */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Select Category</label>
@@ -220,9 +220,9 @@ export default function WeeklyMenuManager() {
         {loadingMenu ? (
           <div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-[#e61e2d] border-t-transparent" /></div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {sections.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-500 shadow-sm">
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500 shadow-sm">
                 <p className="mb-4 text-sm font-medium">No menu sections configured for this date yet.</p>
                 <button onClick={addSection} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white hover:bg-black">
                   <Plus size={16} /> Add First Step
@@ -230,10 +230,10 @@ export default function WeeklyMenuManager() {
               </div>
             ) : (
               sections.map((section, index) => (
-                <div key={section.id} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm relative group overflow-hidden">
+                <div key={section.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm relative group overflow-hidden">
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-[#e61e2d]" />
-                  
-                  <div className="flex justify-between items-center mb-6">
+
+                  <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-xs text-[#e61e2d]">{index + 1}</span>
                       Step {index + 1}
@@ -243,7 +243,7 @@ export default function WeeklyMenuManager() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wide">Section Label</label>
                       <input
@@ -277,24 +277,22 @@ export default function WeeklyMenuManager() {
                     {categoryItems.length === 0 ? (
                       <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">No items exist in this category. Please create some first.</p>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 rounded-xl bg-gray-50 border border-gray-100 p-4 max-h-60 overflow-y-auto">
                         {categoryItems.map(item => {
                           const isSelected = section.items.has(item._id);
                           return (
-                            <div
+                            <label
                               key={item._id}
-                              onClick={() => toggleItemInSection(section.id, item._id)}
-                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                                isSelected ? "border-[#e61e2d] bg-red-50 shadow-sm" : "border-gray-200 hover:border-gray-300 bg-white"
-                              }`}
+                              className="flex items-center gap-2.5 cursor-pointer min-w-0"
                             >
-                              <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                                isSelected ? "bg-[#e61e2d] border-[#e61e2d]" : "border-gray-300"
-                              }`}>
-                                {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                              </div>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleItemInSection(section.id, item._id)}
+                                className="h-4 w-4 shrink-0 rounded border-gray-300 text-[#e61e2d] accent-[#e61e2d] focus:ring-[#e61e2d]"
+                              />
                               <span className="text-sm font-medium text-gray-700 truncate">{item.name}</span>
-                            </div>
+                            </label>
                           )
                         })}
                       </div>
