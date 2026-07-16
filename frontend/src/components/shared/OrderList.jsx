@@ -54,9 +54,9 @@ const OrderList = () => {
   }, [search, page]);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Orders</h2>
 
           <div className="relative w-full md:w-80">
@@ -66,7 +66,7 @@ const OrderList = () => {
             <input
               type="text"
               placeholder="Search by customer or status..."
-              value={search}
+              value={search}  
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
             />
@@ -81,13 +81,13 @@ const OrderList = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    <th className="py-4 px-4">Order ID</th>
-                    <th className="py-4 px-4">Customer</th>
-                    <th className="py-4 px-4">Items</th>
-                    <th className="py-4 px-4">Order Date</th>
-                    <th className="py-4 px-4">Delivery</th>
-                    <th className="py-4 px-4 text-center">Status</th>
-                    <th className="py-4 px-4 text-center">Action</th>
+                    <th className="py-2.5 px-2.5">Order ID</th>
+                    <th className="py-2.5 px-2.5">Customer</th>
+                    <th className="py-2.5 px-2.5">Items</th>
+                    <th className="py-2.5 px-2.5">Order Date</th>
+                    <th className="py-2.5 px-2.5">Delivery</th>
+                    <th className="py-2.5 px-2.5 text-center">Status</th>
+                    <th className="py-2.5 px-2.5 text-center">Action</th>
                   </tr>
                 </thead>
 

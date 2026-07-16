@@ -179,7 +179,7 @@ export default function OrdersCalendar() {
                 <div
                   key={dateStr}
                   onClick={() => setSelectedDate(date)}
-                  className={`min-h-10 sm:min-h-14 md:min-h-18 p-1 sm:p-1.5 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group ${
+                  className={`min-h-10 sm:min-h-14 md:min-h-20 p-1 sm:p-1.5 border-b border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 relative group overflow-hidden ${
                     isSelected ? 'bg-red-50/50 ring-2 ring-red-500 ring-inset z-10' : ''
                   }`}
                 >
@@ -196,7 +196,7 @@ export default function OrdersCalendar() {
                         <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-red-600' : 'bg-red-400'}`} />
                       </div>
                       {/* Tablet & up: full label */}
-                      <div className={`hidden sm:block text-[10px] font-bold px-1.5 py-1 rounded-md w-full truncate ${
+                      <div className={`hidden sm:block text-[9px] leading-tight font-normal px-1 py-0.5 rounded-md w-full truncate text-center ${
                         isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-red-100 text-red-700 group-hover:bg-red-200'
                       }`}>
                         Deliveries: {count}

@@ -238,16 +238,16 @@ const AssignVendor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-4">
+    <div className="min-h-screen bg-[#f8f9fa] p-3">
       {/* Assign Form — compact */}
-      <div className="mx-auto w-full max-w-4xl rounded-xl border border-gray-100 bg-white p-4 shadow-sm mb-4">
+      <div className="w-full rounded-xl border border-gray-100 bg-white p-3 shadow-sm mb-3">
         <h1 className="text-base font-bold text-slate-900">
           Assign Vendor to Pincode
         </h1>
 
         <form
           onSubmit={handleAssign}
-          className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end"
+          className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end"
         >
           <div className="flex-1 relative" ref={vendorDropdownRef}>
             <label className="mb-1.5 block text-xs font-medium text-gray-500">
@@ -357,8 +357,8 @@ const AssignVendor = () => {
       </div>
 
       {/* All Assignments */}
-      <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-        <div className="flex flex-col gap-3 p-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="flex flex-col gap-2 p-3 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               All Assignments
@@ -391,28 +391,28 @@ const AssignVendor = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-y border-gray-100 bg-gray-50/70 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                  <th className="py-2 px-6">Vendor</th>
-                  <th className="py-2 px-4">Package</th>
-                  <th className="py-2 px-4">Pincodes</th>
+                  <th className="py-1.5 px-4">Vendor</th>
+                  <th className="py-1.5 px-3">Package</th>
+                  <th className="py-1.5 px-3">Pincodes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {paginatedAssignments.map((a) => (
                   <tr key={a.vendorId}>
-                    <td className="py-3 px-6 align-top font-semibold text-gray-900 whitespace-nowrap">
+                    <td className="py-1.5 px-4 align-top text-sm font-semibold text-gray-900 whitespace-nowrap">
                       {a.vendorName}
                     </td>
-                    <td className="py-3 px-4 align-top text-sm text-gray-500 whitespace-nowrap">
+                    <td className="py-1.5 px-3 align-top text-[11px] text-gray-500 whitespace-nowrap">
                       {a.packageName}
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-2">
+                    <td className="py-1.5 px-3">
+                      <div className="flex flex-wrap gap-1.5">
                         {a.pincodes.map((pincode) => {
                           const key = `${a.vendorId}:${pincode}`;
                           return (
                             <span
                               key={key}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1 text-xs font-medium text-gray-700"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 pl-2.5 pr-1 py-0.5 text-[11px] font-medium text-gray-700"
                             >
                               {pincode}
                               <button
@@ -436,7 +436,7 @@ const AssignVendor = () => {
         )}
 
         {filteredAssignments.length > PAGE_SIZE && (
-          <div className="border-t border-gray-100 px-6 py-4">
+          <div className="border-t border-gray-100 px-4 py-2">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

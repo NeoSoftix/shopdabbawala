@@ -138,16 +138,16 @@ const DeliveryCharges = () => {
 }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8">
+    <div className="min-h-screen bg-[#f8f9fa] p-3">
       {/* Add / Edit Form — compact */}
-      <div className="mx-auto w-full max-w-4xl rounded-xl border border-gray-100 bg-white p-5 shadow-sm mb-6">
+      <div className="w-full rounded-xl border border-gray-100 bg-white p-3 shadow-sm mb-3">
         <h1 className="text-base font-bold text-slate-900">
           {editingId ? "Edit Delivery Charge" : "Add Delivery Charge"}
         </h1>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
+          className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end"
         >
           <div className="flex-1">
             <label className="mb-1.5 block text-xs font-medium text-gray-500">
@@ -200,8 +200,8 @@ const DeliveryCharges = () => {
       </div>
 
       {/* All Delivery Charges */}
-      <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-        <div className="flex flex-col gap-3 p-5 pb-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="flex flex-col gap-2 p-3 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               All Delivery Charges
@@ -236,15 +236,15 @@ const DeliveryCharges = () => {
           {paginatedCharges.map((item) => (
             <div
               key={item._id}
-              className="flex items-center justify-between gap-4 px-6 py-4"
+              className="flex items-center justify-between gap-4 px-4 py-1.5"
             >
               <div className="flex items-center gap-4 min-w-0">
                 <div>
-                  <p className="font-semibold text-gray-900">{item.pincode}</p>
-                  <p className="text-xs text-gray-500">${item.charge} delivery fee</p>
+                  <p className="text-sm font-semibold text-gray-900">{item.pincode}</p>
+                  <p className="text-[11px] text-gray-500">${item.charge} delivery fee</p>
                 </div>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${item.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${item.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
                 >
                   {item.isActive ? "Active" : "Inactive"}
                 </span>
@@ -253,18 +253,18 @@ const DeliveryCharges = () => {
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => handleEditClick(item)}
-                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition"
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition"
                   title="Edit"
                 >
-                  <Pencil size={15} />
+                  <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   disabled={deletingId === item._id}
-                  className="p-2 rounded-lg border border-red-100 text-red-500 hover:bg-red-50 transition disabled:opacity-60"
+                  className="p-1.5 rounded-lg border border-red-100 text-red-500 hover:bg-red-50 transition disabled:opacity-60"
                   title="Remove"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
@@ -272,7 +272,7 @@ const DeliveryCharges = () => {
         </div>
 
         {filteredCharges.length > PAGE_SIZE && (
-          <div className="border-t border-gray-100 px-6 py-4">
+          <div className="border-t border-gray-100 px-4 py-2">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
