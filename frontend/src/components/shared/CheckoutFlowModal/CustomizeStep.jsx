@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
  * Step 2 ("create" mode only): hosts the caller-supplied customization
  * content, passed in as `children` (a render-prop function or plain node).
  */
-export default function CustomizeStep({ onSubmit, children, goBack, loading, error }) {
+export default function CustomizeStep({ onSubmit, children, goBack, loading, error, pincode }) {
   return (
     <motion.form
       key="customization"
@@ -16,7 +16,7 @@ export default function CustomizeStep({ onSubmit, children, goBack, loading, err
     >
       <div className="flex-1 min-h-0 overflow-y-auto px-1 pb-4">
         {typeof children === "function"
-          ? children({ goBack, loading, error })
+          ? children({ goBack, loading, error, pincode })
           : children}
       </div>
     </motion.form>

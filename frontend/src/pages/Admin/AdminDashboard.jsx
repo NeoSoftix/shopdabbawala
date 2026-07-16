@@ -86,7 +86,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 py-4">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
         <StatCard
           title="Total Users"
