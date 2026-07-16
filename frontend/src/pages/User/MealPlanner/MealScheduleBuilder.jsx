@@ -162,23 +162,30 @@ const MealScheduleBuilder = ({
     <div className="flex flex-col xl:flex-row gap-6 mt-6">
       {/* LEFT COLUMN: everything in one card */}
       <div className="flex-1 bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-5">
-        <PlanSelector
-          subscriptions={subscriptions}
-          activeSubscription={activeSubscription}
-          onChange={onSubscriptionChange}
-        />
+        {/* Top Row: Date left, Plan right */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="w-full lg:w-3/4">
+            <DayOfWeekPicker
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              dayStatus={dayStatus}
+              availableDates={availableDates}
+            />
+          </div>
+          <div className="w-full lg:w-1/4">
+            <PlanSelector
+              subscriptions={subscriptions}
+              activeSubscription={activeSubscription}
+              onChange={onSubscriptionChange}
+            />
+          </div>
+        </div>
 
+        {/* Next Row: Categories */}
         <CategorySelector
           categories={categories}
           selectedCategory={selectedCategory}
           onChange={onCategoryChange}
-        />
-
-        <DayOfWeekPicker
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          dayStatus={dayStatus}
-          availableDates={availableDates}
         />
 
         {!isDateAvailable ? (
@@ -186,6 +193,7 @@ const MealScheduleBuilder = ({
             <h3 className="text-sm text-gray-900 mb-2">No Menu Available</h3>
             <p className="text-gray-500 text-xs">The kitchen hasn't prepared a menu for this date yet.</p>
           </div>
+          
         ) : !isActive ? (
           <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
             <h3 className="text-sm text-gray-900 mb-2">Delivery Paused</h3>
@@ -214,16 +222,16 @@ const MealScheduleBuilder = ({
 
                 return (
                   <div key={section._id} className="mb-8">
-                    <div className="mb-4 flex items-center justify-between">
-                      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-                        Step {idx + 2} — {isSingleSelect ? section.label : `Choose Up To ${required} ${section.label}`}
-                      </p>
-                      <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full shrink-0 ${isComplete || selected > 0 ? "bg-red-50 text-[#E31A1A]" : "bg-gray-100 text-gray-500"}`}>
-                        {selected}/{required} selected
-                      </span>
+                    <div className="mb-4">
+                      <div className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex flex-wrap items-center gap-1.5">
+                        <span>Step {idx + 2} — Choose {section.label}</span>
+                        <span className="text-[10px] text-black font-medium normal-case tracking-normal">
+                          (Select {section.label}, you can choose only {required} item{required > 1 ? 's' : ''} from this section.)
+                        </span>
+                      </div>
                     </div>
 
-                    <div className={`grid gap-4 ${isSingleSelect ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
+                    <div className="flex flex-wrap gap-3">
                       {section.items.map((item) => {
                         const isSelected = currentDayItems.some(meal => meal._id === item._id);
                         const isDisabled = !isSelected && selected >= required && !isLocked;
@@ -234,7 +242,7 @@ const MealScheduleBuilder = ({
                             onClick={() => !isLocked && handleItemToggle(item, section._id, required)}
                             disabled={isDisabled || isLocked}
                             className={`
-                              flex items-center p-4 rounded-xl border text-left transition-all duration-200 bg-white min-h-[60px]
+                              flex items-center px-3 py-2 rounded-lg border text-left transition-all duration-200 bg-white w-fit
                               ${isSelected
                                 ? "border-green-500 bg-green-50/30"
                                 : "border-gray-200 bg-white hover:border-gray-300"}
@@ -243,20 +251,20 @@ const MealScheduleBuilder = ({
                           >
                             {isSingleSelect ? (
                               <span className={`
-                                w-5 h-5 flex-shrink-0 rounded-full border-[1.5px] flex items-center justify-center mr-3 transition-colors
+                                w-4 h-4 flex-shrink-0 rounded-full border-[1.5px] flex items-center justify-center mr-2.5 transition-colors
                                 ${isSelected ? "border-green-500 bg-white" : "border-gray-300"}
                               `}>
-                                {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-green-500" />}
+                                {isSelected && <span className="w-2 h-2 rounded-full bg-green-500" />}
                               </span>
                             ) : (
                               <span className={`
-                                w-5 h-5 flex-shrink-0 rounded border flex items-center justify-center mr-3 transition-colors
+                                w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center mr-2.5 transition-colors
                                 ${isSelected ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"}
                               `}>
-                                {isSelected && <Check size={14} strokeWidth={3} className="text-white" />}
+                                {isSelected && <Check size={12} strokeWidth={3} className="text-white" />}
                               </span>
                             )}
-                            <span className={`text-sm font-medium ${isSelected ? "text-green-600" : "text-[#1B254B]"}`}>
+                            <span className={`text-xs font-semibold ${isSelected ? "text-green-600" : "text-[#1B254B]"}`}>
                               {item.name}
                             </span>
                           </button>

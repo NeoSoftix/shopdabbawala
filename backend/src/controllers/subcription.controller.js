@@ -274,7 +274,6 @@ export const renewSubscription = async (req, res) => {
     }
 
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
-    const renewalProductId = await getOrCreateCustomPackageProduct();
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
