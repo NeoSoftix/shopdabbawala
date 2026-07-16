@@ -295,6 +295,7 @@ const MealPlanner = () => {
                   subscriptions={subscriptions}
                   activeSubscription={activeSubscription}
                   onChange={setActiveSubscription}
+                  dayStatus={dayStatus}
                 />
               )}
             </div>
