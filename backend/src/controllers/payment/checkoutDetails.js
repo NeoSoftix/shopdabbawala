@@ -5,6 +5,7 @@ import Order from "../../models/Order.model.js"
 import { sendEmail } from "../../utils/email/sendEmail.js"
 import { purchaseSuccessTemplate } from "../../utils/email/purchaseSuccessTemplate.js"
 import User from "../../models/User.model.js"
+import { setupScheduledSubscription } from "./stripeHelpers.js"
 import { findServingVendor } from "../../utils/findServingVendor.js"
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js"
 import { fulfillDayAddonOrder } from "./fulfillDayAddonOrder.js"
@@ -24,55 +25,89 @@ export const saveCheckoutDetails = async (req, res) => {
       return res.status(404).json({ success: false, message: "Payment not found." });
     }
 
-    // Every CUSTOM_PACKAGE checkout is a real Stripe "subscription" mode
-    // session now (immediate or trialing - see subcription.controller.js),
-    // so `session.subscription` is always populated once Stripe confirms
-    // it. The webhook (webhook.js → fulfillCustomPackage) normally creates
-    // the local Subscription doc; this is just resilience in case that
-    // webhook hasn't landed yet by the time the customer reaches this step.
-    if (payment.paymentType === "CUSTOM_PACKAGE" && !payment.subscription) {
+    // Resilience: Retrieve subscription schedule ID directly from Stripe if the webhook hasn't updated the DB yet.
+    let stripeSubscriptionScheduleId = payment.subscription?.stripeSubscriptionScheduleId;
+
+    if (payment.paymentType === "CUSTOM_PACKAGE") {
       try {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.subscription) {
-          const startDateVal = session.metadata.startDate ? new Date(session.metadata.startDate) : new Date();
-          const endDateVal = session.metadata.endDate ? new Date(session.metadata.endDate) : new Date();
-
-          const createdSubscription = await Subscription.create({
-            user: session.metadata.userId,
-            mealSize: session.metadata.mealSize,
-            preference: session.metadata.preference,
-            duration: session.metadata.duration,
-            durationDays: Number(session.metadata.durationDays) || undefined,
-            meals: session.metadata.meals,
-            quantity: Number(session.metadata.quantity),
-            deliveryMethod: session.metadata.deliveryMethod,
-            price: Number(session.metadata.price) / 100, // metadata.price is stored in cents
-            totalMeals: Number(session.metadata.totalMeals),
-            mealsUsed: 0,
-            stripeSubscriptionId: session.subscription,
-            startDate: startDateVal,
-            endDate: endDateVal,
-            pincode: pincode,
-          });
-
-          // Can't reserve this slot before creating the Subscription (we
-          // don't have its id yet), so create optimistically then try to
-          // atomically attach it - only wins if the webhook (or another
-          // concurrent request) hasn't already attached one first. If we
-          // lose the race, discard the extra Subscription we just made
-          // instead of leaving the customer with two active plans.
-          const claimed = await Payment.findOneAndUpdate(
-            { _id: payment._id, subscription: null },
-            { $set: { subscription: createdSubscription._id } },
-            { new: true }
-          );
-
-          if (claimed) {
-            payment.subscription = createdSubscription._id;
+        if (session.metadata.isScheduled === "true") {
+          let subscription = payment.subscription;
+          if (!subscription || !subscription.stripeSubscriptionScheduleId) {
+            stripeSubscriptionScheduleId = await setupScheduledSubscription(session, payment, subscription);
           } else {
-            await Subscription.findByIdAndDelete(createdSubscription._id);
-            const winner = await Payment.findById(payment._id);
-            payment.subscription = winner.subscription;
+            stripeSubscriptionScheduleId = subscription.stripeSubscriptionScheduleId;
+          }
+        } else {
+          if (session.subscription) {
+            let subscription = payment.subscription;
+            if (!subscription) {
+              const startDateVal = session.metadata.startDate ? new Date(session.metadata.startDate) : new Date();
+              const endDateVal = session.metadata.endDate ? new Date(session.metadata.endDate) : new Date();
+
+              const createdSubscription = await Subscription.create({
+                user: session.metadata.userId,
+                mealSize: session.metadata.mealSize,
+                preference: session.metadata.preference,
+                duration: session.metadata.duration,
+                durationDays: Number(session.metadata.durationDays) || undefined,
+                meals: session.metadata.meals,
+                quantity: Number(session.metadata.quantity),
+                deliveryMethod: session.metadata.deliveryMethod,
+                price: Number(session.metadata.price) / 100, // metadata.price is stored in cents
+                totalMeals: Number(session.metadata.totalMeals),
+                mealsUsed: 0,
+                stripeSubscriptionId: session.subscription,
+                startDate: startDateVal,
+                endDate: endDateVal,
+                pincode: pincode,
+              });
+
+              // Can't reserve this slot before creating the Subscription (we
+              // don't have its id yet), so create optimistically then try to
+              // atomically attach it - only wins if the webhook (or another
+              // concurrent request) hasn't already attached one first. If we
+              // lose the race, discard the extra Subscription we just made
+              // instead of leaving the customer with two active plans.
+              const claimed = await Payment.findOneAndUpdate(
+                { _id: payment._id, subscription: null },
+                { $set: { subscription: createdSubscription._id } },
+                { new: true }
+              );
+
+              if (claimed) {
+                subscription = createdSubscription;
+                payment.subscription = createdSubscription._id;
+              } else {
+                await Subscription.findByIdAndDelete(createdSubscription._id);
+                const winner = await Payment.findById(payment._id).populate("subscription");
+                subscription = winner.subscription;
+                payment.subscription = winner.subscription?._id;
+              }
+            }
+
+            if (!subscription.stripeSubscriptionScheduleId) {
+              const stripeSub = await stripe.subscriptions.retrieve(session.subscription);
+              if (stripeSub.schedule) {
+                stripeSubscriptionScheduleId = stripeSub.schedule;
+              } else {
+                try {
+                  const schedule = await stripe.subscriptionSchedules.create({
+                    from_subscription: session.subscription,
+                  });
+                  stripeSubscriptionScheduleId = schedule.id;
+                } catch (scheduleError) {
+                  console.error("Failed to create subscription schedule on-the-fly:", scheduleError.message);
+                }
+              }
+
+              if (stripeSubscriptionScheduleId) {
+                subscription.stripeSubscriptionScheduleId = stripeSubscriptionScheduleId;
+                await subscription.save();
+              }
+            } else {
+              stripeSubscriptionScheduleId = subscription.stripeSubscriptionScheduleId;
+            }
           }
         }
       } catch (stripeErr) {
@@ -316,6 +351,7 @@ export const saveCheckoutDetails = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Details saved and email sent.",
+      stripeSubscriptionScheduleId,
     });
   } catch (error) {
     console.error("saveCheckoutDetails error:", error);

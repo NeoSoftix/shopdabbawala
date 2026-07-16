@@ -116,16 +116,15 @@ const AssignVendor = () => {
     setIsPincodeDropdownOpen(false);
   };
 
-  // Flatten every vendor's servicePincodes into one row per (vendor, pincode)
-  // for the assignments table.
-  const assignments = vendors.flatMap((v) =>
-    (v.servicePincodes || []).map((pincode) => ({
+  // One row per vendor, with all of its assigned pincodes grouped together.
+  const assignments = vendors
+    .filter((v) => (v.servicePincodes || []).length > 0)
+    .map((v) => ({
       vendorId: v._id,
       vendorName: v.organizationName,
-      pincode,
+      pincodes: v.servicePincodes || [],
       packageName: v.category?.name || "No category",
-    })),
-  );
+    }));
 
   const handleAssign = async (e) => {
     e.preventDefault();
@@ -217,12 +216,12 @@ const AssignVendor = () => {
   };
 
   const filteredAssignments = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+    const term = searchTerm.trim().toLowerCase().replace(/\s/g, "");
     if (!term) return assignments;
     return assignments.filter(
       (a) =>
         a.vendorName?.toLowerCase().includes(term) ||
-        a.pincode.toLowerCase().replace(/\s/g, "").includes(term.replace(/\s/g, "")),
+        a.pincodes.some((p) => p.toLowerCase().replace(/\s/g, "").includes(term)),
     );
   }, [assignments, searchTerm]);
 
@@ -239,16 +238,16 @@ const AssignVendor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-8">
+    <div className="min-h-screen bg-[#f8f9fa] p-4">
       {/* Assign Form — compact */}
-      <div className="mx-auto w-full max-w-4xl rounded-xl border border-gray-100 bg-white p-5 shadow-sm mb-6">
+      <div className="mx-auto w-full max-w-4xl rounded-xl border border-gray-100 bg-white p-4 shadow-sm mb-4">
         <h1 className="text-base font-bold text-slate-900">
           Assign Vendor to Pincode
         </h1>
 
         <form
           onSubmit={handleAssign}
-          className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
+          className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end"
         >
           <div className="flex-1 relative" ref={vendorDropdownRef}>
             <label className="mb-1.5 block text-xs font-medium text-gray-500">
@@ -359,7 +358,7 @@ const AssignVendor = () => {
 
       {/* All Assignments */}
       <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-        <div className="flex flex-col gap-3 p-5 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 p-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               All Assignments
@@ -381,39 +380,60 @@ const AssignVendor = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-100">
-          {paginatedAssignments.length === 0 && !loading && (
-            <p className="px-6 py-8 text-center text-gray-400">
-              {searchTerm ? "No assignments match your search." : "No assignments yet."}
-            </p>
-          )}
+        {paginatedAssignments.length === 0 && !loading && (
+          <p className="px-6 py-8 text-center text-gray-400">
+            {searchTerm ? "No assignments match your search." : "No assignments yet."}
+          </p>
+        )}
 
-          {paginatedAssignments.map((a) => {
-            const key = `${a.vendorId}:${a.pincode}`;
-            return (
-              <div
-                key={key}
-                className="flex items-center justify-between gap-4 px-6 py-4"
-              >
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900">{a.vendorName}</p>
-                  <p className="text-xs text-gray-500">
-                    {a.pincode} &middot; {a.packageName}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleRemove(a.vendorId, a.pincode)}
-                  disabled={removingKey === key}
-                  className="shrink-0 p-2 rounded-lg border border-red-100 text-red-500 hover:bg-red-50 transition disabled:opacity-60"
-                  title="Remove"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        {paginatedAssignments.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-y border-gray-100 bg-gray-50/70 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                  <th className="py-2 px-6">Vendor</th>
+                  <th className="py-2 px-4">Package</th>
+                  <th className="py-2 px-4">Pincodes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedAssignments.map((a) => (
+                  <tr key={a.vendorId}>
+                    <td className="py-3 px-6 align-top font-semibold text-gray-900 whitespace-nowrap">
+                      {a.vendorName}
+                    </td>
+                    <td className="py-3 px-4 align-top text-sm text-gray-500 whitespace-nowrap">
+                      {a.packageName}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-wrap gap-2">
+                        {a.pincodes.map((pincode) => {
+                          const key = `${a.vendorId}:${pincode}`;
+                          return (
+                            <span
+                              key={key}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1 text-xs font-medium text-gray-700"
+                            >
+                              {pincode}
+                              <button
+                                onClick={() => handleRemove(a.vendorId, pincode)}
+                                disabled={removingKey === key}
+                                className="rounded-full p-1 text-red-500 hover:bg-red-50 transition disabled:opacity-60"
+                                title="Remove"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {filteredAssignments.length > PAGE_SIZE && (
           <div className="border-t border-gray-100 px-6 py-4">
