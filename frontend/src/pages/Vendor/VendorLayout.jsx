@@ -47,6 +47,7 @@ export default function VendorLayout() {
           onMenuClick={() => setIsSidebarOpen(true)}
           notificationCount={unreadCount}
           onNotificationClick={() => setIsNotificationsOpen(true)}
+          profilePath="/vendor/profile"
         />
         <main className="flex-1 p-4 md:p-8 overflow-y-auto">
           <Outlet />

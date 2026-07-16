@@ -5,7 +5,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import { getActiveCategory } from "../../services/category.service.js";
 import { getItemsByCategory } from "../../services/items.service.js";
 import { getWeeklyMenu, saveWeeklyMenu } from "../../services/weeklyMenu.service.js";
-import { PageLoader } from "../../components/shared/Loader";
+import { SectionLoader } from "../../components/shared/Loader";
 
 const dateKey = (date) => {
   const d = new Date(date);
@@ -160,7 +160,13 @@ export default function WeeklyMenuManager() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] p-4">
+        <SectionLoader text="Loading menu builder..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4">

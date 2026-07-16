@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, Menu, ChevronDown, User, X, Camera } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
@@ -10,7 +11,9 @@ const Header = ({
   onMenuClick,
   notificationCount = 0,
   onNotificationClick,
+  profilePath,
 }) => {
+  const navigate = useNavigate();
   const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,13 +37,15 @@ const Header = ({
   };
 
   const handleOptionClick = (type) => {
-    setIsDropdownOpen(false); 
+    setIsDropdownOpen(false);
     if (type === "logout") {
       toast.success("Logging out...");
       logout();
+    } else if (type === "profile" && profilePath) {
+      navigate(profilePath);
     } else {
       setModalType(type);
-      setIsModalOpen(true); 
+      setIsModalOpen(true);
     }
   };
 

@@ -8,7 +8,7 @@ import {
   deleteDeliveryCharge,
 } from "../../services/deliveryCharge.service.js";
 import Pagination from "../../components/shared/Pagination";
-import AppLoader from "../../components/shared/AppLoader.jsx";
+import { SectionLoader } from "../../components/shared/Loader";
 
 const PAGE_SIZE = 6;
 
@@ -134,8 +134,12 @@ const DeliveryCharges = () => {
   };
 
   if (loading) {
-  return <AppLoader />;
-}
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] p-3">
+        <SectionLoader text="Loading delivery charges..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-3">

@@ -84,7 +84,7 @@ export default function PackageCard({
         <div className="text-center flex-grow flex flex-col justify-between">
           <div>
             <h3
-              className={`text-base sm:text-lg md:text-xl font-black tracking-wide uppercase ${isActive ? "text-red-600" : "text-slate-800"}`}
+              className={`text-sm sm:text-base md:text-lg font-black tracking-wide uppercase ${isActive ? "text-red-600" : "text-slate-800"}`}
             >
               {pkg.title}
             </h3>
@@ -96,11 +96,11 @@ export default function PackageCard({
 
             <div className="my-1 flex items-baseline justify-center gap-1.5">
               {pkg.hasDiscount && (
-                <span className="text-sm sm:text-base font-bold text-slate-400 line-through">
+                <span className="text-xs sm:text-sm font-bold text-slate-400 line-through">
                   {pkg.originalPrice}
                 </span>
               )}
-              <span className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
                 {pkg.price}
               </span>
               <span className="text-slate-400 font-bold text-[10px] sm:text-xs ml-0.5">
