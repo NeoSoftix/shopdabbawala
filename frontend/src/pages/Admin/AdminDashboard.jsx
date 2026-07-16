@@ -148,12 +148,12 @@ export default function AdminDashboard() {
           Icon={FiShoppingBag}
         />
 
-        <StatCard
+        {/* <StatCard
           title="Total Items"
           value={dashboardStats.items}
           growth="0%"
           Icon={MdFastfood}
-        />
+        /> */}
 
         <StatCard
           title="Total Orders"
