@@ -2,7 +2,6 @@ import mongoose from "mongoose"
 import stripe from "../config/stripe.js";
 import Subscription from "../models/Subcription.model.js";
 import Payment from "../models/payment.model.js";
-import User from "../models/User.model.js";
 import Package from "../models/package.model.js";
 import DurationPlan from "../models/durationPlan.model.js";
 import DeliveryCharge from "../models/deliveryCharge.model.js";
@@ -125,100 +124,65 @@ export const createSubscription = async (req, res) => {
     // length (max 365 days), so no per-label lookup is needed here either.
     const recurring = { interval: "day", interval_count: durationPlanDoc.durationDays };
 
-    // Calculate trial_end if startDate is at least 48 hours in the future
-    // const nowSec = Math.floor(Date.now() / 1000);
-    // const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
-    // const trialEnd = (startSec > nowSec + 86400) ? startSec : undefined; // at least 48 hours (172800 seconds) in future
+    const customPackageProductId = await getOrCreateCustomPackageProduct();
 
-
-
-    const now = new Date();
-    const isToday = calculatedStartDate.toDateString() === now.toDateString();
-
+    // Customer is always charged in full right at checkout (no trial - see
+    // above), but if they picked a future start date the *recurring* cycle
+    // should still be anchored to that date, not to today, so Stripe's next
+    // billing date (and what shows on the checkout/subscription page)
+    // matches what the customer actually picked. `proration_behavior: "none"`
+    // stops Stripe from also trying to prorate today's charge for the
+    // shortened first "stub" period between now and the anchor.
     const nowSec = Math.floor(Date.now() / 1000);
     const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
-    const minTrialEnd = nowSec + 172800; // Stripe's 48hr floor
+    const billingCycleAnchor = startSec > nowSec ? startSec : undefined;
 
-    // Not today → trial. Clamp to Stripe's minimum if the selected date is too close.
-    const trialEnd = isToday ? undefined : Math.max(startSec, minTrialEnd);
-
-    let session;
-    if (trialEnd) {
-      // Setup Mode for future start dates (No Trial period shown on Stripe)
-      const user = await User.findById(req.user.id);
-      const customer = await stripe.customers.create({
-        email: user?.email || "",
-        name: user?.name || user?.phone || "Customer",
-        phone: user?.phone || "",
-      });
-
-      session = await stripe.checkout.sessions.create({
-        mode: "setup",
-        customer: customer.id,
-        payment_method_types: ["card"],
-        metadata: {
-          userId: req.user.id,
-          paymentType: "CUSTOM_PACKAGE",
-          mealSize,
-          preference,
-          duration: normalizedDuration,
-          quantity: quantity.toString(),
-          deliveryMethod,
-          pincode: pincode ? String(pincode).trim() : "",
-          price: Math.round(totalAmount * 100).toString(),
-          totalMeals: durationPlanDoc.totalMeals.toString(),
-          maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
-          startDate: calculatedStartDate.toISOString(),
-          endDate: endDate.toISOString(),
-          isScheduled: "true",
-        },
-        success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
-      });
-    } else {
-      // Standard Subscription Mode for immediate starts
-      const customPackageProductId = await getOrCreateCustomPackageProduct();
-
-      session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              // Reuse the single shared "Custom Tiffin Plan" Stripe Product
-              // (see getOrCreateCustomPackageProduct) instead of inline
-              // product_data, which would create a brand-new Product per
-              // checkout and flood the Stripe Product catalog.
-              product: customPackageProductId,
-              unit_amount: Math.round(totalAmount * 100),
-              recurring: {
-                interval: recurring.interval,
-                interval_count: recurring.interval_count,
-              },
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            // Reuse the single shared "Custom Tiffin Plan" Stripe Product
+            // (see getOrCreateCustomPackageProduct) instead of inline
+            // product_data, which would create a brand-new Product per
+            // checkout and flood the Stripe Product catalog.
+            product: customPackageProductId,
+            unit_amount: Math.round(totalAmount * 100),
+            recurring: {
+              interval: recurring.interval,
+              interval_count: recurring.interval_count,
             },
-            quantity,
           },
-        ],
-        metadata: {
-          userId: req.user.id,
-          paymentType: "CUSTOM_PACKAGE",
-          mealSize,
-          preference,
-          duration: normalizedDuration,
-          quantity: quantity.toString(),
-          deliveryMethod,
-          pincode: pincode ? String(pincode).trim() : "",
-          price: Math.round(totalAmount * 100).toString(),
-          totalMeals: durationPlanDoc.totalMeals.toString(),
-          maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
-          startDate: calculatedStartDate.toISOString(),
-          endDate: endDate.toISOString(),
+          quantity,
         },
-        success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
-      });
-    }
+      ],
+      ...(billingCycleAnchor && {
+        subscription_data: {
+          billing_cycle_anchor: billingCycleAnchor,
+          proration_behavior: "none",
+        },
+      }),
+      metadata: {
+        userId: req.user.id,
+        paymentType: "CUSTOM_PACKAGE",
+        mealSize,
+        preference,
+        duration: normalizedDuration,
+        durationDays: durationPlanDoc.durationDays.toString(),
+        quantity: quantity.toString(),
+        deliveryMethod,
+        pincode: pincode ? String(pincode).trim() : "",
+        price: Math.round(totalAmount * 100).toString(),
+        totalMeals: durationPlanDoc.totalMeals.toString(),
+        maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
+        startDate: calculatedStartDate.toISOString(),
+        endDate: endDate.toISOString(),
+      },
+      success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+    });
 
     await Payment.create({
       user: req.user.id,
@@ -285,6 +249,8 @@ export const renewSubscription = async (req, res) => {
     const recurring = { interval: "day", interval_count: oldSubscription.durationDays || 30 };
 
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
+    const renewalProductId = await getOrCreateCustomPackageProduct();
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       phone_number_collection: { enabled: true },
@@ -293,10 +259,10 @@ export const renewSubscription = async (req, res) => {
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: `${oldSubscription.mealSize} Custom Package Renewal`,
-              description: `Renewal for ${oldSubscription.duration} Plan`,
-            },
+            // Same shared product as new custom-plan checkouts (see
+            // getOrCreateCustomPackageProduct) instead of inline
+            // product_data, which created a new Product per renewal.
+            product: renewalProductId,
             unit_amount: oldSubscription.price * 100, // Per-unit cost in cents
             recurring: {
               interval: recurring.interval,
