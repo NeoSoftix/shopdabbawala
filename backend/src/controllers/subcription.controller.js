@@ -5,6 +5,7 @@ import Payment from "../models/payment.model.js";
 import User from "../models/User.model.js";
 import Package from "../models/package.model.js";
 import DurationPlan from "../models/durationPlan.model.js";
+import DeliveryCharge from "../models/deliveryCharge.model.js";
 
 
 // create subscription
@@ -18,6 +19,7 @@ export const createSubscription = async (req, res) => {
       deliveryMethod,
       totalMeals,
       startDate,
+      pincode,
     } = req.body;
 
     // Required Fields
@@ -71,7 +73,33 @@ export const createSubscription = async (req, res) => {
       : durationPlanDoc.discountPercentage;
 
     const subtotal = durationPlanDoc.totalMeals * effectivePricePerMeal * quantity;
-    const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
+
+    // Delivery charge is per-pincode, configured by the admin under
+    // "Delivery Charges" - not a flat fee. Pickup orders have none.
+    let deliveryCharges = 0.0;
+    if (deliveryMethod === "Delivery") {
+      if (!pincode) {
+        return res.status(400).json({
+          success: false,
+          message: "Pincode is required for delivery orders.",
+        });
+      }
+
+      const deliveryChargeDoc = await DeliveryCharge.findOne({
+        pincode: String(pincode).trim(),
+        isActive: true,
+      });
+
+      if (!deliveryChargeDoc) {
+        return res.status(400).json({
+          success: false,
+          message: `No delivery charge configured for pincode ${pincode}. Please contact support or choose Pickup.`,
+        });
+      }
+
+      deliveryCharges = deliveryChargeDoc.charge;
+    }
+
     const discount = subtotal * (effectiveDiscountPercentage / 100);
     const totalAmount = subtotal - discount + deliveryCharges;
 
@@ -135,6 +163,7 @@ export const createSubscription = async (req, res) => {
           duration: normalizedDuration,
           quantity: quantity.toString(),
           deliveryMethod,
+          pincode: pincode ? String(pincode).trim() : "",
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
@@ -175,6 +204,7 @@ export const createSubscription = async (req, res) => {
           duration: normalizedDuration,
           quantity: quantity.toString(),
           deliveryMethod,
+          pincode: pincode ? String(pincode).trim() : "",
           price: Math.round(totalAmount * 100).toString(),
           totalMeals: durationPlanDoc.totalMeals.toString(),
           maxItemsPerMeal: durationPlanDoc.totalMeals.toString(),
