@@ -14,6 +14,8 @@ export default function PlanSummaryCard({
   discount,
   discountPercentage,
   deliveryCharges,
+  deliveryChargeLoading,
+  deliveryChargeError,
   totalAmount,
   pricePerMeal,
 }) {
@@ -78,9 +80,15 @@ export default function PlanSummaryCard({
         )}
         <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
           <span>{deliveryMethod} Charges</span>
-          <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
-            {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
-          </span>
+          {deliveryChargeLoading ? (
+            <span className="text-slate-400 normal-case tracking-normal">Calculating...</span>
+          ) : deliveryChargeError ? (
+            <span className="text-[#dc2626] normal-case tracking-normal">Not available</span>
+          ) : (
+            <span className={deliveryCharges === 0 ? "text-green-600 font-black" : "text-slate-700"}>
+              {deliveryCharges === 0 ? "FREE" : `$${deliveryCharges.toFixed(2)}`}
+            </span>
+          )}
         </div>
         <hr className="border-gray-200" />
         <div className="flex justify-between items-center pt-0.5">

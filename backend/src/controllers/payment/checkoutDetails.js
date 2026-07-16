@@ -309,6 +309,7 @@ export const saveCheckoutDetails = async (req, res) => {
       refreshedPayment?.subscription
     ) {
       const purchasePincode = pincode || finalPayment.subscription?.pincode || "";
+      const fulfillmentMethod = finalPayment.subscription?.deliveryMethod || "Delivery";
       // No category is known yet at checkout time (that's chosen later,
       // per-day, when the customer actually schedules meals) - just notify
       // any active vendor covering this pincode of the new purchase.
@@ -319,12 +320,13 @@ export const saveCheckoutDetails = async (req, res) => {
         vendorId: vendor?._id,
         type: "payment",
         title: "New Subscription Purchase",
-        message: `${customerName} purchased the ${planName} plan.`,
+        message: `${customerName} purchased the ${planName} plan (${fulfillmentMethod}).`,
         emailHeading: "New Subscription Purchased",
-        emailIntro: `${customerName} just purchased a new subscription. ${vendor ? `It has been matched to your service area (pincode ${purchasePincode}).` : "No serving vendor could be matched to their pincode yet."}`,
+        emailIntro: `${customerName} just purchased a new subscription for ${fulfillmentMethod.toLowerCase()}. ${vendor ? `It has been matched to your service area (pincode ${purchasePincode}).` : "No serving vendor could be matched to their pincode yet."}`,
         emailLines: [
           { label: "Customer", value: customerName },
           { label: "Plan", value: planName },
+          { label: "Fulfillment", value: fulfillmentMethod },
           { label: "Amount", value: `$${amount}` },
           { label: "Pincode", value: purchasePincode || "Not provided" },
         ],

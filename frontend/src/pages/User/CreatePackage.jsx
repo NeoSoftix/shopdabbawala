@@ -16,6 +16,7 @@ import { getActivePlans } from "../../services/customPlanConfig.service.js";
 import { getActiveMealTiers } from "../../services/mealTier.service.js";
 
 import PincodeCheckBar from "./CreatePackage/PincodeCheckBar";
+import DeliveryChargeSync from "./CreatePackage/DeliveryChargeSync";
 import DeliveryMethodToggle from "./CreatePackage/DeliveryMethodToggle";
 import MealPreferenceAndDate from "./CreatePackage/MealPreferenceAndDate";
 import DurationAndMealsCard from "./CreatePackage/DurationAndMealsCard";
@@ -35,6 +36,13 @@ export default function CreatePackage({ isOpen, onClose }) {
   const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
   const [quantity, setQuantity] = useState(1);
   const [mealSize, setMealSize] = useState("Basic");
+
+  // Admin-configured, per-pincode delivery charge (set via the Delivery
+  // Charges admin page). Populated by <DeliveryChargeSync> once the AREA
+  // step's pincode is known.
+  const [deliveryChargeAmount, setDeliveryChargeAmount] = useState(0);
+  const [deliveryChargeLoading, setDeliveryChargeLoading] = useState(false);
+  const [deliveryChargeError, setDeliveryChargeError] = useState("");
 
   // Start Date
   const [startDate, setStartDate] = useState("");
@@ -130,13 +138,15 @@ export default function CreatePackage({ isOpen, onClose }) {
   const pricePerMeal = parseFloat(basePricePerMeal.toFixed(2));
   const subtotal = totalMeals * pricePerMeal * quantity;
   const discount = subtotal * (discountPercentage / 100);
-  const deliveryCharges = deliveryMethod === "Delivery" ? 15.0 : 0.0;
+  const deliveryCharges = deliveryMethod === "Delivery" ? deliveryChargeAmount : 0.0;
   const totalAmount = subtotal - discount + deliveryCharges;
   const discountedPricePerMeal = pricePerMeal - (pricePerMeal * discountPercentage) / 100;
 
   const getCustomizationError = () => {
     if (!startDate) return "Please select a Delivery Start Date from the calendar above.";
     if (dbPlans.length === 0) return "Loading active plan details from server...";
+    if (deliveryMethod === "Delivery" && deliveryChargeLoading) return "Checking delivery charge for your pincode...";
+    if (deliveryMethod === "Delivery" && deliveryChargeError) return deliveryChargeError;
     return "";
   };
   const validationError = getCustomizationError();
@@ -160,6 +170,15 @@ export default function CreatePackage({ isOpen, onClose }) {
     >
       {({ goBack, loading, error: submitError, pincode: verifiedPincode }) => (
       <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased py-3 px-2 sm:px-4 lg:px-5 relative`}>
+            <DeliveryChargeSync
+              pincode={verifiedPincode}
+              deliveryMethod={deliveryMethod}
+              onResult={({ charge, loading, error }) => {
+                setDeliveryChargeAmount(charge);
+                setDeliveryChargeLoading(loading);
+                setDeliveryChargeError(error);
+              }}
+            />
             <main className="max-w-full bg-white/50 rounded-3xl">
               <PincodeCheckBar pincode={verifiedPincode} />
 
@@ -234,6 +253,8 @@ export default function CreatePackage({ isOpen, onClose }) {
                     discount={discount}
                     discountPercentage={discountPercentage}
                     deliveryCharges={deliveryCharges}
+                    deliveryChargeLoading={deliveryMethod === "Delivery" && deliveryChargeLoading}
+                    deliveryChargeError={deliveryMethod === "Delivery" ? deliveryChargeError : ""}
                     totalAmount={totalAmount}
                     pricePerMeal={discountedPricePerMeal}
                   />

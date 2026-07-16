@@ -57,7 +57,7 @@ export default function useCheckoutFlow({
       } else if (mode === "addons") {
         checkoutRes = await createAddonCheckout(cartItems);
       } else {
-        checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
+        checkoutRes = await createSubscription({ ...subscriptionData, pincode, successUrl });
       }
 
       if (checkoutRes && checkoutRes.checkoutUrl) {
@@ -290,7 +290,7 @@ export default function useCheckoutFlow({
         } else if (mode === "addons") {
           checkoutRes = await createAddonCheckout(cartItems);
         } else {
-          checkoutRes = await createSubscription({ ...subscriptionData, successUrl });
+          checkoutRes = await createSubscription({ ...subscriptionData, pincode, successUrl });
         }
 
         if (checkoutRes && checkoutRes.checkoutUrl) {
