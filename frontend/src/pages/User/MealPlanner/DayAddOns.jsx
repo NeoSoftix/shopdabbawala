@@ -4,6 +4,7 @@ import { PlusCircle } from "lucide-react";
 import { getActiveAddOns } from "../../../services/addOn.service";
 import { createDayAddonCheckout } from "../../../services/payment.service";
 import QuantityStepper from "../../../components/shared/QuantityStepper";
+import { FALLBACK_ADDON_IMAGE } from "../../../components/User/AddOnsSection/addOnsUtils";
 import { longDate } from "./constants";
 
 // Lets the user pile extra "add-on" items (charged separately from the plan)
@@ -136,14 +137,12 @@ const DayAddOns = ({
                     className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
                   >
                     <div className="min-w-0 flex items-center gap-2.5">
-                      {addon.image?.url ? (
-                        <img
-                          src={addon.image.url}
-                          alt=""
-                          className="w-9 h-9 rounded-lg object-cover shrink-0"
-                          onError={(e) => { e.target.style.display = "none"; }}
-                        />
-                      ) : null}
+                      <img
+                        src={addon.image?.url || FALLBACK_ADDON_IMAGE}
+                        alt=""
+                        className="w-9 h-9 rounded-lg object-cover shrink-0"
+                        onError={(e) => { e.target.src = FALLBACK_ADDON_IMAGE; e.target.onerror = null; }}
+                      />
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-[#1B254B] truncate">{addon.name}</p>
                         <p className="text-xs font-semibold text-[#A3AED0]">${addon.price}</p>

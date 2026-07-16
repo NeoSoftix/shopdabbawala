@@ -1,17 +1,13 @@
 import { motion } from "framer-motion";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { Flame, Plus } from "lucide-react";
+import { Flame } from "lucide-react";
 
-import QuantityStepper from "../../shared/QuantityStepper";
 import { FALLBACK_ADDON_IMAGE } from "./addOnsUtils";
 
 export default function AddOnCard({
   item,
-  qtyInCart,
   isFavorite,
   onToggleFavorite,
-  onAdd,
-  onQuantityChange,
 }) {
   return (
     <motion.div
@@ -20,12 +16,7 @@ export default function AddOnCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className={`relative flex flex-col justify-between bg-white rounded-3xl p-5 border transition-all duration-300 group
-        ${
-          qtyInCart > 0
-            ? "border-red-500 shadow-[0_20px_40px_rgba(231,0,11,0.05)] scale-[1.01]"
-            : "border-slate-100 shadow-[0_15px_35px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.05)] hover:border-slate-300"
-        }`}
+      className="relative flex flex-col justify-between bg-white rounded-3xl p-5 border border-slate-100 shadow-[0_15px_35px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.05)] hover:border-slate-300 transition-all duration-300 group"
     >
       {/* Badge Tags & Favorites */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
@@ -63,10 +54,7 @@ export default function AddOnCard({
           />
         </div>
 
-        <h3
-          className={`text-lg font-black tracking-tight leading-tight uppercase transition-colors duration-300
-          ${qtyInCart > 0 ? "text-red-600" : "text-slate-900 group-hover:text-red-600"}`}
-        >
+        <h3 className="text-lg font-black tracking-tight leading-tight uppercase transition-colors duration-300 text-slate-900 group-hover:text-red-600">
           {item.name}
         </h3>
 
@@ -74,32 +62,18 @@ export default function AddOnCard({
           {item.description || "Freshly prepared add-on option"}
         </p>
 
-        <div
-          className={`font-black text-lg mt-2 transition-colors duration-300
-          ${qtyInCart > 0 ? "text-red-600" : "text-[#111625] group-hover:text-red-600"}`}
-        >
+        <div className="font-black text-lg mt-2 transition-colors duration-300 text-[#111625] group-hover:text-red-600">
           ${item.price}
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-5 pt-3 border-t border-slate-50">
-        {qtyInCart > 0 ? (
-          <div className="flex items-center justify-center bg-red-50 border border-red-100 rounded-2xl p-2 w-full">
-            <QuantityStepper
-              value={qtyInCart}
-              min={0}
-              onChange={(newQty) => onQuantityChange(item._id, newQty - qtyInCart)}
-            />
-          </div>
-        ) : (
-          <button
-            onClick={() => onAdd(item)}
-            className="w-full h-[46px] rounded-2xl bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest shadow-md shadow-red-500/10 transition-all focus:outline-none cursor-pointer"
-          >
-            <Plus size={14} /> Add
-          </button>
-        )}
+      {/* Add-ons are ordered while scheduling a meal (see DayAddOns), not
+          browsed/purchased directly from this catalog page - no add-to-cart
+          action here. */}
+      <div className="mt-5 pt-3 border-t border-slate-50 text-center">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          Add while scheduling your meal
+        </span>
       </div>
     </motion.div>
   );

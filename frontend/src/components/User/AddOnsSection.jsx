@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 // Path ko apne folder structure ke according adjust karlein
 import { getActiveAddOns } from "../../services/addOn.service";
@@ -7,31 +6,18 @@ import { getActiveAddOns } from "../../services/addOn.service";
 import { SectionLoader } from "../shared/Loader";
 import CategoryTabs from "./AddOnsSection/CategoryTabs";
 import AddOnsGrid from "./AddOnsSection/AddOnsGrid";
-import CartToast from "./AddOnsSection/CartToast";
-import CartFooterBar from "./AddOnsSection/CartFooterBar";
-import CheckoutFlowModal from "../shared/CheckoutFlowModal";
-import {
-  filterAddOnsByTab,
-  getCartItemsCount,
-  getTotalCartAmount,
-  getCartItemNames,
-} from "./AddOnsSection/addOnsUtils";
+import { filterAddOnsByTab } from "./AddOnsSection/addOnsUtils";
 
+// Read-only catalog - add-ons are actually ordered per-day while scheduling
+// a meal (see MealPlanner/DayAddOns.jsx), not purchased directly from here,
+// so this page has no cart/add-to-cart/checkout of its own.
 export default function AddonsSection() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
   const [addonsData, setAddonsData] = useState([]);
   const [categories, setCategories] = useState(["All"]);
   const [activeTab, setActiveTab] = useState("All");
-  const [cart, setCart] = useState({});
   const [favorites, setFavorites] = useState({});
-  const [toastMessage, setToastMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // --- MODAL STATE (checkout logic itself lives in the shared CheckoutFlowModal) ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchActiveAddons = async () => {
@@ -65,57 +51,11 @@ export default function AddonsSection() {
     fetchActiveAddons();
   }, []);
 
-  // If the browser returns here after a Stripe redirect (shouldn't normally
-  // happen since checkout success_url points to the shared /payment-success
-  // page), just send the user there instead of showing a stale cart/modal.
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("payment_success") === "true") {
-      const sessionId = params.get("session_id");
-      navigate(`/payment-success${sessionId ? `?session_id=${sessionId}` : ""}`, { replace: true });
-    }
-  }, [location.search, navigate]);
-
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const addToCart = (item) => {
-    setCart((prev) => ({ ...prev, [item._id]: (prev[item._id] || 0) + 1 }));
-    setToastMessage(`${item.name} added`);
-    setTimeout(() => setToastMessage(""), 3000);
-  };
-
-  const updateQuantity = (id, delta) => {
-    setCart((prev) => {
-      const currentQty = prev[id] || 0;
-      const newQty = currentQty + delta;
-      if (newQty <= 0) {
-        const updatedCart = { ...prev };
-        delete updatedCart[id];
-        return updatedCart;
-      }
-      return { ...prev, [id]: newQty };
-    });
-  };
-
-  const clearAllCart = () => {
-    setCart({});
-  };
-
-  // --- MODAL HANDLERS ---
-  const handleOpenCheckout = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
   const filteredItems = filterAddOnsByTab(addonsData, activeTab);
-  const cartItemsCount = getCartItemsCount(cart);
-  const totalCartAmount = getTotalCartAmount(cart, addonsData);
-  const cartItemNames = getCartItemNames(cart, addonsData);
 
   if (loading) {
     return (
@@ -156,33 +96,8 @@ export default function AddonsSection() {
       {/* Dynamic Main Addons Grid Area */}
       <AddOnsGrid
         items={filteredItems}
-        cart={cart}
         favorites={favorites}
         onToggleFavorite={toggleFavorite}
-        onAdd={addToCart}
-        onQuantityChange={updateQuantity}
-      />
-
-      {/* Floating Toast Alert */}
-      <CartToast message={toastMessage} />
-
-      {/* BOTTOM BILLING FOOTER FLOATING CARD BAR */}
-      <CartFooterBar
-        cartItemsCount={cartItemsCount}
-        cartItemNames={cartItemNames}
-        totalCartAmount={totalCartAmount}
-        onClearCart={clearAllCart}
-        onCheckout={handleOpenCheckout}
-      />
-
-      {/* --- CHECKOUT SYSTEM MULTI-STEP MODAL (shared with Packages checkout) --- */}
-      <CheckoutFlowModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        mode="addons"
-        cart={cart}
-        addonsData={addonsData}
-        totalCartAmount={totalCartAmount}
       />
     </section>
   );
