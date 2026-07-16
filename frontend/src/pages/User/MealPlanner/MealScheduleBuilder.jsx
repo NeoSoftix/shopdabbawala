@@ -159,12 +159,12 @@ const MealScheduleBuilder = ({
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 mt-6">
+    <div className="flex flex-col lg:flex-row gap-4 mt-4 min-w-0">
       {/* LEFT COLUMN: everything in one card */}
-      <div className="flex-1 bg-white rounded-[24px] border border-gray-100 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-5">
-        {/* Top Row: Date left, Plan right */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="w-full lg:w-3/4">
+      <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-4">
+        {/* Date + Plan row: side by side from md up, stacked (plan on top) below md */}
+        <div className="flex flex-col-reverse md:flex-row md:items-center gap-3 min-w-0">
+          <div className="flex-1 min-w-0">
             <DayOfWeekPicker
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
@@ -172,7 +172,7 @@ const MealScheduleBuilder = ({
               availableDates={availableDates}
             />
           </div>
-          <div className="w-full lg:w-1/4">
+          <div className="shrink-0">
             <PlanSelector
               subscriptions={subscriptions}
               activeSubscription={activeSubscription}
@@ -213,7 +213,7 @@ const MealScheduleBuilder = ({
           </div>
         ) : (
           <div>
-            <div className="space-y-6">
+            <div className="space-y-4">
               {sections.map((section, idx) => {
                 const required = section.requiredQuantity || 1;
                 const selected = sectionCounts[section._id] || 0;
@@ -221,8 +221,8 @@ const MealScheduleBuilder = ({
                 const isSingleSelect = required === 1;
 
                 return (
-                  <div key={section._id} className="mb-8">
-                    <div className="mb-4">
+                  <div key={section._id}>
+                    <div className="mb-2.5">
                       <div className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex flex-wrap items-center gap-1.5">
                         <span>Step {idx + 2} — Choose {section.label}</span>
                         <span className="text-[10px] text-black font-medium normal-case tracking-normal">
@@ -277,7 +277,7 @@ const MealScheduleBuilder = ({
             </div>
 
             {/* SAVE BUTTON / SAVED STATE */}
-            <div className="pt-6 mt-6 border-t border-gray-100 flex flex-wrap items-center gap-4">
+            <div className="pt-4 mt-4 border-t border-gray-100 flex flex-wrap items-center gap-4">
               {isConfirmed ? (
                 <>
                   <span className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#22C55E] shrink-0 tracking-wide">
@@ -304,7 +304,7 @@ const MealScheduleBuilder = ({
       </div>
 
       {/* RIGHT COLUMN: Add Ons */}
-      <div className="w-full xl:w-96 flex-shrink-0">
+      <div className="w-full lg:w-44 xl:w-96 shrink-0 min-w-0">
         <DayAddOns
           selectedDate={selectedDate}
           selectedDateKey={selectedDateKey}

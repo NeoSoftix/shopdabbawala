@@ -46,22 +46,19 @@ const Sidebar = ({ activeStep, setActiveStep, isOpen, setIsOpen }) => {
         fixed lg:static top-0 left-0 h-full bg-white z-[1020]
         flex flex-col flex-shrink-0 overflow-y-auto border-r border-gray-100
         transition-transform duration-300 ease-in-out
-        w-[280px] lg:w-[220px] 
+        w-[280px] lg:w-[220px] lg:pt-22.5
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         
-        {/* Mobile Header (Red Top) */}
-        <div className="bg-[#E31A1A] p-6 flex items-center justify-between lg:hidden shrink-0">
-          <div>
-            <h2 className="text-white font-black text-lg tracking-wider">TIFFIN SERVICE</h2>
-            <p className="text-white/80 text-[10px] tracking-widest uppercase font-bold mt-0.5">USER PANEL</p>
-          </div>
-          <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white p-1">
+        {/* Logo header (shown for both the mobile drawer and the static desktop sidebar) */}
+        <div className="bg-white border-b border-gray-100 p-5 flex items-center justify-between shrink-0">
+          <img src={logoImg} alt="Meals Logo" className="h-9 lg:h-10 w-auto object-contain" />
+          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-800 p-1 lg:hidden">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-4 lg:p-5 lg:pt-[110px] flex-1 flex flex-col gap-6">
+        <div className="p-4 lg:p-5 flex-1 flex flex-col gap-6">
 
       {/* Navigation */}
       <div className="flex flex-col gap-2 mt-4 lg:mt-0">

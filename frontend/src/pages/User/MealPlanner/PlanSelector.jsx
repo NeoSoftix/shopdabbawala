@@ -8,11 +8,11 @@ export default function PlanSelector({ subscriptions, activeSubscription, onChan
 
   if (subscriptions.length === 1) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-[#A3AED0] uppercase tracking-wider">
-          Scheduling for:
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[10px] text-[#A3AED0] uppercase tracking-wider">
+          Scheduling for
         </span>
-        <span className="text-sm text-[#1B254B]">
+        <span className="text-sm text-[#1B254B] font-medium">
           {planLabel(subscriptions[0])}
         </span>
       </div>
@@ -20,9 +20,9 @@ export default function PlanSelector({ subscriptions, activeSubscription, onChan
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <span className="text-xs text-[#A3AED0] uppercase tracking-wider shrink-0">
-        Scheduling for:
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] text-[#A3AED0] uppercase tracking-wider">
+        Scheduling for
       </span>
       <select
         value={activeSubscription?._id || ""}
@@ -30,7 +30,7 @@ export default function PlanSelector({ subscriptions, activeSubscription, onChan
           const next = subscriptions.find((sub) => sub._id === e.target.value);
           if (next) onChange(next);
         }}
-        className="text-sm text-[#1B254B] bg-white border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#E31A1A] shadow-sm max-w-full sm:max-w-xs"
+        className="text-xs text-[#1B254B] bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#E31A1A] shadow-sm w-full sm:w-40"
       >
         {subscriptions.map((sub) => (
           <option key={sub._id} value={sub._id}>

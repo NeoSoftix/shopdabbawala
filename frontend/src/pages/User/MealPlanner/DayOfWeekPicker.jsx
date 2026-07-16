@@ -79,26 +79,27 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
   const today = new Date();
 
   return (
-    <div className="flex items-center bg-white rounded-2xl border border-gray-100 p-2 shadow-[0_4px_20px_rgba(0,0,0,0.02)] mb-6">
+    <div className="bg-white rounded-2xl border border-gray-100 p-2 sm:p-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-w-0">
       {/* TODAY label block */}
-      <div className="shrink-0 px-6 py-2 border-r border-gray-100 min-w-[160px]">
+      <div className="px-2 sm:px-3 pt-1 pb-2 sm:pb-3">
         <p className="text-[11px] text-[#E31A1A] font-bold uppercase tracking-wider mb-1">Today</p>
-        <p className="text-sm font-bold text-[#1B254B] whitespace-nowrap">
+        <p className="text-xs sm:text-sm font-bold text-[#1B254B] whitespace-nowrap">
           {weekdayLabel(today).substring(0,3).toUpperCase()}, {today.getDate()} {today.toLocaleDateString("en-US", { month: "short" })} {today.getFullYear()}
         </p>
       </div>
 
-      <div className="flex flex-1 items-center justify-between px-2 overflow-hidden">
+      {/* Week row: grid-cols-7 guarantees the whole week stays visible at any width */}
+      <div className="flex items-center gap-1 min-w-0">
         <button
           type="button"
           onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
           disabled={safeIndex === 0}
-          className="shrink-0 w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors ml-2"
+          className="shrink-0 w-5 sm:w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <ChevronLeft size={18} strokeWidth={2.5} />
+          <ChevronLeft size={16} strokeWidth={2.5} />
         </button>
 
-        <div className="flex-1 flex justify-between px-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 flex-1 min-w-0">
           {days.map((date) => {
             const key = formatDateKey(date);
             const isSelected = selectedKey === key;
@@ -112,19 +113,19 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
                 type="button"
                 onClick={() => onSelectDate(date)}
                 title={hasMenu ? undefined : "No menu published for this day yet"}
-                className={`relative flex flex-col items-center justify-center w-14 h-16 rounded-xl transition-all focus:outline-none
+                className={`relative flex flex-col items-center justify-center w-full h-12 sm:h-16 min-w-0 rounded-lg sm:rounded-xl transition-all focus:outline-none overflow-hidden
                   ${isSelected ? "bg-[#E31A1A] text-white shadow-md shadow-red-200/50" : isPast ? "bg-white text-gray-300 opacity-60" : hasMenu ? "bg-white text-[#1B254B] hover:bg-gray-50" : "bg-white text-gray-300"}
                 `}
               >
-                <span className={`text-[11px] uppercase font-semibold mb-1 ${isSelected ? "text-white/90" : "text-gray-400"}`}>
+                <span className={`text-[8px] sm:text-[11px] uppercase font-semibold mb-0.5 sm:mb-1 whitespace-nowrap ${isSelected ? "text-white/90" : "text-gray-400"}`}>
                   {weekdayLabel(date).substring(0,3)}
                 </span>
-                <span className={`text-sm font-bold ${isSelected ? "text-white" : "text-[#1B254B]"}`}>{date.getDate()}</span>
+                <span className={`text-[11px] sm:text-sm font-bold whitespace-nowrap ${isSelected ? "text-white" : "text-[#1B254B]"}`}>{date.getDate()}</span>
                 {isPast && !isSelected && (
-                  <Lock size={9} className="absolute top-1.5 right-1.5 opacity-60" />
+                  <Lock size={9} className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 opacity-60" />
                 )}
                 {status === "confirmed" && !isSelected && !isPast && (
-                  <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 )}
               </button>
             );
@@ -135,9 +136,9 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
           type="button"
           onClick={() => setWeekIndex((i) => Math.min(weeks.length - 1, i + 1))}
           disabled={safeIndex === weeks.length - 1}
-          className="shrink-0 w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors mr-2"
+          className="shrink-0 w-5 sm:w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <ChevronRight size={18} strokeWidth={2.5} />
+          <ChevronRight size={16} strokeWidth={2.5} />
         </button>
       </div>
     </div>

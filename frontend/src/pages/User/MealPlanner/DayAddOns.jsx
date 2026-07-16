@@ -86,23 +86,23 @@ const DayAddOns = ({
   };
 
   return (
-    <div className="bg-white rounded-[24px] border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col h-full overflow-hidden">
-      <div className="bg-[#E31A1A] px-5 py-5 rounded-t-[24px]">
-        <h3 className="text-sm font-bold text-white tracking-wider uppercase">Add Ons</h3>
-        <p className="text-[11px] font-medium text-white/80 mt-1">
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col h-full overflow-hidden">
+      <div className="bg-[#E31A1A] px-4 lg:px-5 py-3.5 lg:py-5 rounded-t-3xl">
+        <h3 className="text-xs lg:text-sm font-bold text-white tracking-wider uppercase">Add Ons</h3>
+        <p className="text-[10px] lg:text-[11px] font-medium text-white/80 mt-1">
           Extra items billed separately
         </p>
       </div>
 
       <div className="flex flex-col flex-1">
       {!hasScheduledMeal ? (
-        <p className="text-xs italic text-gray-400 p-5">
+        <p className="text-xs italic text-gray-400 p-4">
           Schedule a meal for this day first, then you can add extras to it.
         </p>
       ) : (
         <>
           {alreadyPaidAddons.length > 0 && (
-            <div className="px-5 py-4 bg-[#f9fafb] border-b border-gray-100">
+            <div className="px-4 py-3 bg-[#f9fafb] border-b border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-bold text-[#A3AED0] uppercase tracking-wider">Already Purchased</span>
                 <span className="text-sm font-bold text-[#1B254B]">${alreadyPaidTotal.toFixed(2)}</span>
@@ -117,27 +117,27 @@ const DayAddOns = ({
           )}
 
           {loadingAddOns ? (
-            <p className="text-xs text-gray-400 p-5">Loading add-ons...</p>
+            <p className="text-xs text-gray-400 p-4">Loading add-ons...</p>
           ) : addOns.length === 0 ? (
-            <p className="text-xs italic text-gray-400 p-5">No add-ons available right now.</p>
+            <p className="text-xs italic text-gray-400 p-4">No add-ons available right now.</p>
           ) : (
             <div className="flex flex-col flex-1 h-full">
               <div className="flex-1 overflow-y-auto no-scrollbar">
                 {addOns.map((addon) => (
                   <div
                     key={addon._id}
-                    className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-50"
+                    className="flex items-center justify-between gap-2 px-3 lg:px-2.5 xl:px-3.5 py-2 border-b border-gray-50"
                   >
-                    <div className="min-w-0 flex items-center gap-3">
+                    <div className="min-w-0 flex items-center gap-2">
                       <img
                         src={addon.image?.url || FALLBACK_ADDON_IMAGE}
                         alt=""
-                        className="w-8 h-8 rounded-md object-cover shrink-0"
+                        className="w-7 h-7 rounded-md object-cover shrink-0"
                         onError={(e) => { e.target.src = FALLBACK_ADDON_IMAGE; e.target.onerror = null; }}
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#1B254B] truncate">{addon.name}</p>
-                        <p className="text-xs font-bold text-[#E31A1A] mt-0.5">${addon.price}</p>
+                        <p className="text-xs font-bold text-[#1B254B] truncate">{addon.name}</p>
+                        <p className="text-[11px] font-bold text-[#E31A1A] mt-0.5">${addon.price}</p>
                       </div>
                     </div>
 
@@ -151,8 +151,8 @@ const DayAddOns = ({
                 ))}
               </div>
 
-              <div className="p-5 bg-white border-t border-gray-100 mt-auto shadow-[0_-10px_20px_rgba(0,0,0,0.02)] relative z-10">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-4 bg-white border-t border-gray-100 mt-auto shadow-[0_-10px_20px_rgba(0,0,0,0.02)] relative z-10">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-bold text-[#1B254B]">
                     New Total
                   </span>

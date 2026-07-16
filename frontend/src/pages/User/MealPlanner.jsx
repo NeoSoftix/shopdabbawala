@@ -258,7 +258,7 @@ const MealPlanner = () => {
             </button>
           </div>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5">
           {activeStep === 1 && (
             <div className="fade-in h-full">
               {subscriptions.length === 0 && !loadingPlan ? (

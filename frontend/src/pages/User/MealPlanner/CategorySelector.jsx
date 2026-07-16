@@ -9,11 +9,11 @@ export default function CategorySelector({ categories, selectedCategory, onChang
   const selectedId = selectedCategory?._id || selectedCategory;
 
   return (
-    <div className="mb-8">
-      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4">
+    <div>
+      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2.5">
         Step 1 — Choose Your Category
       </p>
-      <div className="flex flex-wrap gap-4">
+      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
         {categories.map((cat) => {
           const isSelected = selectedId === cat._id;
           return (
@@ -21,7 +21,7 @@ export default function CategorySelector({ categories, selectedCategory, onChang
               key={cat._id}
               type="button"
               onClick={() => onChange(cat)}
-              className={`flex flex-col items-center justify-center py-3 px-5 rounded-xl border transition-all bg-white min-w-[130px] ${
+              className={`flex shrink-0 flex-col items-center justify-center py-3 px-5 rounded-xl border transition-all bg-white min-w-32.5 ${
                 isSelected
                   ? "border-[#E31A1A] ring-1 ring-[#E31A1A]"
                   : "border-gray-200 hover:border-gray-300"
