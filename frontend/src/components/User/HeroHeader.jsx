@@ -9,7 +9,7 @@ import UserLogin from "./UserLogin";
 import UserProfileEdit from "./UserProfileEdit";
 import NotificationDrawer from "../shared/NotificationDrawer";
 
-export default function HeroHeader() {
+export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, pagination, setPage } = useNotifications();
   const navigate = useNavigate();
@@ -89,20 +89,31 @@ export default function HeroHeader() {
             py-2 md:py-2 px-6 md:px-10
             transition-all duration-500 ease-in-out
             ${
-              scrolled
-                ? "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_20px_40px_rgba(0,0,0,0.05)]"
+              scrolled || showSidebarToggle
+                ? "bg-white/90 backdrop-blur-xl border border-white/40 shadow-[0_5px_20px_rgba(0,0,0,0.03)]"
                 : "bg-transparent border border-transparent"
             }
           `}
         >
           {/* Logo Brand Block */}
-          <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
-            <img
-              src={logoImg}
-              alt="Meals Logo"
-              className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${scrolled ? "h-10 sm:h-12 md:h-15" : "h-12 sm:h-16 md:h-22"}`}
-            />
-          </Link>
+          <div className="flex items-center">
+            {showSidebarToggle && (
+              <button 
+                onClick={onOpenSidebar} 
+                className="lg:hidden p-2 mr-3 bg-red-50 text-red-600 rounded-lg shrink-0 transition-colors hover:bg-red-100"
+                aria-label="Open Sidebar Menu"
+              >
+                <Menu size={20} />
+              </button>
+            )}
+            <Link to="/" className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <img
+                src={logoImg}
+                alt="Meals Logo"
+                className={`w-auto object-cover transition-all duration-300 group-hover:scale-105 ${(scrolled || showSidebarToggle) ? "h-10 sm:h-12 md:h-15" : "h-12 sm:h-16 md:h-22"}`}
+              />
+            </Link>
+          </div>
 
           {/* Center Navigation Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-7 lg:gap-9">
@@ -110,7 +121,7 @@ export default function HeroHeader() {
               const active = isLinkActive(link);
               const activeClass = active
                 ? "text-red-600 font-extrabold"
-                : scrolled
+                : (scrolled || showSidebarToggle)
                   ? "text-slate-600 hover:text-red-600"
                   : "text-slate-800 md:text-slate-900 lg:text-slate-900 hover:text-red-500";
               
@@ -151,7 +162,7 @@ export default function HeroHeader() {
               <>
                 <button
                   onClick={() => setIsNotificationsOpen(true)}
-                  className={`relative p-2 rounded-full transition-colors ${scrolled ? "hover:bg-slate-100 text-slate-700" : "hover:bg-white/10 text-slate-900"}`}
+                  className={`relative p-2 rounded-full transition-colors ${(scrolled || showSidebarToggle) ? "hover:bg-slate-100 text-slate-700" : "hover:bg-white/10 text-slate-900"}`}
                   aria-label="Notifications"
                 >
                   <Bell size={20} />
@@ -171,7 +182,7 @@ export default function HeroHeader() {
                     {user.name ? user.name.charAt(0).toUpperCase() : <User size={18} />}
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className={`text-xs font-bold ${scrolled ? "text-slate-800" : "text-slate-900"}`}>
+                    <span className={`text-xs font-bold ${(scrolled || showSidebarToggle) ? "text-slate-800" : "text-slate-900"}`}>
                       {user.name?.split(" ")[0] || `Guest_${user._id?.substring(user._id.length - 4).toUpperCase() || 'USER'}`}
                     </span>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider flex items-center gap-0.5">
@@ -227,7 +238,7 @@ export default function HeroHeader() {
               </>
             ) : (
               <>
-                <button onClick={() => setIsLoginOpen(true)} className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${scrolled ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
+                <button onClick={() => setIsLoginOpen(true)} className={`text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${(scrolled || showSidebarToggle) ? "text-slate-600 hover:text-red-600" : "text-slate-900 hover:text-red-500"}`}>
                   Login
                 </button>
                 <button
@@ -251,7 +262,7 @@ export default function HeroHeader() {
           {/* Mobile Hamburger Control Icon */}
           <button
             onClick={() => setIsMenuOpen(true)}
-            className={`md:hidden p-1.5 rounded-full transition-colors ${scrolled ? "hover:bg-slate-100 text-slate-900" : "hover:bg-white/10 text-white"}`}
+            className={`md:hidden p-1.5 rounded-full transition-colors ${(scrolled || showSidebarToggle) ? "hover:bg-slate-100 text-slate-900" : "hover:bg-white/10 text-white"}`}
             aria-label="Open Menu"
           >
             <Menu size={22} strokeWidth={2.5} />

@@ -15,7 +15,7 @@ const mondayOf = (date) => {
 // ➤ Admin: create/update the menu for a specific date (upserts into WeeklyMenu).
 export const upsertWeeklyMenu = async (req, res) => {
   try {
-    const { category: categoryId, date, sections } = req.body;
+    const { category: categoryId, date, sections, applyToEntireWeek } = req.body;
 
     if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({ success: false, message: "A valid category is required." });
@@ -70,14 +70,24 @@ export const upsertWeeklyMenu = async (req, res) => {
       });
     }
 
-    const dayIndex = weeklyMenu.days.findIndex(
-      (d) => new Date(d.date).getTime() === targetDate.getTime()
-    );
-
-    if (dayIndex >= 0) {
-      weeklyMenu.days[dayIndex].sections = sections;
+    if (applyToEntireWeek) {
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(normalizedWeekStart);
+        d.setUTCDate(d.getUTCDate() + i);
+        weekDays.push({ date: d, sections });
+      }
+      weeklyMenu.days = weekDays;
     } else {
-      weeklyMenu.days.push({ date: targetDate, sections });
+      const dayIndex = weeklyMenu.days.findIndex(
+        (d) => new Date(d.date).getTime() === targetDate.getTime()
+      );
+
+      if (dayIndex >= 0) {
+        weeklyMenu.days[dayIndex].sections = sections;
+      } else {
+        weeklyMenu.days.push({ date: targetDate, sections });
+      }
     }
 
     await weeklyMenu.save();

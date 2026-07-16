@@ -2,9 +2,9 @@ import API from "./api.js";
 
 // Admin: save/overwrite the item availability for every day of a
 // (category, date) - upserts, so re-saving the same day just updates it.
-export const saveWeeklyMenu = async ({ category, date, sections }) => {
+export const saveWeeklyMenu = async ({ category, date, sections, applyToEntireWeek }) => {
   try {
-    const res = await API.post("/weekly-menu", { category, date, sections });
+    const res = await API.post("/weekly-menu", { category, date, sections, applyToEntireWeek });
     return res.data;
   } catch (error) {
     console.error("Save Weekly Menu Error", error);
