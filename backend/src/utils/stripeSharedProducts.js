@@ -16,17 +16,27 @@ let cachedProductId = null;
 export const getOrCreateCustomPackageProduct = async () => {
   if (cachedProductId) return cachedProductId;
 
-  const existing = await stripe.products.list({ limit: 100, active: true });
+  // No `active` filter here - the shared product is deliberately created as
+  // inactive (see below) so it stays out of the admin's default "Active"
+  // Product catalog view, so an active-only list would never find it again.
+  const existing = await stripe.products.list({ limit: 100 });
   const found = existing.data.find((p) => p.metadata?.appKey === CUSTOM_PACKAGE_MARKER);
   if (found) {
     cachedProductId = found.id;
     return cachedProductId;
   }
 
+  // Marked inactive on purpose: this Product only exists so Stripe has
+  // somewhere to hang custom-plan Prices - it isn't a real sellable catalog
+  // item the admin manages, unlike admin-created Packages. `active: false`
+  // keeps it out of the Product catalog's default "Active" list (it only
+  // shows under "Archived"), without affecting checkout - Checkout Sessions
+  // that reference a product/price by id work regardless of `active`.
   const created = await stripe.products.create({
     name: "Custom Tiffin Plan",
     description: "User-configured custom meal subscription plan. Price varies per order based on meal tier, duration, quantity and delivery charge.",
     metadata: { appKey: CUSTOM_PACKAGE_MARKER },
+    active: false,
   });
 
   cachedProductId = created.id;
