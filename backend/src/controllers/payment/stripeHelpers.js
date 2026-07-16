@@ -1,5 +1,6 @@
 import stripe from "../../config/stripe.js"
 import Subscription from "../../models/Subcription.model.js"
+import { getOrCreateCustomPackageProduct } from "../../utils/stripeSharedProducts.js"
 
 // Helper function to setup a scheduled subscription from setup mode session
 export const setupScheduledSubscription = async (session, payment, subscriptionObj = null) => {
@@ -25,11 +26,11 @@ export const setupScheduledSubscription = async (session, payment, subscriptionO
       });
     }
 
-    // 3. Create Stripe Product & Price dynamically
-    const product = await stripe.products.create({
-      name: `${session.metadata.mealSize} Custom Package`,
-      description: `${session.metadata.duration} Plan`,
-    });
+    // 3. Create the Price against the single shared "Custom Tiffin Plan"
+    // Stripe Product (see getOrCreateCustomPackageProduct) instead of
+    // creating a brand-new Product per checkout, which flooded the Stripe
+    // Product catalog with one-off duplicates.
+    const customPackageProductId = await getOrCreateCustomPackageProduct();
 
     // Day-based interval works uniformly for any duration length the admin
     // configured (not just Trial/Weekly/Monthly/Quarterly).
@@ -39,7 +40,7 @@ export const setupScheduledSubscription = async (session, payment, subscriptionO
     };
 
     const price = await stripe.prices.create({
-      product: product.id,
+      product: customPackageProductId,
       unit_amount: Number(session.metadata.price),
       currency: "usd",
       recurring,

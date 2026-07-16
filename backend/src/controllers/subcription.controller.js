@@ -6,6 +6,7 @@ import User from "../models/User.model.js";
 import Package from "../models/package.model.js";
 import DurationPlan from "../models/durationPlan.model.js";
 import DeliveryCharge from "../models/deliveryCharge.model.js";
+import { getOrCreateCustomPackageProduct } from "../utils/stripeSharedProducts.js";
 
 
 // create subscription
@@ -176,6 +177,8 @@ export const createSubscription = async (req, res) => {
       });
     } else {
       // Standard Subscription Mode for immediate starts
+      const customPackageProductId = await getOrCreateCustomPackageProduct();
+
       session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
@@ -183,10 +186,11 @@ export const createSubscription = async (req, res) => {
           {
             price_data: {
               currency: "usd",
-              product_data: {
-                name: `${mealSize} Custom Package`,
-                description: `${normalizedDuration} Plan`,
-              },
+              // Reuse the single shared "Custom Tiffin Plan" Stripe Product
+              // (see getOrCreateCustomPackageProduct) instead of inline
+              // product_data, which would create a brand-new Product per
+              // checkout and flood the Stripe Product catalog.
+              product: customPackageProductId,
               unit_amount: Math.round(totalAmount * 100),
               recurring: {
                 interval: recurring.interval,

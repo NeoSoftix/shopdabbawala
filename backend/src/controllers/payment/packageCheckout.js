@@ -43,6 +43,24 @@ export const createPackageCheckout = async (req, res) => {
 
     const effectivePrice = hasDiscount ? pkg.discountedPrice : pkg.price;
 
+    // Every admin-created package already gets a real Stripe Product on
+    // create (see package.create.controller.js) - reuse that Product here
+    // instead of inline product_data, which would spin up a brand-new
+    // Product on every single purchase and flood the Stripe Product
+    // catalog with duplicates. Only legacy packages created before that
+    // sync existed would lack this, so lazily create+persist it as a
+    // fallback.
+    let stripeProductId = pkg.stripeProductId;
+    if (!stripeProductId) {
+      const stripeProduct = await stripe.products.create({
+        name: pkg.name,
+        description: pkg.description || "",
+      });
+      stripeProductId = stripeProduct.id;
+      pkg.stripeProductId = stripeProductId;
+      await pkg.save();
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       phone_number_collection: { enabled: true },
@@ -54,10 +72,11 @@ export const createPackageCheckout = async (req, res) => {
           price_data: {
             currency: "usd",
 
-            product_data: {
-              name: pkg.name,
-              description: pkg.description,
-            },
+            // Discounted price can differ from the package's synced
+            // stripePriceId (which always tracks the full price), so a
+            // fresh Price is created per checkout - but against the
+            // existing shared Product, not a new one.
+            product: stripeProductId,
 
             unit_amount: Math.max(effectivePrice * 100, 50), // Stripe requires minimum 50 cents
 
