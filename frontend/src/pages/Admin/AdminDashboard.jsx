@@ -13,17 +13,21 @@ import StatCard from "../../components/shared/StatCard";
 import { getAllVendors } from "../../services/vendor.service";
 import { getAllItems } from "../../services/items.service";
 import { getCustomerStats } from "../../services/customer.service";
-import { getOrderStats } from "../../services/order.service";
+import { getOrderStats, getOrderCountsByMonth } from "../../services/order.service";
 
-const lineData = [
-  { name: "Mon", value: 10 },
-  { name: "Tue", value: 20 },
-  { name: "Wed", value: 15 },
-  { name: "Thu", value: 30 },
-  { name: "Fri", value: 25 },
-  { name: "Sat", value: 40 },
-  { name: "Sun", value: 35 },
-];
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Last 7 calendar days ending today, oldest first.
+const getLast7Days = () => {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    days.push(d);
+  }
+  return days;
+};
 
 export default function AdminDashboard() {
   const [dashboardStats, setDashboardStats] = useState({
@@ -33,6 +37,9 @@ export default function AdminDashboard() {
     orders: 0,
     revenue: 10000,
   });
+  const [lineData, setLineData] = useState(
+    DAY_LABELS.map((name) => ({ name, value: 0 })),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +82,45 @@ export default function AdminDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchOrdersTrend = async () => {
+      const days = getLast7Days();
+      const monthKeys = [...new Set(days.map((d) => `${d.getFullYear()}-${d.getMonth() + 1}`))];
+
+      const results = await Promise.all(
+        monthKeys.map((key) => {
+          const [year, month] = key.split("-");
+          return getOrderCountsByMonth(year, month).catch((error) => {
+            console.error("Get Order Counts Error:", error);
+            return null;
+          });
+        }),
+      );
+
+      if (cancelled) return;
+
+      const counts = results.reduce(
+        (acc, res) => (res?.success ? { ...acc, ...res.counts } : acc),
+        {},
+      );
+
+      setLineData(
+        days.map((d) => {
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          return { name: DAY_LABELS[d.getDay()], value: counts[dateStr] || 0 };
+        }),
+      );
+    };
+
+    fetchOrdersTrend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const pieData = useMemo(
     () => [
       { name: "Users", value: dashboardStats.users },
@@ -87,7 +133,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 px-4 py-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
         <StatCard
           title="Total Users"
           value={dashboardStats.users}

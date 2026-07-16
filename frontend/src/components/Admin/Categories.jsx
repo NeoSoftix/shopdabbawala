@@ -112,8 +112,8 @@ const Categories = () => {
   };
 
   return (
-    <div className="px-8 py-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+    <div className="px-5 py-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold">Categories</h1>
           <p className="text-gray-500 mt-1">Manage your categories.</p>
@@ -144,9 +144,9 @@ const Categories = () => {
         <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-              <th className="py-4 px-4">Category Name</th>
-              <th className="py-4 px-4">Food Type</th>
-              <th className="py-4 px-4">Action</th>
+              <th className="py-2.5 px-4">Category Name</th>
+              <th className="py-2.5 px-4">Food Type</th>
+              <th className="py-2.5 px-4">Action</th>
             </tr>
           </thead>
 
@@ -156,11 +156,11 @@ const Categories = () => {
                 key={category._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="py-4 px-4 text-sm font-semibold text-gray-800">
+                <td className="py-2.5 px-4 text-sm font-semibold text-gray-800">
                   {category.name}
                 </td>
 
-                <td className="py-4 px-4">
+                <td className="py-2.5 px-4">
                   <span
                     className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       category.foodType === "veg"
@@ -172,22 +172,22 @@ const Categories = () => {
                   </span>
                 </td>
 
-                <td className="py-4 px-4 text-right">
+                <td className="py-2.5 px-4 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => handleEdit(category)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                       aria-label="Edit category"
                     >
-                      <MdEdit size={18} />
+                      <MdEdit size={15} />
                     </button>
 
                     <button
                       onClick={() => handleDelete(category._id)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
                       aria-label="Delete category"
                     >
-                      <MdDelete size={18} />
+                      <MdDelete size={15} />
                     </button>
                   </div>
                 </td>

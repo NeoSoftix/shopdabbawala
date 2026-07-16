@@ -111,11 +111,11 @@ const Item = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+    <div className="p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-bold">Items</h1>
-          <p className="text-gray-500 mt-1">Manage your items.</p>
+          <h1 className="text-2xl font-bold">Items</h1>
+          {/* <p className="text-gray-500 mt-1">Manage your items.</p> */}
         </div>
 
         <button
@@ -143,11 +143,11 @@ const Item = () => {
         <table className="w-full min-w-[1000px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-              <th className="py-4 px-4">Name</th>
-              <th className="py-4 px-4">Description</th>
-              <th className="py-4 px-4">Category</th>
-              <th className="py-4 px-4">Allergies</th>
-              <th className="py-4 px-4 text-right">Action</th>
+              <th className="py-2 px-4">Name</th>
+              <th className="py-2 px-4">Description</th>
+              <th className="py-2 px-4">Category</th>
+              <th className="py-2 px-4">Allergies</th>
+              <th className="py-2 px-4 text-right">Action</th>
             </tr>
           </thead>
 
@@ -157,41 +157,41 @@ const Item = () => {
                 key={item._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="py-4 px-4 text-sm font-semibold text-gray-800">
+                <td className="py-2 px-3 text-sm font-semibold text-gray-800">
                   {item.name}
                 </td>
 
-                <td className="py-4 px-4 text-sm text-gray-500 max-w-[200px] truncate">
+                <td className="py-2 px-3 text-sm text-gray-500 max-w-[200px] truncate">
                   {item.description}
                 </td>
 
-                <td className="py-4 px-4 text-sm text-gray-600">
+                <td className="py-2 px-3 text-sm text-gray-600">
                   {item.category?.name}
                 </td>
 
-                <td className="py-4 px-4 text-sm text-gray-500 max-w-[200px] truncate">
+                <td className="py-2.5 px-4 text-sm text-gray-500 max-w-[200px] truncate">
                   {item.allergies?.join(", ")}
                 </td>
 
-                <td className="py-4 px-4 text-right">
+                <td className="py-2.5 px-4 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => {
                         setSelectedItem(item);
                         setIsEdit(true);
                       }}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                       aria-label="Edit item"
                     >
-                      <MdEdit size={18} />
+                      <MdEdit size={15} />
                     </button>
 
                     <button
                       onClick={() => handleDelete(item._id)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
                       aria-label="Delete item"
                     >
-                      <MdDelete size={18} />
+                      <MdDelete size={15} />
                     </button>
                   </div>
                 </td>
