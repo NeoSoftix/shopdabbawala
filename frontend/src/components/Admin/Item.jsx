@@ -120,7 +120,7 @@ const Item = () => {
 
         <button
           onClick={() => navigate("/admin/items/add")}
-          className="inline-flex items-center justify-center rounded-full bg-red-500 px-5 py-2.5 text-white transition hover:bg-red-600"
+          className="inline-flex items-center justify-center rounded-full bg-red-500 px-3 py-2 text-white transition hover:bg-red-600"
         >
           Create Item
         </button>
