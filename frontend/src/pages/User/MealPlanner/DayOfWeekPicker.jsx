@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
-import { formatDateKey, weekdayLabel, shortDate, mondayOf, isPastDate } from "./constants";
+import { formatDateKey, weekdayLabel, mondayOf, isPastDate } from "./constants";
 
 // ================= COMPONENT: DELIVERY DATE PICKER =================
 // Always shows the current week (Mon-Sun) so the user can see every day of
@@ -74,28 +74,31 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
   if (weeks.length === 0) return null;
 
   const safeIndex = Math.min(weekIndex, weeks.length - 1);
-  const [weekKey, days] = weeks[safeIndex];
-  const weekLabel =
-    weekKey === todayWeekKey
-      ? "This Week"
-      : `Week of ${shortDate(days[0])} – ${shortDate(days[days.length - 1])}`;
+  const [, days] = weeks[safeIndex];
+
+  const today = new Date();
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3AED0] mb-2 px-1">
-        {weekLabel}
-      </p>
-      <div className="flex items-center gap-2">
+    <div className="flex items-center bg-white rounded-2xl border border-gray-100 p-2 shadow-[0_4px_20px_rgba(0,0,0,0.02)] mb-6">
+      {/* TODAY label block */}
+      <div className="shrink-0 px-6 py-2 border-r border-gray-100 min-w-[160px]">
+        <p className="text-[11px] text-[#E31A1A] font-bold uppercase tracking-wider mb-1">Today</p>
+        <p className="text-sm font-bold text-[#1B254B] whitespace-nowrap">
+          {weekdayLabel(today).substring(0,3).toUpperCase()}, {today.getDate()} {today.toLocaleDateString("en-US", { month: "short" })} {today.getFullYear()}
+        </p>
+      </div>
+
+      <div className="flex flex-1 items-center justify-between px-2 overflow-hidden">
         <button
           type="button"
           onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
           disabled={safeIndex === 0}
-          className="shrink-0 w-8 h-16 flex items-center justify-center rounded-xl border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="shrink-0 w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors ml-2"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={18} strokeWidth={2.5} />
         </button>
 
-        <div className="flex-1 grid grid-cols-7 gap-2">
+        <div className="flex-1 flex justify-between px-4 max-w-2xl mx-auto">
           {days.map((date) => {
             const key = formatDateKey(date);
             const isSelected = selectedKey === key;
@@ -109,14 +112,14 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
                 type="button"
                 onClick={() => onSelectDate(date)}
                 title={hasMenu ? undefined : "No menu published for this day yet"}
-                className={`relative flex flex-col items-center justify-center py-2.5 rounded-xl font-bold transition-all focus:outline-none
-                  ${isSelected ? "bg-[#E31A1A] text-white shadow-sm" : isPast ? "bg-gray-50 text-gray-400 border border-gray-100" : hasMenu ? "bg-gray-50 text-[#1B254B] hover:bg-gray-100 border border-gray-100" : "bg-white text-gray-400 border border-dashed border-gray-200 hover:bg-gray-50"}
+                className={`relative flex flex-col items-center justify-center w-14 h-16 rounded-xl transition-all focus:outline-none
+                  ${isSelected ? "bg-[#E31A1A] text-white shadow-md shadow-red-200/50" : isPast ? "bg-white text-gray-300 opacity-60" : hasMenu ? "bg-white text-[#1B254B] hover:bg-gray-50" : "bg-white text-gray-300"}
                 `}
               >
-                <span className="text-[10px] uppercase tracking-wide opacity-80 mb-1">
-                  {weekdayLabel(date)}
+                <span className={`text-[11px] uppercase font-semibold mb-1 ${isSelected ? "text-white/90" : "text-gray-400"}`}>
+                  {weekdayLabel(date).substring(0,3)}
                 </span>
-                <span className="text-sm">{date.getDate()}</span>
+                <span className={`text-sm font-bold ${isSelected ? "text-white" : "text-[#1B254B]"}`}>{date.getDate()}</span>
                 {isPast && !isSelected && (
                   <Lock size={9} className="absolute top-1.5 right-1.5 opacity-60" />
                 )}
@@ -132,9 +135,9 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
           type="button"
           onClick={() => setWeekIndex((i) => Math.min(weeks.length - 1, i + 1))}
           disabled={safeIndex === weeks.length - 1}
-          className="shrink-0 w-8 h-16 flex items-center justify-center rounded-xl border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="shrink-0 w-8 h-12 flex items-center justify-center text-gray-400 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors mr-2"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={18} strokeWidth={2.5} />
         </button>
       </div>
     </div>

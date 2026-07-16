@@ -1,31 +1,19 @@
+import { Check } from "lucide-react";
+
 // Shown above the meal-schedule builder, right next to PlanSelector. A plan
 // can offer more than one category (e.g. "chinese", "north-indian") - the
 // subscriber picks one at a time to schedule a given day's meal against.
-// Rendered as a horizontal scrollable slider of pills rather than a dropdown.
 export default function CategorySelector({ categories, selectedCategory, onChange }) {
   if (!categories || categories.length === 0) return null;
 
   const selectedId = selectedCategory?._id || selectedCategory;
 
-  if (categories.length === 1) {
-    return (
-      <div className="flex items-center gap-2 mb-4 px-1">
-        <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
-          Category:
-        </span>
-        <span className="text-sm font-black text-[#1B254B] capitalize">
-          {categories[0].name}
-        </span>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center gap-3 mb-4 px-1">
-      <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider shrink-0">
-        Category:
-      </span>
-      <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+    <div className="mb-8">
+      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4">
+        Step 1 — Choose Your Category
+      </p>
+      <div className="flex flex-wrap gap-4">
         {categories.map((cat) => {
           const isSelected = selectedId === cat._id;
           return (
@@ -33,13 +21,25 @@ export default function CategorySelector({ categories, selectedCategory, onChang
               key={cat._id}
               type="button"
               onClick={() => onChange(cat)}
-              className={`text-sm font-bold px-4 py-2 rounded-xl capitalize shrink-0 transition-colors border ${
+              className={`flex flex-col items-center justify-center py-3 px-5 rounded-xl border transition-all bg-white min-w-[130px] ${
                 isSelected
-                  ? "bg-[#E31A1A] text-white border-[#E31A1A] shadow-sm"
-                  : "bg-white text-[#1B254B] border-gray-200 hover:border-[#E31A1A]/50 hover:bg-red-50/40"
+                  ? "border-[#E31A1A] ring-1 ring-[#E31A1A]"
+                  : "border-gray-200 hover:border-gray-300"
               }`}
             >
-              {cat.name}
+              <div className="flex items-center gap-2 mb-1">
+                {isSelected && (
+                  <div className="w-5 h-5 rounded-full bg-[#E31A1A] text-white flex items-center justify-center shrink-0">
+                    <Check size={12} strokeWidth={4} />
+                  </div>
+                )}
+                <span className={`text-sm font-bold capitalize ${isSelected ? "text-[#E31A1A]" : "text-[#1B254B]"}`}>
+                  {cat.name}
+                </span>
+              </div>
+              <span className={`text-[11px] ${isSelected ? "text-[#E31A1A]/80" : "text-gray-400"}`}>
+                Pick your dishes
+              </span>
             </button>
           );
         })}
