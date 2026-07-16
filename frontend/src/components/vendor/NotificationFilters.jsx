@@ -11,12 +11,12 @@ export default function NotificationFilters({
   ];
 
   return (
-    <div className="flex gap-3 flex-wrap">
+    <div className="flex gap-2 flex-wrap">
       {filters.map(({ key, label }) => (
         <button
           key={key}
           onClick={() => onFilterChange(key)}
-          className={`px-5 py-2 rounded-xl border transition ${
+          className={`px-3.5 py-1.5 text-sm rounded-lg border transition ${
             activeFilter === key
               ? "border-[#E23747] text-[#E23747] bg-red-50"
               : "hover:border-[#E23747] hover:text-[#E23747]"

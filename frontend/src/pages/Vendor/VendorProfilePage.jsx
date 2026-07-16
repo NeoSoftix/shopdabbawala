@@ -117,36 +117,36 @@ export default function VendorProfilePage() {
   if (loading) return <SectionLoader />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Heading */}
       <div>
-        <h1 className="text-3xl font-bold">Profile</h1>
+        <h1 className="text-xl font-bold">Profile</h1>
 
-        <p className="text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 mt-0.5">
           Manage your vendor profile and business information
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Left Card */}
-        <div className="bg-white rounded-2xl border shadow-sm p-6">
+        <div className="bg-white rounded-2xl border shadow-sm p-4">
           <div className="flex flex-col items-center">
             <div className="relative">
               {logoPreview ? (
                 <img
                   src={logoPreview}
                   alt="Vendor logo"
-                  className="w-28 h-28 rounded-full object-cover"
+                  className="w-20 h-20 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-28 h-28 rounded-full bg-red-50 flex items-center justify-center">
-                  <FaStore size={45} className="text-[#E23747]" />
+                <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
+                  <FaStore size={32} className="text-[#E23747]" />
                 </div>
               )}
 
               {isEditing && (
-                <label className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#E23747] text-white flex items-center justify-center cursor-pointer">
-                  <FaCamera />
+                <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#E23747] text-white flex items-center justify-center cursor-pointer">
+                  <FaCamera size={13} />
                   <input
                     type="file"
                     accept="image/*"
@@ -157,54 +157,54 @@ export default function VendorProfilePage() {
               )}
             </div>
 
-            <h2 className="text-2xl font-bold mt-5">{form.organizationName || "Vendor"}</h2>
+            <h2 className="text-lg font-bold mt-3">{form.organizationName || "Vendor"}</h2>
 
-            <span className="mt-2 px-3 py-1 rounded-full bg-red-50 text-[#E23747] text-sm">
+            <span className="mt-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-[#E23747] text-xs">
               {vendor?.isActive ? "Active Vendor" : "Inactive Vendor"}
             </span>
           </div>
 
-          <div className="border-t mt-6 pt-6 space-y-5">
-            <div className="flex gap-4">
-              <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
-                <FaEnvelope className="text-[#E23747]" />
+          <div className="border-t mt-4 pt-4 space-y-3">
+            <div className="flex gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
+                <FaEnvelope size={14} className="text-[#E23747]" />
               </div>
 
               <div>
-                <p className="font-medium">{form.email || "-"}</p>
-                <p className="text-sm text-gray-500">Email Address</p>
+                <p className="text-sm font-medium">{form.email || "-"}</p>
+                <p className="text-xs text-gray-500">Email Address</p>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
-                <FaPhone className="text-[#E23747]" />
+            <div className="flex gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
+                <FaPhone size={14} className="text-[#E23747]" />
               </div>
 
               <div>
-                <p className="font-medium">{form.phone || "-"}</p>
-                <p className="text-sm text-gray-500">Phone Number</p>
+                <p className="text-sm font-medium">{form.phone || "-"}</p>
+                <p className="text-xs text-gray-500">Phone Number</p>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
-                <FaMapMarkerAlt className="text-[#E23747]" />
+            <div className="flex gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
+                <FaMapMarkerAlt size={14} className="text-[#E23747]" />
               </div>
 
               <div>
-                <p className="font-medium">{form.city ? `${form.city}, ${form.state}` : "-"}</p>
-                <p className="text-sm text-gray-500">Location</p>
+                <p className="text-sm font-medium">{form.city ? `${form.city}, ${form.state}` : "-"}</p>
+                <p className="text-xs text-gray-500">Location</p>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
-                <FaCalendarAlt className="text-[#E23747]" />
+            <div className="flex gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
+                <FaCalendarAlt size={14} className="text-[#E23747]" />
               </div>
 
               <div>
-                <p className="font-medium">
+                <p className="text-sm font-medium">
                   {vendor?.createdAt
                     ? new Date(vendor.createdAt).toLocaleDateString("en-US", {
                         month: "long",
@@ -212,16 +212,16 @@ export default function VendorProfilePage() {
                       })
                     : "-"}
                 </p>
-                <p className="text-sm text-gray-500">Member Since</p>
+                <p className="text-xs text-gray-500">Member Since</p>
               </div>
             </div>
           </div>
 
           <button
             onClick={() => setIsChangePasswordOpen(true)}
-            className="w-full mt-8 border border-[#E23747] text-[#E23747] rounded-xl py-3 font-medium flex justify-center items-center gap-2"
+            className="w-full mt-5 border border-[#E23747] text-[#E23747] rounded-xl py-2 text-sm font-medium flex justify-center items-center gap-2"
           >
-            <FaLock />
+            <FaLock size={13} />
             Change Password
           </button>
 
@@ -232,9 +232,9 @@ export default function VendorProfilePage() {
         </div>
 
         {/* Right Form */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border shadow-sm p-6">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-semibold">Business Information</h2>
+        <div className="xl:col-span-2 bg-white rounded-2xl border shadow-sm p-4">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-lg font-semibold">Business Information</h2>
 
             <button
               type="button"
@@ -245,16 +245,16 @@ export default function VendorProfilePage() {
                 }
                 setIsEditing((prev) => !prev);
               }}
-              className="px-4 py-2 border border-[#E23747] text-[#E23747] rounded-xl flex items-center gap-2"
+              className="px-3 py-1.5 text-sm border border-[#E23747] text-[#E23747] rounded-xl flex items-center gap-2"
             >
-              <FaEdit />
+              <FaEdit size={13} />
               {isEditing ? "Cancel" : "Edit Profile"}
             </button>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Business Name</label>
+              <label className="text-xs font-medium">Business Name</label>
 
               <input
                 type="text"
@@ -262,12 +262,12 @@ export default function VendorProfilePage() {
                 value={form.organizationName}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Business Email</label>
+              <label className="text-xs font-medium">Business Email</label>
 
               <input
                 type="email"
@@ -275,12 +275,12 @@ export default function VendorProfilePage() {
                 value={form.email}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Phone Number</label>
+              <label className="text-xs font-medium">Phone Number</label>
 
               <input
                 type="text"
@@ -288,13 +288,13 @@ export default function VendorProfilePage() {
                 value={form.phone}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
           </div>
 
-          <div className="mt-5">
-            <label className="text-sm font-medium">Address</label>
+          <div className="mt-4">
+            <label className="text-xs font-medium">Address</label>
 
             <input
               type="text"
@@ -302,13 +302,13 @@ export default function VendorProfilePage() {
               value={form.address}
               onChange={handleChange}
               disabled={!isEditing}
-              className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+              className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
             />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5 mt-5">
+          <div className="grid md:grid-cols-3 gap-4 mt-4">
             <div>
-              <label className="text-sm font-medium">City</label>
+              <label className="text-xs font-medium">City</label>
 
               <input
                 type="text"
@@ -316,12 +316,12 @@ export default function VendorProfilePage() {
                 value={form.city}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">State</label>
+              <label className="text-xs font-medium">State</label>
 
               <input
                 type="text"
@@ -329,12 +329,12 @@ export default function VendorProfilePage() {
                 value={form.state}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Pincode</label>
+              <label className="text-xs font-medium">Pincode</label>
 
               <input
                 type="text"
@@ -344,21 +344,21 @@ export default function VendorProfilePage() {
                 value={form.pincode}
                 onChange={handlePincodeChange}
                 disabled={!isEditing}
-                className="w-full mt-2 border rounded-xl px-4 py-3 disabled:bg-gray-50"
+                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
               />
             </div>
           </div>
 
-          <div className="mt-5">
-            <label className="text-sm font-medium">About Business</label>
+          <div className="mt-4">
+            <label className="text-xs font-medium">About Business</label>
 
             <textarea
-              rows={4}
+              rows={3}
               name="description"
               value={form.description}
               onChange={handleChange}
               disabled={!isEditing}
-              className="w-full mt-2 border rounded-xl p-4 disabled:bg-gray-50"
+              className="w-full mt-1.5 border rounded-lg p-3 text-sm disabled:bg-gray-50"
             />
           </div>
 
@@ -367,7 +367,7 @@ export default function VendorProfilePage() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="mt-6 bg-[#E23747] text-white px-6 py-3 rounded-xl font-medium disabled:opacity-60"
+              className="mt-4 bg-[#E23747] text-white px-5 py-2 text-sm rounded-xl font-medium disabled:opacity-60"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>

@@ -49,15 +49,15 @@ export default function VendorNotifications() {
   }, [notifications, activeFilter]);
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-5">
+    <div className="grid lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 space-y-3">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Notifications</h1>
+          <h1 className="text-xl font-bold">Notifications</h1>
 
           <button
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="text-[#E23747] font-medium disabled:text-gray-300 disabled:cursor-not-allowed"
+            className="text-sm text-[#E23747] font-medium disabled:text-gray-300 disabled:cursor-not-allowed"
           >
             Mark all as read
           </button>
@@ -70,11 +70,11 @@ export default function VendorNotifications() {
         />
 
         {filteredNotifications.length === 0 ? (
-          <div className="bg-white border rounded-2xl p-10 text-center text-gray-400">
+          <div className="bg-white border rounded-2xl p-8 text-center text-gray-400">
             No notifications yet.
           </div>
         ) : (
-          <>
+          <div className="space-y-2.5">
             {filteredNotifications.map((notification) => (
               <NotificationCard
                 key={notification._id}
@@ -98,11 +98,11 @@ export default function VendorNotifications() {
                 onPageChange={setPage}
               />
             )}
-          </>
+          </div>
         )}
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <NotificationSummary
           counts={counts}
           unreadCount={unreadCount}

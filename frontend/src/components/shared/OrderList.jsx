@@ -54,10 +54,10 @@ const OrderList = () => {
   }, [search, page]);
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-          <h2 className="text-2xl font-semibold text-gray-800">Orders</h2>
+    <div className="p-3 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+          <h2 className="text-xl font-semibold text-gray-800">Orders</h2>
 
           <div className="relative w-full md:w-80">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -94,25 +94,25 @@ const OrderList = () => {
                 <tbody className="divide-y divide-gray-50">
                   {orders.map((order) => (
                     <tr key={order._id} className="hover:bg-gray-50/40 transition-colors duration-150">
-                      <td className="py-4 px-4 text-sm font-medium text-gray-800" title={order._id}>
+                      <td className="py-2 px-2.5 text-sm font-medium text-gray-800" title={order._id}>
                         #{order._id.slice(-6).toUpperCase()}
                       </td>
 
-                      <td className="py-4 px-4 text-sm text-gray-600">
+                      <td className="py-2 px-2.5 text-sm text-gray-600">
                         {order.user?.name || <span className="text-gray-400 italic">Not set</span>}
                       </td>
 
-                      <td className="py-4 px-4 text-sm text-gray-600 max-w-xs truncate">
+                      <td className="py-2 px-2.5 text-sm text-gray-600 max-w-xs truncate">
                         {order.items?.length
                           ? order.items.map((it) => `${it.name} x${it.qty}`).join(", ")
                           : <span className="text-gray-400 italic">No items</span>}
                       </td>
 
-                      <td className="py-4 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
+                      <td className="py-2 px-2.5 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
 
-                      <td className="py-4 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
+                      <td className="py-2 px-2.5 text-sm text-gray-600">{order.deliveryMethod}</td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-2 px-2.5">
                         <div className="flex justify-center">
                           <span
                             className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -124,13 +124,13 @@ const OrderList = () => {
                         </div>
                       </td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-2 px-2.5">
                         <div className="flex justify-center">
                           <button
                             title="View Order"
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
                           >
-                            <FiEye size={18} />
+                            <FiEye size={16} />
                           </button>
                         </div>
                       </td>

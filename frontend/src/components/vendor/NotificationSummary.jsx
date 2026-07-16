@@ -3,12 +3,12 @@ export default function NotificationSummary({
   unreadCount = 0,
 }) {
   return (
-    <div className="bg-white border rounded-2xl p-6">
-      <h2 className="font-semibold text-xl mb-5">
+    <div className="bg-white border rounded-xl p-4">
+      <h2 className="font-semibold text-sm mb-3">
         Notification Summary
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span>Orders</span>
           <span>{counts.order || 0}</span>
@@ -25,8 +25,8 @@ export default function NotificationSummary({
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t">
-        <p className="text-[#E23747] font-semibold">
+      <div className="mt-3 pt-3 border-t">
+        <p className="text-sm text-[#E23747] font-semibold">
           Total Unread : {unreadCount}
         </p>
       </div>

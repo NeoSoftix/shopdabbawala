@@ -28,7 +28,7 @@ export default function NotificationCard({
   return (
     <div
       onClick={onClick}
-      className={`relative bg-white border rounded-2xl p-5 hover:shadow-md transition ${
+      className={`relative bg-white border rounded-xl p-3.5 hover:shadow-md transition ${
         unread ? "border-l-4 border-l-[#E23747] cursor-pointer" : ""
       }`}
     >
@@ -39,34 +39,34 @@ export default function NotificationCard({
             e.stopPropagation();
             onDelete();
           }}
-          className="absolute top-3 right-3 p-1.5 rounded-full text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="absolute top-2.5 right-2.5 p-1.5 rounded-full text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors"
           aria-label="Delete notification"
         >
-          <Trash2 size={16} />
+          <Trash2 size={14} />
         </button>
       )}
 
       <div className="flex justify-between pr-6">
-        <div className="flex gap-4">
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-            <Icon size={22} className="text-[#E23747]" />
+        <div className="flex gap-3">
+          <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
+            <Icon size={18} className="text-[#E23747]" />
           </div>
 
           <div>
-            <h3 className="font-semibold">{title}</h3>
-            <p className="text-gray-500 mt-1">
+            <h3 className="text-sm font-semibold">{title}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
               {message}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-400">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="text-xs text-gray-400">
             {time}
           </span>
 
           {unread && (
-            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
           )}
         </div>
       </div>
