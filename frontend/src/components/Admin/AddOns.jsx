@@ -135,9 +135,9 @@ const AddOns = () => {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">Add Ons</h1>
-          <p className="text-gray-500 mt-1">
+          {/* <p className="text-gray-500 mt-1">
             Manage your add-on items and toggle availability.
-          </p>
+          </p> */}
         </div>
 
         <button
@@ -152,7 +152,7 @@ const AddOns = () => {
         <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-              <th className="py-2px-4">Name</th>
+              <th className="py-2 px-4">Name</th>
               <th className="py-2 px-4">Description</th>
               <th className="py-2 px-4">Allergies</th>
               <th className="py-2 px-4">Price</th>

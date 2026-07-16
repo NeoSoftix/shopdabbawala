@@ -174,241 +174,244 @@ const AddVendor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Add Vendor</h1>
-          <p className="text-gray-500">Create a new vendor account</p>
-        </div>
-
-        <button
-          onClick={() => navigate("/admin/vendors")}
-          className="rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2"
-        >
-          <ArrowLeft size={16} /> Back to Vendors
-        </button>
-      </div>
-
-      <div className="mx-auto w-full max-w-3xl rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-        {/* Image Upload */}
-        <div className="mb-8 flex flex-col items-center">
-          <img
-            src={preview}
-            alt="Vendor"
-            className="h-28 w-28 rounded-full border-4 border-[#e61e2d]/20 object-cover"
-            onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; e.target.onerror = null; }}
-          />
-
-          <label className="mt-4 cursor-pointer rounded-lg bg-[#e61e2d] px-5 py-2 text-sm font-medium text-white hover:bg-red-700">
-            Upload Logo
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </label>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Vendor Name */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Vendor Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter vendor name"
-              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.name ? "border-red-400" : "border-gray-300"}`}
-              required
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
-          </div>
-
-          {/* Email & Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email" name="email" value={formData.email} onChange={handleChange}
-                placeholder="Enter email"
-                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.email ? "border-red-400" : "border-gray-300"}`}
-                required
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.email}</p>}
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
-              <input
-                type="text" name="phone" value={formData.phone} onChange={handleChange}
-                placeholder="Enter phone number"
-                className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.phone ? "border-red-400" : "border-gray-300"}`}
-                required
-              />
-              {errors.phone && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.phone}</p>}
-            </div>
-          </div>
-
-          {/* Organization Name */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Organization Name</label>
-            <input
-              type="text" name="organizationName" value={formData.organizationName} onChange={handleChange}
-              placeholder="Enter organization name"
-              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.organizationName ? "border-red-400" : "border-gray-300"}`}
-              required
-            />
-            {errors.organizationName && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.organizationName}</p>}
-          </div>
-
-          {/* Postal Code Input (इसे ऊपर कर दिया ताकि फ्लो सही रहे) */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Postal Code{" "}
-              {fetchingLocation && (
-                <span className="text-xs text-[#e61e2d] animate-pulse">
-                  (Fetching Areas...)
-                </span>
-              )}
-            </label>
-            <input
-              type="text"
-              name="pincode"
-              maxLength={6}
-              value={formData.pincode}
-              onChange={handlePincodeChange}
-              placeholder="e.g. AB1234"
-              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.pincode ? "border-red-400" : "border-gray-300"}`}
-              required
-            />
-            {errors.pincode && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.pincode}</p>}
-          </div>
-
-          {/* Specific Area Select Dropdown */}
-          {areas.length > 0 && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Select Specific Area
-              </label>
-              <select
-                onChange={handleAreaChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white"
-                required
-              >
-                {areas.map((area, index) => (
-                  <option key={index} value={index}>
-                    {area["place name"]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* City and Province (यूज़र इन्हें डायरेक्ट एडिट न करे इसलिए readOnly किया है) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                City
-              </label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                placeholder="City (auto-fills for Canadian pincodes, or enter manually)"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Province
-              </label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                placeholder="Province/State (auto-fills for Canadian pincodes, or enter manually)"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Detailed Address
-            </label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Flat no, Building, Street name..."
-              className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-              required
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Enter description"
-              className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-            />
-          </div>
-
-          {/* Category — a vendor serves exactly one category per pincode */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Category (this vendor will serve only this category)
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              disabled={loadingCategories}
-              className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.category ? "border-red-400" : "border-gray-300"}`}
-              required
-            >
-              <option value="">
-                {loadingCategories ? "Loading categories..." : "Select a category"}
-              </option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
-            <p className="mt-1 text-xs text-gray-400">
-              Orders for this category in this vendor's pincodes will be routed to them only.
-              Delivery pincodes are set later from the Assign Vendor page.
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || fetchingLocation}
-            className="w-full rounded-xl bg-[#e61e2d] py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
-          >
-            {loading && <ButtonSpinner />}
-            {loading ? "Creating Vendor..." : "Add Vendor"}
-          </button>
-        </form>
-      </div>
+  <div className="min-h-screen bg-gray-50 p-6">
+  <div className="mb-8 flex items-center justify-between">
+    <div>
+      <h1 className="text-3xl font-bold text-slate-900">Add Vendor</h1>
+      <p className="text-gray-500">Create a new vendor account</p>
     </div>
+
+    <button
+      onClick={() => navigate("/admin/vendors")}
+      className="rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2"
+    >
+      <ArrowLeft size={16} /> Back to Vendors
+    </button>
+  </div>
+
+  <div className="mx-auto w-full max-w-3xl rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+    {/* Balanced & Centered Image Upload */}
+    <div className="mb-8 flex flex-col items-center justify-center text-center">
+      <img
+        src={preview}
+        alt="Vendor"
+        className="h-32 w-32 rounded-full border-4 border-[#e61e2d]/20 object-cover shadow-sm"
+        onError={(e) => {
+          e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+          e.target.onerror = null;
+        }}
+      />
+
+      <label className="mt-4 cursor-pointer rounded-lg bg-[#e61e2d] px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm">
+        Upload Logo
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </label>
+    </div>
+
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {/* Vendor Name & Email */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Vendor Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter vendor name"
+            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.name ? "border-red-400" : "border-gray-300"}`}
+            required
+          />
+          {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email" name="email" value={formData.email} onChange={handleChange}
+            placeholder="Enter email"
+            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.email ? "border-red-400" : "border-gray-300"}`}
+            required
+          />
+          {errors.email && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.email}</p>}
+        </div>
+      </div>
+
+      {/* Phone Number & Organization Name */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Phone Number</label>
+          <input
+            type="text" name="phone" value={formData.phone} onChange={handleChange}
+            placeholder="Enter phone number"
+            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.phone ? "border-red-400" : "border-gray-300"}`}
+            required
+          />
+          {errors.phone && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.phone}</p>}
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Organization Name</label>
+          <input
+            type="text" name="organizationName" value={formData.organizationName} onChange={handleChange}
+            placeholder="Enter organization name"
+            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.organizationName ? "border-red-400" : "border-gray-300"}`}
+            required
+          />
+          {errors.organizationName && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.organizationName}</p>}
+        </div>
+      </div>
+
+      {/* Postal Code Input */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Postal Code{" "}
+          {fetchingLocation && (
+            <span className="text-xs text-[#e61e2d] animate-pulse">
+              (Fetching Areas...)
+            </span>
+          )}
+        </label>
+        <input
+          type="text"
+          name="pincode"
+          maxLength={6}
+          value={formData.pincode}
+          onChange={handlePincodeChange}
+          placeholder="e.g. AB1234"
+          className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.pincode ? "border-red-400" : "border-gray-300"}`}
+          required
+        />
+        {errors.pincode && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.pincode}</p>}
+      </div>
+
+      {/* Specific Area Select Dropdown */}
+      {areas.length > 0 && (
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Select Specific Area
+          </label>
+          <select
+            onChange={handleAreaChange}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white"
+            required
+          >
+            {areas.map((area, index) => (
+              <option key={index} value={index}>
+                {area["place name"]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* City and Province */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            City
+          </label>
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            placeholder="City (auto-fills for Canadian pincodes, or enter manually)"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Province
+          </label>
+          <input
+            type="text"
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            placeholder="Province/State (auto-fills for Canadian pincodes, or enter manually)"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Detailed Address
+        </label>
+        <textarea
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          rows={3}
+          placeholder="Flat no, Building, Street name..."
+          className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+          required
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Description
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={4}
+          placeholder="Enter description"
+          className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+        />
+      </div>
+
+      {/* Category */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Category (this vendor will serve only this category)
+        </label>
+        <select
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          disabled={loadingCategories}
+          className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.category ? "border-red-400" : "border-gray-300"}`}
+          required
+        >
+          <option value="">
+            {loadingCategories ? "Loading categories..." : "Select a category"}
+          </option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+        {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
+        <p className="mt-1 text-xs text-gray-400">
+          Orders for this category in this vendor's pincodes will be routed to them only.
+          Delivery pincodes are set later from the Assign Vendor page.
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || fetchingLocation}
+        className="w-full rounded-xl bg-[#e61e2d] py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
+      >
+        {loading && <ButtonSpinner />}
+        {loading ? "Creating Vendor..." : "Add Vendor"}
+      </button>
+    </form>
+  </div>
+</div>
   );
 };
 

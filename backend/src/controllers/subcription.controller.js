@@ -284,6 +284,31 @@ export const renewSubscription = async (req, res) => {
     // subscriptions predating `durationDays` fall back to 30 days.
     const recurring = { interval: "day", interval_count: oldSubscription.durationDays || 30 };
 
+    // Reuse the correct existing Stripe Product instead of inline
+    // `product_data` (which used to spin up a brand-new, *active* Product on
+    // every renewal and flood the Product catalog). If this subscription
+    // came from an admin-created Package, reuse that Package's real catalog
+    // Product; otherwise it's a custom plan, so reuse the single shared
+    // "Custom Tiffin Plan" Product that's deliberately kept out of the
+    // catalog (see getOrCreateCustomPackageProduct).
+    let renewalProductId;
+    if (oldSubscription.package) {
+      const pkg = await Package.findById(oldSubscription.package);
+      renewalProductId = pkg?.stripeProductId;
+      if (pkg && !renewalProductId) {
+        const stripeProduct = await stripe.products.create({
+          name: pkg.name,
+          description: pkg.description || "",
+        });
+        renewalProductId = stripeProduct.id;
+        pkg.stripeProductId = renewalProductId;
+        await pkg.save();
+      }
+    }
+    if (!renewalProductId) {
+      renewalProductId = await getOrCreateCustomPackageProduct();
+    }
+
     // 3. Stripe checkout session generate karein (unit_amount direct oldSubscription.price use karega)
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -293,10 +318,7 @@ export const renewSubscription = async (req, res) => {
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: `${oldSubscription.mealSize} Custom Package Renewal`,
-              description: `Renewal for ${oldSubscription.duration} Plan`,
-            },
+            product: renewalProductId,
             unit_amount: oldSubscription.price * 100, // Per-unit cost in cents
             recurring: {
               interval: recurring.interval,
