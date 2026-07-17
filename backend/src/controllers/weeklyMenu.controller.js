@@ -71,8 +71,10 @@ export const upsertWeeklyMenu = async (req, res) => {
     }
 
     if (applyToEntireWeek) {
+      // Monday..Saturday only - kitchen is closed Sundays, so no menu is
+      // ever configured for that day.
       const weekDays = [];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 6; i++) {
         const d = new Date(normalizedWeekStart);
         d.setUTCDate(d.getUTCDate() + i);
         weekDays.push({ date: d, sections });

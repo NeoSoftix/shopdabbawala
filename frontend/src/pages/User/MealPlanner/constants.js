@@ -18,6 +18,17 @@ export const isPastDate = (date) => {
   return compareDate < today;
 };
 
+// True when the given date is today (time-of-day ignored). Same-day meal
+// scheduling is never allowed - the kitchen needs at least until end of day
+// to prep for the next day, so "today" is locked alongside past dates.
+export const isTodayDate = (date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compareDate = new Date(date);
+  compareDate.setHours(0, 0, 0, 0);
+  return compareDate.getTime() === today.getTime();
+};
+
 // True when date falls after the subscription's validity window.
 export const isBeyondSubscription = (date, subscription) => {
   if (!subscription?.endDate) return false;

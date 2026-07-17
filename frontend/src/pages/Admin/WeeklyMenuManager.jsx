@@ -24,10 +24,11 @@ const getMondayOfCurrentWeek = () => {
   return dateKey(d);
 };
 
+// Menu week runs Monday-Saturday only (kitchen is closed Sundays).
 const getWeekLabel = (dateStr) => {
   const start = new Date(dateStr);
   const end = new Date(start);
-  end.setDate(start.getDate() + 6);
+  end.setDate(start.getDate() + 5);
   const opts = { day: '2-digit', month: 'short' };
   return `${start.toLocaleDateString('en-GB', opts)} - ${end.toLocaleDateString('en-GB', opts)}`;
 };

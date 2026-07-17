@@ -20,21 +20,24 @@ import MyPlan from "./MealPlanner/MyPlan";
 import MyAccount from "./MealPlanner/MyAccount";
 import NoActivePlan from "./MealPlanner/NoActivePlan";
 
-// Default selection: today if it falls within the plan's window, otherwise
-// the nearest valid date (the plan's start if it hasn't started yet, or its
-// last day if it already ended).
+// Default selection: tomorrow if it falls within the plan's window (same-day
+// scheduling is never allowed, so defaulting to today would just land the
+// user on a locked, unschedulable day), otherwise the nearest valid date
+// (the plan's start if it hasn't started yet, or its last day if it already
+// ended).
 const getDefaultSelectedDate = (subscription) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date();
+  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  if (!subscription?.startDate || !subscription?.endDate) return today;
+  if (!subscription?.startDate || !subscription?.endDate) return tomorrow;
 
   const start = new Date(subscription.startDate);
   start.setHours(0, 0, 0, 0);
 
-  if (today < start) return start;
-  if (isBeyondSubscription(today, subscription)) return new Date(subscription.endDate);
-  return today;
+  if (tomorrow < start) return start;
+  if (isBeyondSubscription(tomorrow, subscription)) return new Date(subscription.endDate);
+  return tomorrow;
 };
 
 // ================= MAIN PARENT COMPONENT WITH WIZARD AS SIDEBAR =================

@@ -188,10 +188,12 @@ export const createMealSchedule = async (req, res) => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    if (requestDate < today) {
+    // Same-day scheduling is never allowed (kitchen needs advance notice) -
+    // not just past dates, so this rejects `requestDate === today` too.
+    if (requestDate <= today) {
       return res.status(400).json({
         success: false,
-        message: "Cannot schedule a meal for a past date.",
+        message: "Meals must be scheduled at least a day in advance - same-day scheduling is closed.",
       });
     }
 

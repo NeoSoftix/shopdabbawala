@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
-import { formatDateKey, weekdayLabel, mondayOf, isPastDate } from "./constants";
+import { formatDateKey, weekdayLabel, mondayOf, isPastDate, isTodayDate } from "./constants";
 
 // ================= COMPONENT: DELIVERY DATE PICKER =================
 // Always shows the current week (Mon-Sun) so the user can see every day of
@@ -15,18 +15,21 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
   const activeDays = useMemo(() => {
     const byKey = new Map();
 
-    // Current week's 7 days, always shown.
+    // Current week's days, always shown - Monday to Saturday only (kitchen
+    // is closed Sundays, so there's never a menu/schedule for that day).
     const monday = mondayOf(new Date());
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
       const d = new Date(monday);
       d.setDate(d.getDate() + i);
       byKey.set(formatDateKey(d), d);
     }
 
-    // Every date the admin has actually configured a menu for, in any week.
+    // Every date the admin has actually configured a menu for, in any week -
+    // skip any leftover Sunday entries (kitchen is closed Sundays).
     availableDates.forEach((dateStr) => {
       const [y, m, d] = dateStr.split("-");
       const date = new Date(y, m - 1, d);
+      if (date.getDay() === 0) return;
       byKey.set(formatDateKey(date), date);
     });
 
@@ -99,12 +102,17 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
           <ChevronLeft size={16} strokeWidth={2.5} />
         </button>
 
-        <div className="grid grid-cols-7 gap-1 sm:gap-2 flex-1 min-w-0">
+        <div className="grid grid-cols-6 gap-1 sm:gap-2 flex-1 min-w-0">
           {days.map((date) => {
             const key = formatDateKey(date);
             const isSelected = selectedKey === key;
             const status = dayStatus[key]?.status;
             const isPast = isPastDate(date);
+            const isToday = isTodayDate(date);
+            // Same-day scheduling is never allowed, so today's tile is
+            // greyed out and lock-marked exactly like a past day - still
+            // viewable (read-only), just not editable.
+            const isLockedDay = isPast || isToday;
             const hasMenu = availableKeySet.has(key);
 
             return (
@@ -112,19 +120,19 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
                 key={key}
                 type="button"
                 onClick={() => onSelectDate(date)}
-                title={hasMenu ? undefined : "No menu published for this day yet"}
+                title={isToday ? "Same-day scheduling is closed" : hasMenu ? undefined : "No menu published for this day yet"}
                 className={`relative flex flex-col items-center justify-center w-full h-12 sm:h-16 min-w-0 rounded-lg sm:rounded-xl transition-all focus:outline-none overflow-hidden
-                  ${isSelected ? "bg-[#E31A1A] text-white shadow-md shadow-red-200/50" : isPast ? "bg-white text-gray-300 opacity-60" : hasMenu ? "bg-white text-[#1B254B] hover:bg-gray-50" : "bg-white text-gray-300"}
+                  ${isSelected ? "bg-[#E31A1A] text-white shadow-md shadow-red-200/50" : isLockedDay ? "bg-white text-gray-300 opacity-60" : hasMenu ? "bg-white text-[#1B254B] hover:bg-gray-50" : "bg-white text-gray-300"}
                 `}
               >
                 <span className={`text-[8px] sm:text-[11px] uppercase font-semibold mb-0.5 sm:mb-1 whitespace-nowrap ${isSelected ? "text-white/90" : "text-gray-400"}`}>
                   {weekdayLabel(date).substring(0,3)}
                 </span>
                 <span className={`text-[11px] sm:text-sm font-bold whitespace-nowrap ${isSelected ? "text-white" : "text-[#1B254B]"}`}>{date.getDate()}</span>
-                {isPast && !isSelected && (
+                {isLockedDay && !isSelected && (
                   <Lock size={9} className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 opacity-60" />
                 )}
-                {status === "confirmed" && !isSelected && !isPast && (
+                {status === "confirmed" && !isSelected && !isLockedDay && (
                   <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 )}
               </button>
