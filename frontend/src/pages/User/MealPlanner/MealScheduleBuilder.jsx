@@ -107,8 +107,8 @@ const MealScheduleBuilder = ({
   const isConfirmed = currentDayStatus === "confirmed" || currentDayStatus === "delivered";
   const isActive = dayStatus[selectedDateKey]?.active ?? true;
   const isPast = isPastDate(selectedDate);
-  const isToday = isTodayDate(selectedDate);
-
+  // Same-day scheduling is never allowed (kitchen needs advance notice) -
+  // isTooLateToSchedule covers both genuinely past dates and today.
   const isTooLate = isTooLateToSchedule(selectedDate);
   const isLocked = isConfirmed || isTooLate;
 

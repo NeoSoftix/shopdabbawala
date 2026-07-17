@@ -110,7 +110,7 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
             const status = dayStatus[key]?.status;
             // Today is locked the same as past days here - meals must be
             // scheduled at least 1 day in advance (see isTooLateToSchedule).
-            const isPast = isTooLateToSchedule(date);
+            const isLockedDay = isTooLateToSchedule(date);
             const hasMenu = availableKeySet.has(key);
 
             return (
@@ -118,7 +118,7 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
                 key={key}
                 type="button"
                 onClick={() => onSelectDate(date)}
-                title={isToday ? "Same-day scheduling is closed" : hasMenu ? undefined : "No menu published for this day yet"}
+                title={isLockedDay ? "Same-day scheduling is closed" : hasMenu ? undefined : "No menu published for this day yet"}
                 className={`relative flex flex-col items-center justify-center w-full h-12 sm:h-16 min-w-0 rounded-lg sm:rounded-xl transition-all focus:outline-none overflow-hidden
                   ${isSelected ? "bg-[#E31A1A] text-white shadow-md shadow-red-200/50" : isLockedDay ? "bg-white text-gray-300 opacity-60" : hasMenu ? "bg-white text-[#1B254B] hover:bg-gray-50" : "bg-white text-gray-300"}
                 `}
