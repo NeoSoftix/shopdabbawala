@@ -18,6 +18,18 @@ export const isPastDate = (date) => {
   return compareDate < today;
 };
 
+// True when the given date is today or earlier - meals must be scheduled at
+// least 1 day in advance (mirrors the backend's `requestDate <= today` check
+// in mealSchedule.controller.js::createMealSchedule), so today itself is too
+// late for a vendor to prepare/deliver, same as a genuinely past date.
+export const isTooLateToSchedule = (date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compareDate = new Date(date);
+  compareDate.setHours(0, 0, 0, 0);
+  return compareDate <= today;
+};
+
 // True when date falls after the subscription's validity window.
 export const isBeyondSubscription = (date, subscription) => {
   if (!subscription?.endDate) return false;
@@ -29,9 +41,9 @@ export const isBeyondSubscription = (date, subscription) => {
 };
 
 // True when a date is outside the range the user is actually allowed to
-// schedule meals for: not in the past, and within the plan's validity.
+// schedule meals for: at least 1 day out, and within the plan's validity.
 export const isSelectableDate = (date, subscription) =>
-  !isPastDate(date) && !isBeyondSubscription(date, subscription);
+  !isTooLateToSchedule(date) && !isBeyondSubscription(date, subscription);
 
 // The Monday (00:00) of the calendar week containing `date`.
 export const mondayOf = (date) => {

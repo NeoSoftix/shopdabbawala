@@ -9,6 +9,7 @@ import User from "../../models/User.model.js"
 import { findServingVendor } from "../../utils/findServingVendor.js"
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js"
 import { fulfillDayAddonOrder } from "./fulfillDayAddonOrder.js"
+import { formatFullAddress } from "../../utils/formatAddress.js"
 
 // save check out detilas
 export const saveCheckoutDetails = async (req, res) => {
@@ -181,10 +182,15 @@ export const saveCheckoutDetails = async (req, res) => {
       // Create the actual Order document now that we have the delivery
       // address, using the per-item quantity snapshot saved at checkout time.
       if (!payment.order && Array.isArray(payment.items) && payment.items.length > 0) {
-        let deliveryAddress = address;
+        let deliveryAddress = formatFullAddress({ address, city, state, pincode });
         if (!deliveryAddress) {
-          const orderUser = await User.findById(payment.user).select("address");
-          deliveryAddress = orderUser?.address;
+          const orderUser = await User.findById(payment.user).select("address city state pincode");
+          deliveryAddress = formatFullAddress({
+            address: orderUser?.address,
+            city: orderUser?.city,
+            state: orderUser?.state,
+            pincode: orderUser?.pincode,
+          });
         }
 
         const order = await Order.create({

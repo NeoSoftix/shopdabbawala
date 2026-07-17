@@ -32,9 +32,9 @@ router.get("/by-date", getOrdersByDate);
 // All orders list
 router.get("/", getAllOrders);
 
-// Vendor accepts/rejects a pending order
-router.patch("/:id/accept", allowedRoles("vendor"), acceptOrder);
-router.patch("/:id/reject", allowedRoles("vendor"), rejectOrder);
+// Admin accepts/rejects a pending order
+router.patch("/:id/accept", allowedRoles("admin"), acceptOrder);
+router.patch("/:id/reject", allowedRoles("admin"), rejectOrder);
 
 // Vendor progresses an accepted order through delivery (today's orders only)
 router.patch("/:id/ready-to-deliver", allowedRoles("vendor"), markOrderReadyToDeliver);

@@ -26,7 +26,7 @@ export default function OrdersTable({
   onReadyToDeliver,
   onMarkDelivered,
 }) {
-  const showActions = Boolean(onAccept || onReject);
+  const showActions = Boolean(onAccept || onReject || onReadyToDeliver || onMarkDelivered);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   return (
