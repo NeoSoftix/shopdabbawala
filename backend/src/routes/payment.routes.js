@@ -3,7 +3,6 @@ import {
   createPackageCheckout,
   createAddonCheckout,
   createDayAddonCheckout,
-  stripeWebhook,
   saveCheckoutDetails,
   createScheduledSubscription,
   getCheckoutSession,
@@ -32,11 +31,9 @@ router.post("/save-details", verifyToken, saveCheckoutDetails);
 // Create Subscription Schedule
 router.post("/create-schedule", verifyToken, createScheduledSubscription);
 
-// Webhook
-router.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhook
-);
+// Note: the Stripe webhook (/api/payment/webhook) is registered directly in
+// server.js, before the global express.json() middleware, so it can receive
+// the raw body Stripe's signature verification requires. It is not mounted
+// here.
 
 export default router;
