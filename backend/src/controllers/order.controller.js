@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.model.js";
 import Vendor from "../models/vendor.model.js";
 import Subscription from "../models/Subcription.model.js";
-import { notifyOrderStatusChange } from "../utils/notifyOrderEvent.js";
+import { notifyOrderEvent, notifyOrderStatusChange, formatOrderDayLabel } from "../utils/notifyOrderEvent.js";
 import { getPagination } from "../utils/pagination.js";
 
 // A vendor id that can never match a real document - used so a vendor
@@ -290,21 +290,13 @@ export const getOrdersByDate = async (req, res) => {
   }
 };
 
-// ➤ 5. Vendor accepts a pending order assigned to them
+// ➤ 5. Admin accepts a pending order - this is what first tells the
+// assigned vendor the order exists (vendor is notified below, not at
+// order-creation time).
 export const acceptOrder = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor profile not found",
-      });
-    }
-
     const existingOrder = await Order.findOne({
       _id: req.params.id,
-      vendor: vendor._id,
       status: "Pending",
     });
 
@@ -323,7 +315,7 @@ export const acceptOrder = async (req, res) => {
     }
 
     const order = await Order.findOneAndUpdate(
-      { _id: req.params.id, vendor: vendor._id, status: "Pending", active: { $ne: false } },
+      { _id: req.params.id, status: "Pending", active: { $ne: false } },
       { $set: { status: "Accepted" } },
       { new: true }
     );
@@ -335,7 +327,30 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
-    notifyOrderStatusChange({ order, status: "Accepted", vendorName: vendor.organizationName });
+    let vendor = null;
+    if (order.vendor) {
+      vendor = await Vendor.findById(order.vendor);
+      if (vendor) {
+        notifyOrderEvent({
+          vendorId: vendor._id,
+          orderId: order._id,
+          title: "New Order Assigned",
+          message: `An admin-approved order has been assigned to you for ${formatOrderDayLabel(order.date)}.`,
+          emailHeading: "New Order Assigned To You",
+          emailLines: [
+            { label: "Plan", value: order.planName || "N/A" },
+            { label: "Date", value: formatOrderDayLabel(order.date) },
+            { label: "Delivery Address", value: order.deliveryAddress || "N/A" },
+          ],
+        });
+      } else {
+        console.warn(`Accept Order: order ${order._id} has vendor ${order.vendor} but no matching Vendor doc found.`);
+      }
+    } else {
+      console.warn(`Accept Order: order ${order._id} has no assigned vendor - nothing to notify.`);
+    }
+
+    notifyOrderStatusChange({ order, status: "Accepted", vendorName: vendor?.organizationName, notifyAdmin: false });
 
     return res.status(200).json({
       success: true,
@@ -352,20 +367,12 @@ export const acceptOrder = async (req, res) => {
   }
 };
 
-// ➤ 6. Vendor rejects a pending order assigned to them
+// ➤ 6. Admin rejects a pending order - the vendor never learns about the
+// order at all in this case, since it never got past admin review.
 export const rejectOrder = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor profile not found",
-      });
-    }
-
     const order = await Order.findOneAndUpdate(
-      { _id: req.params.id, vendor: vendor._id, status: "Pending" },
+      { _id: req.params.id, status: "Pending" },
       { $set: { status: "Rejected" } },
       { new: true }
     );
@@ -377,7 +384,7 @@ export const rejectOrder = async (req, res) => {
       });
     }
 
-    notifyOrderStatusChange({ order, status: "Rejected", vendorName: vendor.organizationName });
+    notifyOrderStatusChange({ order, status: "Rejected", notifyAdmin: false });
 
     return res.status(200).json({
       success: true,

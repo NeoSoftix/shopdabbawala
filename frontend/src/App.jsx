@@ -16,7 +16,7 @@ import Categories from "./components/Admin/Categories";
 import UsersList from "./components/Admin/UserList";
 
 import "./index.css";
-import OrderList from "./components/shared/OrderList";
+import AdminOrdersPage from "./pages/Admin/OrdersPage";
 import Settings from "./components/Admin/Settings";
 import AddItem from "./components/Admin/AddItem";
 import Item from "./components/Admin/Item";
@@ -115,7 +115,7 @@ function App() {
         <Route path="items" element={<Item />} />
         <Route path="items/add" element={<AddItem />} />
         <Route path="users" element={<UsersList />} />
-        <Route path="orders" element={<OrderList />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
         <Route path="settings" element={<Settings />} />
         <Route path="vendors" element={<VendorList />} />
         <Route path="vendors/add" element={<AddVendor />} />

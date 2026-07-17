@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
-import { formatDateKey, weekdayLabel, mondayOf, isPastDate, isTodayDate } from "./constants";
+import { formatDateKey, weekdayLabel, mondayOf, isTooLateToSchedule } from "./constants";
 
 // ================= COMPONENT: DELIVERY DATE PICKER =================
 // Always shows the current week (Mon-Sun) so the user can see every day of
@@ -63,13 +63,14 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
   }, [weeks.length]);
 
   // Snap to a valid date if the current selection isn't in the list -
-  // prefer the earliest non-past date (today/future) since past dates are
-  // only shown for read-only history, not as a sensible default.
+  // prefer the earliest actually-schedulable date (tomorrow/future) since
+  // past dates - and today, which is too late to schedule - are only shown
+  // for read-only history, not as a sensible default.
   useEffect(() => {
     if (activeDays.length === 0) return;
     const stillValid = activeDays.some((d) => formatDateKey(d) === selectedKey);
     if (!stillValid) {
-      const firstUpcoming = activeDays.find((d) => !isPastDate(d));
+      const firstUpcoming = activeDays.find((d) => !isTooLateToSchedule(d));
       onSelectDate(firstUpcoming || activeDays[activeDays.length - 1]);
     }
   }, [activeDays, selectedKey, onSelectDate]);
@@ -107,12 +108,9 @@ const DayOfWeekPicker = ({ selectedDate, onSelectDate, dayStatus, availableDates
             const key = formatDateKey(date);
             const isSelected = selectedKey === key;
             const status = dayStatus[key]?.status;
-            const isPast = isPastDate(date);
-            const isToday = isTodayDate(date);
-            // Same-day scheduling is never allowed, so today's tile is
-            // greyed out and lock-marked exactly like a past day - still
-            // viewable (read-only), just not editable.
-            const isLockedDay = isPast || isToday;
+            // Today is locked the same as past days here - meals must be
+            // scheduled at least 1 day in advance (see isTooLateToSchedule).
+            const isPast = isTooLateToSchedule(date);
             const hasMenu = availableKeySet.has(key);
 
             return (

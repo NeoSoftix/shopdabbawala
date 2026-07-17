@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiSearch } from "react-icons/fi";
 import {
   FaClipboardList,
   FaClock,
@@ -7,15 +8,14 @@ import {
 } from "react-icons/fa";
 
 import StatCard from "../../components/shared/StatCard";
-// import NotificationFilters from "../../components/vendor/NotificationFilters";
 import OrdersTable from "../../components/shared/OrdersTable";
 import { SectionLoader } from "../../components/shared/Loader";
 import Pagination from "../../components/shared/Pagination";
 import {
   getOrderStats,
   getAllOrders,
-  markOrderReadyToDeliver,
-  markOrderDelivered,
+  acceptOrder,
+  rejectOrder,
 } from "../../services/order.service";
 import { toast } from "react-hot-toast";
 
@@ -26,6 +26,7 @@ export default function OrdersPage() {
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -38,8 +39,12 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
     fetchOrders();
-  }, [page]);
+  }, [search, page]);
 
   const fetchOrderStats = async () => {
     try {
@@ -55,7 +60,7 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await getAllOrders("", page);
+      const res = await getAllOrders(search, page);
       if (res.success) {
         setOrders(res.orders || []);
         setPagination({
@@ -66,39 +71,40 @@ export default function OrdersPage() {
       }
     } catch (error) {
       console.error("Fetch Orders Error:", error);
+      toast.error("Failed to load orders list");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReadyToDeliver = async (orderId) => {
+  const handleAccept = async (orderId) => {
     try {
-      const res = await markOrderReadyToDeliver(orderId);
+      const res = await acceptOrder(orderId);
       if (res.success) {
-        toast.success("Order marked as ready to deliver");
+        toast.success("Order accepted - vendor has been notified");
         fetchOrders();
         fetchOrderStats();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to update order");
+      toast.error(error?.response?.data?.message || "Failed to accept order");
     }
   };
 
-  const handleMarkDelivered = async (orderId) => {
+  const handleReject = async (orderId) => {
     try {
-      const res = await markOrderDelivered(orderId);
+      const res = await rejectOrder(orderId);
       if (res.success) {
-        toast.success("Order marked as delivered");
+        toast.success("Order rejected");
         fetchOrders();
         fetchOrderStats();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to update order");
+      toast.error(error?.response?.data?.message || "Failed to reject order");
     }
   };
 
   const processingOrders =
-    (orderStats.byStatus?.Preparing || 0) + (orderStats.byStatus?.["On the way"] || 0);
+    (orderStats.byStatus?.Accepted || 0) + (orderStats.byStatus?.["On the way"] || 0);
 
   const stats = [
     {
@@ -108,7 +114,7 @@ export default function OrdersPage() {
       Icon: FaClipboardList,
     },
     {
-      title: "Awaiting Admin Approval",
+      title: "Awaiting Approval",
       value: orderStats.byStatus?.Pending || 0,
       growth: "0%",
       Icon: FaClock,
@@ -138,8 +144,18 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      {/* Filters
-      <NotificationFilters /> */}
+      <div className="relative w-full md:w-80">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <FiSearch className="text-gray-400" />
+        </span>
+        <input
+          type="text"
+          placeholder="Search by customer or status..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+        />
+      </div>
 
       {/* Orders Table */}
       {loading ? (
@@ -148,8 +164,8 @@ export default function OrdersPage() {
         <>
           <OrdersTable
             orders={orders}
-            onReadyToDeliver={handleReadyToDeliver}
-            onMarkDelivered={handleMarkDelivered}
+            onAccept={handleAccept}
+            onReject={handleReject}
           />
 
           {/* Pagination */}

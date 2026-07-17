@@ -8,7 +8,7 @@ import PlanSelector from "./PlanSelector";
 import CategorySelector from "./CategorySelector";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayAddOns from "./DayAddOns";
-import { formatDateKey, isPastDate, isTodayDate } from "./constants";
+import { formatDateKey, isPastDate, isTooLateToSchedule } from "./constants";
 
 // ================= COMPONENT: CUSTOM MEAL PLAN BUILDER =================
 const MealScheduleBuilder = ({
@@ -108,10 +108,9 @@ const MealScheduleBuilder = ({
   const isActive = dayStatus[selectedDateKey]?.active ?? true;
   const isPast = isPastDate(selectedDate);
   const isToday = isTodayDate(selectedDate);
-  // Past days are read-only history, and same-day scheduling is never
-  // allowed (kitchen needs advance notice) - no editing in either case,
-  // regardless of status.
-  const isLocked = isConfirmed || isPast || isToday;
+
+  const isTooLate = isTooLateToSchedule(selectedDate);
+  const isLocked = isConfirmed || isTooLate;
 
   const isScheduleValid = () => {
     for (const section of sections) {
@@ -298,7 +297,7 @@ const MealScheduleBuilder = ({
                   {submitting && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   )}
-                  {isPast ? "PAST DATE" : isToday ? "TOO LATE TO SCHEDULE" : "SAVE MEALS"}
+                  {isPast ? "PAST DATE" : isTooLate ? "SCHEDULE 1 DAY AHEAD" : "SAVE MEALS"}
                 </button>
               )}
             </div>

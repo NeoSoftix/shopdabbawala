@@ -1,5 +1,6 @@
 import Order from "../../models/Order.model.js"
 import User from "../../models/User.model.js"
+import { formatFullAddress } from "../../utils/formatAddress.js"
 
 // -------- ADDON_ORDER fulfillment branch (extracted from fulfillOrder) --------
 // Fallback so the Order still gets created even if the customer abandons the
@@ -9,11 +10,16 @@ export const fulfillAddonOrder = async (session, payment) => {
     return;
   }
 
-  const orderUser = await User.findById(payment.user).select("address");
+  const orderUser = await User.findById(payment.user).select("address city state pincode");
 
   const order = await Order.create({
     user: payment.user,
-    deliveryAddress: orderUser?.address || "Not provided",
+    deliveryAddress: formatFullAddress({
+      address: orderUser?.address,
+      city: orderUser?.city,
+      state: orderUser?.state,
+      pincode: orderUser?.pincode,
+    }) || "Not provided",
     addons: payment.items.map((it) => ({
       addon: it.addon,
       name: it.name,

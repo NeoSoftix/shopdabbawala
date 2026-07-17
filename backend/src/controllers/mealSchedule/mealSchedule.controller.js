@@ -8,21 +8,24 @@ import WeeklyMenu from "../../models/weeklyMenu.model.js";
 import { findServingVendor } from "../../utils/findServingVendor.js";
 import { notifyOrderEvent, notifyUser } from "../../utils/notifyOrderEvent.js";
 import { getActiveWeekWindow } from "../../utils/getActiveWeekWindow.js";
+import { formatFullAddress } from "../../utils/formatAddress.js";
 
-const notifyVendorOfOrder = async ({ vendorId, orderId, userName, date, itemCount, isNewOrder, planName }) => {
+// Notifies admin (not the vendor) that a new/updated order needs review -
+// the assigned vendor only hears about the order once admin approves it
+// (see acceptOrder in order.controller.js).
+const notifyAdminOfOrder = async ({ orderId, userName, date, itemCount, isNewOrder, planName }) => {
   const dayLabel = date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
-  const title = isNewOrder ? "New Order Received" : "Order Updated";
+  const title = isNewOrder ? "New Order Awaiting Approval" : "Order Updated";
   const planSuffix = planName ? ` (${planName} plan)` : "";
   const message = isNewOrder
-    ? `${userName || "A customer"} placed a meal order for ${dayLabel}${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`
+    ? `${userName || "A customer"} placed a meal order for ${dayLabel}${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}) - awaiting your approval.`
     : `${userName || "A customer"} updated their ${dayLabel} meal order${planSuffix} (${itemCount} item${itemCount === 1 ? "" : "s"}).`;
 
   await notifyOrderEvent({
-    vendorId,
     orderId,
     title,
     message,
-    emailHeading: isNewOrder ? "New Meal Order Received" : "Meal Order Updated",
+    emailHeading: isNewOrder ? "New Meal Order Awaiting Approval" : "Meal Order Updated",
     emailLines: [
       { label: "Customer", value: userName || "A customer" },
       { label: "Plan", value: planName || "N/A" },
@@ -39,7 +42,7 @@ const notifyVendorOfOrder = async ({ vendorId, orderId, userName, date, itemCoun
 // failure here shouldn't block the meal schedule itself from being saved.
 const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, formattedItems }) => {
   try {
-    const user = await User.findById(userId).select("pincode address name");
+    const user = await User.findById(userId).select("pincode address city state name");
     const pincode = subscription.pincode || user?.pincode || "";
 
     const itemIds = formattedItems.map((meal) => meal.item);
@@ -68,7 +71,9 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, for
       qty: meal.quantity,
     }));
 
-    const deliveryAddress = user?.address || (pincode ? `Pincode: ${pincode}` : "Not set");
+    const deliveryAddress =
+      formatFullAddress({ address: user?.address, city: user?.city, state: user?.state, pincode }) ||
+      "Not set";
 
     const planName = subscription.mealSize
       ? `${subscription.mealSize}${subscription.preference ? ` (${subscription.preference})` : ""}`
@@ -110,17 +115,14 @@ const syncVendorOrder = async ({ userId, subscriptionId, subscription, date, for
 
     const dayLabel = date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
-    if (vendor?._id) {
-      await notifyVendorOfOrder({
-        vendorId: vendor._id,
-        orderId,
-        userName: user?.name,
-        date,
-        itemCount: orderItems.length,
-        isNewOrder,
-        planName,
-      });
-    }
+    await notifyAdminOfOrder({
+      orderId,
+      userName: user?.name,
+      date,
+      itemCount: orderItems.length,
+      isNewOrder,
+      planName,
+    });
 
     notifyUser({
       userId,
@@ -188,12 +190,13 @@ export const createMealSchedule = async (req, res) => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    // Same-day scheduling is never allowed (kitchen needs advance notice) -
-    // not just past dates, so this rejects `requestDate === today` too.
+    // Meals must be scheduled at least 1 day in advance - today is already
+    // too late for a vendor to prepare/deliver, so it's blocked alongside
+    // genuinely past dates.
     if (requestDate <= today) {
       return res.status(400).json({
         success: false,
-        message: "Meals must be scheduled at least a day in advance - same-day scheduling is closed.",
+        message: "Cannot schedule a meal for a past date.",
       });
     }
 
@@ -544,8 +547,10 @@ export const updateDayOrderStatus = async (req, res) => {
       const planLabel = order.planName ? ` for their ${order.planName} plan` : "";
       const dayLabel = requestDate.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
+      // Vendor shouldn't hear about an order at all until admin has approved
+      // it - route to admin instead while it's still Pending.
       await notifyOrderEvent({
-        vendorId: order.vendor,
+        vendorId: order.status === "Pending" ? undefined : order.vendor,
         orderId: order._id,
         title: active ? "Order Resumed" : "Order Paused",
         message: active

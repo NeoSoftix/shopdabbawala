@@ -79,8 +79,10 @@ export const fulfillDayAddonOrder = async (session, payment) => {
 
   if (order.vendor) {
     const orderingUser = await User.findById(payment.user).select("name");
+    // Vendor shouldn't hear about an order at all until admin has approved
+    // it - route to admin instead while it's still Pending.
     await notifyOrderEvent({
-      vendorId: order.vendor,
+      vendorId: order.status === "Pending" ? undefined : order.vendor,
       orderId: order._id,
       type: "payment",
       title: "Add-ons Purchased",

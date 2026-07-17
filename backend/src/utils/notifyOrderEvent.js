@@ -111,7 +111,7 @@ export const notifyOrderEvent = async ({
 
 // Formats an Order's `date` field (the actual scheduled delivery day) for
 // use in notification copy - falls back to a generic phrase if unset.
-const formatOrderDayLabel = (date) =>
+export const formatOrderDayLabel = (date) =>
   date
     ? new Date(date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
     : "your scheduled day";
@@ -124,7 +124,7 @@ const STATUS_NOTIFICATION_CONFIG = {
   Accepted: {
     accent: "#16a34a",
     userTitle: "Order Accepted",
-    userMessage: (dayLabel, vendorName) => `Your order for ${dayLabel} has been accepted by ${vendorName || "the vendor"}.`,
+    userMessage: () => `Your order has been accepted.`,
     userEmailHeading: "Your Order Has Been Accepted",
     userEmailIntro: (dayLabel, vendorName) => `Good news! Your meal order for ${dayLabel} has been accepted by ${vendorName || "your vendor"} and will be prepared for delivery.`,
     adminTitle: "Vendor Accepted an Order",
@@ -164,7 +164,7 @@ const STATUS_NOTIFICATION_CONFIG = {
 // vendor is the *actor* - so the customer whose order it is gets emailed the
 // outcome, and admin gets a separate email about what the vendor just did.
 // Fire-and-forget, never throws.
-export const notifyOrderStatusChange = async ({ order, status, vendorName }) => {
+export const notifyOrderStatusChange = async ({ order, status, vendorName, notifyAdmin = true }) => {
   (async () => {
     try {
       const config = STATUS_NOTIFICATION_CONFIG[status];
@@ -201,29 +201,31 @@ export const notifyOrderStatusChange = async ({ order, status, vendorName }) => 
           .catch((error) => console.error(`notifyOrderStatusChange: user email FAILED for ${user.email}:`, error.response?.data || error.message));
       }
 
-      const admins = await User.find({ role: "admin" }).select("email");
-      if (admins.length > 0) {
-        const adminIntro = config.adminIntro(customerName, dayLabel, vendorName);
-        const adminHtml = orderEventTemplate({
-          heading: config.adminTitle,
-          intro: adminIntro,
-          lines: [
-            { label: "Customer", value: customerName },
-            { label: "Vendor", value: vendorName || "N/A" },
-            { label: "Date", value: dayLabel },
-            { label: "Plan", value: order.planName || "N/A" },
-          ],
-          accent: config.accent,
-        });
+      if (notifyAdmin) {
+        const admins = await User.find({ role: "admin" }).select("email");
+        if (admins.length > 0) {
+          const adminIntro = config.adminIntro(customerName, dayLabel, vendorName);
+          const adminHtml = orderEventTemplate({
+            heading: config.adminTitle,
+            intro: adminIntro,
+            lines: [
+              { label: "Customer", value: customerName },
+              { label: "Vendor", value: vendorName || "N/A" },
+              { label: "Date", value: dayLabel },
+              { label: "Plan", value: order.planName || "N/A" },
+            ],
+            accent: config.accent,
+          });
 
-        admins.forEach((admin) => {
-          notifyUser({ userId: admin._id, orderId: order._id, title: config.adminTitle, message: adminIntro });
+          admins.forEach((admin) => {
+            notifyUser({ userId: admin._id, orderId: order._id, title: config.adminTitle, message: adminIntro });
 
-          if (!admin.email) return;
-          sendEmail(admin.email, config.adminTitle, adminHtml)
-            .then(() => console.log(`notifyOrderStatusChange: admin email sent OK to ${admin.email} (${status})`))
-            .catch((error) => console.error(`notifyOrderStatusChange: admin email FAILED for ${admin.email}:`, error.response?.data || error.message));
-        });
+            if (!admin.email) return;
+            sendEmail(admin.email, config.adminTitle, adminHtml)
+              .then(() => console.log(`notifyOrderStatusChange: admin email sent OK to ${admin.email} (${status})`))
+              .catch((error) => console.error(`notifyOrderStatusChange: admin email FAILED for ${admin.email}:`, error.response?.data || error.message));
+          });
+        }
       }
     } catch (error) {
       console.error("notifyOrderStatusChange error:", error);
