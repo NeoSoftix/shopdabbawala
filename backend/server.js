@@ -34,6 +34,7 @@ import contactQueryRoutes from "./src/routes/contactQuery.routes.js";
 import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
 import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
 import { generalLimiter } from "./src/middleware/ratelimiter.middleware.js";
+import { stripeWebhook } from "./src/controllers/payment.controller.js";
 
 const app = express();
 
@@ -48,7 +49,17 @@ app.use(cookieParser());
 
 connectDB();
 
-//middelare for jso parsing 
+// Stripe webhook needs the raw request body to verify the signature, so it
+// must be registered (with express.raw) before the global express.json()
+// below - otherwise json() consumes the body first and signature
+// verification always fails, silently breaking webhook-driven fulfillment.
+app.post(
+  "/api/payment/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook
+);
+
+//middelare for jso parsing
 app.use(express.json());
 
 

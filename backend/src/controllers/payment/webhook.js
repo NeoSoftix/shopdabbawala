@@ -2,6 +2,7 @@ import stripe from "../../config/stripe.js"
 import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
 import { fulfillOrder } from "./fulfillOrder.js"
+import { notifyUser } from "../../utils/notifyOrderEvent.js"
 
 export const stripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
@@ -53,6 +54,37 @@ export const stripeWebhook = async (req, res) => {
         }
 
         await fulfillOrder(session, payment);
+
+        // Notify the customer immediately - don't wait for them to land on
+        // the thank-you page and fill in their details (they may close the
+        // tab right after paying). Guarded by purchaseNotified so the
+        // later, fuller notification in saveCheckoutDetails doesn't repeat.
+        const paymentType = session.metadata?.paymentType;
+        if (
+          (paymentType === "ADMIN_PACKAGE" || paymentType === "CUSTOM_PACKAGE") &&
+          !payment.purchaseNotified
+        ) {
+          const refreshedPayment = await Payment.findById(payment._id).populate("subscription");
+
+          notifyUser({
+            userId: payment.user,
+            type: "payment",
+            title: "Subscription Purchased",
+            message: "Your payment was successful! We'll start preparing your meals soon.",
+          });
+
+          if (!refreshedPayment?.subscription?.pincode) {
+            notifyUser({
+              userId: payment.user,
+              type: "payment",
+              title: "Complete Your Delivery Details",
+              message: "We're missing your delivery address and pincode - please add them from your account so we can start delivering your meals.",
+            });
+          }
+
+          payment.purchaseNotified = true;
+          await payment.save();
+        }
 
         break;
       }
