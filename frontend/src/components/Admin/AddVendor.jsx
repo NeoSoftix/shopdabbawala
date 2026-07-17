@@ -174,22 +174,22 @@ const AddVendor = () => {
   };
 
   return (
-  <div className="min-h-screen bg-gray-50 p-6">
-  <div className="mb-8 flex items-center justify-between">
+  <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+  <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 className="text-3xl font-bold text-slate-900">Add Vendor</h1>
-      <p className="text-gray-500">Create a new vendor account</p>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Add Vendor</h1>
+      <p className="text-gray-500 text-sm sm:text-base">Create a new vendor account</p>
     </div>
 
     <button
       onClick={() => navigate("/admin/vendors")}
-      className="rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2"
+      className="w-full sm:w-auto justify-center rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2 shrink-0"
     >
       <ArrowLeft size={16} /> Back to Vendors
     </button>
   </div>
 
-  <div className="mx-auto w-full max-w-3xl rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+  <div className="w-full rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 md:p-8 shadow-sm">
     {/* Balanced & Centered Image Upload */}
     <div className="mb-8 flex flex-col items-center justify-center text-center">
       <img

@@ -307,7 +307,20 @@ export default function WeeklyMenuManager() {
                         min="1"
                         placeholder="e.g. 2"
                         value={section.requiredQuantity}
-                        onChange={(e) => updateSection(section.id, "requiredQuantity", parseInt(e.target.value) || 1)}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            updateSection(section.id, "requiredQuantity", "");
+                            return;
+                          }
+                          const parsed = parseInt(raw, 10);
+                          updateSection(section.id, "requiredQuantity", isNaN(parsed) ? "" : parsed);
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === "" || parseInt(e.target.value, 10) < 1) {
+                            updateSection(section.id, "requiredQuantity", 1);
+                          }
+                        }}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-[#e61e2d] focus:outline-none"
                       />
                     </div>
