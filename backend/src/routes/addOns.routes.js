@@ -9,11 +9,12 @@ import {
   updateAddOn,
 } from "../controllers/addsOn.controller.js";
 import { allowedRoles, verifyToken } from "../middleware/auth.middleware.js";
+import upload, { handleUploadError } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
 // create Add On
-router.post("/", verifyToken, allowedRoles("admin"), createAddOn);
+router.post("/", verifyToken, allowedRoles("admin"), upload.single("image"), handleUploadError, createAddOn);
 
 // get all Add on
 router.get("/", getAllAddOns);
@@ -25,7 +26,7 @@ router.get("/active", getActiveAddOns);
 router.get("/:id", getOneAddOns);
 
 // update the Add On
-router.put("/:id", verifyToken, allowedRoles("admin"), updateAddOn);
+router.put("/:id", verifyToken, allowedRoles("admin"), upload.single("image"), handleUploadError, updateAddOn);
 
 // toggle the status of Add On
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleStatus);

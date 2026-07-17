@@ -2,6 +2,8 @@ import Item from "../models/item.model.js";
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
 import {getPagination} from "../utils/pagination.js"
+import cloudinary from "../config/cloudinary.js";
+import { removeLocalFile } from "../middleware/upload.middleware.js";
 
 // ➤ Create Item
 export const createItem = async (req, res) => {
@@ -64,11 +66,28 @@ export const createItem = async (req, res) => {
       }
     }
 
+    let imageData = { url: "", public_id: "" };
+    if (req.file && req.file.path) {
+      const filePath = req.file.path;
+      try {
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "items",
+        });
+        imageData = {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      } finally {
+        removeLocalFile(filePath);
+      }
+    }
+
     const item = await Item.create({
       name,
       description,
       category,
       allergies: parsedAllergies,
+      image: imageData,
     });
 
     return res.status(201).json({
@@ -187,6 +206,30 @@ export const updateItem = async (req, res) => {
       }
     }
 
+    if (req.file && req.file.path) {
+      const filePath = req.file.path;
+      try {
+        if (item.image?.public_id) {
+          await cloudinary.uploader.destroy(item.image.public_id);
+        }
+
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "items",
+        });
+
+        updateData.image = {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      } finally {
+        removeLocalFile(filePath);
+      }
+    } else {
+      // No new file uploaded via multipart - `image` may arrive as an empty
+      // string from FormData, which would otherwise wipe the existing image.
+      delete updateData.image;
+    }
+
     // findByIdAndUpdate short syntax defaults to returning old document unless specified
     const updatedItem = await Item.findByIdAndUpdate(id, updateData, {
       new: true, // Yeh 'returnDocument: "after"' ki jagah standard Mongoose syntax hai
@@ -228,6 +271,10 @@ export const deleteItem = async (req, res) => {
         success: false,
         message: "Item not found",
       });
+    }
+
+    if (item.image?.public_id) {
+      await cloudinary.uploader.destroy(item.image.public_id);
     }
 
     await item.deleteOne();

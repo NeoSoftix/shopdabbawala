@@ -59,6 +59,11 @@ export function getResponsiveOffset() {
   if (typeof window !== "undefined") {
     if (window.innerWidth < 480) return 140;
     if (window.innerWidth < 768) return 240;
+    // Tablets (iPad portrait/landscape, ~768-1024px) don't have enough
+    // horizontal room for the desktop offset (370px) - that pushed the side
+    // cards past the section's overflow-x-hidden edge and got them clipped
+    // mid-card instead of peeking in cleanly.
+    if (window.innerWidth < 1024) return 260;
   }
   return 370;
 }

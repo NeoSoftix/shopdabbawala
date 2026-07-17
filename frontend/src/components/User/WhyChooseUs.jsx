@@ -56,7 +56,7 @@ const features = [
 export default function WhyChooseUs() {
   return (
     <section 
-      className="relative min-h-screen w-full pt-8 pb-6 md:pt-12 md:pb-8 bg-white bg-no-repeat bg-center bg-cover xl:bg-[length:100%_100%] select-none flex flex-col justify-between"
+      className="relative w-full pt-8 pb-6 md:pt-12 md:pb-8 bg-white bg-no-repeat bg-center bg-cover xl:bg-[length:100%_100%] select-none flex flex-col justify-between"
       style={{ backgroundImage: "url('/WhyChooseUsImage.png')" }}
     >
       {/* लाइट ओवरले */}

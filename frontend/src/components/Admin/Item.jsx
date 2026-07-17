@@ -11,6 +11,8 @@ import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
 
+const DEFAULT_PREVIEW = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
 const Item = () => {
   const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
@@ -23,6 +25,16 @@ const Item = () => {
   const [updating, setUpdating] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [editImage, setEditImage] = useState(null);
+  const [editPreview, setEditPreview] = useState("");
+
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditImage(file);
+      setEditPreview(URL.createObjectURL(file));
+    }
+  };
 
   useEffect(() => {
     fetchItems(page);
@@ -93,14 +105,18 @@ const Item = () => {
     try {
       setUpdating(true);
 
-      await updateItem(selectedItem._id, {
-        name: selectedItem.name,
-        description: selectedItem.description,
-        category: selectedItem.category._id || selectedItem.category,
-        allergies: selectedItem.allergies,
-      });
+      const data = new FormData();
+      data.append("name", selectedItem.name);
+      data.append("description", selectedItem.description);
+      data.append("category", selectedItem.category._id || selectedItem.category);
+      data.append("allergies", JSON.stringify(selectedItem.allergies || []));
+      if (editImage) data.append("image", editImage);
+
+      await updateItem(selectedItem._id, data);
       setSuccess("Item updated successfully");
       setIsEdit(false);
+      setEditImage(null);
+      setEditPreview("");
       fetchItems(page);
     } catch (error) {
       console.log("Update Item Error", error);
@@ -143,6 +159,7 @@ const Item = () => {
         <table className="w-full min-w-[1000px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-2 px-4">Image</th>
               <th className="py-2 px-4">Name</th>
               <th className="py-2 px-4">Description</th>
               <th className="py-2 px-4">Category</th>
@@ -157,6 +174,18 @@ const Item = () => {
                 key={item._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
+                <td className="py-2 px-3">
+                  <img
+                    src={item.image?.url || DEFAULT_PREVIEW}
+                    alt={item.name}
+                    className="h-10 w-10 rounded-lg object-cover border border-gray-100"
+                    onError={(e) => {
+                      e.target.src = DEFAULT_PREVIEW;
+                      e.target.onerror = null;
+                    }}
+                  />
+                </td>
+
                 <td className="py-2 px-3 text-sm font-semibold text-gray-800">
                   {item.name}
                 </td>
@@ -178,6 +207,8 @@ const Item = () => {
                     <button
                       onClick={() => {
                         setSelectedItem(item);
+                        setEditImage(null);
+                        setEditPreview(item.image?.url || "");
                         setIsEdit(true);
                       }}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
@@ -200,7 +231,7 @@ const Item = () => {
 
             {loading && (
               <tr>
-                <td colSpan="5">
+                <td colSpan="6">
                   <SectionLoader text="Loading items..." />
                 </td>
               </tr>
@@ -209,7 +240,7 @@ const Item = () => {
             {!loading && items.length === 0 && (
               <tr>
                 <td
-                  colSpan="5"
+                  colSpan="6"
                   className="text-center py-8 text-sm text-gray-400"
                 >
                   No items found. Create one to get started.
@@ -230,6 +261,22 @@ const Item = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[600px] rounded-xl p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Update Item</h2>
+
+            <div className="mb-4 flex flex-col items-center justify-center text-center">
+              <img
+                src={editPreview || DEFAULT_PREVIEW}
+                alt="Item"
+                className="h-24 w-24 rounded-2xl border-4 border-red-100 object-cover shadow-sm"
+                onError={(e) => {
+                  e.target.src = DEFAULT_PREVIEW;
+                  e.target.onerror = null;
+                }}
+              />
+              <label className="mt-3 cursor-pointer rounded-lg bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors shadow-sm">
+                Change Image
+                <input type="file" accept="image/*" onChange={handleEditImageChange} className="hidden" />
+              </label>
+            </div>
 
             <div className="mb-3">
               <label className="block mb-2">Item Name</label>
@@ -311,6 +358,8 @@ const Item = () => {
                 onClick={() => {
                   setIsEdit(false);
                   setSelectedItem(null);
+                  setEditImage(null);
+                  setEditPreview("");
                 }}
                 disabled={updating}
                 className="border px-4 py-2 rounded"

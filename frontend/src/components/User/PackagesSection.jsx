@@ -162,7 +162,7 @@ export default function PackagesSection() {
 
   return (
     <section
-      className={`relative min-h-screen w-full py-6 md:py-8 flex flex-col justify-center gap-2 bg-gradient-to-br ${packages[active]?.gradient || "from-slate-50 to-white"} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
+      className={`relative w-full pt-4 sm:pt-6 md:pt-8 pb-10 sm:pb-14 md:pb-16 lg:pb-20 flex flex-col justify-center gap-2 bg-gradient-to-br ${packages[active]?.gradient || "from-slate-50 to-white"} font-sans select-none overflow-x-hidden transition-all duration-[700ms] ease-out`}
       id="plans"
     >
       {/* Background Glow Blobs */}

@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
  */
 export default function StepIndicator({ stepLabels, currentStepIndex }) {
   return (
-    <div className="flex items-center justify-center gap-1 mb-6 mt-1">
+    <div className="flex items-center justify-center gap-1 mb-4 mt-0">
       {stepLabels.map((label, i) => (
         <div key={i} className="flex items-center">
           <div className="flex flex-col items-center">

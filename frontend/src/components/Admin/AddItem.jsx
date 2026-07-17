@@ -6,6 +6,8 @@ import { createItem } from "../../services/items.service";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
+const DEFAULT_PREVIEW = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
 const AddItem = () => {
   const navigate = useNavigate();
   // Pre-select the category when arriving from a "+ Add Item" shortcut
@@ -25,10 +27,20 @@ const AddItem = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(DEFAULT_PREVIEW);
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -66,12 +78,17 @@ const AddItem = () => {
     try {
       setLoading(true);
 
-      await createItem({
-        name: itemData.name,
-        description: itemData.description,
-        category: itemData.category,
-        allergies: itemData.allergies.split(",").map((item) => item.trim()).filter(Boolean),
-      });
+      const data = new FormData();
+      data.append("name", itemData.name);
+      data.append("description", itemData.description);
+      data.append("category", itemData.category);
+      data.append(
+        "allergies",
+        JSON.stringify(itemData.allergies.split(",").map((item) => item.trim()).filter(Boolean))
+      );
+      if (image) data.append("image", image);
+
+      await createItem(data);
 
       toast.success("Item created successfully!");
       navigate(returnTo);
@@ -103,6 +120,23 @@ const AddItem = () => {
       {/* Form Card */}
       <div className="bg-white border rounded-2xl shadow-sm p-6">
         <form onSubmit={handleSubmit}>
+          {/* Image Upload */}
+          <div className="mb-6 flex flex-col items-center justify-center text-center">
+            <img
+              src={preview}
+              alt="Item"
+              className="h-28 w-28 rounded-2xl border-4 border-red-100 object-cover shadow-sm"
+              onError={(e) => {
+                e.target.src = DEFAULT_PREVIEW;
+                e.target.onerror = null;
+              }}
+            />
+            <label className="mt-3 cursor-pointer rounded-lg bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors shadow-sm">
+              Upload Image
+              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Side */}
             <div className="space-y-5">

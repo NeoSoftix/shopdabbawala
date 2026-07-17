@@ -5,6 +5,8 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
+const DEFAULT_PREVIEW = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
 const CreateAddOns = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -15,6 +17,16 @@ const CreateAddOns = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(DEFAULT_PREVIEW);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -49,15 +61,19 @@ const CreateAddOns = () => {
         .map((item) => item.trim())
         .filter(Boolean);
 
-      const response = await createAddOn({
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        allergies,
-      });
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("description", formData.description);
+      data.append("price", formData.price);
+      data.append("allergies", JSON.stringify(allergies));
+      if (image) data.append("image", image);
+
+      const response = await createAddOn(data);
       toast.success(response.message || "Add-on created successfully!");
 
       setFormData({ name: "", description: "", price: "", allergies: "" });
+      setImage(null);
+      setPreview(DEFAULT_PREVIEW);
       setErrors({});
     } catch (error) {
       let errMessage = error?.response?.data?.message;
@@ -93,6 +109,23 @@ const CreateAddOns = () => {
 
       {/* Form Card */}
       <form onSubmit={handleSubmit} className="bg-white border rounded-2xl p-6 shadow-sm">
+        {/* Image Upload */}
+        <div className="mb-6 flex flex-col items-center justify-center text-center">
+          <img
+            src={preview}
+            alt="Add-on"
+            className="h-28 w-28 rounded-2xl border-4 border-red-100 object-cover shadow-sm"
+            onError={(e) => {
+              e.target.src = DEFAULT_PREVIEW;
+              e.target.onerror = null;
+            }}
+          />
+          <label className="mt-3 cursor-pointer rounded-lg bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors shadow-sm">
+            Upload Image
+            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+          </label>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
           <div>

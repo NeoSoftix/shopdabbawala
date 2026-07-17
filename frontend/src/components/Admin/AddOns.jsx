@@ -10,6 +10,7 @@ import {
 import { toast } from "react-hot-toast";
 import { SectionLoader, ButtonSpinner } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
+import { FALLBACK_ADDON_IMAGE } from "../User/AddOnsSection/addOnsUtils";
 
 const AddOns = () => {
   const navigate = useNavigate();
@@ -21,6 +22,16 @@ const AddOns = () => {
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [editImage, setEditImage] = useState(null);
+  const [editPreview, setEditPreview] = useState("");
+
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditImage(file);
+      setEditPreview(URL.createObjectURL(file));
+    }
+  };
 
   const fetchAddOns = async (pageNum = 1) => {
     try {
@@ -111,15 +122,19 @@ const AddOns = () => {
         .map((item) => item.trim())
         .filter(Boolean);
 
-      await updateAddOn(selectedAddOn._id, {
-        name: selectedAddOn.name,
-        description: selectedAddOn.description,
-        price: selectedAddOn.price,
-        allergies,
-      });
+      const data = new FormData();
+      data.append("name", selectedAddOn.name);
+      data.append("description", selectedAddOn.description);
+      data.append("price", selectedAddOn.price);
+      data.append("allergies", JSON.stringify(allergies));
+      if (editImage) data.append("image", editImage);
+
+      await updateAddOn(selectedAddOn._id, data);
 
       setShowModal(false);
       setSelectedAddOn(null);
+      setEditImage(null);
+      setEditPreview("");
 
       fetchAddOns(page);
       toast.success("Add-on updated successfully.");
@@ -152,6 +167,7 @@ const AddOns = () => {
         <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-2 px-4">Image</th>
               <th className="py-2 px-4">Name</th>
               <th className="py-2 px-4">Description</th>
               <th className="py-2 px-4">Allergies</th>
@@ -167,6 +183,18 @@ const AddOns = () => {
                 key={addon._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
+                <td className="py-2.5 px-4">
+                  <img
+                    src={addon.image?.url || FALLBACK_ADDON_IMAGE}
+                    alt={addon.name}
+                    className="h-10 w-10 rounded-lg object-cover border border-gray-100"
+                    onError={(e) => {
+                      e.target.src = FALLBACK_ADDON_IMAGE;
+                      e.target.onerror = null;
+                    }}
+                  />
+                </td>
+
                 <td className="py-2.5 px-4 text-sm font-semibold text-gray-800">
                   {addon.name}
                 </td>
@@ -205,6 +233,8 @@ const AddOns = () => {
                           allergies: addon.allergies?.join(", "),
                         });
                         setErrors({});
+                        setEditImage(null);
+                        setEditPreview(addon.image?.url || "");
                         setShowModal(true);
                       }}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
@@ -227,7 +257,7 @@ const AddOns = () => {
 
             {loading && (
               <tr>
-                <td colSpan="6">
+                <td colSpan="7">
                   <SectionLoader text="Loading add-ons..." />
                 </td>
               </tr>
@@ -236,7 +266,7 @@ const AddOns = () => {
             {!loading && addons.length === 0 && (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   className="text-center py-8 text-sm text-gray-400"
                 >
                   No add-ons found. Create one to get started.
@@ -258,6 +288,22 @@ const AddOns = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[600px] rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Update Add On</h2>
+
+            <div className="mb-4 flex flex-col items-center justify-center text-center">
+              <img
+                src={editPreview || FALLBACK_ADDON_IMAGE}
+                alt="Add-on"
+                className="h-24 w-24 rounded-2xl border-4 border-red-100 object-cover shadow-sm"
+                onError={(e) => {
+                  e.target.src = FALLBACK_ADDON_IMAGE;
+                  e.target.onerror = null;
+                }}
+              />
+              <label className="mt-3 cursor-pointer rounded-lg bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors shadow-sm">
+                Change Image
+                <input type="file" accept="image/*" onChange={handleEditImageChange} className="hidden" />
+              </label>
+            </div>
 
             <div className="mb-3">
               <input
@@ -331,6 +377,8 @@ const AddOns = () => {
                   setShowModal(false);
                   setSelectedAddOn(null);
                   setErrors({});
+                  setEditImage(null);
+                  setEditPreview("");
                 }}
                 disabled={updating}
                 className="border px-4 py-2 rounded"

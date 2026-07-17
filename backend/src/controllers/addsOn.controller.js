@@ -1,6 +1,8 @@
 import AddOn from "../models/addOns.model.js";
 import mongoose from "mongoose";
 import { getPagination } from "../utils/pagination.js";
+import cloudinary from "../config/cloudinary.js";
+import { removeLocalFile } from "../middleware/upload.middleware.js";
 
 // for create the Add On
 export const createAddOn = async (req, res) => {
@@ -41,11 +43,45 @@ export const createAddOn = async (req, res) => {
       });
     }
 
+    let imageData = { url: "", public_id: "" };
+    if (req.file && req.file.path) {
+      const filePath = req.file.path;
+      try {
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "addons",
+        });
+        imageData = {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      } finally {
+        removeLocalFile(filePath);
+      }
+    }
+
+    // FormData (multipart, needed for the image file) can only carry
+    // strings, so allergies arrives as a JSON-stringified array - falls
+    // back to the raw value for plain-JSON callers that still send an array.
+    let parsedAllergies = [];
+    if (allergies) {
+      if (Array.isArray(allergies)) {
+        parsedAllergies = allergies;
+      } else {
+        try {
+          const parsed = JSON.parse(allergies);
+          parsedAllergies = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          parsedAllergies = [allergies];
+        }
+      }
+    }
+
     const addOn = await AddOn.create({
       name: name.trim().toLowerCase(),
       description,
       price: numericPrice,
-      allergies,
+      allergies: parsedAllergies,
+      image: imageData,
       createdBy: req.user?.id || null,
     });
 
@@ -193,7 +229,36 @@ export const updateAddOn = async (req, res) => {
     }
 
     if (allergies !== undefined) {
-      addOn.allergies = allergies;
+      if (Array.isArray(allergies)) {
+        addOn.allergies = allergies;
+      } else {
+        try {
+          const parsed = JSON.parse(allergies);
+          addOn.allergies = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          addOn.allergies = [allergies];
+        }
+      }
+    }
+
+    if (req.file && req.file.path) {
+      const filePath = req.file.path;
+      try {
+        if (addOn.image?.public_id) {
+          await cloudinary.uploader.destroy(addOn.image.public_id);
+        }
+
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "addons",
+        });
+
+        addOn.image = {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      } finally {
+        removeLocalFile(filePath);
+      }
     }
 
     await addOn.save();
@@ -232,6 +297,10 @@ export const deleteAddOn = async (req, res) => {
         message: "Add On not found",
         success: false,
       });
+    }
+
+    if (addOn.image?.public_id) {
+      await cloudinary.uploader.destroy(addOn.image.public_id);
     }
 
     await addOn.deleteOne();

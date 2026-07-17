@@ -24,6 +24,17 @@ const itemSchema = new mongoose.Schema(
       default: [],
     },
 
+    image: {
+      url: {
+        type: String,
+        default: "",
+      },
+      public_id: {
+        type: String,
+        default: "",
+      },
+    },
+
     isActive: {
       type: Boolean,
       default: true,

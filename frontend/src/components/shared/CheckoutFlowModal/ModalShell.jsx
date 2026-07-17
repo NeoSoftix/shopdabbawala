@@ -28,7 +28,7 @@ export default function ModalShell({ isOpen, onClose, wide, maxWidthClass, showC
           >
             <div className="h-1 w-full bg-gradient-to-r from-red-500 via-orange-400 to-red-600 shrink-0" />
 
-            <div className="p-5 sm:p-7 overflow-y-auto custom-scrollbar">
+            <div className="px-5 sm:px-7 pt-3 sm:pt-4 pb-5 sm:pb-7 overflow-y-auto custom-scrollbar">
               {/* Close Button */}
               {showCloseButton && (
                 <button

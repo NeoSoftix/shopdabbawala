@@ -97,7 +97,7 @@ const FAQSection = () => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat font-sans py-25 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
+      className="bg-cover bg-center bg-no-repeat font-sans py-16 md:py-20 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between"
       // 2. Yahan imported variable ko use karo
       style={{ backgroundImage: `url(${faqBackground})` }}
     >

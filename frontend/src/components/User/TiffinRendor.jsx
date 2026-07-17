@@ -143,7 +143,7 @@ export default function TiffinRender() {
       <motion.div
         animate={{ backgroundColor: activeItem.bg }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className="relative min-h-screen w-full overflow-hidden font-sans select-none flex flex-col justify-between"
+        className="relative w-full overflow-hidden font-sans select-none flex flex-col justify-between pb-10 md:pb-14 lg:pb-16"
       >
         {/* Background Waves */}
         <div className="absolute inset-0 pointer-events-none z-0">
@@ -184,9 +184,9 @@ export default function TiffinRender() {
         </div>
 
         {/* Main Content Layout Container */}
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-28 md:pt-0 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
+        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-20 sm:pt-24 md:pt-32 flex-1 grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-4">
           {/* Main Animated Container (Upar Dikhega Mobile me) */}
-          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[200px] xs:h-[230px] sm:h-[400px] md:h-[75vh] lg:h-[85vh]">
+          <div className="relative order-1 md:order-2 w-full flex items-center justify-center pointer-events-none h-[200px] xs:h-[230px] sm:h-[400px] md:h-[420px] lg:h-[480px] xl:h-[520px]">
             <div className="relative w-[65%] xs:w-[70%] sm:w-[70%] md:w-[90%] aspect-square flex items-center justify-center animate-float">
               {/* Decorative circle behind the plate (slides with a priceBox) */}
               {activeItem.priceBox && (
