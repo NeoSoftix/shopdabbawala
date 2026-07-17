@@ -53,6 +53,16 @@ const userSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    city: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    state: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   { timestamps: true },
 );

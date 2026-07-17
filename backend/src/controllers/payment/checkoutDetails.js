@@ -13,7 +13,7 @@ import { fulfillDayAddonOrder } from "./fulfillDayAddonOrder.js"
 // save check out detilas
 export const saveCheckoutDetails = async (req, res) => {
   try {
-    const { name, email, address, pincode, sessionId } = req.body;
+    const { name, email, address, pincode, city, state, sessionId } = req.body;
 
     if (!email || !sessionId) {
       return res.status(400).json({ success: false, message: "Email and session ID are required." });
@@ -255,7 +255,7 @@ export const saveCheckoutDetails = async (req, res) => {
     finalPayment = await Payment.findById(payment._id).populate("package").populate("subscription");
 
     // Always update User profile if name/email/phone/address/pincode is provided
-    if (name || email || req.body.phone || address || pincode) {
+    if (name || email || req.body.phone || address || pincode || city || state) {
       if (email) {
         const existingUser = await User.findOne({ email, _id: { $ne: payment.user } });
         if (existingUser) {
@@ -271,6 +271,8 @@ export const saveCheckoutDetails = async (req, res) => {
             ...(req.body.phone && { phone: req.body.phone }),
             ...(address && { address }),
             ...(pincode && { pincode }),
+            ...(city && { city }),
+            ...(state && { state }),
           }
         });
       } catch (updateErr) {

@@ -40,9 +40,10 @@ export default function useCheckoutFlow({
   const [pincode, setPincode] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "", address: "", pincode: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", address: "", pincode: "", city: "", state: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetchingLocation, setFetchingLocation] = useState(false);
 
   // Flat {id, quantity} list built from the addons cart map, used by mode="addons".
   const cartItems = Object.entries(cart || {}).map(([id, quantity]) => ({ id, quantity }));
@@ -91,9 +92,43 @@ export default function useCheckoutFlow({
         email: user.email || prev.email,
         address: user.address || prev.address,
         pincode: user.pincode || prev.pincode,
+        city: user.city || prev.city,
+        state: user.state || prev.state,
       }));
     }
   }, [user, isOpen]);
+
+  // Once the delivery pincode is known (Canadian FSA, e.g. "M5V2T6"),
+  // auto-fill City/Province via the same lookup used in AddVendor so the
+  // customer doesn't have to type them manually.
+  useEffect(() => {
+    const fsa = formData.pincode?.trim().toUpperCase().slice(0, 3);
+    if (!fsa || formData.city) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setFetchingLocation(true);
+        const res = await fetch(`https://api.zippopotam.us/ca/${fsa}`);
+        if (!res.ok) throw new Error("Invalid postal code");
+        const data = await res.json();
+        const place = data.places?.[0];
+        if (place && !cancelled) {
+          setFormData(prev => ({
+            ...prev,
+            city: prev.city || place["place name"],
+            state: prev.state || place["state"],
+          }));
+        }
+      } catch (err) {
+        // Not a recognized Canadian FSA - leave City/Province for manual entry.
+      } finally {
+        if (!cancelled) setFetchingLocation(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [formData.pincode]);
 
   // If redirected back from Stripe
   useEffect(() => {
@@ -152,7 +187,7 @@ export default function useCheckoutFlow({
     setOtp("");
     setError("");
     setLoading(false);
-    setFormData({ name: "", email: "", address: "" });
+    setFormData({ name: "", email: "", address: "", pincode: "", city: "", state: "" });
     if (paymentSuccess) {
       searchParams.delete("payment_success");
       searchParams.delete("session_id");
@@ -341,6 +376,7 @@ export default function useCheckoutFlow({
     error,
     setError,
     loading,
+    fetchingLocation,
     sessionId,
     stepLabels,
     currentStepIndex,

@@ -28,7 +28,8 @@ export default function PaymentSuccess() {
 
   // innerStep: "success" → "details" → "thankyou"
   const [innerStep, setInnerStep] = useState("success");
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", pincode: localStorage.getItem("pincode") || "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", pincode: localStorage.getItem("pincode") || "", city: "", state: "" });
+  const [fetchingLocation, setFetchingLocation] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,6 +40,8 @@ export default function PaymentSuccess() {
         phone: user.phone || prev.phone,
         address: user.address || prev.address,
         pincode: user.pincode || prev.pincode,
+        city: user.city || prev.city,
+        state: user.state || prev.state,
       }));
     }
 
@@ -58,6 +61,37 @@ export default function PaymentSuccess() {
         .catch(err => console.error("Failed to fetch session", err));
     }
   }, [sessionId, user]);
+
+  // Once the delivery pincode is known (Canadian FSA, e.g. "M4K3B2"),
+  // auto-fill City/Province the same way AddVendor does for admins.
+  useEffect(() => {
+    const fsa = formData.pincode?.trim().toUpperCase().slice(0, 3);
+    if (!fsa || formData.city) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setFetchingLocation(true);
+        const res = await fetch(`https://api.zippopotam.us/ca/${fsa}`);
+        if (!res.ok) throw new Error("Invalid postal code");
+        const data = await res.json();
+        const place = data.places?.[0];
+        if (place && !cancelled) {
+          setFormData(prev => ({
+            ...prev,
+            city: prev.city || place["place name"],
+            state: prev.state || place["state"],
+          }));
+        }
+      } catch (err) {
+        // Not a recognized Canadian FSA - leave City/Province for manual entry.
+      } finally {
+        if (!cancelled) setFetchingLocation(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [formData.pincode]);
 
   const [loading, setLoading] = useState(false);
 
@@ -81,7 +115,7 @@ export default function PaymentSuccess() {
       }
 
       if (setUser) {
-        setUser(prev => prev ? ({ ...prev, name: formData.name, email: formData.email, phone: formData.phone, address: formData.address }) : null);
+        setUser(prev => prev ? ({ ...prev, name: formData.name, email: formData.email, phone: formData.phone, address: formData.address, city: formData.city, state: formData.state }) : null);
       }
 
       toast.success("Your details saved! Welcome aboard!");
@@ -248,6 +282,37 @@ export default function PaymentSuccess() {
                       onChange={handleChange}
                       className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 opacity-70 cursor-not-allowed focus:outline-none transition-all"
                     />
+                  </div>
+                )}
+
+                {(formData.pincode || fetchingLocation) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                        {fetchingLocation ? "City (fetching...)" : "City"}
+                      </label>
+                      <input
+                        type="text"
+                        name="city"
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                        {fetchingLocation ? "Province (fetching...)" : "Province"}
+                      </label>
+                      <input
+                        type="text"
+                        name="state"
+                        placeholder="Province"
+                        value={formData.state}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                      />
+                    </div>
                   </div>
                 )}
 

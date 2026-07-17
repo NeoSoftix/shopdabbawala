@@ -5,7 +5,7 @@ import { InputField, SubmitBtn, ErrorMessage } from "./FormFields";
 /**
  * Post-payment delivery details step (name/email/address).
  */
-export default function DetailsStep({ formData, setFormData, sessionId, error, loading, onSubmit }) {
+export default function DetailsStep({ formData, setFormData, sessionId, error, loading, fetchingLocation, onSubmit }) {
   return (
     <motion.form
       key="details"
@@ -26,6 +26,24 @@ export default function DetailsStep({ formData, setFormData, sessionId, error, l
       <InputField label="Delivery Address" placeholder="123 Health Street" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
       {formData.pincode && (
         <InputField label="Pincode" value={formData.pincode} readOnly required={false} onChange={() => {}} />
+      )}
+      {(formData.pincode || fetchingLocation) && (
+        <div className="grid grid-cols-2 gap-2">
+          <InputField
+            label={fetchingLocation ? "City (fetching...)" : "City"}
+            placeholder="City"
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            required={false}
+          />
+          <InputField
+            label={fetchingLocation ? "Province (fetching...)" : "Province"}
+            placeholder="Province"
+            value={formData.state}
+            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+            required={false}
+          />
+        </div>
       )}
       <div className="mt-2">
         <ErrorMessage error={error} />

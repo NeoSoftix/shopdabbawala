@@ -47,6 +47,7 @@ export default function CheckoutFlowModal({
     error,
     setError,
     loading,
+    fetchingLocation,
     sessionId,
     stepLabels,
     currentStepIndex,
@@ -158,6 +159,7 @@ export default function CheckoutFlowModal({
             sessionId={sessionId}
             error={error}
             loading={loading}
+            fetchingLocation={fetchingLocation}
             onSubmit={handleDetailsSubmit}
           />
         )}
