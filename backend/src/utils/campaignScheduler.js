@@ -1,16 +1,7 @@
 import cron from 'node-cron';
 import Campaign from '../models/Campaign.model.js';
-import User from '../models/User.model.js';
 import { processCampaign } from '../controllers/campaignController.js';
-
-const buildUserQuery = (filters = {}) => {
-  const query = {};
-  query.role = filters.role || 'user';
-  if (filters.isActive !== undefined) {
-    query.isActive = filters.isActive;
-  }
-  return query;
-};
+import { resolveCampaignAudience } from './campaignAudience.js';
 
 // Checks every minute for campaigns whose scheduledAt time has passed and sends them
 export const startCampaignScheduler = () => {
@@ -22,7 +13,7 @@ export const startCampaignScheduler = () => {
       });
 
       for (const campaign of dueCampaigns) {
-        const users = await User.find(buildUserQuery(campaign.filters));
+        const users = await resolveCampaignAudience(campaign.filters);
 
         if (users.length === 0) {
           campaign.status = 'completed';

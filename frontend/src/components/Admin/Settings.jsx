@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaLock } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import ChangePasswordModal from "../shared/ChangePasswordModal";
 
 const Settings = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -37,12 +41,27 @@ const Settings = () => {
               </td>
             </tr>
 
-            <tr>
+            <tr className="border-b">
               <td className="py-4 font-medium text-gray-600">
                 Phone
               </td>
               <td className="py-4">
                 {user?.phone || "-"}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="py-4 font-medium text-gray-600">
+                Password
+              </td>
+              <td className="py-4">
+                <button
+                  onClick={() => setIsChangePasswordOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-500 text-red-500 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                >
+                  <FaLock size={13} />
+                  Change Password
+                </button>
               </td>
             </tr>
           </tbody>
@@ -57,6 +76,11 @@ const Settings = () => {
           </button>
         </div>
       </div>
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 };

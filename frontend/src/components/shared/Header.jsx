@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bell, Menu, ChevronDown, User, X, Camera } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 const Header = ({
   title = "Dashboard",
@@ -134,95 +135,81 @@ const Header = ({
         </div>
       </div>
 
-      {/* POPUP MODAL */}
-      {isModalOpen && (
+      {/* Edit Profile Modal */}
+      {isModalOpen && modalType === "profile" && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto transform transition-all">
-            
-            <button 
+
+            <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
             >
               <X size={20} />
             </button>
 
-            {modalType === "profile" ? (
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Profile</h3>
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
-                  
-                  <div className="flex flex-col items-center mb-4">
-                    <div className="relative w-20 h-20 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center overflow-hidden group shadow-inner">
-                      {profileData.photo ? (
-                        <img src={profileData.photo} alt="Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={36} className="text-gray-400" />
-                      )}
-                      <label className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera size={18} className="text-white" />
-                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-                      </label>
-                    </div>
-                    <span className="text-xs text-gray-500 mt-1 font-medium">Change Avatar</span>
-                  </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Profile</h3>
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
-                    <input 
-                      type="text" 
-                      value={profileData.name} 
-                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
-                    />
+                <div className="flex flex-col items-center mb-4">
+                  <div className="relative w-20 h-20 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center overflow-hidden group shadow-inner">
+                    {profileData.photo ? (
+                      <img src={profileData.photo} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={36} className="text-gray-400" />
+                    )}
+                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={18} className="text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                    </label>
                   </div>
+                  <span className="text-xs text-gray-500 mt-1 font-medium">Change Avatar</span>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      value={profileData.email} 
-                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                      className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
-                    <input 
-                      type="text" 
-                      value={profileData.phone} 
-                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                      className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
 
-                  <button type="submit" className="w-full bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 transition mt-2 shadow-md shadow-red-100">
-                    Save Profile
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Reset Password</h3>
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Current Password</label>
-                    <input type="password" className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
-                    <input type="password" className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
-                  </div>
-                  <button type="submit" className="w-full bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 transition mt-2 shadow-md shadow-red-100">
-                    Update Password
-                  </button>
-                </form>
-              </div>
-            )}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+
+                <button type="submit" className="w-full bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 transition mt-2 shadow-md shadow-red-100">
+                  Save Profile
+                </button>
+              </form>
+            </div>
 
           </div>
         </div>
       )}
+
+      <ChangePasswordModal
+        isOpen={isModalOpen && modalType === "password"}
+        onClose={() => setIsModalOpen(false)}
+      />
     </header>
   );
 };

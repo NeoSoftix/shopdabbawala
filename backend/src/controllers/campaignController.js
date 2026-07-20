@@ -1,8 +1,8 @@
 import Campaign from '../models/Campaign.model.js';
-import User from '../models/User.model.js';
 import EmailTemplate from '../models/EmailTemplate.model.js';
 import { sendEmail } from '../utils/email/sendEmail.js';
 import { sendSms } from '../utils/sms/sendSms.js';
+import { resolveCampaignAudience } from '../utils/campaignAudience.js';
 
 // @desc    Create a new campaign (draft)
 // @route   POST /api/campaigns
@@ -69,21 +69,8 @@ export const sendCampaign = async (req, res) => {
       return res.status(400).json({ message: 'Campaign has already been sent' });
     }
 
-    // Build the query for users based on filters
-    const query = {};
-    if (campaign.filters.role) {
-      query.role = campaign.filters.role; // e.g., 'user' or 'vendor'
-    } else {
-      query.role = 'user'; // Default to users
-    }
-    
-    if (campaign.filters.isActive !== undefined) {
-      query.isActive = campaign.filters.isActive;
-    }
-    // Add more filter logic as needed based on User schema properties (e.g. city, subscription status)
+    const users = await resolveCampaignAudience(campaign.filters);
 
-    const users = await User.find(query);
-    
     if (users.length === 0) {
       return res.status(400).json({ message: 'No users match the selected filters' });
     }

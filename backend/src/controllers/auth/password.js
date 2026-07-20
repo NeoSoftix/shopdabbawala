@@ -26,6 +26,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
+
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
@@ -37,6 +38,7 @@ export const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    
     const emailContent = resetPasswordTemplate(user.name, resetUrl);
 
     sendEmail(user.email, "Reset Password", emailContent).catch(
