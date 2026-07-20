@@ -23,7 +23,7 @@ export default function MealTierManager() {
         {/* ---------------- HEADER ---------------- */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight uppercase">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">
               Meal Tiers
             </h1>
             <p className="text-gray-500 text-xs mt-0.5">

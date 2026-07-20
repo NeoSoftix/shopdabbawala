@@ -95,7 +95,7 @@ const CreateAddOns = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">Add Add-On</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Add Add-On</h1>
           <p className="text-gray-500 mt-1">Create a new add-on for meals</p>
         </div>
         <button

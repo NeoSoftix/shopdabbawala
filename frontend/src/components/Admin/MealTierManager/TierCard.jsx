@@ -8,7 +8,7 @@ export default function TierCard({ tier, onEdit, onToggle, onDeleteRequest }) {
       }`}
     >
       <div className="flex items-start justify-between mb-2">
-        <h3 className="text-base font-black text-gray-900">{tier.name}</h3>
+        <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
         <span
           className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
             tier.isActive

@@ -241,7 +241,7 @@ const AssignVendor = () => {
     <div className="min-h-screen bg-[#f8f9fa] p-3">
       {/* Assign Form — compact */}
       <div className="w-full rounded-xl border border-gray-100 bg-white p-3 shadow-sm mb-3">
-        <h1 className="text-base font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-gray-900">
           Assign Vendor to Pincode
         </h1>
 
@@ -360,7 +360,7 @@ const AssignVendor = () => {
       <div className="w-full rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         <div className="flex flex-col gap-2 p-3 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-gray-900">
               All Assignments
             </h2>
             <p className="text-sm text-gray-500">

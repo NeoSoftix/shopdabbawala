@@ -115,7 +115,7 @@ const Categories = () => {
     <div className="px-5 py-3">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Categories</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
           <p className="text-gray-500 mt-1">Manage your categories.</p>
         </div>
 
@@ -225,7 +225,7 @@ const Categories = () => {
       {isEditOpen && selectedCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[600px] rounded-xl p-6">
-            <h2 className="text-xl font-bold mb-4">Update Category</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Update Category</h2>
 
             <div className="mb-3">
               <label className="block mb-2">Category Name</label>

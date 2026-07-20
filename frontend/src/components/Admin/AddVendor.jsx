@@ -177,7 +177,7 @@ const AddVendor = () => {
   <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
   <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Add Vendor</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Add Vendor</h1>
       <p className="text-gray-500 text-sm sm:text-base">Create a new vendor account</p>
     </div>
 

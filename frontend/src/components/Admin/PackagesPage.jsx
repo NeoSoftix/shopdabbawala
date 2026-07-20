@@ -30,7 +30,7 @@ const PackagesPage = () => {
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-5">
         <div>
-          <h1 className="text-xl sm:text-xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Packages
           </h1>
           {/* <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">

@@ -191,7 +191,7 @@ export default function WeeklyMenuManager() {
     <div className="min-h-screen bg-[#f8f9fa] p-4">
       <div className="mb-4 flex flex-col justify-between sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Weekly Menu Builder</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Weekly Menu Builder</h1>
           {/* <p className="text-gray-500">
             Configure meal sections and limits for a specific date and category.
           </p> */}

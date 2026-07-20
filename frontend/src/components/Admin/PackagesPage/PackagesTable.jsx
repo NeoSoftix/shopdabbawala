@@ -18,7 +18,7 @@ const PackagesTable = ({
       className={`${showForm ? "lg:col-span-2" : "lg:col-span-3"} bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300`}
     >
       <div className="p-1 sm:p-2 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="font-bold text-gray-800 text-base sm:text-lg">
+        <h2 className="text-xl font-bold text-gray-900">
           All Packages
         </h2>
       </div>

@@ -106,7 +106,7 @@ const AddItem = () => {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-4xl font-bold text-slate-800">Add Item</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Add Item</h1>
           <p className="text-gray-500 mt-1">Create a new menu item</p>
         </div>
         <button

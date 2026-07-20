@@ -16,7 +16,7 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
             }}
           />
           <div className="min-w-0">
-            <h2 className="text-sm font-black text-gray-900 tracking-tight truncate">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight truncate">
               {vendor.organizationName}
             </h2>
             <p className="text-xs font-medium text-gray-500 mt-0.5 truncate">

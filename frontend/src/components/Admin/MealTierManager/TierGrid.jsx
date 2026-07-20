@@ -21,7 +21,7 @@ export default function TierGrid({ tiers, loading, onAddNew, onEdit, onToggle, o
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 className="text-sm font-bold text-gray-800">No meal tiers yet</h3>
+        <h3 className="text-lg font-bold text-gray-900">No meal tiers yet</h3>
         <p className="text-xs text-gray-500 mt-1 mb-4">
           Add your first tier — like "Basic" with a few features and items.
         </p>

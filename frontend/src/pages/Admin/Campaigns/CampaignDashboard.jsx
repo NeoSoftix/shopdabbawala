@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { MdDelete, MdEdit, MdSend } from 'react-icons/md';
+import { HiOutlineClock } from 'react-icons/hi';
 import { getCampaigns, deleteCampaign, scheduleCampaign, sendCampaign } from '../../../services/campaignService';
 import { toast } from 'react-hot-toast';
-import { Plus, Mail, MessageSquare, Pencil, Trash2, CalendarClock, Send } from 'lucide-react';
+import { Mail, MessageSquare, FileText } from 'lucide-react';
+import { SectionLoader } from '../../../components/shared/Loader';
+
+const statusStyles = {
+  completed: 'bg-emerald-100 text-emerald-700',
+  draft: 'bg-gray-100 text-gray-600',
+  'in-progress': 'bg-sky-100 text-sky-700',
+  scheduled: 'bg-amber-100 text-amber-700',
+  failed: 'bg-rose-100 text-rose-700',
+};
 
 const CampaignDashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +28,7 @@ const CampaignDashboard = () => {
 
   const fetchCampaigns = async () => {
     try {
+      setLoading(true);
       const data = await getCampaigns();
       setCampaigns(data);
     } catch (error) {
@@ -26,15 +38,39 @@ const CampaignDashboard = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this campaign? This cannot be undone.')) return;
-    try {
-      await deleteCampaign(id);
-      toast.success('Campaign deleted');
-      setCampaigns((prev) => prev.filter((c) => c._id !== id));
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete campaign');
-    }
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm text-gray-800">Delete this campaign?</p>
+          <p className="text-xs text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteCampaign(id);
+                  toast.success('Campaign deleted successfully.');
+                  fetchCampaigns();
+                } catch (error) {
+                  toast.error(error.response?.data?.message || 'Failed to delete campaign.');
+                }
+              }}
+              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000 }
+    );
   };
 
   const handleSendNow = async (id) => {
@@ -65,114 +101,125 @@ const CampaignDashboard = () => {
     }
   };
 
-  if (loading) return <div className="p-6">Loading campaigns...</div>;
-
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Campaigns</h1>
-        <div className="flex gap-3">
+    <div className="px-5 py-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+          <p className="text-gray-500 mt-1">Manage email &amp; SMS campaigns.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
           <Link
             to="/admin/campaigns/templates"
-            className="flex items-center gap-2 bg-gray-100 text-gray-700 border px-4 py-2 rounded hover:bg-gray-200"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-gray-700 transition hover:bg-gray-50"
           >
+            <FileText size={15} />
             Email Templates
           </Link>
-          <Link
-            to="/admin/campaigns/new"
-            className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+          <button
+            onClick={() => navigate('/admin/campaigns/new')}
+            className="inline-flex items-center justify-center rounded-full bg-red-500 px-4 py-1.5 text-white transition hover:bg-red-600"
           >
-            <Plus size={18} />
             Create Campaign
-          </Link>
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-3 font-semibold text-gray-600">Name</th>
-              <th className="px-6 py-3 font-semibold text-gray-600">Type</th>
-              <th className="px-6 py-3 font-semibold text-gray-600">Status</th>
-              <th className="px-6 py-3 font-semibold text-gray-600">Success/Failed</th>
-              <th className="px-6 py-3 font-semibold text-gray-600">Date</th>
-              <th className="px-6 py-3 font-semibold text-gray-600">Actions</th>
+      <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <table className="w-full min-w-[900px] text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <th className="py-2.5 px-4">Name</th>
+              <th className="py-2.5 px-4">Type</th>
+              <th className="py-2.5 px-4">Status</th>
+              <th className="py-2.5 px-4">Success/Failed</th>
+              <th className="py-2.5 px-4">Date</th>
+              <th className="py-2.5 px-4">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+
+          <tbody className="divide-y divide-gray-50">
             {campaigns.map((campaign) => {
               const isEditable = campaign.status === 'draft' || campaign.status === 'scheduled';
               const isDeletable = campaign.status !== 'in-progress';
 
               return (
-                <tr key={campaign._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium">{campaign.name}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      campaign.type === 'email' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                    }`}>
-                      {campaign.type === 'email' ? <Mail size={12}/> : <MessageSquare size={12}/>}
+                <tr key={campaign._id} className="hover:bg-gray-50/40 transition-colors duration-150">
+                  <td className="py-2.5 px-4 text-sm font-semibold text-gray-800">{campaign.name}</td>
+
+                  <td className="py-2.5 px-4">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                        campaign.type === 'email' ? 'bg-sky-100 text-sky-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}
+                    >
+                      {campaign.type === 'email' ? <Mail size={12} /> : <MessageSquare size={12} />}
                       {campaign.type.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`capitalize px-2 py-1 rounded text-xs font-semibold ${
-                      campaign.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
-                      campaign.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
+
+                  <td className="py-2.5 px-4">
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
                       {campaign.status}
                     </span>
                     {campaign.status === 'scheduled' && campaign.scheduledAt && (
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-[11px] text-gray-400 mt-1">
                         {new Date(campaign.scheduledAt).toLocaleString()}
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {campaign.successCount} / {campaign.failureCount}
+
+                  <td className="py-2.5 px-4 text-sm text-gray-500 font-medium">
+                    <span className="text-emerald-600">{campaign.successCount}</span>
+                    {' / '}
+                    <span className="text-rose-600">{campaign.failureCount}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+
+                  <td className="py-2.5 px-4 text-sm text-gray-400">
                     {new Date(campaign.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+
+                  <td className="py-2.5 px-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
                       {campaign.status === 'draft' && (
                         <button
-                          title="Send now"
                           onClick={() => handleSendNow(campaign._id)}
-                          className="text-green-600 hover:text-green-800"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
+                          aria-label="Send now"
+                          title="Send now"
                         >
-                          <Send size={16} />
+                          <MdSend size={15} />
                         </button>
                       )}
                       {isEditable && (
                         <button
-                          title="Schedule"
                           onClick={() => openScheduleModal(campaign._id)}
-                          className="text-yellow-600 hover:text-yellow-800"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-600 transition hover:bg-amber-100"
+                          aria-label="Schedule campaign"
+                          title="Schedule"
                         >
-                          <CalendarClock size={16} />
+                          <HiOutlineClock size={15} />
                         </button>
                       )}
                       {isEditable && (
                         <button
-                          title="Edit"
                           onClick={() => navigate(`/admin/campaigns/${campaign._id}/edit`)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 transition hover:bg-sky-100"
+                          aria-label="Edit campaign"
+                          title="Edit"
                         >
-                          <Pencil size={16} />
+                          <MdEdit size={15} />
                         </button>
                       )}
                       {isDeletable && (
                         <button
-                          title="Delete"
                           onClick={() => handleDelete(campaign._id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                          aria-label="Delete campaign"
+                          title="Delete"
                         >
-                          <Trash2 size={16} />
+                          <MdDelete size={15} />
                         </button>
                       )}
                     </div>
@@ -180,10 +227,19 @@ const CampaignDashboard = () => {
                 </tr>
               );
             })}
-            {campaigns.length === 0 && (
+
+            {loading && (
               <tr>
-                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                  No campaigns found. Create a new campaign to get started!
+                <td colSpan="6">
+                  <SectionLoader text="Loading campaigns..." />
+                </td>
+              </tr>
+            )}
+
+            {!loading && campaigns.length === 0 && (
+              <tr>
+                <td colSpan="6" className="text-center py-8 text-sm text-gray-400">
+                  No campaigns found. Create one to get started.
                 </td>
               </tr>
             )}
@@ -192,28 +248,32 @@ const CampaignDashboard = () => {
       </div>
 
       {scheduleTargetId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4">Schedule Campaign</h2>
-            <form onSubmit={handleScheduleSubmit} className="space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-[420px] rounded-xl p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Schedule Campaign</h2>
+            <p className="text-sm text-gray-500 mb-4">Pick a future date and time to send this campaign.</p>
+
+            <form onSubmit={handleScheduleSubmit}>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Date &amp; Time</label>
               <input
                 type="datetime-local"
                 required
                 value={scheduleDate}
                 onChange={(e) => setScheduleDate(e.target.value)}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full border p-3 rounded mb-4"
               />
+
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setScheduleTargetId(null)}
-                  className="px-4 py-2 border rounded hover:bg-gray-50"
+                  className="border px-4 py-2 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+                  className="bg-red-500 text-white px-4 py-2 rounded"
                 >
                   Confirm
                 </button>

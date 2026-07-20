@@ -29,7 +29,7 @@ export default function TierFormPanel({ tierForm }) {
 
       <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.2s_ease-out]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-black text-gray-900 uppercase tracking-wide">
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
             {editingId ? "Edit Meal Tier" : "New Meal Tier"}
           </h2>
           <button

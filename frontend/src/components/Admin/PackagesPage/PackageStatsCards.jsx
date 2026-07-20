@@ -50,7 +50,7 @@ const PackageStatsCards = ({ packages }) => {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               {s.title}
             </p>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mt-0.5">
+            <h3 className="text-lg font-bold text-gray-900 mt-0.5">
               {s.value}
             </h3>
             {s.sub && (

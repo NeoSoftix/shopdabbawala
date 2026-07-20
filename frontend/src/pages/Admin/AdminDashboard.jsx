@@ -171,7 +171,7 @@ export default function AdminDashboard() {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold mb-3">Delivery Schedule</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-3">Delivery Schedule</h2>
         <OrdersCalendar />
       </div>
 

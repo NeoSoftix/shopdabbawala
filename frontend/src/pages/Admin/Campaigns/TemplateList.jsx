@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getTemplates, deleteTemplate } from '../../../services/templateService';
 import { toast } from 'react-hot-toast';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react';
 
 const TemplateList = () => {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,9 +40,20 @@ const TemplateList = () => {
 
   return (
     <div className="p-6">
+      <button
+        onClick={() => navigate('/admin/campaigns')}
+        className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-700 mb-4 transition-colors"
+      >
+        <ArrowLeft size={16} />
+        Back to Campaigns
+      </button>
+
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Email Templates</h1>
-        <Link 
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
+          <p className="text-gray-500 mt-1">Manage your reusable email templates.</p>
+        </div>
+        <Link
           to="/admin/campaigns/templates/new"
           className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
         >
@@ -53,7 +65,7 @@ const TemplateList = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.map((template) => (
           <div key={template._id} className="bg-white rounded-lg shadow border p-5">
-            <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">{template.name}</h3>
             <p className="text-sm text-gray-500 mb-4 line-clamp-1">{template.subject}</p>
             <div className="flex gap-3 mt-4 pt-4 border-t">
               <Link 

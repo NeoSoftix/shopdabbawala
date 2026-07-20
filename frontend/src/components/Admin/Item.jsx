@@ -130,7 +130,7 @@ const Item = () => {
     <div className="p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Items</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Items</h1>
           {/* <p className="text-gray-500 mt-1">Manage your items.</p> */}
         </div>
 
@@ -260,7 +260,7 @@ const Item = () => {
       {isEdit && selectedItem && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[600px] rounded-xl p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Update Item</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Update Item</h2>
 
             <div className="mb-4 flex flex-col items-center justify-center text-center">
               <img

@@ -20,7 +20,7 @@ const PackageFormPanel = ({
       className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 sticky top-6"
     >
       <div className="flex items-center justify-between pb-4 border-b border-gray-50 mb-5">
-        <h2 className="font-bold text-gray-800 text-base sm:text-lg">
+        <h2 className="text-xl font-bold text-gray-900">
           {editId ? "Edit Package" : "Add Package"}
         </h2>
         <div className="flex items-center gap-3">

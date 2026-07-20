@@ -94,7 +94,7 @@ const Users = () => {
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-          <h2 className="text-2xl font-semibold text-gray-800">Customers</h2>
+          <h2 className="text-xl font-bold text-gray-900">Customers</h2>
           
           {/* Search bar */}
           <div className="relative w-full md:w-80">
@@ -201,7 +201,7 @@ const Users = () => {
               <FiX className="text-gray-500 text-lg" />
             </button>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Customer Details</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Customer Details</h3>
 
             {detailsLoading ? (
               <SectionLoader text="Loading details..." />
