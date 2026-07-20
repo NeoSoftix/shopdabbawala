@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import BackToTopButton from "./components/shared/BackToTopButton";
 import AppLoader from "./components/shared/AppLoader";
+import WhatsAppWidget from "./components/shared/WhatsAppWidget";
 import { useAuth } from "./context/AuthContext";
 
 import AdminLayout from "./pages/Admin/AdminLayout";
@@ -177,6 +178,7 @@ function App() {
 
 <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
     </Routes>
+      <WhatsAppWidget />
       <BackToTopButton />
     </>
   );

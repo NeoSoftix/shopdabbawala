@@ -35,6 +35,7 @@ import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
 import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
 import campaignRoutes from "./src/routes/campaignRoutes.js";
 import templateRoutes from "./src/routes/templateRoutes.js";
+import webhookRoutes from "./src/routes/webhookRoutes.js";
 import { generalLimiter } from "./src/middleware/ratelimiter.middleware.js";
 import { stripeWebhook } from "./src/controllers/payment.controller.js";
 
@@ -63,6 +64,7 @@ app.post(
 
 //middelare for jso parsing
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 const allowedOrigins = [
@@ -145,6 +147,8 @@ app.use("/api/weekly-menu", weeklyMenuRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/templates", templateRoutes);
 
+// whatsapp webhook
+app.use("/api/webhook", webhookRoutes);
 
 const httpServer = http.createServer(app);
 initSocket(httpServer);
