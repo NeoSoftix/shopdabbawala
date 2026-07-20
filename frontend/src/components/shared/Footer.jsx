@@ -15,6 +15,7 @@ const quickLinks = [
   { label: "Plans", to: "/#plans" },
   { label: "About", to: "/about" },
   { label: "Contact Us", to: "/contact-us" },
+  {label:"Login", to:"/login"}
 ];
 
 const serviceLinks = [
