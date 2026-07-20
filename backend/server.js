@@ -35,6 +35,7 @@ import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
 import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
 import campaignRoutes from "./src/routes/campaignRoutes.js";
 import templateRoutes from "./src/routes/templateRoutes.js";
+import { startCampaignScheduler } from "./src/utils/campaignScheduler.js";
 import { generalLimiter } from "./src/middleware/ratelimiter.middleware.js";
 import { stripeWebhook } from "./src/controllers/payment.controller.js";
 
@@ -153,6 +154,7 @@ const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  startCampaignScheduler();
 });
 
 httpServer.on("error", (error) => {

@@ -14,7 +14,7 @@ const campaignSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'scheduled', 'completed', 'failed'],
+      enum: ['draft', 'scheduled', 'in-progress', 'completed', 'failed'],
       default: 'draft',
     },
     filters: {
@@ -56,6 +56,11 @@ const campaignSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+campaignSchema.index({
+  status: 1,
+  scheduledAt: 1,
+});
 
 const Campaign = mongoose.model('Campaign', campaignSchema);
 

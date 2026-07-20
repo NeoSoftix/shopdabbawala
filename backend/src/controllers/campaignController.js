@@ -102,7 +102,7 @@ export const sendCampaign = async (req, res) => {
 };
 
 // Background worker function to send messages
-const processCampaign = async (campaignId, users) => {
+export const processCampaign = async (campaignId, users) => {
   const campaign = await Campaign.findById(campaignId).populate('emailTemplateId');
   if (!campaign) return;
 
@@ -134,4 +134,139 @@ const processCampaign = async (campaignId, users) => {
   campaign.status = 'completed';
   campaign.completedAt = new Date();
   await campaign.save();
+};
+
+// @desc    Update a campaign (draft or scheduled only)
+// @route   PUT /api/campaigns/:id
+// @access  Private/Admin
+export const updateCampaign = async (req, res) => {
+  try {
+    const { name, type, filters, messageContent, emailTemplateId, subject, scheduledAt } = req.body;
+
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({
+        message: 'Campaign not found',
+       success:false
+      });
+    }
+
+    if (!['draft', 'scheduled'].includes(campaign.status)) {
+      return res.status(400).json({
+        message: 'Only draft or scheduled campaigns can be edited',
+        success:false
+      });
+    }
+
+    if (name !== undefined) campaign.name = name;
+
+    if (type !== undefined) campaign.type = type;
+
+    if (filters !== undefined) campaign.filters = filters;
+
+    if (messageContent !== undefined) campaign.messageContent = messageContent;
+
+    if (emailTemplateId !== undefined) campaign.emailTemplateId = emailTemplateId;
+
+    if (subject !== undefined) campaign.subject = subject;
+
+    if (scheduledAt !== undefined) {
+      if (new Date(scheduledAt) <= new Date()) {
+        return res.status(400).json({
+          message: 'Schedule time must be in the future',
+          success: false,
+        });
+      }
+      campaign.scheduledAt = scheduledAt;
+      campaign.status = 'scheduled';
+    }
+
+    const updatedCampaign = await campaign.save();
+
+    res.status(200).json(updatedCampaign);
+  } catch (error) {
+    console.error('Update Campaign error', error);
+
+    return res.status(500).json({
+      message: 'Internal Server error',
+      success: false,
+    });
+  }
+};
+
+// scheduel the campaign
+
+export const scheduleCampaign = async (req, res) => {
+  try {
+    const { campaignId, scheduledAt } = req.body;
+
+    if (!scheduledAt) {
+      return res.status(400).json({
+        message: "Schedule date is required",
+      });
+    }
+
+    const campaign = await Campaign.findById(campaignId);
+
+    if (!campaign) {
+      return res.status(404).json({
+        message: "Campaign not found",
+      });
+    }
+
+    if (new Date(scheduledAt) <= new Date()) {
+      return res.status(400).json({
+        message: "Schedule time must be in the future",
+      });
+    }
+
+    campaign.status = "scheduled";
+
+    campaign.scheduledAt = scheduledAt;
+
+    await campaign.save();
+
+    return res.status(200).json({
+      message: "Campaign scheduled successfully",
+      campaign,
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+// @desc    Delete a campaign
+// @route   DELETE /api/campaigns/:id
+// @access  Private/Admin
+export const deleteCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found', success: false });
+    }
+
+    if (campaign.status === 'in-progress') {
+      return res.status(400).json({
+        message: 'Cannot delete a campaign that is currently sending',
+        success: false,
+      });
+    }
+
+    await campaign.deleteOne();
+
+    res.status(200).json({
+     message: 'Campaign deleted successfully',
+      success: true 
+    });
+
+  } catch (error) {
+    console.error('Delete Campaign error', error);
+
+    res.status(500).json({
+      message: 'Internal Server error', success: false });
+  }
 };

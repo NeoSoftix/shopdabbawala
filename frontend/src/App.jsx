@@ -137,6 +137,7 @@ function App() {
         {/* Campaign Routes */}
         <Route path="campaigns" element={<CampaignDashboard />} />
         <Route path="campaigns/new" element={<CreateCampaign />} />
+        <Route path="campaigns/:id/edit" element={<CreateCampaign />} />
         <Route path="campaigns/templates" element={<TemplateList />} />
         <Route path="campaigns/templates/new" element={<TemplateBuilder />} />
         <Route path="campaigns/templates/:id" element={<TemplateBuilder />} />
