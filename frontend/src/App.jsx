@@ -28,6 +28,10 @@ import CreateAddOns from "./components/Admin/CreateAddOns";
 import AddOns from "./components/Admin/AddOns";
 import PackagesPage from "./components/Admin/PackagesPage";
 import WeeklyMenuManager from "./pages/Admin/WeeklyMenuManager";
+import CampaignDashboard from "./pages/Admin/Campaigns/CampaignDashboard";
+import CreateCampaign from "./pages/Admin/Campaigns/CreateCampaign";
+import TemplateList from "./pages/Admin/Campaigns/TemplateList";
+import TemplateBuilder from "./pages/Admin/Campaigns/TemplateBuilder";
 
 import VendorLayout from "./pages/Vendor/VendorLayout";
 import VendorDashboard from "./pages/Vendor/VendorDashboard";
@@ -129,6 +133,13 @@ function App() {
         <Route path="duration" element={<SetDuration />} />
         <Route path="meal-tiers" element={<MealTierManager />} />
         <Route path="weekly-menu" element={<WeeklyMenuManager />} />
+        
+        {/* Campaign Routes */}
+        <Route path="campaigns" element={<CampaignDashboard />} />
+        <Route path="campaigns/new" element={<CreateCampaign />} />
+        <Route path="campaigns/templates" element={<TemplateList />} />
+        <Route path="campaigns/templates/new" element={<TemplateBuilder />} />
+        <Route path="campaigns/templates/:id" element={<TemplateBuilder />} />
       </Route>
 
       {/* Vendor layout route */}

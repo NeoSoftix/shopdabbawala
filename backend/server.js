@@ -33,6 +33,8 @@ import notificationRoutes from "./src/routes/notification.routes.js";
 import contactQueryRoutes from "./src/routes/contactQuery.routes.js";
 import deliveryChargeRoutes from "./src/routes/deliveryCharge.routes.js";
 import weeklyMenuRoutes from "./src/routes/weeklyMenu.routes.js";
+import campaignRoutes from "./src/routes/campaignRoutes.js";
+import templateRoutes from "./src/routes/templateRoutes.js";
 import { generalLimiter } from "./src/middleware/ratelimiter.middleware.js";
 import { stripeWebhook } from "./src/controllers/payment.controller.js";
 
@@ -138,6 +140,10 @@ app.use("/api/delivery-charges", deliveryChargeRoutes);
 
 // weekly per-category menu routes
 app.use("/api/weekly-menu", weeklyMenuRoutes);
+
+// campaigns & templates
+app.use("/api/campaigns", campaignRoutes);
+app.use("/api/templates", templateRoutes);
 
 
 const httpServer = http.createServer(app);

@@ -13,6 +13,7 @@ import { MdTune } from "react-icons/md";
 import { FaStore, FaClipboardList, FaHeart, FaImage } from "react-icons/fa";
 
 import { BiCategoryAlt } from "react-icons/bi";
+import { MdCampaign } from "react-icons/md";
 
 export const adminMenu = [
   {
@@ -86,6 +87,11 @@ export const adminMenu = [
     label: "Weekly Menu",
     path: "/admin/weekly-menu",
     icon: MdRestaurantMenu,
+  },
+  {
+    label: "Campaigns",
+    path: "/admin/campaigns",
+    icon: MdCampaign,
   },
 
 
