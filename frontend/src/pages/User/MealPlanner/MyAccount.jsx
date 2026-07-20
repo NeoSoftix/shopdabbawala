@@ -26,6 +26,8 @@ const MyAccount = ({ user }) => {
         {fieldRow("Email", user?.email)}
         {fieldRow("Phone", user?.phone)}
         {fieldRow("Address", user?.address)}
+        {fieldRow("City", user?.city)}
+        {fieldRow("State", user?.state)}
         {fieldRow("Pincode", user?.pincode)}
       </div>
     </div>

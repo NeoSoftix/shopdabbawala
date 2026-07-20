@@ -232,6 +232,18 @@ const Users = () => {
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">City</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.city || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-400">State</span>
+                  <span className="text-gray-800 font-medium">
+                    {selectedUser.state || "Not set"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-2">
                   <span className="text-gray-400">Pincode</span>
                   <span className="text-gray-800 font-medium">
                     {selectedUser.pincode || "Not set"}

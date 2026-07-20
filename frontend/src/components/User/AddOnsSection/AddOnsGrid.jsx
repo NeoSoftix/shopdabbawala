@@ -8,7 +8,7 @@ export default function AddOnsGrid({
   onToggleFavorite,
 }) {
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 items-stretch">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-stretch">
       <AnimatePresence mode="popLayout">
         {items.map((item) => (
           <AddOnCard

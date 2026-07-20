@@ -50,7 +50,7 @@ export const adminMenu = [
   },
 
   {
-    label: "Users",
+    label: "Customer",
     path: "/admin/users",
     icon: MdPeople,
   },
