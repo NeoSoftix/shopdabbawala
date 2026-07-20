@@ -2,6 +2,12 @@ import client from '../../config/twilio.js';
 
 export const sendSms = async (to, message) => {
   try {
+    // Check if test mode is enabled
+    if (process.env.TEST_SMS_MODE === 'true') {
+      console.log(`[TEST MODE] SMS sent to ${to}: "${message}"`);
+      return { sid: 'test_sms_' + Date.now(), status: 'delivered' };
+    }
+
     // Check if the user has defined a Twilio Phone Number or a Messaging Service SID in .env
     const fromNumber = process.env.TWILIO_PHONE_NUMBER ? process.env.TWILIO_PHONE_NUMBER.replace(/\s+/g, '') : undefined;
     const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
