@@ -12,9 +12,9 @@ export const createPackage = async (data) => {
 };
 
 // 2. Get all packages (Includes active & inactive packages)
-export const getAllPackages = async () => {
+export const getAllPackages = async (page = 1, limit = 10) => {
   try {
-    const res = await API.get("/packages");
+    const res = await API.get("/packages", { params: { page, limit } });
     return res.data;
   } catch (error) {
     console.error("Get All Packages Error:", error);

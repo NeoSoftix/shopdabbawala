@@ -12,9 +12,9 @@ export const createDeliveryCharge = async (data) => {
 };
 
 // 2. Get all delivery charges (Admin Only)
-export const getAllDeliveryCharges = async () => {
+export const getAllDeliveryCharges = async (page = 1, limit = 10) => {
   try {
-    const res = await API.get("/delivery-charges");
+    const res = await API.get("/delivery-charges", { params: { page, limit } });
     return res.data;
   } catch (error) {
     console.error("Get All Delivery Charges Error:", error);

@@ -134,11 +134,11 @@ export default function OrdersPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-4 py-3">
       <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         {stats.map((item) => (
           <StatCard key={item.title} {...item} />
         ))}

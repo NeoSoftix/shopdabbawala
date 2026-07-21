@@ -14,9 +14,9 @@ export const createCategory = async (data) => {
 };
 
 // get all cartegory
-export const getAllCategories = async () => {
+export const getAllCategories = async (page = 1, limit = 10) => {
   try {
-    const res = await API.get("/category");
+    const res = await API.get("/category", { params: { page, limit } });
 
     return res.data;
   } catch (error) {

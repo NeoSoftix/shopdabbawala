@@ -31,7 +31,7 @@ export default function OrdersTable({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center justify-between">
+      <div className="p-3 sm:p-4 border-b border-gray-50 flex items-center justify-between">
         <h2 className="font-bold text-gray-800 text-base sm:text-lg">
           Recent Orders
         </h2>
@@ -41,12 +41,12 @@ export default function OrdersTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/70 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-              <th className="py-4 px-4">Order ID</th>
-              <th className="py-4 px-4">Customer</th>
-              <th className="py-4 px-4">Order Date</th>
-              <th className="py-4 px-4">Delivery</th>
-              <th className="py-4 px-4">Status</th>
-              {showActions && <th className="py-4 px-4 text-right">Actions</th>}
+              <th className="py-2.5 px-4">Order ID</th>
+              <th className="py-2.5 px-4">Customer</th>
+              <th className="py-2.5 px-4">Order Date</th>
+              <th className="py-2.5 px-4">Delivery</th>
+              <th className="py-2.5 px-4">Status</th>
+              {showActions && <th className="py-2.5 px-4 text-right">Actions</th>}
             </tr>
           </thead>
 
@@ -56,19 +56,19 @@ export default function OrdersTable({
                 key={order._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
-                <td className="py-4 px-4 text-sm font-medium text-gray-800" title={order._id}>
+                <td className="py-2.5 px-4 text-sm font-medium text-gray-800" title={order._id}>
                   #{order._id.slice(-6).toUpperCase()}
                 </td>
 
-                <td className="py-4 px-4 text-sm text-gray-600">
+                <td className="py-2.5 px-4 text-sm text-gray-600">
                   {order.user?.name || <span className="text-gray-400 italic">Not set</span>}
                 </td>
 
-                <td className="py-4 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
+                <td className="py-2.5 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
 
-                <td className="py-4 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
+                <td className="py-2.5 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
 
-                <td className="py-4 px-4">
+                <td className="py-2.5 px-4">
                   <div className="flex flex-col items-start gap-1">
                     <span
                       className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -86,7 +86,7 @@ export default function OrdersTable({
                 </td>
 
                 {showActions && (
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-2.5 px-4 text-right">
                     <div className="flex items-center justify-end">
                       <button
                         type="button"

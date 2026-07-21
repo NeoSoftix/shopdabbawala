@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { Pencil, Trash2, Search } from "lucide-react";
 import {
@@ -24,12 +24,16 @@ const DeliveryCharges = () => {
   const [deletingId, setDeletingId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  async function fetchCharges() {
+  async function fetchCharges(pageToFetch = 1) {
     try {
       setLoading(true);
-      const res = await getAllDeliveryCharges();
-      if (res.success) setCharges(res.data || []);
+      const res = await getAllDeliveryCharges(pageToFetch, PAGE_SIZE);
+      if (res.success) {
+        setCharges(res.data || []);
+        setTotalPages(Math.max(1, res.totalPages || 1));
+      }
     } catch (error) {
       console.error("Failed to fetch delivery charges:", error);
       toast.error("Failed to load delivery charges.");
@@ -39,8 +43,8 @@ const DeliveryCharges = () => {
   }
 
   useEffect(() => {
-    fetchCharges();
-  }, []);
+    fetchCharges(page);
+  }, [page]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -84,7 +88,7 @@ const DeliveryCharges = () => {
           editingId ? "Delivery charge updated!" : "Delivery charge added!",
         );
         resetForm();
-        fetchCharges();
+        fetchCharges(page);
       }
     } catch (error) {
       toast.error(
@@ -102,7 +106,7 @@ const DeliveryCharges = () => {
       if (res.success) {
         toast.success("Delivery charge removed.");
         if (editingId === id) resetForm();
-        fetchCharges();
+        fetchCharges(page);
       }
     } catch (error) {
       toast.error(
@@ -113,20 +117,11 @@ const DeliveryCharges = () => {
     }
   };
 
-  const filteredCharges = useMemo(
-    () =>
-      charges.filter((item) =>
+  const filteredCharges = searchTerm
+    ? charges.filter((item) =>
         item.pincode.toUpperCase().replace(/\s/g, "").includes(searchTerm),
-      ),
-    [charges, searchTerm],
-  );
-
-  const totalPages = Math.max(1, Math.ceil(filteredCharges.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedCharges = filteredCharges.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+      )
+    : charges;
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""));
@@ -229,7 +224,7 @@ const DeliveryCharges = () => {
         </div>
 
         <div className="divide-y divide-gray-100">
-          {paginatedCharges.length === 0 && !loading && (
+          {filteredCharges.length === 0 && !loading && (
             <p className="px-6 py-8 text-center text-gray-400">
               {searchTerm
                 ? "No delivery charges match this pincode."
@@ -237,7 +232,7 @@ const DeliveryCharges = () => {
             </p>
           )}
 
-          {paginatedCharges.map((item) => (
+          {filteredCharges.map((item) => (
             <div
               key={item._id}
               className="flex items-center justify-between gap-4 px-4 py-1.5"
@@ -275,10 +270,10 @@ const DeliveryCharges = () => {
           ))}
         </div>
 
-        {filteredCharges.length > PAGE_SIZE && (
+        {!searchTerm && totalPages > 1 && (
           <div className="border-t border-gray-100 px-4 py-2">
             <Pagination
-              currentPage={currentPage}
+              currentPage={page}
               totalPages={totalPages}
               onPageChange={(p) => setPage(Math.max(1, Math.min(totalPages, p)))}
             />

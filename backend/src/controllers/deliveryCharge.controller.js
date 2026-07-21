@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import DeliveryCharge from "../models/deliveryCharge.model.js";
+import { getPagination } from "../utils/pagination.js";
 
 // Admin adds a delivery charge for a pincode
 export const createDeliveryCharge = async (req, res) => {
@@ -52,15 +53,29 @@ export const createDeliveryCharge = async (req, res) => {
 // Admin views all delivery charges
 export const getAllDeliveryCharges = async (req, res) => {
   try {
-    const deliveryCharges = await DeliveryCharge.find().sort({ createdAt: -1 });
+    const { page, limit, skip } = getPagination(req);
+
+    const [deliveryCharges, total] = await Promise.all([
+      DeliveryCharge.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      DeliveryCharge.countDocuments(),
+    ]);
 
     return res.status(200).json({
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: deliveryCharges.length,
       data: deliveryCharges,
     });
   } catch (error) {
     console.error("Get All Delivery Charges Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",

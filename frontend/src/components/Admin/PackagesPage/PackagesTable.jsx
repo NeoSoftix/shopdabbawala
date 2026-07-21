@@ -1,6 +1,7 @@
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { SectionLoader } from "../../shared/Loader";
 import PackageStatusBadge from "./PackageStatusBadge.jsx";
+import Pagination from "../../shared/Pagination";
 
 /**
  * "All Packages" table: lists packages with edit/delete row actions.
@@ -12,6 +13,9 @@ const PackagesTable = ({
   showForm,
   onEdit,
   onDelete,
+  page,
+  totalPages,
+  onPageChange,
 }) => {
   return (
     <div
@@ -120,6 +124,14 @@ const PackagesTable = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="px-3 pb-2">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       </div>
     </div>
   );

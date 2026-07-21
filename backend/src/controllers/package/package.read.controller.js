@@ -1,23 +1,38 @@
 import mongoose from "mongoose";
 import Package from "../../models/package.model.js";
+import { getPagination } from "../../utils/pagination.js";
 
 // get all package
 export const getAllPackage = async (req, res) => {
   try {
-    const packages = await Package.find().sort({ createdAt: -1 }).lean();
+    const { page, limit, skip } = getPagination(req);
+
+    const [packages, total] = await Promise.all([
+      Package.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Package.countDocuments(),
+    ]);
 
     return res.status(200).json({
-      message: "All Packages Fetched Successfully",
-      count:packages.length,
       success: true,
+      message: "All Packages Fetched Successfully",
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      count: packages.length,
       data: packages,
     });
   } catch (error) {
     console.log("Get All Package Error:", error);
 
     return res.status(500).json({
-      message: "Internal Server Error",
       success: false,
+      message: "Internal Server Error",
     });
   }
 };

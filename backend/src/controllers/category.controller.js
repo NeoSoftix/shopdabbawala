@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
+import { getPagination } from "../utils/pagination.js";
 
 // contoller for create category
 export const createCategory = async (req, res) => {
@@ -39,10 +40,23 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const allCategories = await Category.find().sort({ createdAt: -1 });
+    const { page, limit, skip } = getPagination(req);
+
+    const [allCategories, total] = await Promise.all([
+      Category.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Category.countDocuments(),
+    ]);
 
     return res.status(200).json({
       success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
       count: allCategories.length,
       data: allCategories,
     });
@@ -55,7 +69,6 @@ export const getAllCategories = async (req, res) => {
     });
   }
 };
-
 // get one category controller
 export const getSingleCategory = async (req, res) => {
   try {

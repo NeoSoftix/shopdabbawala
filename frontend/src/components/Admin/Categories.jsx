@@ -22,29 +22,24 @@ const Categories = () => {
   const [success, setSuccess] = useState("");
   const [updating, setUpdating] = useState(false);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    fetchCategories(page);
+  }, [page]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (pageToFetch = 1) => {
     try {
       setLoading(true);
-      const res = await getAllCategories();
+      const res = await getAllCategories(pageToFetch, PAGE_SIZE);
       setCategories(res.data);
-      setPage(1);
+      setTotalPages(Math.max(1, res.totalPages || 1));
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to fetch categories.");
     } finally {
       setLoading(false);
     }
   };
-
-  const totalPages = Math.max(1, Math.ceil(categories.length / PAGE_SIZE));
-  const paginatedCategories = categories.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
 
   const handleDelete = (id) => {
     toast(
@@ -59,7 +54,7 @@ const Categories = () => {
                 try {
                   await deleteCategory(id);
                   toast.success("Category deleted successfully.");
-                  fetchCategories();
+                  fetchCategories(page);
                 } catch (error) {
                   toast.error(error?.response?.data?.message || "Failed to delete category.");
                 }
@@ -98,7 +93,7 @@ const Categories = () => {
         name: selectedCategory.name,
         foodType: selectedCategory.foodType,
       });
-      await fetchCategories();
+      await fetchCategories(page);
       setSuccess("Category updated successfully");
       setIsEditOpen(false);
       setSelectedCategory(null);
@@ -151,7 +146,7 @@ const Categories = () => {
           </thead>
 
           <tbody className="divide-y divide-gray-50">
-            {paginatedCategories.map((category) => (
+            {categories.map((category) => (
               <tr
                 key={category._id}
                 className="hover:bg-gray-50/40 transition-colors duration-150"

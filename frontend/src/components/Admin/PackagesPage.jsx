@@ -14,6 +14,9 @@ const PackagesPage = () => {
     togglingId,
     editId,
     formData,
+    page,
+    totalPages,
+    setPage,
     toggleForm,
     closeForm,
     handleChange,
@@ -65,6 +68,9 @@ const PackagesPage = () => {
           showForm={showForm}
           onEdit={handleEditClick}
           onDelete={handleDelete}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
 
         {/* RIGHT FORM SECTION */}

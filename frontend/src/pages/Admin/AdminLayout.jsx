@@ -40,6 +40,7 @@ export default function AdminLayout() {
           onMenuClick={() => setIsSidebarOpen(true)}
           notificationCount={unreadCount}
           onNotificationClick={() => setIsNotificationsOpen(true)}
+          profilePath="/admin/settings"
         />
 
         <main className="flex-1  overflow-y-auto">

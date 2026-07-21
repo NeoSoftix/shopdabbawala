@@ -9,6 +9,8 @@ import {
 } from "../../../services/package.service.js";
 import { confirmDeleteToast } from "../../../utils/confirmDeleteToast.jsx";
 
+const PAGE_SIZE = 10;
+
 const emptyFormData = {
   name: "",
   price: "",
@@ -32,6 +34,8 @@ export default function usePackages() {
   const [deletingId, setDeletingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
   const [editId, setEditId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Single State for Form
   const [formData, setFormData] = useState(emptyFormData);
@@ -49,12 +53,13 @@ export default function usePackages() {
   };
 
   // 1. GET ALL PACKAGES API CALL
-  const fetchPackages = async () => {
+  const fetchPackages = async (pageToFetch = 1) => {
     try {
       setLoadingPackages(true);
-      const res = await getAllPackages();
+      const res = await getAllPackages(pageToFetch, PAGE_SIZE);
       if (res && res.data) {
         setPackages(res.data);
+        setTotalPages(Math.max(1, res.totalPages || 1));
       }
     } catch (error) {
       console.error("get all packages error", error);
@@ -65,8 +70,8 @@ export default function usePackages() {
   };
 
   useEffect(() => {
-    fetchPackages();
-  }, []);
+    fetchPackages(page);
+  }, [page]);
 
   // 2. CONTROL INPUT CHANGES DYNAMICALLY
   const handleChange = (e) => {
@@ -114,7 +119,7 @@ export default function usePackages() {
         toast.success(editId ? "Package updated successfully!" : "Package added successfully!");
         resetForm();
         setShowForm(false);
-        fetchPackages();
+        fetchPackages(page);
       }
     } catch (error) {
       console.error("Save package error", error);
@@ -131,7 +136,7 @@ export default function usePackages() {
         setDeletingId(id);
         const res = await deletePackage(id);
         if (res.success) {
-          await fetchPackages();
+          await fetchPackages(page);
           toast.success("Package deleted successfully.");
         }
       } catch {
@@ -149,7 +154,7 @@ export default function usePackages() {
       const res = await togglePackageStatus(id);
       if (res && res.success) {
         toast.success(res.message || "Package status updated.");
-        await fetchPackages();
+        await fetchPackages(page);
       }
     } catch (error) {
       console.error("Toggle package status error", error);
@@ -199,6 +204,9 @@ export default function usePackages() {
     togglingId,
     editId,
     formData,
+    page,
+    totalPages,
+    setPage,
     toggleForm,
     closeForm,
     handleChange,
