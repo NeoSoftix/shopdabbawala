@@ -1,18 +1,14 @@
 name: Deploy Shop Dabba Wala
 
-
 on:
   push:
     branches:
       - main
 
-
 jobs:
-
   deploy:
 
     runs-on: ubuntu-latest
-
 
     steps:
 
@@ -30,24 +26,25 @@ jobs:
 
         port: ${{ secrets.EC2_PORT }}
 
-
         script: |
+
+          echo "Connected to EC2"
 
           cd /home/ubuntu/tiffin-delivery-app
 
           git pull origin main
 
 
-          # Backend
+          echo "Deploying Backend"
 
           cd backend
 
           npm install
 
-          pm2 restart backend
+          pm2 restart backend || pm2 start server.js --name backend
 
 
-          # Frontend
+          echo "Deploying Frontend"
 
           cd ../frontend
 
@@ -62,3 +59,5 @@ jobs:
 
 
           sudo systemctl restart nginx
+
+          echo "Deployment Completed"
