@@ -55,7 +55,7 @@ export const handleIncomingWhatsApp = async (req, res) => {
           role: 'user'
         });
 
-        twiml.message(`We have successfully registered your number! 🎉\n\nYou don't have an active plan right now.\n\n*Our Standard Plans:*\n1️⃣ Silver (7 Days)\n2️⃣ Gold (15 Days)\n\nYou can also create your own *Custom Plan* on our website/app! 🚀\n\nVisit: https://tiffin-delivery-app.vercel.app`);
+        twiml.message(`We have successfully registered your number! 🎉\n\nYou don't have an active plan right now.\n\n*Our Standard Plans:*\n1️⃣ Silver (7 Days)\n2️⃣ Gold (15 Days)\n\nYou can also create your own *Custom Plan* on our website/app! 🚀\n\nVisit: ${process.env.FRONTEND_URL}`);
         res.writeHead(200, { 'Content-Type': 'text/xml' });
         return res.end(twiml.toString());
       }
@@ -74,7 +74,7 @@ export const handleIncomingWhatsApp = async (req, res) => {
 
         twiml.message(`*Great news! You have an Active Plan.* ✅\n\n*Plan:* ${packageName}\n*Remaining Meals:* ${remainingMeals}\n*Valid Till:* ${expiry}\n\nThank you for choosing us! 🍲`);
       } else {
-        twiml.message(`You don't have an active plan right now. 😢\n\n*Our Standard Plans:*\n1️⃣ Silver (7 Days)\n2️⃣ Gold (15 Days)\n\nYou can also create your own *Custom Plan* on our website/app! 🚀\n\nVisit: https://tiffin-delivery-app.vercel.app`);
+        twiml.message(`You don't have an active plan right now. 😢\n\n*Our Standard Plans:*\n1️⃣ Silver (7 Days)\n2️⃣ Gold (15 Days)\n\nYou can also create your own *Custom Plan* on our website/app! 🚀\n\nVisit: ${process.env.FRONTEND_URL}`);
       }
 
       res.writeHead(200, { 'Content-Type': 'text/xml' });

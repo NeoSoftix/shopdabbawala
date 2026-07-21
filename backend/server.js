@@ -75,7 +75,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://tiffin-delivery-app.vercel.app",
   "http://13.233.160.69/"
 ];
 
@@ -83,10 +82,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (
-        !origin ||                                                                                                                
+        !origin ||
         origin.includes("localhost") ||
-        origin.includes("vercel.app") ||
-        origin.includes("render.com") ||
         origin.includes("13.233.160.69")
       ) {
         callback(null, true);

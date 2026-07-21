@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import API from "./api";
 
-// Sockets can't ride the Vite dev proxy / Vercel rewrite used by axios (see
+// Sockets can't ride the Vite dev proxy / nginx rewrite used by axios (see
 // api.js), so we connect straight to the backend origin. In dev that's
 // always localhost:8000; in prod it's derived from VITE_API_URL.
 const SOCKET_URL = import.meta.env.DEV

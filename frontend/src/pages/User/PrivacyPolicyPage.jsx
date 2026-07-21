@@ -137,12 +137,12 @@ const PrivacyPolicyPage = () => {
           <p className="mt-6 max-w-3xl text-base leading-8 text-slate-500">
             Welcome to <span className="font-semibold text-slate-700">Shopdabbawala</span> (accessible via{" "}
             <a
-              href="https://tiffin-delivery-app.vercel.app/"
+              href="http://13.233.160.69/"
               target="_blank"
               rel="noreferrer"
               className="text-red-600 underline decoration-red-200 underline-offset-2 hover:text-red-700"
             >
-              tiffin-delivery-app.vercel.app
+              13.233.160.69
             </a>
             ). We respect your privacy and are committed to protecting the personal data you share with us. This
             Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our

@@ -21,7 +21,7 @@ const authenticateSocket = async (socket, next) => {
   try {
     // Prefer the token passed explicitly in the handshake `auth` payload
     // (fetched via GET /api/auth/socket-token, which rides the same-origin
-    // Vercel rewrite) - the httpOnly cookie is set cross-site on the
+    // nginx proxy) - the httpOnly cookie is set cross-site on the
     // deployed app and gets dropped by browsers that block/partition
     // third-party cookies (Safari, Firefox, and a growing share of Chrome),
     // even with SameSite=None; Secure. Cookie stays as a fallback for
@@ -80,8 +80,6 @@ export const initSocket = (httpServer) => {
 
           origin.includes("localhost") ||
 
-          origin.includes("vercel.app") ||
-          origin.includes("render.com") ||
           origin.includes("13.233.160.69")
         ) {
 
@@ -102,11 +100,6 @@ export const initSocket = (httpServer) => {
     },
 
   });
- 
-  // ...
-
-};
- 
 
   io.use(authenticateSocket);
 
@@ -119,9 +112,7 @@ export const initSocket = (httpServer) => {
   });
 
   return io;
-
-
-
+};
 
 
 

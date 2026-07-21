@@ -135,12 +135,12 @@ const TermsAndConditionsPage = () => {
           <p className="mt-6 max-w-3xl text-base leading-8 text-slate-500">
             Welcome to <span className="font-semibold text-slate-700">Shopdabbawala</span> (accessible via{" "}
             <a
-              href="https://tiffin-delivery-app.vercel.app/"
+              href="http://13.233.160.69/"
               target="_blank"
               rel="noreferrer"
               className="text-red-600 underline decoration-red-200 underline-offset-2 hover:text-red-700"
             >
-              tiffin-delivery-app.vercel.app
+              13.233.160.69
             </a>
             ). These Terms and Conditions (&quot;Terms&quot;) govern your use of our website and our tiffin delivery
             services. By accessing our website and subscribing to or purchasing our services, you agree to be bound
