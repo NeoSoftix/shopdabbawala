@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Menu, ChevronDown, User, X, Camera } from "lucide-react";
+import { Bell, Menu, ChevronDown, User, X, Camera, UserPen } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import ChangePasswordModal from "./ChangePasswordModal";

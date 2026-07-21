@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, X, LogOut, User, ChevronDown, Bell } from "lucide-react";
+import { Menu, X, LogOut, User, ChevronDown, Bell, UserPen } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../context/NotificationContext";
@@ -217,7 +217,7 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
                           }}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left"
                         >
-                          <User size={14} /> Edit Profile
+                          <UserPen size={14} /> Edit Profile
                         </button>
                         <div className="my-1 border-t border-slate-100" />
                         <button

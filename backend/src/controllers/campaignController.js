@@ -5,6 +5,7 @@ import { sendEmail } from '../utils/email/sendEmail.js';
 import { sendSms } from '../utils/sms/sendSms.js';
 import { resolveCampaignAudience } from '../utils/campaignAudience.js';
 import { getPagination } from '../utils/pagination.js';
+import mongoose from 'mongoose';
 
 // @desc    Search users by name/email/phone to hand-pick campaign recipients
 // @route   GET /api/campaigns/audience/search?search=&role=
@@ -54,22 +55,55 @@ export const previewCampaignAudience = async (req, res) => {
 // @access  Private/Admin
 export const createCampaign = async (req, res) => {
   try {
-    const { name, type, filters, messageContent, emailTemplateId, subject } = req.body;
+    const { name, type, filters, messageContent, emailTemplateId, subject,} = req.body;
 
-    const campaign = new Campaign({
-      name,
+    // Validation
+    if (!name || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Campaign name and type are required",
+      });
+    }
+
+    if (type === "email") {
+      if (!subject || !emailTemplateId) {
+        return res.status(400).json({
+          success: false,
+          message: "Subject and email template are required for email campaign",
+        });
+      }
+    }
+
+    if (type === "sms" || type === "whatsapp") {
+      if (!messageContent) {
+        return res.status(400).json({
+          success: false,
+          message: "Message content is required",
+        });
+      }
+    }
+
+    const campaign = await Campaign.create({
+      name: name.trim(),
       type,
       filters: filters || {},
       messageContent,
       emailTemplateId,
       subject,
-      status: 'draft',
+      status: "draft",
     });
 
-    const savedCampaign = await campaign.save();
-    res.status(201).json(savedCampaign);
+    return res.status(201).json({
+      success: true,
+      message: "Campaign created successfully",
+      data: campaign,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating campaign', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Error creating campaign",
+      error: error.message,
+    });
   }
 };
 
@@ -97,6 +131,8 @@ export const getCampaigns = async (req, res) => {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
+    console.error("Get Campaigns error", error)
+
     res.status(500).json({ message: 'Error fetching campaigns', error: error.message });
   }
 };
@@ -121,31 +157,63 @@ export const getCampaignById = async (req, res) => {
 // @access  Private/Admin
 export const sendCampaign = async (req, res) => {
   try {
-    const campaign = await Campaign.findById(req.params.id).populate('emailTemplateId');
-    if (!campaign) {
-      return res.status(404).json({ message: 'Campaign not found' });
+    const { id } = req.params;
+
+    // Validation
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid campaign id",
+      });
     }
 
-    if (campaign.status === 'completed') {
-      return res.status(400).json({ message: 'Campaign has already been sent' });
+    const campaign = await Campaign.findById(id).populate("emailTemplateId");
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Campaign not found",
+      });
+    }
+
+    if (campaign.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Campaign has already been sent",
+      });
     }
 
     const users = await resolveCampaignAudience(campaign.filters);
 
-    if (users.length === 0) {
-      return res.status(400).json({ message: 'No users match the selected filters' });
+    if (!users.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No users match the selected filters",
+      });
     }
 
     campaign.targetCount = users.length;
-    campaign.status = 'scheduled'; // Or "in-progress"
+
+    campaign.status = "scheduled";
+
     await campaign.save();
 
-    // Start background processing so we don't block the request for a large list
-    processCampaign(campaign._id, users).catch(err => console.error('Campaign background error:', err));
+    // Run in background
+    processCampaign(campaign._id, users).catch((err) =>
+      console.error("Campaign background error:", err)
+    );
 
-    res.status(200).json({ message: 'Campaign execution started', targetCount: users.length });
+    return res.status(200).json({
+      success: true,
+      message: "Campaign execution started",
+      targetCount: users.length,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error executing campaign', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Error executing campaign",
+      error: error.message,
+    });
   }
 };
 
@@ -189,24 +257,42 @@ export const processCampaign = async (campaignId, users) => {
 // @access  Private/Admin
 export const updateCampaign = async (req, res) => {
   try {
-    const { name, type, filters, messageContent, emailTemplateId, subject, scheduledAt } = req.body;
+    const { id } = req.params;
+    const {
+      name,
+      type,
+      filters,
+      messageContent,
+      emailTemplateId,
+      subject,
+      scheduledAt,
+    } = req.body;
 
-    const campaign = await Campaign.findById(req.params.id);
+    // Validation
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid campaign id",
+      });
+    }
+
+    const campaign = await Campaign.findById(id);
+
     if (!campaign) {
       return res.status(404).json({
-        message: 'Campaign not found',
-       success:false
+        success: false,
+        message: "Campaign not found",
       });
     }
 
-    if (!['draft', 'scheduled'].includes(campaign.status)) {
+    if (!["draft", "scheduled"].includes(campaign.status)) {
       return res.status(400).json({
-        message: 'Only draft or scheduled campaigns can be edited',
-        success:false
+        success: false,
+        message: "Only draft or scheduled campaigns can be edited",
       });
     }
 
-    if (name !== undefined) campaign.name = name;
+    if (name !== undefined) campaign.name = name.trim();
 
     if (type !== undefined) campaign.type = type;
 
@@ -214,36 +300,42 @@ export const updateCampaign = async (req, res) => {
 
     if (messageContent !== undefined) campaign.messageContent = messageContent;
 
-    if (emailTemplateId !== undefined) campaign.emailTemplateId = emailTemplateId;
+    if (emailTemplateId !== undefined)
+      campaign.emailTemplateId = emailTemplateId;
 
     if (subject !== undefined) campaign.subject = subject;
 
     if (scheduledAt !== undefined) {
       if (new Date(scheduledAt) <= new Date()) {
         return res.status(400).json({
-          message: 'Schedule time must be in the future',
           success: false,
+          message: "Schedule time must be in the future",
         });
       }
+
       campaign.scheduledAt = scheduledAt;
-      campaign.status = 'scheduled';
+      campaign.status = "scheduled";
     }
 
     const updatedCampaign = await campaign.save();
 
-    res.status(200).json(updatedCampaign);
+    return res.status(200).json({
+      success: true,
+      message: "Campaign updated successfully",
+      data: updatedCampaign,
+    });
   } catch (error) {
-    console.error('Update Campaign error', error);
+    console.error("Update Campaign Error:", error);
 
     return res.status(500).json({
-      message: 'Internal Server error',
       success: false,
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };
 
 // scheduel the campaign
-
 export const scheduleCampaign = async (req, res) => {
   try {
     const { campaignId, scheduledAt } = req.body;
