@@ -14,13 +14,14 @@ import { paymentLimiter } from "../middleware/ratelimiter.middleware.js";
 const router = express.Router();
 
 // Admin Package Purchase
-router.post("/package-checkout", verifyToken, paymentLimiter, createPackageCheckout);
+// paymentLimiter temporarily disabled for testing (EC2 rate-limit debugging) — re-enable before going live
+router.post("/package-checkout", verifyToken, /* paymentLimiter, */ createPackageCheckout);
 
 // Add-ons Cart Checkout
-router.post("/addon-checkout", verifyToken, paymentLimiter, createAddonCheckout);
+router.post("/addon-checkout", verifyToken, /* paymentLimiter, */ createAddonCheckout);
 
 // Per-day add-ons checkout (extra items on top of an already-scheduled meal)
-router.post("/day-addon-checkout", verifyToken, paymentLimiter, createDayAddonCheckout);
+router.post("/day-addon-checkout", verifyToken, /* paymentLimiter, */ createDayAddonCheckout);
 
 // Get Checkout Session Details
 router.get("/session/:sessionId", verifyToken, getCheckoutSession);

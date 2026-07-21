@@ -6,13 +6,14 @@ import {loginLimiter, forgotPasswordLimiter, resetPasswordLimiter} from "../midd
 
 const router = express.Router();
 
-router.post("/login", loginLimiter, login);
+// loginLimiter temporarily disabled for testing (EC2 rate-limit debugging) — re-enable before going live
+router.post("/login", /* loginLimiter, */ login);
 
 router.get("/me", verifyToken, getMe)
 router.get("/socket-token", verifyToken, issueSocketToken)
 router.post("/logout",verifyToken, logout)
-router.post("/forgot-password", forgotPasswordLimiter, forgotPassword)
-router.put("/reset-password/:token", resetPasswordLimiter, resetPassword)
+router.post("/forgot-password", /* forgotPasswordLimiter, */ forgotPassword)
+router.put("/reset-password/:token", /* resetPasswordLimiter, */ resetPassword)
 router.patch("/change-password", verifyToken, changedPassword)
 router.post("/send-otp", sendOtp)
 router.post("/verify-otp", verifyOtp)

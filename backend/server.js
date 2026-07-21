@@ -50,7 +50,8 @@ app.set("trust proxy", 1);
 app.use(helmet());
 
 // baseline rate limit for all routes
-app.use(generalLimiter);
+// temporarily disabled for testing (EC2 rate-limit debugging) — re-enable before going live
+// app.use(generalLimiter);
 
 // middleware for cookieparser
 app.use(cookieParser());
@@ -82,7 +83,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (
-        !origin ||
+        !origin ||                                                                                                                
         origin.includes("localhost") ||
         origin.includes("vercel.app") ||
         origin.includes("render.com") ||
