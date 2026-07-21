@@ -74,7 +74,8 @@ export const initSocket = (httpServer) => {
           !origin ||
           origin.includes("localhost") ||
           origin.includes("vercel.app") ||
-          origin.includes("render.com")
+          origin.includes("render.com") ||
+          origin.includes("13.233.160.69")
         ) {
           callback(null, true);
         } else {
