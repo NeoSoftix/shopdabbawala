@@ -81,17 +81,8 @@ export const initSocket = (httpServer) => {
           origin.includes("localhost") ||
 
           origin.includes("vercel.app") ||
-
           origin.includes("render.com") ||
-
           origin.includes("13.233.160.69")
-
-          // Future domain:
-
-          // origin.includes("shopdabbawala.com") ||
-
-          // origin.includes("www.shopdabbawala.com")
-
         ) {
 
           callback(null, true);
@@ -128,7 +119,6 @@ export const initSocket = (httpServer) => {
   });
 
   return io;
-};
 
 
 
