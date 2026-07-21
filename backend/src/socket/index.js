@@ -67,23 +67,55 @@ const authenticateSocket = async (socket, next) => {
 };
 
 export const initSocket = (httpServer) => {
+
   io = new Server(httpServer, {
+
     cors: {
+
       origin: (origin, callback) => {
+
         if (
+
           !origin ||
+
           origin.includes("localhost") ||
+
           origin.includes("vercel.app") ||
-          origin.includes("render.com")
+
+          origin.includes("render.com") ||
+
+          origin.includes("13.233.160.69")
+
+          // Future domain:
+
+          // origin.includes("shopdabbawala.com") ||
+
+          // origin.includes("www.shopdabbawala.com")
+
         ) {
+
           callback(null, true);
+
         } else {
+
+          console.error("Socket CORS Error:", origin);
+
           callback(new Error("Not allowed by CORS"));
+
         }
+
       },
+
       credentials: true,
+
     },
+
   });
+ 
+  // ...
+
+};
+ 
 
   io.use(authenticateSocket);
 
