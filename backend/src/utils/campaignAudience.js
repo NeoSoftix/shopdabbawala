@@ -3,7 +3,7 @@ import Vendor from '../models/vendor.model.js';
 import Subscription from '../models/Subcription.model.js';
 
 // Resolves a campaign's `filters` object into the list of target users.
-// filters: { role, isActive, city, packageId, userIds }
+// filters: { role, isActive, city, packageId, userIds, search }
 //
 // `isActive` means different things per role: for customers it's a field on
 // User itself, but a vendor's active status lives on their Vendor profile
@@ -37,12 +37,20 @@ export const resolveCampaignAudience = async (filters = {}) => {
   }
 
   if (filters.city) {
-    query.city = filters.city;
+    query.city = { $regex: filters.city, $options: 'i' };
   }
 
   if (filters.packageId) {
     const subscriberIds = await Subscription.find({ package: filters.packageId }).distinct('user');
     intersect(subscriberIds);
+  }
+
+  if (filters.search) {
+    query.$or = [
+      { name: { $regex: filters.search, $options: 'i' } },
+      { email: { $regex: filters.search, $options: 'i' } },
+      { phone: { $regex: filters.search, $options: 'i' } },
+    ];
   }
 
   if (idConstraint) {

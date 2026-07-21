@@ -5,8 +5,8 @@ export const createCampaign = async (campaignData) => {
   return response.data;
 };
 
-export const getCampaigns = async () => {
-  const response = await API.get('/campaigns');
+export const getCampaigns = async (page = 1, limit = 10) => {
+  const response = await API.get('/campaigns', { params: { page, limit } });
   return response.data;
 };
 
@@ -32,5 +32,15 @@ export const deleteCampaign = async (id) => {
 
 export const scheduleCampaign = async (campaignId, scheduledAt) => {
   const response = await API.post('/campaigns/schedule', { campaignId, scheduledAt });
+  return response.data;
+};
+
+export const searchAudienceUsers = async (search, role) => {
+  const response = await API.get('/campaigns/audience/search', { params: { search, role } });
+  return response.data;
+};
+
+export const previewCampaignAudience = async (filters) => {
+  const response = await API.post('/campaigns/audience/preview', { filters });
   return response.data;
 };

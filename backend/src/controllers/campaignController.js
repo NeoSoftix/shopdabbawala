@@ -1,8 +1,53 @@
 import Campaign from '../models/Campaign.model.js';
 import EmailTemplate from '../models/EmailTemplate.model.js';
+import User from '../models/User.model.js';
 import { sendEmail } from '../utils/email/sendEmail.js';
 import { sendSms } from '../utils/sms/sendSms.js';
 import { resolveCampaignAudience } from '../utils/campaignAudience.js';
+import { getPagination } from '../utils/pagination.js';
+
+// @desc    Search users by name/email/phone to hand-pick campaign recipients
+// @route   GET /api/campaigns/audience/search?search=&role=
+// @access  Private/Admin
+export const searchAudienceUsers = async (req, res) => {
+  try {
+    const { search = '', role } = req.query;
+
+    if (!search.trim()) {
+      return res.status(200).json({ users: [] });
+    }
+
+    const query = {
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+      ],
+    };
+
+    if (role) {
+      query.role = role;
+    }
+
+    const users = await User.find(query).select('name email phone role isActive').limit(20);
+    res.status(200).json({ users });
+  } catch (error) {
+    res.status(500).json({ message: 'Error searching users', error: error.message });
+  }
+};
+
+// @desc    Preview how many users match a set of filters (without sending)
+// @route   POST /api/campaigns/audience/preview
+// @access  Private/Admin
+export const previewCampaignAudience = async (req, res) => {
+  try {
+    const { filters } = req.body;
+    const users = await resolveCampaignAudience(filters || {});
+    res.status(200).json({ count: users.length });
+  } catch (error) {
+    res.status(500).json({ message: 'Error previewing audience', error: error.message });
+  }
+};
 
 // @desc    Create a new campaign (draft)
 // @route   POST /api/campaigns
@@ -33,8 +78,24 @@ export const createCampaign = async (req, res) => {
 // @access  Private/Admin
 export const getCampaigns = async (req, res) => {
   try {
-    const campaigns = await Campaign.find().sort({ createdAt: -1 }).populate('emailTemplateId', 'name');
-    res.status(200).json(campaigns);
+    const { page, limit, skip } = getPagination(req);
+
+    const [campaigns, total] = await Promise.all([
+      Campaign.find()
+        .sort({ createdAt: -1 })
+        .populate('emailTemplateId', 'name')
+        .skip(skip)
+        .limit(limit),
+      Campaign.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      campaigns,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching campaigns', error: error.message });
   }

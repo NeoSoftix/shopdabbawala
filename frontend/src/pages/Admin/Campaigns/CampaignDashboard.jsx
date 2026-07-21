@@ -6,6 +6,7 @@ import { getCampaigns, deleteCampaign, scheduleCampaign, sendCampaign } from '..
 import { toast } from 'react-hot-toast';
 import { Mail, MessageSquare, FileText } from 'lucide-react';
 import { SectionLoader } from '../../../components/shared/Loader';
+import Pagination from '../../../components/shared/Pagination';
 
 const statusStyles = {
   completed: 'bg-emerald-100 text-emerald-700',
@@ -21,16 +22,19 @@ const CampaignDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [scheduleTargetId, setScheduleTargetId] = useState(null);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchCampaigns();
-  }, []);
+    fetchCampaigns(page);
+  }, [page]);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = async (pageNum = page) => {
     try {
       setLoading(true);
-      const data = await getCampaigns();
-      setCampaigns(data);
+      const data = await getCampaigns(pageNum);
+      setCampaigns(data.campaigns || []);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       toast.error('Failed to load campaigns');
     } finally {
@@ -51,7 +55,7 @@ const CampaignDashboard = () => {
                 try {
                   await deleteCampaign(id);
                   toast.success('Campaign deleted successfully.');
-                  fetchCampaigns();
+                  fetchCampaigns(page);
                 } catch (error) {
                   toast.error(error.response?.data?.message || 'Failed to delete campaign.');
                 }
@@ -77,7 +81,7 @@ const CampaignDashboard = () => {
     try {
       const result = await sendCampaign(id);
       toast.success(`Campaign started! Targeting ${result.targetCount} users.`);
-      fetchCampaigns();
+      fetchCampaigns(page);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send campaign');
     }
@@ -95,7 +99,7 @@ const CampaignDashboard = () => {
       await scheduleCampaign(scheduleTargetId, new Date(scheduleDate).toISOString());
       toast.success('Campaign scheduled');
       setScheduleTargetId(null);
-      fetchCampaigns();
+      fetchCampaigns(page);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to schedule campaign');
     }
@@ -246,6 +250,8 @@ const CampaignDashboard = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
       {scheduleTargetId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

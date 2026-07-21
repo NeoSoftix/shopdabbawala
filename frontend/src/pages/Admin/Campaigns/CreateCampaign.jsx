@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createCampaign, updateCampaign, sendCampaign, scheduleCampaign, getCampaignById } from '../../../services/campaignService';
+import { createCampaign, updateCampaign, sendCampaign, scheduleCampaign, getCampaignById, searchAudienceUsers } from '../../../services/campaignService';
 import { getTemplates } from '../../../services/templateService';
+import { getAllPackages } from '../../../services/package.service';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Mail, MessageSquare, Send, CalendarClock } from 'lucide-react';
+import { ArrowLeft, Mail, MessageSquare, Send, CalendarClock, Search, X } from 'lucide-react';
 import { SectionLoader } from '../../../components/shared/Loader';
 
 const inputClass =
@@ -25,8 +26,18 @@ const CreateCampaign = () => {
   // Filters state
   const [roleFilter, setRoleFilter] = useState('user');
   const [isActiveFilter, setIsActiveFilter] = useState('true');
+  const [cityFilter, setCityFilter] = useState('');
+  const [packageIdFilter, setPackageIdFilter] = useState('');
+
+  // Specific-user search & selection (overrides the filters above when used)
+  const [userSearch, setUserSearch] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const searchDebounceRef = useRef(null);
 
   const [templates, setTemplates] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
 
@@ -45,6 +56,53 @@ const CreateCampaign = () => {
       fetchCampaign();
     }
   }, [id]);
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  // Debounced live search as the admin types a user's name/email/phone
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    if (!userSearch.trim()) {
+      setUserSearchResults([]);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      setIsSearchingUsers(true);
+      try {
+        const data = await searchAudienceUsers(userSearch.trim(), roleFilter);
+        setUserSearchResults(data.users || []);
+      } catch (error) {
+        toast.error('Failed to search users');
+      } finally {
+        setIsSearchingUsers(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [userSearch, roleFilter]);
+
+  const fetchPackages = async () => {
+    try {
+      const data = await getAllPackages();
+      setPackages(data.data || []);
+    } catch (error) {
+      // Non-critical - package filter simply won't be populated
+    }
+  };
+
+  const addSelectedUser = (user) => {
+    setSelectedUsers((prev) => (prev.some((u) => u._id === user._id) ? prev : [...prev, user]));
+    setUserSearch('');
+    setUserSearchResults([]);
+  };
+
+  const removeSelectedUser = (userId) => {
+    setSelectedUsers((prev) => prev.filter((u) => u._id !== userId));
+  };
 
   const fetchTemplates = async () => {
     try {
@@ -67,6 +125,8 @@ const CreateCampaign = () => {
       setIsActiveFilter(
         campaign.filters?.isActive === undefined ? 'all' : campaign.filters.isActive ? 'true' : 'false'
       );
+      setCityFilter(campaign.filters?.city || '');
+      setPackageIdFilter(campaign.filters?.packageId || '');
     } catch (error) {
       toast.error('Failed to load campaign');
       navigate('/admin/campaigns');
@@ -76,13 +136,22 @@ const CreateCampaign = () => {
   };
 
   const buildPayload = () => {
+    const filters = {
+      role: roleFilter,
+      isActive: isActiveFilter === 'true' ? true : isActiveFilter === 'false' ? false : undefined,
+      city: cityFilter.trim() || undefined,
+      packageId: packageIdFilter || undefined,
+    };
+
+    // Hand-picked users take priority over the broader filters on the backend
+    if (selectedUsers.length > 0) {
+      filters.userIds = selectedUsers.map((u) => u._id);
+    }
+
     const payload = {
       name,
       type,
-      filters: {
-        role: roleFilter,
-        isActive: isActiveFilter === 'true' ? true : isActiveFilter === 'false' ? false : undefined,
-      },
+      filters,
     };
 
     if (type === 'email') {
@@ -237,6 +306,98 @@ const CreateCampaign = () => {
                   <option value="false">Inactive Only</option>
                 </select>
               </div>
+
+              <div>
+                <label className={labelClass}>City</label>
+                <input
+                  type="text"
+                  value={cityFilter}
+                  onChange={(e) => setCityFilter(e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. Delhi"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Subscribed Package</label>
+                <select
+                  value={packageIdFilter}
+                  onChange={(e) => setPackageIdFilter(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Any Package</option>
+                  {packages.map((pkg) => (
+                    <option key={pkg._id} value={pkg._id}>{pkg.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedUsers.length === 0 ? (
+              <p className="text-xs text-gray-400 mt-3">
+                These filters select a broad audience. To target specific people instead, search for them below.
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600 mt-3 font-medium">
+                Specific users are selected below - the filters above will be ignored for this campaign.
+              </p>
+            )}
+
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <label className={labelClass}>Search &amp; Target Specific Users</label>
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className={`${inputClass} pl-9`}
+                  placeholder="Search by name, email, or phone..."
+                />
+              </div>
+
+              {isSearchingUsers && (
+                <p className="text-xs text-gray-400 mt-2">Searching...</p>
+              )}
+
+              {userSearchResults.length > 0 && (
+                <div className="mt-2 border border-gray-200 rounded-xl divide-y divide-gray-100 overflow-hidden">
+                  {userSearchResults.map((user) => (
+                    <button
+                      type="button"
+                      key={user._id}
+                      onClick={() => addSelectedUser(user)}
+                      className="w-full text-left px-3.5 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between"
+                    >
+                      <span>
+                        <span className="font-semibold text-gray-800">{user.name || 'Unnamed'}</span>
+                        <span className="text-gray-400 ml-2">{user.email || user.phone}</span>
+                      </span>
+                      <span className="text-xs font-semibold text-red-500">Add</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedUsers.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {selectedUsers.map((user) => (
+                    <span
+                      key={user._id}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-600 text-xs font-semibold pl-3 pr-2 py-1.5"
+                    >
+                      {user.name || user.email || user.phone}
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedUser(user._id)}
+                        className="hover:text-red-800"
+                      >
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
