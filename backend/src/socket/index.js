@@ -98,6 +98,12 @@ export const initSocket = (httpServer) => {
   return io;
 };
 
+
+
+
+
+
+
 export const emitToVendor = (vendorId, event, payload) => {
   if (!io || !vendorId) return;
   io.to(`vendor:${vendorId.toString()}`).emit(event, payload);

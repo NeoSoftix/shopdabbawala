@@ -1,0 +1,64 @@
+name: Deploy Shop Dabba Wala
+
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+    - name: Deploy to EC2
+
+      uses: appleboy/ssh-action@v1.2.0
+
+      with:
+
+        host: ${{ secrets.EC2_HOST }}
+
+        username: ${{ secrets.EC2_USER }}
+
+        key: ${{ secrets.EC2_SSH_KEY }}
+
+        port: ${{ secrets.EC2_PORT }}
+
+
+        script: |
+
+          cd /home/ubuntu/tiffin-delivery-app
+
+          git pull origin main
+
+
+          # Backend
+
+          cd backend
+
+          npm install
+
+          pm2 restart backend
+
+
+          # Frontend
+
+          cd ../frontend
+
+          npm install
+
+          npm run build
+
+
+          sudo rm -rf /var/www/html/*
+
+          sudo cp -r dist/* /var/www/html/
+
+
+          sudo systemctl restart nginx

@@ -42,6 +42,10 @@ import { stripeWebhook } from "./src/controllers/payment.controller.js";
 
 const app = express();
 
+// trust the first proxy hop (ngrok/render) so express-rate-limit can read
+// X-Forwarded-For correctly instead of throwing on every proxied request
+app.set("trust proxy", 1);
+
 // helmet use for security
 app.use(helmet());
 
