@@ -6,7 +6,11 @@ import { createItem } from "../../services/items.service";
 import { toast } from "react-hot-toast";
 import { ButtonSpinner } from "../shared/Loader";
 
-const DEFAULT_PREVIEW = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+const DEFAULT_PREVIEW =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#FEE2E2"/><circle cx="50" cy="50" r="30" fill="#ffffff" stroke="#E31A1A" stroke-width="2"/><g fill="#E31A1A"><rect x="28" y="30" width="2.5" height="18"/><rect x="33" y="30" width="2.5" height="18"/><rect x="38" y="30" width="2.5" height="18"/><rect x="27" y="48" width="15" height="3" rx="1.5"/><rect x="33" y="48" width="3" height="22"/><ellipse cx="68" cy="38" rx="6" ry="9"/><rect x="66.5" y="46" width="3" height="24"/></g></svg>'
+  );
 
 const AddItem = () => {
   const navigate = useNavigate();

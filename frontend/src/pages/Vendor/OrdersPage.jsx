@@ -14,10 +14,21 @@ import Pagination from "../../components/shared/Pagination";
 import {
   getOrderStats,
   getAllOrders,
+  getOrdersByDate,
   markOrderReadyToDeliver,
   markOrderDelivered,
 } from "../../services/order.service";
 import { toast } from "react-hot-toast";
+
+// Local YYYY-MM-DD for today, used to default the date filter and as the
+// value type for the <input type="date"> filter below.
+const todayDateKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 
 export default function OrdersPage() {
   const [orderStats, setOrderStats] = useState({
@@ -27,6 +38,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [dateFilter, setDateFilter] = useState(todayDateKey());
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -39,7 +51,8 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, dateFilter]);
 
   const fetchOrderStats = async () => {
     try {
@@ -55,6 +68,18 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+
+      // Delivery-date filter active - use the by-date endpoint (already
+      // vendor-scoped server-side) instead of the paginated all-orders list.
+      if (dateFilter) {
+        const res = await getOrdersByDate(dateFilter);
+        if (res.success) {
+          setOrders(res.orders || []);
+          setPagination({ currentPage: 1, totalPages: 1, totalOrders: res.count || 0 });
+        }
+        return;
+      }
+
       const res = await getAllOrders("", page);
       if (res.success) {
         setOrders(res.orders || []);
@@ -136,6 +161,35 @@ export default function OrdersPage() {
         {stats.map((item) => (
           <StatCard key={item.title} {...item} />
         ))}
+      </div>
+
+      {/* Delivery date filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        <label htmlFor="vendor-orders-date" className="text-sm font-medium text-gray-600">
+          Delivery Date
+        </label>
+        <input
+          id="vendor-orders-date"
+          type="date"
+          value={dateFilter}
+          onChange={(e) => {
+            setPage(1);
+            setDateFilter(e.target.value);
+          }}
+          className="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+        />
+        {dateFilter && (
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setDateFilter("");
+            }}
+            className="text-sm font-medium text-red-600 hover:text-red-700"
+          >
+            Show all orders
+          </button>
+        )}
       </div>
 
       {/* Filters

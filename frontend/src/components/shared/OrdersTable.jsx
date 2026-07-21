@@ -44,6 +44,7 @@ export default function OrdersTable({
               <th className="py-2.5 px-4">Order ID</th>
               <th className="py-2.5 px-4">Customer</th>
               <th className="py-2.5 px-4">Order Date</th>
+              <th className="py-2.5 px-4">Delivery Date</th>
               <th className="py-2.5 px-4">Delivery</th>
               <th className="py-2.5 px-4">Status</th>
               {showActions && <th className="py-2.5 px-4 text-right">Actions</th>}
@@ -65,6 +66,10 @@ export default function OrdersTable({
                 </td>
 
                 <td className="py-2.5 px-4 text-sm text-gray-600">{formatDate(order.orderDate)}</td>
+
+                <td className="py-2.5 px-4 text-sm font-medium text-gray-800">
+                  {order.date ? formatDate(order.date) : <span className="text-gray-400 italic">Not set</span>}
+                </td>
 
                 <td className="py-2.5 px-4 text-sm text-gray-600">{order.deliveryMethod}</td>
 

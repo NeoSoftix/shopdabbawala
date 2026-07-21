@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import BackToTopButton from "./components/shared/BackToTopButton";
@@ -61,6 +61,8 @@ import TermsAndConditionsPage from "./pages/User/TermsAndConditionsPage.jsx";
 
 function App() {
   const { loading } = useAuth();
+  const location = useLocation();
+  const isCustomerRoute = !location.pathname.startsWith("/admin") && !location.pathname.startsWith("/vendor");
 
   if (loading) {
     return <AppLoader />;
@@ -179,7 +181,7 @@ function App() {
 
 <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
     </Routes>
-      <WhatsAppWidget />
+      {isCustomerRoute && <WhatsAppWidget />}
       <BackToTopButton />
     </>
   );
