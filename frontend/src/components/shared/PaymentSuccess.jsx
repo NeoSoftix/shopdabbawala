@@ -16,7 +16,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { saveCheckoutDetails, getSessionDetails } from "../../services/payment.service";
+import { saveCheckoutDetails, getSessionDetails, checkoutLogin } from "../../services/payment.service";
 import { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -46,19 +46,33 @@ export default function PaymentSuccess() {
     }
 
     if (sessionId) {
-      getSessionDetails(sessionId)
+      // If this browser has no logged-in session (e.g. the purchase started
+      // from the WhatsApp bot, never a logged-in page), bootstrap one from
+      // the checkout session id before hitting any verifyToken-protected
+      // endpoint below - otherwise both calls fail with "Token not found".
+      // Skip this entirely for an already-logged-in browser, so a leaked
+      // link can't silently swap someone into a different account.
+      const withSession = user ? Promise.resolve() : checkoutLogin(sessionId)
         .then(res => {
-          if (res.success && res.customer_details) {
-            setFormData(prev => ({
-              ...prev,
-              name: prev.name || res.customer_details.name || "",
-              email: prev.email || res.customer_details.email || "",
-              phone: prev.phone || res.customer_details.phone || "",
-
-            }));
-          }
+          if (res.success && setUser) setUser(res.user);
         })
-        .catch(err => console.error("Failed to fetch session", err));
+        .catch(err => console.error("Checkout auto-login failed", err));
+
+      withSession.then(() =>
+        getSessionDetails(sessionId)
+          .then(res => {
+            if (res.success && res.customer_details) {
+              setFormData(prev => ({
+                ...prev,
+                name: prev.name || res.customer_details.name || "",
+                email: prev.email || res.customer_details.email || "",
+                phone: prev.phone || res.customer_details.phone || "",
+
+              }));
+            }
+          })
+          .catch(err => console.error("Failed to fetch session", err))
+      );
     }
   }, [sessionId, user]);
 
