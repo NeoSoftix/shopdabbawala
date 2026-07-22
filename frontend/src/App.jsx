@@ -164,6 +164,7 @@ function App() {
       {/* user route */}
       <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
+        <Route path="plans" element={<UserDashboard />} />
         <Route path="create-package" element={<CreatePackage />} />
         <Route path="dashboard" element={<MealPlanner />} />
       </Route>

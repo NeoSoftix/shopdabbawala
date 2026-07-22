@@ -12,16 +12,16 @@ import { IoIosArrowForward } from "react-icons/io";
 
 const quickLinks = [
   { label: "Home", to: "/" },
-  { label: "Plans", to: "/#plans" },
+  { label: "Plans", to: "plans" },
   { label: "About", to: "/about" },
   { label: "Contact Us", to: "/contact-us" },
   {label:"Login", to:"/login"}
 ];
 
 const serviceLinks = [
-  { label: "Daily Tiffin", to: "/#plans" },
+  { label: "Daily Tiffin", to: "/plans" },
   { label: "Custom Packages", to: "/create-package" },
-  { label: "Meals", to: "/dashboard" },
+  // { label: "Meals", to: "/dashboard" },
 ];
 
 export default function Footer() {
@@ -69,7 +69,7 @@ export default function Footer() {
                 </button>
 
                 <a
-                  href="/#plans"
+                  href="/plans"
                   className="rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-red-600 active:scale-95"
                 >
                   View Packages
