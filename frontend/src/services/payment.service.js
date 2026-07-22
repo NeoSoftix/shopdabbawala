@@ -33,3 +33,11 @@ export const getSessionDetails = async (sessionId) => {
   const res = await API.get(`/payment/session/${sessionId}`);
   return res.data;
 };
+
+// Establishes a logged-in session from a Stripe checkout session id alone -
+// needed on the payment-success page when the buyer never logged into the
+// website first (e.g. a purchase started from the WhatsApp bot).
+export const checkoutLogin = async (sessionId) => {
+  const res = await API.post("/payment/checkout-login", { sessionId });
+  return res.data;
+};

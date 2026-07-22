@@ -6,6 +6,7 @@ import {
   saveCheckoutDetails,
   createScheduledSubscription,
   getCheckoutSession,
+  checkoutLogin,
 } from "../controllers/payment.controller.js";
 
 import { verifyToken } from "../middleware/auth.middleware.js";
@@ -25,6 +26,11 @@ router.post("/day-addon-checkout", verifyToken, /* paymentLimiter, */ createDayA
 
 // Get Checkout Session Details
 router.get("/session/:sessionId", verifyToken, getCheckoutSession);
+
+// Establishes a logged-in session from a Stripe checkout session id alone -
+// needed for purchases (e.g. via the WhatsApp bot) that never started from
+// an authenticated browser. Intentionally not behind verifyToken.
+router.post("/checkout-login", checkoutLogin);
 
 // Save Checkout Details & Send Email
 router.post("/save-details", verifyToken, saveCheckoutDetails);
