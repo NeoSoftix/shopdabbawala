@@ -58,7 +58,7 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
 
   const links = [
     { label: "Home", to: "/", isRouterLink: true },
-    { label: "Plans", href: "#plans" },
+    { label: "Plans", to: "/plans", isRouterLink: true },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact-us" },
   ];

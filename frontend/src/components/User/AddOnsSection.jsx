@@ -4,17 +4,13 @@ import { useState, useEffect } from "react";
 import { getActiveAddOns } from "../../services/addOn.service";
 
 import { SectionLoader } from "../shared/Loader";
-import CategoryTabs from "./AddOnsSection/CategoryTabs";
 import AddOnsGrid from "./AddOnsSection/AddOnsGrid";
-import { filterAddOnsByTab } from "./AddOnsSection/addOnsUtils";
 
 // Read-only catalog - add-ons are actually ordered per-day while scheduling
 // a meal (see MealPlanner/DayAddOns.jsx), not purchased directly from here,
 // so this page has no cart/add-to-cart/checkout of its own.
 export default function AddonsSection() {
   const [addonsData, setAddonsData] = useState([]);
-  const [categories, setCategories] = useState(["All"]);
-  const [activeTab, setActiveTab] = useState("All");
   const [favorites, setFavorites] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,16 +23,6 @@ export default function AddonsSection() {
 
         if (result.success && result.data) {
           setAddonsData(result.data);
-          const dynamicCategories = result.data
-            .map((item) => item.category)
-            .filter((category) => category);
-
-          const uniqueCategories = [
-            "All",
-            "Recommended",
-            ...new Set(dynamicCategories),
-          ];
-          setCategories(uniqueCategories);
         } else {
           setError(result.message || "Failed to fetch active add-ons");
         }
@@ -54,8 +40,6 @@ export default function AddonsSection() {
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
   };
-
-  const filteredItems = filterAddOnsByTab(addonsData, activeTab);
 
   if (loading) {
     return (
@@ -88,14 +72,11 @@ export default function AddonsSection() {
             Add extra items and make your meal perfect.
           </p>
         </div>
-
-        {/* Dynamic Categories Tab */}
-        <CategoryTabs categories={categories} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       {/* Dynamic Main Addons Grid Area */}
       <AddOnsGrid
-        items={filteredItems}
+        items={addonsData}
         favorites={favorites}
         onToggleFavorite={toggleFavorite}
       />

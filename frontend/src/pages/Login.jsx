@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// Eye aur EyeOff icons ko import kiya
-import { Mail, Lock, ShieldCheck, Clock3, Eye, EyeOff } from "lucide-react";
+// ArrowLeft icon add kiya navigation button ke liye
+import { Mail, Lock, ShieldCheck, Clock3, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { login } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
@@ -57,8 +57,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-lg overflow-hidden grid lg:grid-cols-2">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6 relative">
+      
+      {/* 1. Global Floating Top-Left Back Button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#E23747] font-medium transition-colors bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200"
+      >
+        <ArrowLeft size={18} />
+        Back to Home
+      </Link>
+
+      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-lg overflow-hidden grid lg:grid-cols-2 mt-8 lg:mt-0">
         {/* Left Side */}
         <div className="bg-gray-50 p-12 flex flex-col justify-center">
           <div>
@@ -71,7 +81,7 @@ export default function Login() {
 
           <div className="mt-12 space-y-8">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
                 <ShieldCheck size={22} className="text-[#E23747]" />
               </div>
 
@@ -85,7 +95,7 @@ export default function Login() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
                 <Clock3 size={22} className="text-[#E23747]" />
               </div>
 
@@ -146,7 +156,6 @@ export default function Login() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                 />
 
-                {/* type ko dynamically badla: "text" ya "password" */}
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -156,7 +165,6 @@ export default function Login() {
                   required
                 />
 
-                {/* Show/Hide Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -168,7 +176,7 @@ export default function Login() {
             </div>
 
             <div className="flex justify-between items-center text-sm">
-              <Link to="/forgot-password" className="text-[#E23747] font-medium">
+              <Link to="/forgot-password" className="text-[#E23747] font-medium hover:underline">
                 Forgot Password?
               </Link>
             </div>
@@ -177,6 +185,13 @@ export default function Login() {
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
+
+          {/* 2. Alternative In-Form Bottom Link */}
+          <div className="mt-6 text-center text-sm">
+            <Link to="/" className="text-gray-500 hover:text-gray-800 transition-colors inline-flex items-center gap-1">
+              <ArrowLeft size={14} /> Back to Home Page
+            </Link>
+          </div>
         </div>
       </div>
     </div>

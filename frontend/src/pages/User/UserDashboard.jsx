@@ -22,12 +22,13 @@ export default function UserDashboard() {
   // If they want to go to their dashboard, they can click "Dashboard" in the header.
 
   useEffect(() => {
-    if (!location.hash) return;
-    const section = document.querySelector(location.hash);
+    const targetSelector = location.hash || (location.pathname === "/plans" ? "#plans" : null);
+    if (!targetSelector) return;
+    const section = document.querySelector(targetSelector);
     if (section) {
       section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [location.hash]);
+  }, [location.hash, location.pathname]);
 
   return (
     <div className="bg-[#f7f8fc] min-h-screen">

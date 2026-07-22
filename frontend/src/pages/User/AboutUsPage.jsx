@@ -305,17 +305,11 @@ const AboutUsPage = () => {
       </section>
 
       {/* ================= HOW WE WORK ================= */}
-      <section className="relative bg-[#fff8f8] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-     <GettingStarted />
-      </section>
+      <GettingStarted />
 
       {/* ================= EXISTING TESTIMONIAL SECTION ================= */}
-      <section className="bg-white py-20 lg:py-28">
-      
+      <Testimonials />
 
-          <Testimonials />
-       
-      </section>
 <Footer />
     </main>
   );

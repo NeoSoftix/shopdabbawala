@@ -956,10 +956,7 @@ const ContactUsPage = () => {
           FAQ SECTION
       ================================================= */}
 
-      <section className="px-5 py-16 sm:px-8 lg:px-10">
-<FAQSection />
-
-      </section>
+      <FAQSection />
 
 
 <section>

@@ -211,4 +211,4 @@ const FAQSection = () => {
   );
 };
 
-export default FAQSection;6
+export default FAQSection;
