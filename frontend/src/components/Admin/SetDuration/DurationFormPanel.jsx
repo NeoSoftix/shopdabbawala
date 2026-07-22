@@ -1,3 +1,6 @@
+import Input from "../../ui/Input";
+import Button from "../../ui/Button";
+
 const DurationFormPanel = ({
   isOpen,
   editingId,
@@ -38,23 +41,14 @@ const DurationFormPanel = ({
 
         <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Duration Label
-            </label>
-            <input
+            <Input
+              label="Duration Label"
               type="text"
               value={form.durationLabel}
               onChange={(e) => onChange("durationLabel", e.target.value)}
               placeholder="e.g. Weekly, Monthly, Fortnightly"
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.durationLabel
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
+              error={formErrors.durationLabel}
             />
-            {formErrors.durationLabel && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.durationLabel}</p>
-            )}
             <p className="text-[10px] text-gray-400 mt-1">
               This is what customers see as a tab — e.g. "Weekly", "Monthly". You can group
               multiple meal-count options under the same label.
@@ -62,15 +56,12 @@ const DurationFormPanel = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Duration Tab Order <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
+            <Input
+              label={<>Duration Tab Order <span className="text-gray-400 font-normal">(optional)</span></>}
               type="number"
               value={form.labelOrder}
               onChange={(e) => onChange("labelOrder", e.target.value)}
               placeholder="0"
-              className="w-full border border-gray-300 rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
             />
             <p className="text-[10px] text-gray-400 mt-1">
               Controls which tab shows first — e.g. "Weekly" before "Monthly". Lower numbers
@@ -78,46 +69,26 @@ const DurationFormPanel = ({
             </p>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Total Meals
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={form.totalMeals}
-              onChange={(e) => onChange("totalMeals", e.target.value)}
-              placeholder="4"
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.totalMeals
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
-            />
-            {formErrors.totalMeals && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.totalMeals}</p>
-            )}
-          </div>
+          <Input
+            label="Total Meals"
+            type="number"
+            min="1"
+            value={form.totalMeals}
+            onChange={(e) => onChange("totalMeals", e.target.value)}
+            placeholder="4"
+            error={formErrors.totalMeals}
+          />
 
           <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Duration (Days)
-            </label>
-            <input
+            <Input
+              label="Duration (Days)"
               type="number"
               min="1"
               value={form.durationDays}
               onChange={(e) => onChange("durationDays", e.target.value)}
               placeholder="e.g. 7"
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.durationDays
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
+              error={formErrors.durationDays}
             />
-            {formErrors.durationDays && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.durationDays}</p>
-            )}
             <p className="text-[10px] text-gray-400 mt-1">
               How many calendar days this plan actually runs for - sets the subscription's
               end date and billing cycle, regardless of the label above.
@@ -172,20 +143,15 @@ const DurationFormPanel = ({
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         step="0.01"
                         value={row.pricePerMeal}
                         onChange={(e) => onTierPriceChange(tier._id, "pricePerMeal", e.target.value)}
                         placeholder="Price / meal ($)"
-                        className={`w-full border rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                          tierError
-                            ? "border-red-400 focus:ring-red-400"
-                            : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-                        }`}
                       />
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         max="100"
@@ -193,11 +159,6 @@ const DurationFormPanel = ({
                         value={row.discountPercentage}
                         onChange={(e) => onTierPriceChange(tier._id, "discountPercentage", e.target.value)}
                         placeholder="Discount %"
-                        className={`w-full border rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                          tierError
-                            ? "border-red-400 focus:ring-red-400"
-                            : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-                        }`}
                       />
                     </div>
                     {tierError && <p className="text-[11px] text-red-600 mt-1">{tierError}</p>}
@@ -208,38 +169,26 @@ const DurationFormPanel = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Frequency Label
-            </label>
-            <input
+            <Input
+              label="Frequency Label"
               type="text"
               value={form.frequencyLabel}
               onChange={(e) => onChange("frequencyLabel", e.target.value)}
               placeholder="e.g. 4 Meals / Week"
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.frequencyLabel
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
+              error={formErrors.frequencyLabel}
             />
-            {formErrors.frequencyLabel && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.frequencyLabel}</p>
-            )}
             <p className="text-[10px] text-gray-400 mt-1">
               Small caption shown under the meal count on the customer's plan card.
             </p>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Sort Order <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
+            <Input
+              label={<>Sort Order <span className="text-gray-400 font-normal">(optional)</span></>}
               type="number"
               value={form.sortOrder}
               onChange={(e) => onChange("sortOrder", e.target.value)}
               placeholder="0"
-              className="w-full border border-gray-300 rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
             />
             <p className="text-[10px] text-gray-400 mt-1">
               Lower numbers show first among cards with the same duration label.
@@ -248,21 +197,12 @@ const DurationFormPanel = ({
         </form>
 
         <div className="flex items-center gap-2 px-5 py-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl py-2.5 transition-all focus:outline-none"
-          >
+          <Button variant="outline" onClick={onClose} className="flex-1">
             Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={onSubmit}
-            disabled={submitting}
-            className="flex-1 text-xs font-bold text-white bg-[#dc2626] hover:bg-red-700 rounded-xl py-2.5 transition-all focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          </Button>
+          <Button type="submit" onClick={onSubmit} loading={submitting} className="flex-1">
             {submitting ? "Saving..." : editingId ? "Save Changes" : "Create Plan"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

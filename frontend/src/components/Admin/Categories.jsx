@@ -7,8 +7,13 @@ import {
   deleteCategory,
 } from "../../services/category.service.js";
 import { toast } from "react-hot-toast";
-import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
+import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import Modal from "../ui/Modal";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Button from "../ui/Button";
 
 const PAGE_SIZE = 10;
 
@@ -42,38 +47,15 @@ const Categories = () => {
   };
 
   const handleDelete = (id) => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <p className="font-semibold text-sm text-gray-800">Delete this category?</p>
-          <p className="text-xs text-gray-500">This action cannot be undone.</p>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={async () => {
-                toast.dismiss(t.id);
-                try {
-                  await deleteCategory(id);
-                  toast.success("Category deleted successfully.");
-                  fetchCategories(page);
-                } catch (error) {
-                  toast.error(error?.response?.data?.message || "Failed to delete category.");
-                }
-              }}
-              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 8000 }
-    );
+    confirmDeleteToast("Delete this category?", async () => {
+      try {
+        await deleteCategory(id);
+        toast.success("Category deleted successfully.");
+        fetchCategories(page);
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to delete category.");
+      }
+    });
   };
 
   const handleEdit = (category) => {
@@ -114,12 +96,9 @@ const Categories = () => {
           <p className="text-gray-500 mt-1">Manage your categories.</p>
         </div>
 
-        <button
-          onClick={() => navigate("/admin/categories/add")}
-          className="inline-flex items-center justify-center rounded-full bg-red-500 px-4 py-1.5 text-white transition hover:bg-red-600"
-        >
+        <Button onClick={() => navigate("/admin/categories/add")} className="!rounded-full">
           Create Category
-        </button>
+        </Button>
       </div>
 
       {success && (
@@ -217,14 +196,21 @@ const Categories = () => {
         onPageChange={setPage}
       />
 
-      {isEditOpen && selectedCategory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-[600px] rounded-xl p-6">
+      <Modal
+        isOpen={isEditOpen && !!selectedCategory}
+        onClose={() => {
+          setIsEditOpen(false);
+          setSelectedCategory(null);
+        }}
+        showCloseButton
+      >
+        {selectedCategory && (
+          <>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Update Category</h2>
 
-            <div className="mb-3">
-              <label className="block mb-2">Category Name</label>
-              <input
+            <div className="space-y-3">
+              <Input
+                label="Category Name"
                 type="text"
                 value={selectedCategory.name}
                 onChange={(e) =>
@@ -233,13 +219,10 @@ const Categories = () => {
                     name: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
               />
-            </div>
 
-            <div className="mb-3">
-              <label className="block mb-2">Food Type</label>
-              <select
+              <Select
+                label="Food Type"
                 value={selectedCategory.foodType}
                 onChange={(e) =>
                   setSelectedCategory({
@@ -247,37 +230,31 @@ const Categories = () => {
                     foodType: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
               >
                 <option value="veg">Veg</option>
                 <option value="non-veg">Non Veg</option>
-              </select>
+              </Select>
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsEditOpen(false);
                   setSelectedCategory(null);
                 }}
                 disabled={updating}
-                className="border px-4 py-2 rounded"
               >
                 Cancel
-              </button>
+              </Button>
 
-              <button
-                onClick={handleUpdate}
-                disabled={updating}
-                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {updating && <ButtonSpinner />}
+              <Button onClick={handleUpdate} loading={updating}>
                 {updating ? "Updating..." : "Update"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };

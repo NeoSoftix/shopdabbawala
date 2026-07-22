@@ -7,6 +7,10 @@ import { toast } from 'react-hot-toast';
 import { Mail, MessageSquare, FileText } from 'lucide-react';
 import { SectionLoader } from '../../../components/shared/Loader';
 import Pagination from '../../../components/shared/Pagination';
+import { confirmDeleteToast } from '../../../utils/confirmDeleteToast';
+import Modal from '../../../components/ui/Modal';
+import Input from '../../../components/ui/Input';
+import Button from '../../../components/ui/Button';
 
 const statusStyles = {
   completed: 'bg-emerald-100 text-emerald-700',
@@ -42,40 +46,17 @@ const CampaignDashboard = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <p className="font-semibold text-sm text-gray-800">Delete this campaign?</p>
-          <p className="text-xs text-gray-500">This action cannot be undone.</p>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={async () => {
-                toast.dismiss(t.id);
-                try {
-                  await deleteCampaign(id);
-                  toast.success('Campaign deleted successfully.');
-                  fetchCampaigns(page);
-                } catch (error) {
-                  toast.error(error.response?.data?.message || 'Failed to delete campaign.');
-                }
-              }}
-              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 8000 }
-    );
-  };
+  const handleDelete = (id) => {
+    confirmDeleteToast('Delete this campaign?', async () => {
+      try {
+        await deleteCampaign(id);
+        toast.success('Campaign deleted successfully.');
+        fetchCampaigns(page);
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete campaign.');
+      }
+    });
+  };
 
   const handleSendNow = async (id) => {
     try {
@@ -121,12 +102,9 @@ const CampaignDashboard = () => {
             <FileText size={15} />
             Email Templates
           </Link>
-          <button
-            onClick={() => navigate('/admin/campaigns/new')}
-            className="inline-flex items-center justify-center rounded-full bg-red-500 px-4 py-1.5 text-white transition hover:bg-red-600"
-          >
-            Create Campaign
-          </button>
+          <Button onClick={() => navigate('/admin/campaigns/new')} className="!rounded-full">
+            Create Campaign
+          </Button>
         </div>
       </div>
 
@@ -253,41 +231,30 @@ const CampaignDashboard = () => {
 
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {scheduleTargetId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-[420px] rounded-xl p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Schedule Campaign</h2>
-            <p className="text-sm text-gray-500 mb-4">Pick a future date and time to send this campaign.</p>
+      <Modal isOpen={!!scheduleTargetId} onClose={() => setScheduleTargetId(null)} showCloseButton>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Schedule Campaign</h2>
+        <p className="text-sm text-gray-500 mb-4">Pick a future date and time to send this campaign.</p>
 
-            <form onSubmit={handleScheduleSubmit}>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Date &amp; Time</label>
-              <input
-                type="datetime-local"
-                required
-                value={scheduleDate}
-                onChange={(e) => setScheduleDate(e.target.value)}
-                className="w-full border p-3 rounded mb-4"
-              />
+        <form onSubmit={handleScheduleSubmit}>
+          <Input
+            label="Date & Time"
+            type="datetime-local"
+            required
+            value={scheduleDate}
+            onChange={(e) => setScheduleDate(e.target.value)}
+            wrapperClassName="mb-4"
+          />
 
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setScheduleTargetId(null)}
-                  className="border px-4 py-2 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-red-500 text-white px-4 py-2 rounded"
-                >
-                  Confirm
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => setScheduleTargetId(null)}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              Confirm
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

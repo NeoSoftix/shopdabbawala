@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import ModalShell from "./CheckoutFlowModal/ModalShell";
+import ModalShell from "../ui/Modal";
 import StepIndicator from "./CheckoutFlowModal/StepIndicator";
 import OrderPreviewStep from "./CheckoutFlowModal/OrderPreviewStep";
 import PincodeStep from "./CheckoutFlowModal/PincodeStep";

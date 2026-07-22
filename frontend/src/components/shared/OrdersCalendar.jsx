@@ -8,14 +8,7 @@ import {
   markOrderDelivered,
 } from '../../services/order.service';
 import OrderDetailsModal from './OrderDetailsModal';
-
-const statusStyles = {
-  Pending: 'bg-amber-50 text-amber-600',
-  Preparing: 'bg-indigo-50 text-indigo-600',
-  'On the way': 'bg-blue-50 text-blue-600',
-  Delivered: 'bg-green-50 text-green-600',
-  Cancelled: 'bg-slate-100 text-slate-500',
-};
+import { ORDER_STATUS_STYLES as statusStyles } from '../../constants/orderStatus';
 
 export default function OrdersCalendar() {
   const today = new Date();

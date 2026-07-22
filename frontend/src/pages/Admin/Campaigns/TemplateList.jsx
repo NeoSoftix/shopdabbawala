@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getTemplates, deleteTemplate } from '../../../services/templateService';
 import { toast } from 'react-hot-toast';
-import { Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { confirmDeleteToast } from '../../../utils/confirmDeleteToast';
+import BackLink from '../../../components/ui/BackLink';
 
 const TemplateList = () => {
   const navigate = useNavigate();
@@ -24,8 +26,8 @@ const TemplateList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this template?')) {
+  const handleDelete = (id) => {
+    confirmDeleteToast('Delete this template?', async () => {
       try {
         await deleteTemplate(id);
         toast.success('Template deleted');
@@ -33,20 +35,14 @@ const TemplateList = () => {
       } catch (error) {
         toast.error('Error deleting template');
       }
-    }
+    });
   };
 
   if (loading) return <div className="p-6">Loading templates...</div>;
 
   return (
     <div className="p-6">
-      <button
-        onClick={() => navigate('/admin/campaigns')}
-        className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-700 mb-4 transition-colors"
-      >
-        <ArrowLeft size={16} />
-        Back to Campaigns
-      </button>
+      <BackLink onClick={() => navigate('/admin/campaigns')} className="mb-4">Back to Campaigns</BackLink>
 
       <div className="flex justify-between items-center mb-6">
         <div>

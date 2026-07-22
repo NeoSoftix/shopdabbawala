@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, ShieldCheck, Clock3, Eye, EyeOff } from "lucide-react";
 import { login } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
+import Button from "../components/ui/Button";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -172,13 +173,9 @@ export default function Login() {
               </Link>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 bg-[#E23747] hover:bg-red-700 disabled:bg-red-300 text-white rounded-xl font-semibold transition-all duration-200"
-            >
+            <Button type="submit" loading={loading} className="h-14 w-full font-semibold">
               {loading ? "Logging in..." : "Login"}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

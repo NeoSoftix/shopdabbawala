@@ -8,9 +8,15 @@ import {
   toggleStatus,
 } from "../../services/addOn.service.js";
 import { toast } from "react-hot-toast";
-import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
 import { FALLBACK_ADDON_IMAGE } from "../User/AddOnsSection/addOnsUtils";
+import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import Modal from "../ui/Modal";
+import Input from "../ui/Input";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
 
 const AddOns = () => {
   const navigate = useNavigate();
@@ -52,44 +58,16 @@ const AddOns = () => {
     fetchAddOns(page);
   }, [page]);
 
-  const getStatusBadge = (isActive) =>
-    isActive
-      ? "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700"
-      : "inline-flex rounded-full bg-rose-100 px-3 py-1 text-sm font-semibold text-rose-700";
-
   const handleDelete = (id) => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <p className="font-semibold text-sm text-gray-800">Delete this add-on?</p>
-          <p className="text-xs text-gray-500">This action cannot be undone.</p>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={async () => {
-                toast.dismiss(t.id);
-                try {
-                  await deleteAddOn(id);
-                  toast.success("Add-on deleted successfully.");
-                  fetchAddOns(page);
-                } catch (error) {
-                  toast.error("Failed to delete add-on.");
-                }
-              }}
-              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 8000 }
-    );
+    confirmDeleteToast("Delete this add-on?", async () => {
+      try {
+        await deleteAddOn(id);
+        toast.success("Add-on deleted successfully.");
+        fetchAddOns(page);
+      } catch (error) {
+        toast.error("Failed to delete add-on.");
+      }
+    });
   };
 
   const handleToggleStatus = async (id) => {
@@ -155,12 +133,9 @@ const AddOns = () => {
           </p> */}
         </div>
 
-        <button
-          onClick={() => navigate("/admin/add-on/add")}
-          className="inline-flex items-center justify-center rounded-full bg-red-500 px-3 py-2 text-white transition hover:bg-red-600"
-        >
+        <Button onClick={() => navigate("/admin/add-on/add")} className="!rounded-full">
           Create Add On
-        </button>
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -212,9 +187,9 @@ const AddOns = () => {
                 </td>
 
                 <td className="py-2.5 px-4">
-                  <span className={getStatusBadge(addon.isActive)}>
+                  <Badge color={addon.isActive ? "green" : "red"}>
                     {addon.isActive ? "Active" : "Inactive"}
-                  </span>
+                  </Badge>
                 </td>
 
                 <td className="py-2.5 px-4 text-right">
@@ -284,9 +259,19 @@ const AddOns = () => {
       />
 
       {/* update modal */}
-      {showModal && selectedAddOn && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-[600px] rounded-xl p-6">
+      <Modal
+        isOpen={showModal && !!selectedAddOn}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedAddOn(null);
+          setErrors({});
+          setEditImage(null);
+          setEditPreview("");
+        }}
+        showCloseButton
+      >
+        {selectedAddOn && (
+          <>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Update Add On</h2>
 
             <div className="mb-4 flex flex-col items-center justify-center text-center">
@@ -305,9 +290,8 @@ const AddOns = () => {
               </label>
             </div>
 
-            <div className="mb-3">
-              <input
-                type="text"
+            <div className="space-y-3">
+              <Input
                 placeholder="Name"
                 value={selectedAddOn.name}
                 onChange={(e) =>
@@ -316,15 +300,10 @@ const AddOns = () => {
                     name: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded"
+                error={errors.name}
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
-            </div>
 
-            <div className="mb-3">
-              <textarea
+              <Textarea
                 placeholder="Description"
                 value={selectedAddOn.description}
                 onChange={(e) =>
@@ -333,15 +312,10 @@ const AddOns = () => {
                     description: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded"
+                error={errors.description}
               />
-              {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
-              )}
-            </div>
 
-            <div className="mb-3">
-              <input
+              <Input
                 type="number"
                 placeholder="Price"
                 value={selectedAddOn.price}
@@ -351,28 +325,24 @@ const AddOns = () => {
                     price: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded"
+                error={errors.price}
               />
-              {errors.price && (
-                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
-              )}
+
+              <Input
+                placeholder="Allergies (comma separated)"
+                value={selectedAddOn.allergies}
+                onChange={(e) =>
+                  setSelectedAddOn({
+                    ...selectedAddOn,
+                    allergies: e.target.value,
+                  })
+                }
+              />
             </div>
 
-            <input
-              type="text"
-              placeholder="Allergies (comma separated)"
-              value={selectedAddOn.allergies}
-              onChange={(e) =>
-                setSelectedAddOn({
-                  ...selectedAddOn,
-                  allergies: e.target.value,
-                })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
-
-            <div className="flex justify-end gap-3">
-              <button
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowModal(false);
                   setSelectedAddOn(null);
@@ -381,23 +351,17 @@ const AddOns = () => {
                   setEditPreview("");
                 }}
                 disabled={updating}
-                className="border px-4 py-2 rounded"
               >
                 Cancel
-              </button>
+              </Button>
 
-              <button
-                onClick={handleUpdate}
-                disabled={updating}
-                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {updating && <ButtonSpinner />}
+              <Button onClick={handleUpdate} loading={updating}>
                 {updating ? "Updating..." : "Update"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };

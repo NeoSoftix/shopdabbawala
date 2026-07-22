@@ -8,8 +8,14 @@ import {
 } from "../../services/items.service";
 import { getAllCategories } from "../../services/category.service";
 import { toast } from "react-hot-toast";
-import { SectionLoader, ButtonSpinner } from "../shared/Loader";
+import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
+import Modal from "../ui/Modal";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
 
 const DEFAULT_PREVIEW =
   "data:image/svg+xml," +
@@ -71,38 +77,15 @@ const Item = () => {
   };
 
   const handleDelete = (id) => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <p className="font-semibold text-sm text-gray-800">Delete this item?</p>
-          <p className="text-xs text-gray-500">This action cannot be undone.</p>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={async () => {
-                toast.dismiss(t.id);
-                try {
-                  await deleteItem(id);
-                  toast.success("Item deleted successfully.");
-                  fetchItems(page);
-                } catch (error) {
-                  toast.error(error?.response?.data?.message || "Failed to delete item.");
-                }
-              }}
-              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 8000 }
-    );
+    confirmDeleteToast("Delete this item?", async () => {
+      try {
+        await deleteItem(id);
+        toast.success("Item deleted successfully.");
+        fetchItems(page);
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to delete item.");
+      }
+    });
   };
 
   const handleUpdate = async () => {
@@ -138,12 +121,9 @@ const Item = () => {
           {/* <p className="text-gray-500 mt-1">Manage your items.</p> */}
         </div>
 
-        <button
-          onClick={() => navigate("/admin/items/add")}
-          className="inline-flex items-center justify-center rounded-full bg-red-500 px-3 py-2 text-white transition hover:bg-red-600"
-        >
+        <Button onClick={() => navigate("/admin/items/add")} className="!rounded-full">
           Create Item
-        </button>
+        </Button>
       </div>
 
       {success && (
@@ -261,9 +241,19 @@ const Item = () => {
         onPageChange={setPage}
       />
 
-      {isEdit && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-[600px] rounded-xl p-6 max-h-[90vh] overflow-y-auto">
+      <Modal
+        isOpen={isEdit && !!selectedItem}
+        onClose={() => {
+          setIsEdit(false);
+          setSelectedItem(null);
+          setEditImage(null);
+          setEditPreview("");
+        }}
+        wide
+        showCloseButton
+      >
+        {selectedItem && (
+          <>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Update Item</h2>
 
             <div className="mb-4 flex flex-col items-center justify-center text-center">
@@ -282,9 +272,9 @@ const Item = () => {
               </label>
             </div>
 
-            <div className="mb-3">
-              <label className="block mb-2">Item Name</label>
-              <input
+            <div className="space-y-3">
+              <Input
+                label="Item Name"
                 type="text"
                 value={selectedItem.name || ""}
                 onChange={(e) =>
@@ -293,16 +283,11 @@ const Item = () => {
                     name: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
               />
-            </div>
 
-            <div className="mb-3">
-              <label className="block mb-2">Category</label>
-              <select
-                value={
-                  selectedItem.category?._id || selectedItem.category || ""
-                }
+              <Select
+                label="Category"
+                value={selectedItem.category?._id || selectedItem.category || ""}
                 onChange={(e) =>
                   setSelectedItem({
                     ...selectedItem,
@@ -312,7 +297,6 @@ const Item = () => {
                     },
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
               >
                 <option value="">Select Category</option>
                 {categories.map((category) => (
@@ -320,12 +304,10 @@ const Item = () => {
                     {category.name}
                   </option>
                 ))}
-              </select>
-            </div>
+              </Select>
 
-            <div className="mb-3">
-              <label className="block mb-2">Description</label>
-              <textarea
+              <Textarea
+                label="Description"
                 rows="3"
                 value={selectedItem.description || ""}
                 onChange={(e) =>
@@ -334,13 +316,10 @@ const Item = () => {
                     description: e.target.value,
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
               />
-            </div>
 
-            <div className="mb-3">
-              <label className="block mb-2">Allergies</label>
-              <input
+              <Input
+                label="Allergies"
                 type="text"
                 value={selectedItem.allergies?.join(", ") || ""}
                 onChange={(e) =>
@@ -352,13 +331,13 @@ const Item = () => {
                       .filter(Boolean),
                   })
                 }
-                className="w-full border p-3 rounded mb-3"
                 placeholder="Comma separated"
               />
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsEdit(false);
                   setSelectedItem(null);
@@ -366,23 +345,17 @@ const Item = () => {
                   setEditPreview("");
                 }}
                 disabled={updating}
-                className="border px-4 py-2 rounded"
               >
                 Cancel
-              </button>
+              </Button>
 
-              <button
-                onClick={handleUpdate}
-                disabled={updating}
-                className="bg-red-500 text-white px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {updating && <ButtonSpinner />}
+              <Button onClick={handleUpdate} loading={updating}>
                 {updating ? "Updating..." : "Update"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import EmailEditor from 'react-email-editor';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { createTemplate, getTemplateById, updateTemplate } from '../../../services/templateService';
+import Button from '../../../components/ui/Button';
 
 const TemplateBuilder = () => {
   const emailEditorRef = useRef(null);
@@ -102,19 +103,12 @@ const TemplateBuilder = () => {
           />
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => navigate('/admin/campaigns/templates')}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
-          >
+          <Button variant="outline" onClick={() => navigate('/admin/campaigns/templates')}>
             Cancel
-          </button>
-          <button 
-            onClick={saveDesign} 
-            disabled={isSaving}
-            className="px-4 py-2 text-white bg-orange-600 rounded hover:bg-orange-700 disabled:opacity-50"
-          >
+          </Button>
+          <Button onClick={saveDesign} loading={isSaving}>
             {isSaving ? 'Saving...' : (id ? 'Update Template' : 'Save Template')}
-          </button>
+          </Button>
         </div>
       </div>
       

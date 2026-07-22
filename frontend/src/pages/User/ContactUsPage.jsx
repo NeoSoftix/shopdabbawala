@@ -15,7 +15,6 @@ import {
   Plus,
   Minus,
   ArrowRight,
-  Loader2,
   CheckCircle2,
   AlertCircle,
   ExternalLink,
@@ -23,6 +22,7 @@ import {
 import FAQSection from "../../components/User/FAQSection";
 import Footer from "../../components/shared/Footer"
 import HeroHeader from "../../components/User/HeroHeader";
+import Button from "../../components/ui/Button";
 /* =====================================================
    CONTACT DETAILS
 ===================================================== */
@@ -738,30 +738,20 @@ const ContactUsPage = () => {
 
               <div className="sm:col-span-2">
 
-                <button
+                <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex min-w-[180px] items-center justify-center gap-2 rounded-xl bg-red-600 px-8 py-4 text-sm font-bold text-white transition hover:bg-red-700 hover:shadow-lg hover:shadow-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  loading={isSubmitting}
+                  className="min-w-[180px] !py-4"
                 >
-
                   {isSubmitting ? (
-                    <>
-                      <Loader2
-                        size={18}
-                        className="animate-spin"
-                      />
-
-                      Sending...
-                    </>
+                    "Sending..."
                   ) : (
                     <>
                       Send Message
-
                       <Send size={17} />
                     </>
                   )}
-
-                </button>
+                </Button>
 
               </div>
 

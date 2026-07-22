@@ -4,11 +4,14 @@ import { createCampaign, updateCampaign, sendCampaign, scheduleCampaign, getCamp
 import { getTemplates } from '../../../services/templateService';
 import { getAllPackages } from '../../../services/package.service';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Mail, MessageSquare, Send, CalendarClock, Search, X } from 'lucide-react';
+import { Mail, MessageSquare, Send, CalendarClock, Search, X } from 'lucide-react';
 import { SectionLoader } from '../../../components/shared/Loader';
+import BackLink from '../../../components/ui/BackLink';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import Textarea from '../../../components/ui/Textarea';
+import Button from '../../../components/ui/Button';
 
-const inputClass =
-  'w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none shadow-sm transition-all focus:border-red-500';
 const labelClass = 'block text-sm font-semibold text-gray-700 mb-1.5';
 const sectionTitleClass = 'text-xl font-bold text-gray-900 mb-4';
 
@@ -219,13 +222,7 @@ const CreateCampaign = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate('/admin/campaigns')}
-            className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors shrink-0"
-          >
-            <ArrowLeft size={16} />
-            Back to Campaigns
-          </button>
+          <BackLink onClick={() => navigate('/admin/campaigns')} className="shrink-0">Back to Campaigns</BackLink>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -234,17 +231,14 @@ const CreateCampaign = () => {
             <h2 className={sectionTitleClass}>Campaign Details</h2>
 
             <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Campaign Name</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g. Winter Promo 2026"
-                />
-              </div>
+              <Input
+                label="Campaign Name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Winter Promo 2026"
+              />
 
               <div>
                 <label className={labelClass}>Campaign Type</label>
@@ -281,56 +275,32 @@ const CreateCampaign = () => {
             <h2 className={sectionTitleClass}>Target Audience (Filters)</h2>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>User Role</label>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="user">Customers</option>
-                  <option value="vendor">Vendors</option>
-                  <option value="admin">Admins</option>
-                </select>
-              </div>
+              <Select label="User Role" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <option value="user">Customers</option>
+                <option value="vendor">Vendors</option>
+                <option value="admin">Admins</option>
+              </Select>
 
-              <div>
-                <label className={labelClass}>Account Status</label>
-                <select
-                  value={isActiveFilter}
-                  onChange={(e) => setIsActiveFilter(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="all">All</option>
-                  <option value="true">Active Only</option>
-                  <option value="false">Inactive Only</option>
-                </select>
-              </div>
+              <Select label="Account Status" value={isActiveFilter} onChange={(e) => setIsActiveFilter(e.target.value)}>
+                <option value="all">All</option>
+                <option value="true">Active Only</option>
+                <option value="false">Inactive Only</option>
+              </Select>
 
-              <div>
-                <label className={labelClass}>City</label>
-                <input
-                  type="text"
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g. Delhi"
-                />
-              </div>
+              <Input
+                label="City"
+                type="text"
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                placeholder="e.g. Delhi"
+              />
 
-              <div>
-                <label className={labelClass}>Subscribed Package</label>
-                <select
-                  value={packageIdFilter}
-                  onChange={(e) => setPackageIdFilter(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">Any Package</option>
-                  {packages.map((pkg) => (
-                    <option key={pkg._id} value={pkg._id}>{pkg.name}</option>
-                  ))}
-                </select>
-              </div>
+              <Select label="Subscribed Package" value={packageIdFilter} onChange={(e) => setPackageIdFilter(e.target.value)}>
+                <option value="">Any Package</option>
+                {packages.map((pkg) => (
+                  <option key={pkg._id} value={pkg._id}>{pkg.name}</option>
+                ))}
+              </Select>
             </div>
 
             {selectedUsers.length === 0 ? (
@@ -344,14 +314,14 @@ const CreateCampaign = () => {
             )}
 
             <div className="mt-5 pt-5 border-t border-gray-100">
-              <label className={labelClass}>Search &amp; Target Specific Users</label>
+              <label className={labelClass}>Search & Target Specific Users</label>
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+                <Input
                   type="text"
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className={`${inputClass} pl-9`}
+                  className="pl-9"
                   placeholder="Search by name, email, or phone..."
                 />
               </div>
@@ -407,30 +377,26 @@ const CreateCampaign = () => {
 
             {type === 'email' ? (
               <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>Email Subject</label>
-                  <input
-                    type="text"
-                    required
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
+                <Input
+                  label="Email Subject"
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
 
                 <div>
-                  <label className={labelClass}>Email Template</label>
-                  <select
+                  <Select
+                    label="Email Template"
                     required
                     value={emailTemplateId}
                     onChange={(e) => setEmailTemplateId(e.target.value)}
-                    className={inputClass}
                   >
                     <option value="" disabled>Select a Template...</option>
                     {templates.map(t => (
                       <option key={t._id} value={t._id}>{t.name}</option>
                     ))}
-                  </select>
+                  </Select>
                   {templates.length === 0 && (
                     <p className="text-sm text-red-500 mt-2">
                       No templates found.{' '}
@@ -443,15 +409,14 @@ const CreateCampaign = () => {
               </div>
             ) : (
               <div>
-                <label className={labelClass}>SMS Message</label>
-                <textarea
+                <Textarea
+                  label="SMS Message"
                   required
                   rows="4"
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  className={inputClass}
                   placeholder="Type your SMS message here..."
-                ></textarea>
+                />
                 <p className="text-xs text-gray-400 mt-2">Note: SMS usually charges per 160 characters.</p>
               </div>
             )}
@@ -488,32 +453,25 @@ const CreateCampaign = () => {
               </div>
 
               {sendTiming === 'schedule' && (
-                <div>
-                  <label className={labelClass}>Schedule Date &amp; Time</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={scheduledAt}
-                    onChange={(e) => setScheduledAt(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
+                <Input
+                  label="Schedule Date & Time"
+                  type="datetime-local"
+                  required
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                />
               )}
             </div>
           )}
 
           <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/campaigns')}
-              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
-            >
+            <Button type="button" variant="outline" onClick={() => navigate('/admin/campaigns')}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={isSubmitting || (type === 'email' && !emailTemplateId)}
-              className="rounded-xl bg-[#e61e2d] px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={isSubmitting}
+              disabled={type === 'email' && !emailTemplateId}
             >
               {isSubmitting
                 ? 'Saving...'
@@ -522,7 +480,7 @@ const CreateCampaign = () => {
                 : sendTiming === 'schedule'
                 ? 'Schedule Campaign'
                 : 'Send Campaign'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
