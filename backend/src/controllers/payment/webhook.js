@@ -3,6 +3,7 @@ import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
 import { fulfillOrder } from "./fulfillOrder.js"
 import { notifyUser } from "../../utils/notifyOrderEvent.js"
+import { sendWhatsApp } from "../../utils/sms/sendWhatsApp.js"
 
 export const stripeWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
@@ -64,7 +65,7 @@ export const stripeWebhook = async (req, res) => {
           (paymentType === "ADMIN_PACKAGE" || paymentType === "CUSTOM_PACKAGE") &&
           !payment.purchaseNotified
         ) {
-          const refreshedPayment = await Payment.findById(payment._id).populate("subscription");
+          const refreshedPayment = await Payment.findById(payment._id).populate("subscription").populate("package");
 
           notifyUser({
             userId: payment.user,
@@ -84,6 +85,16 @@ export const stripeWebhook = async (req, res) => {
 
           payment.purchaseNotified = true;
           await payment.save();
+
+          // WhatsApp-originated purchases don't have a browser session to
+          // land the user back on - send the confirmation directly instead.
+          if (session.metadata?.source === "whatsapp" && session.metadata?.whatsappPhone) {
+            const planName = refreshedPayment?.package?.name || "your";
+            sendWhatsApp(
+              session.metadata.whatsappPhone,
+              `🎉 Payment successful! Your ${planName} plan is now active.\n\nThank you for choosing Shop Dabba Wala! Visit ${process.env.FRONTEND_URL} anytime.`
+            ).catch((err) => console.error("WhatsApp confirmation failed:", err.message || err));
+          }
         }
 
         break;
