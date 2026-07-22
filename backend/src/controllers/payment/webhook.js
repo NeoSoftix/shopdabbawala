@@ -87,12 +87,16 @@ export const stripeWebhook = async (req, res) => {
           await payment.save();
 
           // WhatsApp-originated purchases don't have a browser session to
-          // land the user back on - send the confirmation directly instead.
+          // land the user back on - send the confirmation directly instead,
+          // with a link straight to the meal scheduler so they know the
+          // very next thing to do.
           if (session.metadata?.source === "whatsapp" && session.metadata?.whatsappPhone) {
             const planName = refreshedPayment?.package?.name || "your";
             sendWhatsApp(
               session.metadata.whatsappPhone,
-              `🎉 Payment successful! Your ${planName} plan is now active.\n\nThank you for choosing Shop Dabba Wala! Visit ${process.env.FRONTEND_URL} anytime.`
+              `🎉 Your payment is successful! Your ${planName} plan is now active.\n\n` +
+              `You can now go to our website and schedule your meals: ${process.env.FRONTEND_URL}/dashboard\n\n` +
+              `Thank you for choosing Shop Dabba Wala! 🍲`
             ).catch((err) => console.error("WhatsApp confirmation failed:", err.message || err));
           }
         }
