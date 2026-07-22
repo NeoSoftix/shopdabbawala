@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { RefreshCw, UtensilsCrossed } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CreatePackage from "../../pages/User/CreatePackage";
 import { checkServiceAvailability } from "../../services/vendor.service";
@@ -51,29 +51,29 @@ export default function PackagesSection() {
   const activeSubscriptions = userSubscriptions.filter(sub => sub.status === "active");
 
   // --- DYNAMIC DATA FETCHING VIA SERVICE ---
-  useEffect(() => {
-    const fetchPackagesData = async () => {
-      try {
-        setLoading(true);
-        // Custom API Service hit
-        const result = await getActivePackages();
+  const fetchPackagesData = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Custom API Service hit
+      const result = await getActivePackages();
 
-        if (result.success && result.data) {
-          setPackages(formatPackages(result.data));
-          setError(null);
-        } else {
-          setError(result.message || "Failed to fetch active packages");
-        }
-      } catch (err) {
-        console.error("Error fetching packages via service:", err);
-        setError("Unable to load packages. Please try again later.");
-      } finally {
-        setLoading(false);
+      if (result.success && result.data) {
+        setPackages(formatPackages(result.data));
+        setError(null);
+      } else {
+        setError(result.message || "Failed to fetch active packages");
       }
-    };
-
-    fetchPackagesData();
+    } catch (err) {
+      console.error("Error fetching packages via service:", err);
+      setError("We're having trouble reaching our servers. Please try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPackagesData();
+  }, [fetchPackagesData]);
 
   const handleNext = () => {
     if (packages.length === 0) return;
@@ -150,12 +150,24 @@ export default function PackagesSection() {
   if (error || packages.length === 0) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
-        <p className="text-red-500 font-black text-xl mb-2 flex items-center justify-center gap-2">
-          <AlertTriangle size={20} /> {error || "No Active Packages Found"}
+        <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-5 shadow-inner">
+          <UtensilsCrossed size={28} />
+        </div>
+
+        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+          {error ? "Unable to load plans" : "No Active Plans Yet"}
+        </h3>
+        <p className="text-sm text-slate-400 font-medium mt-1.5 mb-6 max-w-sm">
+          {error || "Our meal plans aren't live just yet — check back soon!"}
         </p>
-        <p className="text-slate-400 text-sm">
-          Please make sure your admin server has activated packages configured.
-        </p>
+
+        <button
+          type="button"
+          onClick={fetchPackagesData}
+          className="inline-flex items-center gap-2 rounded-full bg-red-600 text-white px-6 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-red-700 active:scale-[0.98] transition-all shadow-md shadow-red-600/10"
+        >
+          <RefreshCw size={14} /> Try Again
+        </button>
       </div>
     );
   }

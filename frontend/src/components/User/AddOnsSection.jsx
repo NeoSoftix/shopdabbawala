@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { RefreshCw, UtensilsCrossed } from "lucide-react";
 
 // Path ko apne folder structure ke according adjust karlein
 import { getActiveAddOns } from "../../services/addOn.service";
@@ -15,27 +16,28 @@ export default function AddonsSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchActiveAddons = async () => {
-      try {
-        setLoading(true);
-        const result = await getActiveAddOns();
+  const fetchActiveAddons = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getActiveAddOns();
 
-        if (result.success && result.data) {
-          setAddonsData(result.data);
-        } else {
-          setError(result.message || "Failed to fetch active add-ons");
-        }
-      } catch (err) {
-        console.error("Error fetching add-ons via service:", err);
-        setError("Something went wrong while loading add-ons.");
-      } finally {
-        setLoading(false);
+      if (result.success && result.data) {
+        setAddonsData(result.data);
+      } else {
+        setError(result.message || "Failed to fetch active add-ons");
       }
-    };
-
-    fetchActiveAddons();
+    } catch (err) {
+      console.error("Error fetching add-ons via service:", err);
+      setError("We're having trouble reaching our servers. Please try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchActiveAddons();
+  }, [fetchActiveAddons]);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -51,8 +53,21 @@ export default function AddonsSection() {
 
   if (error) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-[#FDFBF9] p-4 text-center">
-        <div className="text-red-600 font-bold max-w-md">{error}</div>
+      <div className="w-full min-h-screen flex flex-col items-center justify-center bg-[#FDFBF9] px-4 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-5 shadow-inner">
+          <UtensilsCrossed size={28} />
+        </div>
+
+        <h3 className="text-lg font-black text-slate-900 tracking-tight">Unable to load add-ons</h3>
+        <p className="text-sm text-slate-400 font-medium mt-1.5 mb-6 max-w-sm">{error}</p>
+
+        <button
+          type="button"
+          onClick={fetchActiveAddons}
+          className="inline-flex items-center gap-2 rounded-full bg-red-600 text-white px-6 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-red-700 active:scale-[0.98] transition-all shadow-md shadow-red-600/10"
+        >
+          <RefreshCw size={14} /> Try Again
+        </button>
       </div>
     );
   }
