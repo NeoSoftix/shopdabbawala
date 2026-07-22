@@ -63,6 +63,13 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
     { label: "Contact", href: "/contact-us" },
   ];
 
+  const dashboardPath =
+    user?.role === "admin"
+      ? "/admin/dashboard"
+      : user?.role === "vendor"
+        ? "/vendor/dashboard"
+        : "/dashboard";
+
   const scrollToPackages = () => {
     const section = document.getElementById("plans");
 
@@ -204,7 +211,7 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
                         className="absolute right-0 top-12 z-50 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 py-2"
                       >
                         <Link
-                          to="/dashboard"
+                          to={dashboardPath}
                           onClick={() => setIsDropdownOpen(false)}
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                         >
@@ -343,7 +350,7 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
                   )}
                 </button>
                 <Link
-                  to="/dashboard"
+                  to={dashboardPath}
                   onClick={() => setIsMenuOpen(false)}
                   className="w-full py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold bg-slate-50 text-slate-800 border border-slate-200 transition-all flex items-center justify-center gap-2"
                 >
