@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin, Pencil, Trash2, Building2, Map, Package } from "lucide-react";
+import { toTitleCase } from "../../../utils/format";
 
 const VendorCard = ({ vendor, onEdit, onDelete }) => {
   return (
@@ -125,7 +126,7 @@ const VendorCard = ({ vendor, onEdit, onDelete }) => {
             <Package size={12} />
           </span>
           <span className="font-semibold text-gray-800 truncate">
-            {vendor.category?.name || "No category assigned"}
+            {toTitleCase(vendor.category?.name) || "No category assigned"}
           </span>
         </div>
         {vendor.servicePincodes?.length > 0 && (

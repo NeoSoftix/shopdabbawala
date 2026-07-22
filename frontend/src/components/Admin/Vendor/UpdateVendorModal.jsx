@@ -3,6 +3,7 @@ import Button from "../../ui/Button";
 import Input from "../../ui/Input";
 import Select from "../../ui/Select";
 import Textarea from "../../ui/Textarea";
+import { toTitleCase } from "../../../utils/format";
 
 const UpdateVendorModal = ({
   isOpen,
@@ -67,7 +68,7 @@ const UpdateVendorModal = ({
               <option value="">Select a category</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
-                  {cat.name}
+                  {toTitleCase(cat.name)}
                 </option>
               ))}
             </Select>

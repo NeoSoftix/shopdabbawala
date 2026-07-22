@@ -5,6 +5,7 @@ import { SectionLoader } from "../../components/shared/Loader";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import toast from "react-hot-toast";
+import { toTitleCase } from "../../utils/format.js";
 
 // Read-only view of the pincode(s) and category the admin has assigned to
 // this vendor. Vendors can request changes from the admin, but never edit
@@ -39,7 +40,7 @@ export default function VendorServiceZone() {
             <FaTags size={14} className="text-[#E23747]" />
           </div>
           <div>
-            <p className="text-sm font-medium">{vendor?.category?.name || "Not assigned"}</p>
+            <p className="text-sm font-medium">{toTitleCase(vendor?.category?.name) || "Not assigned"}</p>
             <p className="text-xs text-gray-500">Assigned Category</p>
           </div>
         </div>

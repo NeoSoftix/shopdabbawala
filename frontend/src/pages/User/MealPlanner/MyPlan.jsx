@@ -28,9 +28,12 @@ const MyPlan = ({ subscriptions, activeSubscription, onChange, dayStatus }) => {
           const isActive = activeSubscription?._id === sub._id;
           let mealsUsed = sub.mealsUsed ?? 0;
           
-          // Dynamically compute meals used/scheduled for the active plan
+          // Dynamically compute meals actually delivered for the active plan.
+          // dayStatus.active only means "not paused" (it includes future,
+          // not-yet-delivered days), so counting on it here overstated meals
+          // used - status === "Delivered" is the real consumed signal.
           if (isActive && dayStatus && Object.keys(dayStatus).length > 0) {
-            mealsUsed = Object.values(dayStatus).filter(d => d.active).length;
+            mealsUsed = Object.values(dayStatus).filter(d => d.status === "Delivered").length;
           }
 
           const totalMeals = sub.totalMeals ?? 0;

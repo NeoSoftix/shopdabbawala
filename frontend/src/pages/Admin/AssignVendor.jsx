@@ -4,6 +4,7 @@ import { Search, Trash2, ChevronDown } from "lucide-react";
 import { getAllVendors, getOneVendor, updateVendor } from "../../services/vendor.service.js";
 import { getAllDeliveryCharges } from "../../services/deliveryCharge.service.js";
 import Pagination from "../../components/shared/Pagination";
+import { toTitleCase } from "../../utils/format.js";
 
 const PAGE_SIZE = 6;
 
@@ -79,7 +80,7 @@ const AssignVendor = () => {
   const selectedVendor = vendors.find((v) => v._id === selectedVendorId);
 
   const vendorOptionLabel = (v) =>
-    `${v.organizationName} (${v.category?.name || "No category"})`;
+    `${v.organizationName} (${toTitleCase(v.category?.name) || "No category"})`;
 
   const filteredVendorOptions = useMemo(() => {
     const term = vendorSearch.trim().toLowerCase();
@@ -123,7 +124,7 @@ const AssignVendor = () => {
       vendorId: v._id,
       vendorName: v.organizationName,
       pincodes: v.servicePincodes || [],
-      packageName: v.category?.name || "No category",
+      packageName: toTitleCase(v.category?.name) || "No category",
     }));
 
   const handleAssign = async (e) => {

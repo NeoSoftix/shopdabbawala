@@ -8,6 +8,7 @@ import Input from "../ui/Input";
 import Select from "../ui/Select";
 import Textarea from "../ui/Textarea";
 import Button from "../ui/Button";
+import { toTitleCase } from "../../utils/format";
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -352,7 +353,7 @@ const AddVendor = () => {
           </option>
           {categories.map((cat) => (
             <option key={cat._id} value={cat._id}>
-              {cat.name}
+              {toTitleCase(cat.name)}
             </option>
           ))}
         </Select>

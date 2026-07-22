@@ -7,6 +7,7 @@ export const vendorProfile = async (req, res) => {
     const vendor = await Vendor.findOne({
       userId: req.user.id,
     }).populate("userId", "name email phone")
+      .populate("category", "name")
 
     if(!vendor) {
       return res.status(404).json({

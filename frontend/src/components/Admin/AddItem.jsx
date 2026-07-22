@@ -8,6 +8,7 @@ import Input from "../ui/Input";
 import Select from "../ui/Select";
 import Textarea from "../ui/Textarea";
 import Button from "../ui/Button";
+import { toTitleCase } from "../../utils/format";
 
 const DEFAULT_PREVIEW =
   "data:image/svg+xml," +
@@ -184,7 +185,7 @@ const AddItem = () => {
                 <option value="">Select Category</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
-                    {category.name}
+                    {toTitleCase(category.name)}
                   </option>
                 ))}
               </Select>

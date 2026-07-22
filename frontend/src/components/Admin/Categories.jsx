@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
 import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import { toTitleCase } from "../../utils/format.js";
 import Modal from "../ui/Modal";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
@@ -131,7 +132,7 @@ const Categories = () => {
                 className="hover:bg-gray-50/40 transition-colors duration-150"
               >
                 <td className="py-2.5 px-4 text-sm font-semibold text-gray-800">
-                  {category.name}
+                  {toTitleCase(category.name)}
                 </td>
 
                 <td className="py-2.5 px-4">

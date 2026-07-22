@@ -80,10 +80,7 @@ export default function OrderDetailsModal({ order, onClose, onAccept, onReject, 
 
           <Section label="Delivery">
             <p>{order.deliveryMethod}</p>
-            <p className="text-gray-500">
-              {order.date ? `${formatDate(order.date)}, ` : ""}
-              {order.deliveryTimeSlot}
-            </p>
+            <p className="text-gray-500">{order.date ? formatDate(order.date) : "—"}</p>
           </Section>
         </div>
 

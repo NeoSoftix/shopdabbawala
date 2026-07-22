@@ -9,6 +9,7 @@ import {
 import { getAllCategories } from "../../services/category.service";
 import { toast } from "react-hot-toast";
 import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import { toTitleCase } from "../../utils/format";
 import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
 import Modal from "../ui/Modal";
@@ -179,7 +180,7 @@ const Item = () => {
                 </td>
 
                 <td className="py-2 px-3 text-sm text-gray-600">
-                  {item.category?.name}
+                  {toTitleCase(item.category?.name)}
                 </td>
 
                 <td className="py-2.5 px-4 text-sm text-gray-500 max-w-[200px] truncate">
@@ -301,7 +302,7 @@ const Item = () => {
                 <option value="">Select Category</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
-                    {category.name}
+                    {toTitleCase(category.name)}
                   </option>
                 ))}
               </Select>
