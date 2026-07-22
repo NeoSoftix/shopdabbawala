@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
-import { X } from "lucide-react"; 
+import { X } from "lucide-react";
+import logoImg from "/logo.png";
 
 export default function Sidebar({
   title = "TIFFIN SERVICE",
@@ -27,18 +28,13 @@ export default function Sidebar({
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Logo Section */}
-        <div className="bg-[#E23747] text-white px-5 py-4 relative flex flex-col justify-center">
-          <h2 className="text-xl font-bold tracking-wide pr-8 truncate">
-            {title}
-          </h2>
-          <p className="text-xs mt-0.5 uppercase tracking-widest text-red-100 truncate">
-            {subtitle}
-          </p>
-          
+        <div className="bg-white border-b border-gray-100 p-4 lg:p-6 flex items-center justify-center relative shrink-0">
+          <img src={logoImg} alt={title} className="h-16 lg:h-28 w-auto object-contain" />
+
           {/* Mobile Close Button */}
-          <button 
+          <button
             onClick={onClose}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-red-200 lg:hidden p-1 rounded-lg hover:bg-white/10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 lg:hidden p-1"
           >
             <X size={24} />
           </button>
