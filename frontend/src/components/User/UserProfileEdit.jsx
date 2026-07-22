@@ -19,7 +19,7 @@ export default function UserProfileEdit({ isOpen, onClose }) {
         email: user.email || "",
         phone: user.phone || "",
         address: user.address || "",
-        pincode: user.pincode || localStorage.getItem("pincode") || "",
+        pincode: user.pincode || "",
       });
     }
   }, [user, isOpen]);
@@ -28,21 +28,9 @@ export default function UserProfileEdit({ isOpen, onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePincodeChange = (e) => {
-    let raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (raw.length > 6) raw = raw.slice(0, 6);
-    const formatted = raw.length > 3 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
-    setFormData({ ...formData, pincode: formatted });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!/^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/.test(formData.pincode)) {
-      setError("Please enter a valid Canadian postal code (e.g. A1A 1A1).");
-      return;
-    }
 
     setLoading(true);
 
@@ -70,7 +58,7 @@ export default function UserProfileEdit({ isOpen, onClose }) {
                 <User size={26} />
               </div>
               <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Edit Profile Details</h2>
-              <p className="text-slate-400 text-xs font-semibold mt-1">Keep your delivery details up-to-date.</p>
+              <p className="text-slate-400 text-xs font-semibold mt-1">Keep your contact details up-to-date.</p>
             </div>
 
             {error && (
@@ -136,37 +124,36 @@ export default function UserProfileEdit({ isOpen, onClose }) {
 
               <div>
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
-                  Delivery Address
+                  Delivery Address <span className="normal-case font-semibold text-slate-300">(contact support to change)</span>
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-4 text-slate-400" size={16} />
                   <textarea
                     name="address"
-                    required
+                    disabled
+                    readOnly
                     rows={3}
-                    placeholder="Street, City..."
                     value={formData.address}
-                    onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all resize-none"
+                    placeholder="Not set"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-500 placeholder-slate-400 cursor-not-allowed resize-none"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
-                  Pincode
+                  Pincode <span className="normal-case font-semibold text-slate-300">(contact support to change)</span>
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
                     type="text"
                     name="pincode"
-                    required
-                    maxLength={7}
-                    placeholder="e.g. A1A 1A1"
+                    disabled
+                    readOnly
                     value={formData.pincode}
-                    onChange={handlePincodeChange}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+                    placeholder="Not set"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl font-semibold text-sm text-slate-500 placeholder-slate-400 cursor-not-allowed"
                   />
                 </div>
               </div>
