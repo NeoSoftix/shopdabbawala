@@ -5,6 +5,7 @@ import {
 import { SiStripe } from 'react-icons/si';
 import { getMyOrders } from '../../services/order.service';
 import Pagination from '../shared/Pagination';
+import { SectionLoader } from '../shared/Loader';
 
 const STATUS_STYLES = {
   Pending: 'bg-yellow-100 text-yellow-700',
@@ -109,10 +110,7 @@ export default function UserHistoryDetails({ subscriptions }) {
         </div>
 
         {loading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mx-auto"></div>
-            <p className="mt-4 text-gray-500 text-sm">Loading schedule...</p>
-          </div>
+          <SectionLoader text="Loading schedule..." />
         ) : (
           <>
             {/* --- ORDER HISTORY SECTION --- */}

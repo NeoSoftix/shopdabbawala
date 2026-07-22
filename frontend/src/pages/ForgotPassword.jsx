@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, ArrowLeft, MailCheck } from "lucide-react";
+import { Mail, MailCheck } from "lucide-react";
 import { forgotPassword } from "../services/auth.service";
+import Button from "../components/ui/Button";
+import BackLink from "../components/ui/BackLink";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -30,12 +31,7 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-lg overflow-hidden p-10">
-        <Link
-          to="/login"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <ArrowLeft size={16} /> Back to Login
-        </Link>
+        <BackLink to="/login" className="mb-6">Back to Login</BackLink>
 
         {submitted ? (
           <div className="text-center py-6">
@@ -82,13 +78,9 @@ export default function ForgotPassword() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-14 bg-[#E23747] hover:bg-red-700 disabled:bg-red-300 text-white rounded-xl font-semibold transition-all duration-200"
-              >
+              <Button type="submit" loading={loading} className="h-14 w-full font-semibold">
                 {loading ? "Sending..." : "Send Reset Link"}
-              </button>
+              </Button>
             </form>
           </>
         )}

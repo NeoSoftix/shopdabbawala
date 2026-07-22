@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaLock } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import ChangePasswordModal from "../shared/ChangePasswordModal";
+import Button from "../ui/Button";
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -55,25 +56,19 @@ const Settings = () => {
                 Password
               </td>
               <td className="py-4">
-                <button
-                  onClick={() => setIsChangePasswordOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 border border-red-500 text-red-500 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
-                >
+                <Button variant="outline" size="sm" onClick={() => setIsChangePasswordOpen(true)}>
                   <FaLock size={13} />
                   Change Password
-                </button>
+                </Button>
               </td>
             </tr>
           </tbody>
         </table>
 
         <div className="mt-6">
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg"
-          >
+          <Button variant="danger" onClick={handleLogout}>
             Logout
-          </button>
+          </Button>
         </div>
       </div>
 

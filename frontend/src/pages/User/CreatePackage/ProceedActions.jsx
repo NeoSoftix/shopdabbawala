@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import Button from "../../../components/ui/Button";
 
 // Proceed / Go Back footer for the checkout flow's customization step.
 export default function ProceedActions({ submitError, loading, onGoBack }) {
@@ -9,13 +10,9 @@ export default function ProceedActions({ submitError, loading, onGoBack }) {
           {submitError}
         </div>
       )}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:opacity-60 text-white font-black text-[11px] tracking-widest uppercase py-3.5 rounded-2xl transition-all shadow-lg shadow-red-100"
-      >
+      <Button type="submit" size="lg" loading={loading} className="font-black tracking-widest uppercase">
         {loading ? "Please wait..." : "Proceed"}
-      </button>
+      </Button>
       <button
         type="button"
         onClick={onGoBack}

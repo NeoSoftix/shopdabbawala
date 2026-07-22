@@ -264,7 +264,7 @@ export default function WeeklyMenuManager() {
 
         {/* Dynamic Sections */}
         {loadingMenu ? (
-          <div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-[#e61e2d] border-t-transparent" /></div>
+          <SectionLoader text="Loading menu sections..." />
         ) : (
           <div className="space-y-4">
             {sections.length === 0 ? (

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { X, User, Phone, Mail, MapPin, Loader2, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { User, Phone, Mail, MapPin, AlertCircle } from "lucide-react";
 import { updateCustomerProfile } from "../../services/customer.service";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
+import Modal from "../ui/Modal";
+import Button from "../ui/Button";
 
 export default function UserProfileEdit({ isOpen, onClose }) {
   const { user, setUser } = useAuth();
@@ -62,40 +63,8 @@ export default function UserProfileEdit({ isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        />
-
-        {/* Modal container */}
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 border border-slate-100"
-        >
-          {/* Top border indicator */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-red-500 via-rose-500 to-red-600" />
-
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full transition-colors"
-          >
-            <X size={18} strokeWidth={2.5} />
-          </button>
-
-          <div className="p-8">
+    <Modal isOpen={isOpen} onClose={onClose} showCloseButton>
             <div className="text-center mb-6">
               <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
                 <User size={26} />
@@ -202,23 +171,10 @@ export default function UserProfileEdit({ isOpen, onClose }) {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:opacity-60 text-white font-black text-xs tracking-widest uppercase py-3.5 rounded-2xl transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" /> Updating...
-                  </>
-                ) : (
-                  "Save Profile Changes"
-                )}
-              </button>
+              <Button type="submit" size="lg" loading={loading} className="font-black tracking-widest uppercase mt-2">
+                {loading ? "Updating..." : "Save Profile Changes"}
+              </Button>
             </form>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+    </Modal>
   );
 }

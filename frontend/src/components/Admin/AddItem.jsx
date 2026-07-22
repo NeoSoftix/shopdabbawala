@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getAllCategories } from "../../services/category.service";
 import { createItem } from "../../services/items.service";
 import { toast } from "react-hot-toast";
-import { ButtonSpinner } from "../shared/Loader";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
 
 const DEFAULT_PREVIEW =
   "data:image/svg+xml," +
@@ -145,74 +148,56 @@ const AddItem = () => {
             {/* Left Side */}
             <div className="space-y-5">
               {/* Item Name */}
-              <div>
-                <label className="block mb-1.5 font-medium text-gray-700">
-                  Item Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={itemData.name}
-                  onChange={handleChange}
-                  placeholder="Enter Item Name"
-                  className={`w-full border rounded-lg p-3 focus:outline-none focus:ring-2 ${errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                    }`}
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
-              </div>
+              <Input
+                label={<>Item Name <span className="text-red-500">*</span></>}
+                type="text"
+                name="name"
+                value={itemData.name}
+                onChange={handleChange}
+                placeholder="Enter Item Name"
+                error={errors.name}
+              />
 
               {/* Description */}
-              <div>
-                <label className="block mb-1.5 font-medium text-gray-700">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows="3"
-                  name="description"
-                  value={itemData.description}
-                  onChange={handleChange}
-                  placeholder="Enter Description"
-                  className={`w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                    }`}
-                />
-                {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
-              </div>
+              <Textarea
+                label={<>Description <span className="text-red-500">*</span></>}
+                rows="3"
+                name="description"
+                value={itemData.description}
+                onChange={handleChange}
+                placeholder="Enter Description"
+                className="resize-none"
+                error={errors.description}
+              />
             </div>
 
             {/* Right Side */}
             <div className="space-y-5">
               {/* Category */}
-              <div>
-                <label className="block mb-1.5 font-medium text-gray-700">
-                  Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="category"
-                  value={itemData.category}
-                  onChange={handleChange}
-                  className={`w-full border rounded-lg p-3 bg-white focus:outline-none focus:ring-2 ${errors.category ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-                    }`}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
-              </div>
+              <Select
+                label={<>Category <span className="text-red-500">*</span></>}
+                name="category"
+                value={itemData.category}
+                onChange={handleChange}
+                error={errors.category}
+              >
+                <option value="">Select Category</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
 
               {/* Allergies */}
               <div>
-                <label className="block mb-1.5 font-medium text-gray-700">Allergies</label>
-                <input
+                <Input
+                  label="Allergies"
                   type="text"
                   name="allergies"
                   value={itemData.allergies}
                   onChange={handleChange}
                   placeholder="Milk, Nuts, Gluten"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-200"
                 />
                 <p className="text-sm text-gray-400 mt-1">Separate allergies with commas.</p>
               </div>
@@ -221,23 +206,12 @@ const AddItem = () => {
 
           {/* Buttons */}
           < div className="flex justify-end gap-4 mt-8" >
-            <button
-              type="button"
-              onClick={() => navigate("/admin/items")}
-              className="border border-gray-300 px-6 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
-            >
+            <Button type="button" variant="outline" onClick={() => navigate("/admin/items")}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`px-6 py-3 rounded-xl text-white ${loading
-                ? "bg-red-400 cursor-not-allowed"
-                : "bg-red-500 hover:bg-red-600"
-                }`}
-            >
+            </Button>
+            <Button type="submit" loading={loading}>
               {loading ? "Saving..." : "Save Item"}
-            </button>
+            </Button>
           </div >
         </form >
       </div >

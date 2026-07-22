@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { resetPassword } from "../services/auth.service";
+import Button from "../components/ui/Button";
+import BackLink from "../components/ui/BackLink";
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -46,12 +48,7 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-lg overflow-hidden p-10">
-        <Link
-          to="/login"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <ArrowLeft size={16} /> Back to Login
-        </Link>
+        <BackLink to="/login" className="mb-6">Back to Login</BackLink>
 
         {success ? (
           <div className="text-center py-6">
@@ -124,13 +121,9 @@ export default function ResetPassword() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-14 bg-[#E23747] hover:bg-red-700 disabled:bg-red-300 text-white rounded-xl font-semibold transition-all duration-200"
-              >
+              <Button type="submit" loading={loading} className="h-14 w-full font-semibold">
                 {loading ? "Resetting..." : "Reset Password"}
-              </button>
+              </Button>
             </form>
           </>
         )}

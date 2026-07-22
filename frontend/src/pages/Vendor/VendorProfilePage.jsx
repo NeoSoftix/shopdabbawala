@@ -13,6 +13,9 @@ import { getVendorProfile, updateVendor } from "../../services/vendor.service.js
 import { SectionLoader } from "../../components/shared/Loader";
 import ChangePasswordModal from "../../components/shared/ChangePasswordModal";
 import toast from "react-hot-toast";
+import Input from "../../components/ui/Input";
+import Textarea from "../../components/ui/Textarea";
+import Button from "../../components/ui/Button";
 
 export default function VendorProfilePage() {
   const [vendor, setVendor] = useState(null);
@@ -217,13 +220,14 @@ export default function VendorProfilePage() {
             </div>
           </div>
 
-          <button
+          <Button
+            variant="outline"
             onClick={() => setIsChangePasswordOpen(true)}
-            className="w-full mt-5 border border-[#E23747] text-[#E23747] rounded-xl py-2 text-sm font-medium flex justify-center items-center gap-2"
+            className="w-full mt-5 !border-[#E23747] !text-[#E23747]"
           >
             <FaLock size={13} />
             Change Password
-          </button>
+          </Button>
 
           <ChangePasswordModal
             isOpen={isChangePasswordOpen}
@@ -236,8 +240,10 @@ export default function VendorProfilePage() {
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-lg font-semibold">Business Information</h2>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => {
                 if (isEditing) {
                   setLogoFile(null);
@@ -245,132 +251,97 @@ export default function VendorProfilePage() {
                 }
                 setIsEditing((prev) => !prev);
               }}
-              className="px-3 py-1.5 text-sm border border-[#E23747] text-[#E23747] rounded-xl flex items-center gap-2"
+              className="!border-[#E23747] !text-[#E23747]"
             >
               <FaEdit size={13} />
               {isEditing ? "Cancel" : "Edit Profile"}
-            </button>
+            </Button>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium">Business Name</label>
-
-              <input
-                type="text"
-                name="organizationName"
-                value={form.organizationName}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium">Business Email</label>
-
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium">Phone Number</label>
-
-              <input
-                type="text"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="text-xs font-medium">Address</label>
-
-            <input
+            <Input
+              label="Business Name"
               type="text"
-              name="address"
-              value={form.address}
+              name="organizationName"
+              value={form.organizationName}
               onChange={handleChange}
               disabled={!isEditing}
-              className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
+            />
+
+            <Input
+              label="Business Email"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              disabled={!isEditing}
+            />
+
+            <Input
+              label="Phone Number"
+              type="text"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              disabled={!isEditing}
             />
           </div>
+
+          <Input
+            wrapperClassName="mt-4"
+            label="Address"
+            type="text"
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
 
           <div className="grid md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className="text-xs font-medium">City</label>
-
-              <input
-                type="text"
-                name="city"
-                value={form.city}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium">State</label>
-
-              <input
-                type="text"
-                name="state"
-                value={form.state}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium">Pincode</label>
-
-              <input
-                type="text"
-                name="pincode"
-                maxLength={7}
-                placeholder="e.g. A1A 1A1"
-                value={form.pincode}
-                onChange={handlePincodeChange}
-                disabled={!isEditing}
-                className="w-full mt-1.5 border rounded-lg px-3 py-2 text-sm disabled:bg-gray-50"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="text-xs font-medium">About Business</label>
-
-            <textarea
-              rows={3}
-              name="description"
-              value={form.description}
+            <Input
+              label="City"
+              type="text"
+              name="city"
+              value={form.city}
               onChange={handleChange}
               disabled={!isEditing}
-              className="w-full mt-1.5 border rounded-lg p-3 text-sm disabled:bg-gray-50"
+            />
+
+            <Input
+              label="State"
+              type="text"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              disabled={!isEditing}
+            />
+
+            <Input
+              label="Pincode"
+              type="text"
+              name="pincode"
+              maxLength={7}
+              placeholder="e.g. A1A 1A1"
+              value={form.pincode}
+              onChange={handlePincodeChange}
+              disabled={!isEditing}
             />
           </div>
 
+          <Textarea
+            wrapperClassName="mt-4"
+            label="About Business"
+            rows={3}
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+
           {isEditing && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="mt-4 bg-[#E23747] text-white px-5 py-2 text-sm rounded-xl font-medium disabled:opacity-60"
-            >
+            <Button onClick={handleSave} loading={saving} className="mt-4">
               {saving ? "Saving..." : "Save Changes"}
-            </button>
+            </Button>
           )}
         </div>
       </div>

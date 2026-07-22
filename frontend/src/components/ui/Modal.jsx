@@ -5,7 +5,7 @@ import { FiX } from "react-icons/fi";
  * Modal backdrop + centered panel shell (open/close animation, gradient
  * top bar, scrollable body, optional close button). Purely presentational.
  */
-export default function ModalShell({ isOpen, onClose, wide, maxWidthClass, showCloseButton, children }) {
+export default function Modal({ isOpen, onClose, wide, maxWidthClass, showCloseButton, children }) {
   return (
     <AnimatePresence>
       {isOpen && (

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { FiEye, FiSearch, FiX } from "react-icons/fi";
+import { FiEye, FiSearch } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
 import { getAllCustomers, deleteCustomer, getOneCustomer } from "../../services/customer.service";
 import { toast } from "react-hot-toast";
 import { SectionLoader } from "../shared/Loader";
 import Pagination from "../shared/Pagination";
+import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
+import Modal from "../ui/Modal";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -54,40 +56,17 @@ const Users = () => {
   };
 
   const handleDelete = (id, name) => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <p className="font-semibold text-sm text-gray-800">Delete customer "{name}"?</p>
-          <p className="text-xs text-gray-500">This action cannot be undone.</p>
-          <div className="flex gap-2 mt-1">
-            <button
-              onClick={async () => {
-                toast.dismiss(t.id);
-                try {
-                  const res = await deleteCustomer(id);
-                  if (res.success) {
-                    toast.success(res.message || "Customer deleted successfully.");
-                    fetchCustomers(search, page);
-                  }
-                } catch (error) {
-                  toast.error(error.response?.data?.message || "Failed to delete customer.");
-                }
-              }}
-              className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 8000 }
-    );
+    confirmDeleteToast(`Delete customer "${name}"?`, async () => {
+      try {
+        const res = await deleteCustomer(id);
+        if (res.success) {
+          toast.success(res.message || "Customer deleted successfully.");
+          fetchCustomers(search, page);
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete customer.");
+      }
+    });
   };
 
   return (
@@ -184,23 +163,8 @@ const Users = () => {
         </div>
       </div>
 
-      {(selectedUser || detailsLoading) && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setSelectedUser(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setSelectedUser(null)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Close"
-            >
-              <FiX className="text-gray-500 text-lg" />
-            </button>
-
+      <Modal isOpen={!!(selectedUser || detailsLoading)} onClose={() => setSelectedUser(null)} showCloseButton>
+        <>
             <h3 className="text-lg font-bold text-gray-900 mb-4">Customer Details</h3>
 
             {detailsLoading ? (
@@ -259,9 +223,8 @@ const Users = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
+        </>
+      </Modal>
     </div>
   );
 };

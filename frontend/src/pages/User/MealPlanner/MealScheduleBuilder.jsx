@@ -9,6 +9,7 @@ import CategorySelector from "./CategorySelector";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayAddOns from "./DayAddOns";
 import { formatDateKey, isPastDate, isTooLateToSchedule } from "./constants";
+import Button from "../../../components/ui/Button";
 
 // ================= COMPONENT: CUSTOM MEAL PLAN BUILDER =================
 const MealScheduleBuilder = ({
@@ -289,16 +290,14 @@ const MealScheduleBuilder = ({
                   <span className="text-sm font-medium text-[#22C55E]">Your meal has been confirmed.</span>
                 </>
               ) : (
-                <button
+                <Button
                   onClick={handleConfirmDay}
-                  disabled={submitting || isLocked || sections.length === 0 || !isScheduleValid()}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#E31A1A] hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 tracking-wide"
+                  disabled={isLocked || sections.length === 0 || !isScheduleValid()}
+                  loading={submitting}
+                  className="tracking-wide"
                 >
-                  {submitting && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  )}
                   {isPast ? "PAST DATE" : isTooLate ? "SCHEDULE 1 DAY AHEAD" : "SAVE MEALS"}
-                </button>
+                </Button>
               )}
             </div>
           </div>

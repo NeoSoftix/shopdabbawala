@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { createCategory } from "../../services/category.service.js";
 import { toast } from "react-hot-toast";
-import { ButtonSpinner } from "../shared/Loader";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Button from "../ui/Button";
 
 const AddCategory = () => {
   const navigate = useNavigate();
@@ -70,61 +72,42 @@ const AddCategory = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-5">
             {/* Category Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Category Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={name}
-                placeholder="Enter category name"
-                onChange={(e) => { setName(e.target.value); clearField("name"); }}
-                className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 ${
-                  errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-400"
-                }`}
-              />
-              {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
-            </div>
+            <Input
+              label={<>Category Name <span className="text-red-500">*</span></>}
+              type="text"
+              value={name}
+              placeholder="Enter category name"
+              onChange={(e) => { setName(e.target.value); clearField("name"); }}
+              error={errors.name}
+            />
 
             {/* Food Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Food Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={foodType}
-                onChange={(e) => { setFoodType(e.target.value); clearField("foodType"); }}
-                className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 bg-white ${
-                  errors.foodType ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-400"
-                }`}
-              >
-                <option value="">Select Food Type</option>
-                <option value="veg">Veg</option>
-                <option value="non-veg">Non Veg</option>
-              </select>
-              {errors.foodType && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.foodType}</p>}
-            </div>
+            <Select
+              label={<>Food Type <span className="text-red-500">*</span></>}
+              value={foodType}
+              onChange={(e) => { setFoodType(e.target.value); clearField("foodType"); }}
+              error={errors.foodType}
+            >
+              <option value="">Select Food Type</option>
+              <option value="veg">Veg</option>
+              <option value="non-veg">Non Veg</option>
+            </Select>
           </div>
 
           {/* Buttons */}
           <div className="flex justify-end gap-3 mt-6">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => {
                 setName(""); setFoodType(""); setErrors({});
               }}
-              className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors"
-            >
-              {loading && <ButtonSpinner />}
+            </Button>
+            <Button type="submit" loading={loading}>
               {loading ? "Saving..." : "Save Category"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

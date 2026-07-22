@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { createVendor } from "../../services/vendor.service.js";
 import { getActiveCategory } from "../../services/category.service.js";
 import { toast } from "react-hot-toast";
-import { ButtonSpinner } from "../shared/Loader";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -181,12 +184,9 @@ const AddVendor = () => {
       <p className="text-gray-500 text-sm sm:text-base">Create a new vendor account</p>
     </div>
 
-    <button
-      onClick={() => navigate("/admin/vendors")}
-      className="w-full sm:w-auto justify-center rounded-xl bg-[#e61e2d] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 flex items-center gap-2 shrink-0"
-    >
+    <Button onClick={() => navigate("/admin/vendors")} className="w-full sm:w-auto shrink-0">
       <ArrowLeft size={16} /> Back to Vendors
-    </button>
+    </Button>
   </div>
 
   <div className="w-full rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 md:p-8 shadow-sm">
@@ -216,173 +216,135 @@ const AddVendor = () => {
     <form onSubmit={handleSubmit} className="space-y-3">
       {/* Vendor Name & Email */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Vendor Name</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter vendor name"
-            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.name ? "border-red-400" : "border-gray-300"}`}
-            required
-          />
-          {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email" name="email" value={formData.email} onChange={handleChange}
-            placeholder="Enter email"
-            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.email ? "border-red-400" : "border-gray-300"}`}
-            required
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.email}</p>}
-        </div>
+        <Input
+          label="Vendor Name"
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Enter vendor name"
+          error={errors.name}
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter email"
+          error={errors.email}
+          required
+        />
       </div>
 
       {/* Phone Number & Organization Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Phone Number</label>
-          <input
-            type="text" name="phone" value={formData.phone} onChange={handleChange}
-            placeholder="Enter phone number"
-            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.phone ? "border-red-400" : "border-gray-300"}`}
-            required
-          />
-          {errors.phone && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.phone}</p>}
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Organization Name</label>
-          <input
-            type="text" name="organizationName" value={formData.organizationName} onChange={handleChange}
-            placeholder="Enter organization name"
-            className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.organizationName ? "border-red-400" : "border-gray-300"}`}
-            required
-          />
-          {errors.organizationName && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.organizationName}</p>}
-        </div>
+        <Input
+          label="Phone Number"
+          type="text"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          placeholder="Enter phone number"
+          error={errors.phone}
+          required
+        />
+        <Input
+          label="Organization Name"
+          type="text"
+          name="organizationName"
+          value={formData.organizationName}
+          onChange={handleChange}
+          placeholder="Enter organization name"
+          error={errors.organizationName}
+          required
+        />
       </div>
 
       {/* Postal Code Input */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Postal Code{" "}
+      <Input
+        label={<>Postal Code{" "}
           {fetchingLocation && (
             <span className="text-xs text-[#e61e2d] animate-pulse">
               (Fetching Areas...)
             </span>
-          )}
-        </label>
-        <input
-          type="text"
-          name="pincode"
-          maxLength={6}
-          value={formData.pincode}
-          onChange={handlePincodeChange}
-          placeholder="e.g. AB1234"
-          className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none ${errors.pincode ? "border-red-400" : "border-gray-300"}`}
-          required
-        />
-        {errors.pincode && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.pincode}</p>}
-      </div>
+          )}</>}
+        type="text"
+        name="pincode"
+        maxLength={6}
+        value={formData.pincode}
+        onChange={handlePincodeChange}
+        placeholder="e.g. AB1234"
+        error={errors.pincode}
+        required
+      />
 
       {/* Specific Area Select Dropdown */}
       {areas.length > 0 && (
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Select Specific Area
-          </label>
-          <select
-            onChange={handleAreaChange}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white"
-            required
-          >
-            {areas.map((area, index) => (
-              <option key={index} value={index}>
-                {area["place name"]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select label="Select Specific Area" onChange={handleAreaChange} required>
+          {areas.map((area, index) => (
+            <option key={index} value={index}>
+              {area["place name"]}
+            </option>
+          ))}
+        </Select>
       )}
 
       {/* City and Province */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            City
-          </label>
-          <input
-            type="text"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="City (auto-fills for Canadian pincodes, or enter manually)"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Province
-          </label>
-          <input
-            type="text"
-            name="state"
-            value={formData.state}
-            onChange={handleChange}
-            placeholder="Province/State (auto-fills for Canadian pincodes, or enter manually)"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Address */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Detailed Address
-        </label>
-        <textarea
-          name="address"
-          value={formData.address}
+        <Input
+          label="City"
+          type="text"
+          name="city"
+          value={formData.city}
           onChange={handleChange}
-          rows={3}
-          placeholder="Flat no, Building, Street name..."
-          className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
+          placeholder="City (auto-fills for Canadian pincodes, or enter manually)"
+          required
+        />
+        <Input
+          label="Province"
+          type="text"
+          name="state"
+          value={formData.state}
+          onChange={handleChange}
+          placeholder="Province/State (auto-fills for Canadian pincodes, or enter manually)"
           required
         />
       </div>
 
+      {/* Address */}
+      <Textarea
+        label="Detailed Address"
+        name="address"
+        value={formData.address}
+        onChange={handleChange}
+        rows={3}
+        placeholder="Flat no, Building, Street name..."
+        className="resize-none"
+        required
+      />
+
       {/* Description */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Description
-        </label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          placeholder="Enter description"
-          className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 focus:border-[#e61e2d] focus:outline-none"
-        />
-      </div>
+      <Textarea
+        label="Description"
+        name="description"
+        value={formData.description}
+        onChange={handleChange}
+        rows={4}
+        placeholder="Enter description"
+        className="resize-none"
+      />
 
       {/* Category */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Category (this vendor will serve only this category)
-        </label>
-        <select
+        <Select
+          label="Category (this vendor will serve only this category)"
           name="category"
           value={formData.category}
           onChange={handleChange}
           disabled={loadingCategories}
-          className={`w-full rounded-xl border px-4 py-3 focus:border-[#e61e2d] focus:outline-none bg-white ${errors.category ? "border-red-400" : "border-gray-300"}`}
+          error={errors.category}
           required
         >
           <option value="">
@@ -393,22 +355,16 @@ const AddVendor = () => {
               {cat.name}
             </option>
           ))}
-        </select>
-        {errors.category && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.category}</p>}
+        </Select>
         <p className="mt-1 text-xs text-gray-400">
           Orders for this category in this vendor's pincodes will be routed to them only.
           Delivery pincodes are set later from the Assign Vendor page.
         </p>
       </div>
 
-      <button
-        type="submit"
-        disabled={loading || fetchingLocation}
-        className="w-full rounded-xl bg-[#e61e2d] py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
-      >
-        {loading && <ButtonSpinner />}
+      <Button type="submit" loading={loading} disabled={fetchingLocation} className="w-full">
         {loading ? "Creating Vendor..." : "Add Vendor"}
-      </button>
+      </Button>
     </form>
   </div>
 </div>

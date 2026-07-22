@@ -1,5 +1,7 @@
 import FeatureListInput from "./FeatureListInput.jsx";
 import { MAX_FEATURES } from "./constants.js";
+import Input from "../../ui/Input";
+import Button from "../../ui/Button";
 
 // Slide-over add/edit tier panel — name and features, wired to the
 // state/handlers from useTierForm.
@@ -44,25 +46,14 @@ export default function TierFormPanel({ tierForm }) {
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {/* Name */}
-          <div>
-            <label className="text-xs font-bold text-gray-700 mb-1 block">
-              Tier Name
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g. Basic, Medium, Premium"
-              className={`w-full border rounded-xl p-2.5 text-sm text-gray-800 focus:outline-none focus:ring-1 ${
-                formErrors.name
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-gray-300 focus:border-[#dc2626] focus:ring-[#dc2626]"
-              }`}
-            />
-            {formErrors.name && (
-              <p className="text-[11px] text-red-600 mt-1">{formErrors.name}</p>
-            )}
-          </div>
+          <Input
+            label="Tier Name"
+            type="text"
+            value={form.name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder="e.g. Basic, Medium, Premium"
+            error={formErrors.name}
+          />
 
           <FeatureListInput
             features={form.features}
@@ -75,21 +66,12 @@ export default function TierFormPanel({ tierForm }) {
         </form>
 
         <div className="flex items-center gap-2 px-5 py-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={closeForm}
-            className="flex-1 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl py-2.5 transition-all focus:outline-none"
-          >
+          <Button variant="outline" onClick={closeForm} className="flex-1">
             Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex-1 text-xs font-bold text-white bg-[#dc2626] hover:bg-red-700 rounded-xl py-2.5 transition-all focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          </Button>
+          <Button type="submit" onClick={handleSubmit} loading={submitting} className="flex-1">
             {submitting ? "Saving..." : editingId ? "Save Changes" : "Create Tier"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

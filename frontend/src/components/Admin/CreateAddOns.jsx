@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { createAddOn } from "../../services/addOn.service.js";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { ButtonSpinner } from "../shared/Loader";
+import Input from "../ui/Input";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
 
 const DEFAULT_PREVIEW =
   "data:image/svg+xml," +
@@ -132,90 +134,58 @@ const CreateAddOns = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
-          <div>
-            <label className="block mb-1.5 font-medium text-gray-700">
-              Add-On Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter add-on name"
-              className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 ${
-                errors.name ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-              }`}
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.name}</p>}
-          </div>
+          <Input
+            label={<>Add-On Name <span className="text-red-500">*</span></>}
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter add-on name"
+            error={errors.name}
+          />
 
           {/* Price */}
-          <div>
-            <label className="block mb-1.5 font-medium text-gray-700">
-              Price <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              placeholder="Enter price"
-              className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 ${
-                errors.price ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-              }`}
-            />
-            {errors.price && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.price}</p>}
-          </div>
+          <Input
+            label={<>Price <span className="text-red-500">*</span></>}
+            type="number"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            placeholder="Enter price"
+            error={errors.price}
+          />
 
           {/* Description */}
-          <div>
-            <label className="block mb-1.5 font-medium text-gray-700">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              placeholder="Enter description"
-              className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 ${
-                errors.description ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-red-200"
-              }`}
-            />
-            {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {errors.description}</p>}
-          </div>
+          <Textarea
+            label={<>Description <span className="text-red-500">*</span></>}
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="4"
+            placeholder="Enter description"
+            error={errors.description}
+          />
 
           {/* Allergies */}
-          <div className="md:col-span-2">
-            <label className="block mb-1.5 font-medium text-gray-700">Allergies</label>
-            <input
-              type="text"
-              name="allergies"
-              value={formData.allergies}
-              onChange={handleChange}
-              placeholder="Milk, Dairy, Nuts (comma separated)"
-              className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-red-200"
-            />
-          </div>
+          <Input
+            wrapperClassName="md:col-span-2"
+            label="Allergies"
+            type="text"
+            name="allergies"
+            value={formData.allergies}
+            onChange={handleChange}
+            placeholder="Milk, Dairy, Nuts (comma separated)"
+          />
         </div>
 
         {/* Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/add-on")}
-            className="px-6 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+          <Button type="button" variant="outline" onClick={() => navigate("/admin/add-on")}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
-          >
-            {loading && <ButtonSpinner />}
+          </Button>
+          <Button type="submit" loading={loading}>
             {loading ? "Creating..." : "Save Add-On"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
