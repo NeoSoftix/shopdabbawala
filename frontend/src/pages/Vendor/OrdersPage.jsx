@@ -20,16 +20,6 @@ import {
 } from "../../services/order.service";
 import { toast } from "react-hot-toast";
 
-// Local YYYY-MM-DD for today, used to default the date filter and as the
-// value type for the <input type="date"> filter below.
-const todayDateKey = () => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-};
-
 export default function OrdersPage() {
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
@@ -38,7 +28,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [dateFilter, setDateFilter] = useState(todayDateKey());
+  const [dateFilter, setDateFilter] = useState("");
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,

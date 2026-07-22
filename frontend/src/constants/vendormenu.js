@@ -7,6 +7,7 @@ import {
 
 import {
   FaUserEdit,
+  FaMapMarkedAlt,
 } from "react-icons/fa";
 
 export const vendorMenu = [
@@ -29,5 +30,10 @@ export const vendorMenu = [
     label: "Profile",
     path: "/vendor/profile",
     icon: FaUserEdit,
+  },
+  {
+    label: "Service Zone",
+    path: "/vendor/service-zone",
+    icon: FaMapMarkedAlt,
   },
 ];

@@ -39,6 +39,7 @@ import VendorDashboard from "./pages/Vendor/VendorDashboard";
 import VendorOrders from "./pages/Vendor/OrdersPage";
 import VendorProfile from "./pages/Vendor/VendorProfilePage";
 import VendorNotifications from "./pages/Vendor/VendorNotifications";
+import VendorServiceZone from "./pages/Vendor/VendorServiceZone";
 
 import UserLayout from "./pages/User/UserLayout";
 import UserDashboard from "./pages/User/UserDashboard";
@@ -159,6 +160,7 @@ function App() {
         <Route path="orders" element={<VendorOrders />} />
         <Route path="profile" element={<VendorProfile />} />
         <Route path="notifications" element={<VendorNotifications />} />
+        <Route path="service-zone" element={<VendorServiceZone />} />
       </Route>
 
       {/* user route */}
