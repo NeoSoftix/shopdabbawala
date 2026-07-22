@@ -1,6 +1,7 @@
 import { FaBowlFood, FaCalendarDays, FaClipboardList } from "react-icons/fa6";
 import { Crown, ArrowRight, FileText, User } from "lucide-react";
 import logoImg from "/logo.png";
+import { useNavigate } from "react-router-dom";
 
 const sidebarItems = [
   {
@@ -34,6 +35,7 @@ import { Menu, X } from "lucide-react";
 
 // ================= COMPONENT: LEFT NAVIGATION SIDEBAR =================
 const Sidebar = ({ activeStep, setActiveStep, isOpen, setIsOpen }) => {
+  const navigate = useNavigate()
   return (
     <>
       {/* Overlay for mobile */}
@@ -94,7 +96,7 @@ const Sidebar = ({ activeStep, setActiveStep, isOpen, setIsOpen }) => {
         <p className="text-[10px] text-gray-500 font-medium mt-1 leading-relaxed">
           Unlock exclusive meals and advanced features.
         </p>
-        <button className="mt-3 w-full bg-white border border-[#FFEAB2] hover:bg-[#FFFDF4] text-[#E31A1A] text-[10px] font-black py-2 rounded-lg tracking-wider transition-all flex items-center justify-center gap-1.5">
+        <button className="mt-3 w-full bg-white border border-[#FFEAB2] hover:bg-[#FFFDF4] text-[#E31A1A] text-[10px] font-black py-2 rounded-lg tracking-wider transition-all flex items-center justify-center gap-1.5" onClick={() => navigate("/plans")}>
           UPGRADE NOW <ArrowRight size={12} />
         </button>
       </div>
