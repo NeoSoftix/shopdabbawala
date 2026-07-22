@@ -107,15 +107,27 @@ export const createItem = async (req, res) => {
 export const getAllItems = async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
+    const { category } = req.query;
+
+    const filter = {};
+    if (category) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Category Id",
+        });
+      }
+      filter.category = category;
+    }
 
     const [items, total] = await Promise.all([
-      Item.find()
+      Item.find(filter)
         .populate("category")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
 
-      Item.countDocuments(),
+      Item.countDocuments(filter),
     ]);
 
     return res.status(200).json({

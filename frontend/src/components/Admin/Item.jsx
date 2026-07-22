@@ -38,6 +38,7 @@ const Item = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [editImage, setEditImage] = useState(null);
   const [editPreview, setEditPreview] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   const handleEditImageChange = (e) => {
     const file = e.target.files[0];
@@ -48,8 +49,8 @@ const Item = () => {
   };
 
   useEffect(() => {
-    fetchItems(page);
-  }, [page]);
+    fetchItems(page, categoryFilter);
+  }, [page, categoryFilter]);
 
   useEffect(() => {
     fetchCategories();
@@ -64,10 +65,10 @@ const Item = () => {
     }
   };
 
-  const fetchItems = async (pageNum = 1) => {
+  const fetchItems = async (pageNum = 1, category = "") => {
     try {
       setLoading(true);
-      const res = await getAllItems(pageNum);
+      const res = await getAllItems(pageNum, 10, category);
       setItems(res.data);
       setTotalPages(res.totalPages || 1);
     } catch (error) {
@@ -77,12 +78,17 @@ const Item = () => {
     }
   };
 
+  const handleCategoryFilterChange = (e) => {
+    setCategoryFilter(e.target.value);
+    setPage(1);
+  };
+
   const handleDelete = (id) => {
     confirmDeleteToast("Delete this item?", async () => {
       try {
         await deleteItem(id);
         toast.success("Item deleted successfully.");
-        fetchItems(page);
+        fetchItems(page, categoryFilter);
       } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to delete item.");
       }
@@ -105,7 +111,7 @@ const Item = () => {
       setIsEdit(false);
       setEditImage(null);
       setEditPreview("");
-      fetchItems(page);
+      fetchItems(page, categoryFilter);
     } catch (error) {
       console.log("Update Item Error", error);
       setError(error?.response?.data?.message || "Failed to update item");
@@ -122,9 +128,24 @@ const Item = () => {
           {/* <p className="text-gray-500 mt-1">Manage your items.</p> */}
         </div>
 
-        <Button onClick={() => navigate("/admin/items/add")} className="!rounded-full">
-          Create Item
-        </Button>
+        <div className="flex items-center gap-3 shrink-0">
+          <Select
+            value={categoryFilter}
+            onChange={handleCategoryFilterChange}
+            className="min-w-[180px] py-2!"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {toTitleCase(category.name)}
+              </option>
+            ))}
+          </Select>
+
+          <Button onClick={() => navigate("/admin/items/add")} className="rounded-full! whitespace-nowrap! shrink-0">
+            Create Item
+          </Button>
+        </div>
       </div>
 
       {success && (

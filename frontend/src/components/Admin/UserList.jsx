@@ -167,7 +167,7 @@ const Users = () => {
         <>
             <h3 className="text-lg font-bold text-gray-900 mb-4">Customer Details</h3>
 
-            {detailsLoading ? (
+            {detailsLoading || !selectedUser ? (
               <SectionLoader text="Loading details..." />
             ) : (
               <div className="space-y-3 text-sm">
