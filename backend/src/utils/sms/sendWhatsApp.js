@@ -1,4 +1,4 @@
-import client from '../../config/twilio.js';
+import { whatsappClient as client } from '../../config/twilio.js';
 
 // Proactively sends a WhatsApp message (not a TwiML webhook reply) - used
 // e.g. to confirm a payment after the Stripe webhook fires, outside the
