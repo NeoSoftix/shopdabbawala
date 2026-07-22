@@ -10,7 +10,7 @@ import {
 import OrderDetailsModal from './OrderDetailsModal';
 import { ORDER_STATUS_STYLES as statusStyles } from '../../constants/orderStatus';
 
-export default function OrdersCalendar() {
+export default function OrdersCalendar({ readOnly = false }) {
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
@@ -271,8 +271,8 @@ export default function OrdersCalendar() {
       <OrderDetailsModal
         order={detailsOrder}
         onClose={() => setDetailsOrder(null)}
-        onReadyToDeliver={handleReadyToDeliver}
-        onMarkDelivered={handleMarkDelivered}
+        onReadyToDeliver={readOnly ? undefined : handleReadyToDeliver}
+        onMarkDelivered={readOnly ? undefined : handleMarkDelivered}
       />
     </div>
   );
