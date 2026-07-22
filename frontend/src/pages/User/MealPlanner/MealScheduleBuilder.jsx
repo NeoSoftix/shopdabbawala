@@ -10,6 +10,7 @@ import DayOfWeekPicker from "./DayOfWeekPicker";
 import DayAddOns from "./DayAddOns";
 import { formatDateKey, isPastDate, isTooLateToSchedule } from "./constants";
 import Button from "../../../components/ui/Button";
+import Modal from "../../../components/ui/Modal";
 
 // ================= COMPONENT: CUSTOM MEAL PLAN BUILDER =================
 const MealScheduleBuilder = ({
@@ -63,7 +64,31 @@ const MealScheduleBuilder = ({
     fetchData();
   }, [categoryId, selectedDateKey, isDateAvailable]);
 
+  const [pendingCategory, setPendingCategory] = useState(null);
+
   const currentDayItems = weeklyPlan[selectedDateKey] || [];
+
+  // A day's meal can only be built from one category's items - switching
+  // category mid-selection would leave the day with a mix that the backend
+  // rejects at save time. Warn and clear that day's picks up front instead
+  // of letting the user hit an error after selecting from both.
+  const handleCategoryChange = (newCategory) => {
+    const newCategoryId = newCategory?._id || newCategory;
+    if (newCategoryId === categoryId || currentDayItems.length === 0) {
+      onCategoryChange(newCategory);
+      return;
+    }
+    setPendingCategory(newCategory);
+  };
+
+  const confirmCategoryChange = () => {
+    setWeeklyPlan((prev) => ({
+      ...prev,
+      [selectedDateKey]: [],
+    }));
+    onCategoryChange(pendingCategory);
+    setPendingCategory(null);
+  };
 
   // Calculate selection counts per section
   const sectionCounts = sections.reduce((acc, section) => {
@@ -188,7 +213,7 @@ const MealScheduleBuilder = ({
         <CategorySelector
           categories={categories}
           selectedCategory={selectedCategory}
-          onChange={onCategoryChange}
+          onChange={handleCategoryChange}
         />
 
         {!isDateAvailable ? (
@@ -314,6 +339,23 @@ const MealScheduleBuilder = ({
           savedDayAddons={dayAddOns[selectedDateKey]}
         />
       </div>
+
+      <Modal isOpen={!!pendingCategory} onClose={() => setPendingCategory(null)}>
+        <h3 className="text-lg font-bold text-[#1B254B] mb-2">Switch Category?</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Switching to <span className="font-semibold capitalize">{pendingCategory?.name}</span> will
+          clear the items you've already selected for {selectedDate.toDateString()} from the current
+          category. Do you want to continue?
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => setPendingCategory(null)}>
+            Cancel
+          </Button>
+          <Button onClick={confirmCategoryChange}>
+            Switch Category
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };
