@@ -87,10 +87,19 @@ const paymentSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Guards against sending the admin/vendor "new subscription purchased"
-    // email more than once if saveCheckoutDetails is hit again for the same
-    // session (e.g. the user resubmits the delivery-details form).
+    // Guards against sending the customer "purchase successful" notification
+    // more than once (webhook.js, and again from saveCheckoutDetails if the
+    // webhook hadn't landed yet).
     purchaseNotified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Guards the admin "new subscription purchased" notification - set from
+    // webhook.js so it fires reliably server-side the moment Stripe confirms
+    // payment, instead of depending on the customer staying on the page long
+    // enough to submit the post-payment delivery-details form.
+    adminNotified: {
       type: Boolean,
       default: false,
     },

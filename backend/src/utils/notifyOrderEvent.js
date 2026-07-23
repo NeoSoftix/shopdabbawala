@@ -58,55 +58,57 @@ export const notifyOrderEvent = async ({
     }
   }
 
-  // Fire-and-forget: resolve recipients and send emails in the background.
-  // Vendor lookup and admin lookup are isolated in their own try/catch each
-  // so a vendor-side failure (bad vendorId, missing linked user, etc.) can
-  // never silently swallow the admin notification, or vice versa.
-  (async () => {
-    const recipients = [];
+  // Resolve recipients and create the admins' in-app notifications now
+  // (awaited) - these are fast DB writes and the caller (e.g.
+  // saveCheckoutDetails) relies on them actually being persisted once this
+  // function resolves. Only the email sends below stay fire-and-forget,
+  // since SMTP can be slow and shouldn't block the response. Vendor lookup
+  // and admin lookup are isolated in their own try/catch each so a
+  // vendor-side failure (bad vendorId, missing linked user, etc.) can never
+  // silently swallow the admin notification, or vice versa.
+  const recipients = [];
 
-    if (vendorId) {
-      try {
-        const vendor = await Vendor.findById(vendorId).populate("userId", "email");
-        if (vendor?.userId?.email) {
-          recipients.push(vendor.userId.email);
-        } else {
-          console.warn(`notifyOrderEvent: vendor ${vendorId} has no linked user email - vendor email skipped.`);
-        }
-      } catch (error) {
-        console.error(`notifyOrderEvent: vendor lookup failed for ${vendorId}:`, error.message);
-      }
-    }
-
+  if (vendorId) {
     try {
-      const admins = await User.find({ role: "admin" }).select("email");
-      console.log(`notifyOrderEvent [${emailHeading || title}]: found ${admins.length} admin(s):`, admins.map((a) => a.email));
-      admins.forEach((admin) => {
-        if (admin.email) recipients.push(admin.email);
-        notifyUser({ userId: admin._id, orderId, type, title, message });
-      });
+      const vendor = await Vendor.findById(vendorId).populate("userId", "email");
+      if (vendor?.userId?.email) {
+        recipients.push(vendor.userId.email);
+      } else {
+        console.warn(`notifyOrderEvent: vendor ${vendorId} has no linked user email - vendor email skipped.`);
+      }
     } catch (error) {
-      console.error("notifyOrderEvent: admin lookup failed:", error.message);
+      console.error(`notifyOrderEvent: vendor lookup failed for ${vendorId}:`, error.message);
     }
+  }
 
-    console.log(`notifyOrderEvent [${emailHeading || title}]: final recipients ->`, recipients);
+  try {
+    const admins = await User.find({ role: "admin" }).select("email");
+    console.log(`notifyOrderEvent [${emailHeading || title}]: found ${admins.length} admin(s):`, admins.map((a) => a.email));
+    for (const admin of admins) {
+      if (admin.email) recipients.push(admin.email);
+      await notifyUser({ userId: admin._id, orderId, type, title, message });
+    }
+  } catch (error) {
+    console.error("notifyOrderEvent: admin lookup failed:", error.message);
+  }
 
-    if (recipients.length === 0) return;
+  console.log(`notifyOrderEvent [${emailHeading || title}]: final recipients ->`, recipients);
 
-    const html = orderEventTemplate({
-      heading: emailHeading || title,
-      intro: emailIntro,
-      lines: emailLines,
-    });
+  if (recipients.length === 0) return;
 
-    recipients.forEach((email) => {
-      sendEmail(email, emailHeading || title, html)
-        .then(() => console.log(`notifyOrderEvent: email sent OK to ${email} (${emailHeading || title})`))
-        .catch((error) =>
-          console.error(`notifyOrderEvent: email FAILED for ${email} (${emailHeading || title}):`, error.response?.data || error.message)
-        );
-    });
-  })();
+  const html = orderEventTemplate({
+    heading: emailHeading || title,
+    intro: emailIntro,
+    lines: emailLines,
+  });
+
+  recipients.forEach((email) => {
+    sendEmail(email, emailHeading || title, html)
+      .then(() => console.log(`notifyOrderEvent: email sent OK to ${email} (${emailHeading || title})`))
+      .catch((error) =>
+        console.error(`notifyOrderEvent: email FAILED for ${email} (${emailHeading || title}):`, error.response?.data || error.message)
+      );
+  });
 };
 
 // Formats an Order's `date` field (the actual scheduled delivery day) for

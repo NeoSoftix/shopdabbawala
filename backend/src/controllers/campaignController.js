@@ -183,6 +183,13 @@ export const sendCampaign = async (req, res) => {
       });
     }
 
+    if (campaign.status === "in-progress") {
+      return res.status(400).json({
+        success: false,
+        message: "Campaign is already being sent",
+      });
+    }
+
     const users = await resolveCampaignAudience(campaign.filters);
 
     if (!users.length) {
@@ -192,14 +199,27 @@ export const sendCampaign = async (req, res) => {
       });
     }
 
-    campaign.targetCount = users.length;
+    // Atomically claim the campaign for sending - flips status straight to
+    // "in-progress" (not "scheduled") so it can no longer be picked up by
+    // scheduleCampaign or the cron scheduler while this send is in flight.
+    // Only one concurrent "Send Now" click (or a scheduler race) can win
+    // this update; a competing call gets null back and bails out below
+    // instead of also launching processCampaign for the same audience.
+    const claimed = await Campaign.findOneAndUpdate(
+      { _id: id, status: { $in: ["draft", "scheduled"] } },
+      { $set: { status: "in-progress", targetCount: users.length } },
+      { new: true }
+    );
 
-    campaign.status = "scheduled";
-
-    await campaign.save();
+    if (!claimed) {
+      return res.status(400).json({
+        success: false,
+        message: "Campaign is already being sent or has already been sent",
+      });
+    }
 
     // Run in background
-    processCampaign(campaign._id, users).catch((err) =>
+    processCampaign(claimed._id, users).catch((err) =>
       console.error("Campaign background error:", err)
     );
 
@@ -351,6 +371,12 @@ export const scheduleCampaign = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({
         message: "Campaign not found",
+      });
+    }
+
+    if (campaign.status === "in-progress") {
+      return res.status(400).json({
+        message: "Cannot schedule a campaign that is currently being sent",
       });
     }
 

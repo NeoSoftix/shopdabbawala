@@ -168,7 +168,7 @@ export default function CreatePackage({ isOpen, onClose }) {
         startDate,
       }}
     >
-      {({ goBack, loading, error: submitError, pincode: verifiedPincode }) => (
+      {({ goBack, loading, pincode: verifiedPincode }) => (
       <div className={`bg-[#f9f9fb] text-gray-800 font-sans antialiased py-3 px-2 sm:px-4 lg:px-5 relative`}>
             <DeliveryChargeSync
               pincode={verifiedPincode}
@@ -260,7 +260,7 @@ export default function CreatePackage({ isOpen, onClose }) {
                   />
 
                   {/* Proceed / Go Back — directly below Plan Summary in the same sticky stack */}
-                  <ProceedActions submitError={submitError} loading={loading} onGoBack={goBack} />
+                  <ProceedActions loading={loading} onGoBack={goBack} />
                 </div>
               </div>
             </main>

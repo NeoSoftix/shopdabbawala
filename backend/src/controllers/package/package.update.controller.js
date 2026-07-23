@@ -141,7 +141,7 @@ export const updatePackage = async (req, res) => {
         });
       }
 
-      if (!getRecurring[numericValidityDays]) {
+      if (!getRecurring(numericValidityDays)) {
         return res.status(400).json({
           message: "Unsupported validity period",
           success: false,

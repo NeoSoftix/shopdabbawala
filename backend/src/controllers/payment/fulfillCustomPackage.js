@@ -1,7 +1,16 @@
+import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
 
 // -------- CUSTOM PACKAGE fulfillment branch (extracted from fulfillOrder) --------
+// Can run concurrently with the saveCheckoutDetails fallback (webhook vs. the
+// user landing on /payment-success and submitting their pre-filled details
+// before the webhook arrives) - both racing to fulfill the same payment
+// would otherwise create two Subscriptions for one charge. Create
+// optimistically, then atomically claim payment.subscription; if we lose the
+// race, discard the extra Subscription instead of leaving it attached.
 export const fulfillCustomPackage = async (session, payment) => {
+  if (payment.subscription) return;
+
   const subscription = await Subscription.create({
     user: session.metadata.userId,
     stripeSubscriptionId: session.subscription,
@@ -20,6 +29,16 @@ export const fulfillCustomPackage = async (session, payment) => {
     endDate: new Date(session.metadata.endDate),
   });
 
-  payment.subscription = subscription._id;
-  await payment.save();
+  const claimed = await Payment.findOneAndUpdate(
+    { _id: payment._id, subscription: null },
+    { $set: { subscription: subscription._id } },
+    { new: true }
+  );
+
+  if (!claimed) {
+    await subscription.deleteOne();
+    return;
+  }
+
+  payment.subscription = claimed.subscription;
 };

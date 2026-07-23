@@ -1,8 +1,9 @@
 import stripe from "../../config/stripe.js"
 import Payment from "../../models/payment.model.js"
 import Subscription from "../../models/Subcription.model.js"
+import User from "../../models/User.model.js"
 import { fulfillOrder } from "./fulfillOrder.js"
-import { notifyUser } from "../../utils/notifyOrderEvent.js"
+import { notifyUser, notifyOrderEvent } from "../../utils/notifyOrderEvent.js"
 import { sendWhatsApp } from "../../utils/sms/sendWhatsApp.js"
 
 export const stripeWebhook = async (req, res) => {
@@ -99,6 +100,48 @@ export const stripeWebhook = async (req, res) => {
               `Thank you for choosing Shop Dabba Wala! 🍲`
             ).catch((err) => console.error("WhatsApp confirmation failed:", err.message || err));
           }
+        }
+
+        // Notify admin of the new purchase from right here, not just from
+        // saveCheckoutDetails - that fallback only runs if the customer
+        // stays on the page and submits the post-payment delivery-details
+        // form, which many customers skip entirely after seeing "Payment
+        // Successful!". This is the one reliable, server-side trigger that
+        // always fires once Stripe confirms payment, independent of what
+        // the customer's browser does next. Guarded by its own flag
+        // (separate from purchaseNotified/customer notification) so it
+        // never duplicates and never blocks the vendor-matching notification
+        // saveCheckoutDetails still sends once the pincode is known.
+        if (
+          (paymentType === "ADMIN_PACKAGE" || paymentType === "CUSTOM_PACKAGE") &&
+          !payment.adminNotified
+        ) {
+          const refreshedForAdmin = await Payment.findById(payment._id).populate("subscription").populate("package");
+          const buyer = await User.findById(payment.user).select("name");
+          const customerName = buyer?.name || "A customer";
+
+          let planName = "Custom Subscription";
+          if (paymentType === "ADMIN_PACKAGE" && refreshedForAdmin?.package) {
+            planName = refreshedForAdmin.package.name;
+          } else if (paymentType === "CUSTOM_PACKAGE" && refreshedForAdmin?.subscription) {
+            planName = `Custom ${refreshedForAdmin.subscription.duration} Plan`;
+          }
+
+          await notifyOrderEvent({
+            type: "payment",
+            title: "New Subscription Purchase",
+            message: `${customerName} purchased the ${planName} plan.`,
+            emailHeading: "New Subscription Purchased",
+            emailIntro: `${customerName} just purchased a new subscription.`,
+            emailLines: [
+              { label: "Customer", value: customerName },
+              { label: "Plan", value: planName },
+              { label: "Amount", value: `$${refreshedForAdmin?.amount ?? payment.amount}` },
+            ],
+          });
+
+          payment.adminNotified = true;
+          await payment.save();
         }
 
         break;

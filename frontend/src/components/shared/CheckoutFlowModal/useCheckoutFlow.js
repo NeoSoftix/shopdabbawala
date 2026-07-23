@@ -245,7 +245,7 @@ export default function useCheckoutFlow({
   const handleCustomizationNext = async (e) => {
     e.preventDefault();
     if (!isCustomizationValid) {
-      setError(customizationErrorMsg);
+      toast.error(customizationErrorMsg);
       return;
     }
     setError("");

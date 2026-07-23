@@ -126,17 +126,16 @@ export const createSubscription = async (req, res) => {
 
     const customPackageProductId = await getOrCreateCustomPackageProduct();
 
-    // Customer is always charged in full right at checkout (no trial - see
-    // above), but if they picked a future start date the *recurring* cycle
-    // should still be anchored to that date, not to today, so Stripe's next
-    // billing date (and what shows on the checkout/subscription page)
-    // matches what the customer actually picked. `proration_behavior: "none"`
-    // stops Stripe from also trying to prorate today's charge for the
-    // shortened first "stub" period between now and the anchor.
-    const nowSec = Math.floor(Date.now() / 1000);
-    const startSec = Math.floor(calculatedStartDate.getTime() / 1000);
-    const billingCycleAnchor = startSec > nowSec ? startSec : undefined;
-
+    // Customer is always charged in full right at checkout, regardless of
+    // the plan's start date. A future start date only controls when the
+    // customer can begin scheduling meals (enforced against Subscription.
+    // startDate/endDate in mealSchedule.controller.js) - it must NOT be
+    // passed to Stripe as a billing_cycle_anchor. Anchoring the recurring
+    // cycle to a future date with proration_behavior "none" makes Stripe
+    // skip charging entirely for the stub period between now and that date
+    // (customer sees "$0.00 due today"), which silently defers the whole
+    // charge instead of collecting it now. Letting Stripe use its default
+    // anchor (checkout completion time) charges the full amount immediately.
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -158,12 +157,6 @@ export const createSubscription = async (req, res) => {
           quantity,
         },
       ],
-      ...(billingCycleAnchor && {
-        subscription_data: {
-          billing_cycle_anchor: billingCycleAnchor,
-          proration_behavior: "none",
-        },
-      }),
       metadata: {
         userId: req.user.id,
         paymentType: "CUSTOM_PACKAGE",
@@ -387,6 +380,7 @@ export const cancelSubscription = async (req, res) => {
     });
   }
 };
+
 
 // Instant Upgrade without Stripe
 export const instantUpgrade = async (req, res) => {
