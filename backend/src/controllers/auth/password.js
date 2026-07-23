@@ -176,7 +176,7 @@ export const changedPassword = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Old password does not match",
+        message: "Current password is incorrect",
         success: false,
       });
     }

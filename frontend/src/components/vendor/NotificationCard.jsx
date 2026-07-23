@@ -1,30 +1,13 @@
-import {
-  Bell,
-  ShoppingBag,
-  CheckCircle,
-  Info,
-  Megaphone,
-  Trash2,
-} from "lucide-react";
-
-const icons = {
-  order: ShoppingBag,
-  payment: CheckCircle,
-  system: Info,
-  promotion: Megaphone,
-};
+import { Trash2 } from "lucide-react";
 
 export default function NotificationCard({
   title,
   message,
   time,
-  type = "order",
   unread = false,
   onClick,
   onDelete,
 }) {
-  const Icon = icons[type] || Bell;
-
   return (
     <div
       onClick={onClick}
@@ -48,10 +31,6 @@ export default function NotificationCard({
 
       <div className="flex justify-between pr-6">
         <div className="flex gap-3">
-          <div className="w-9 h-9 shrink-0 rounded-full bg-red-50 flex items-center justify-center">
-            <Icon size={18} className="text-[#E23747]" />
-          </div>
-
           <div>
             <h3 className="text-sm font-semibold">{title}</h3>
             <p className="text-xs text-gray-500 mt-0.5">

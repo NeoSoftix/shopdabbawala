@@ -58,3 +58,16 @@ export const deleteOneNotification = async (id) => {
     throw error;
   }
 };
+
+// delete all notifications
+export const deleteAllNotifications = async () => {
+  try {
+    const res = await API.delete("/notifications");
+
+    return res.data;
+  } catch (error) {
+    console.log("Delete all notifications error", error);
+
+    throw error;
+  }
+};

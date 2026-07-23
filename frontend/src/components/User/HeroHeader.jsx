@@ -11,7 +11,7 @@ import NotificationDrawer from "../shared/NotificationDrawer";
 
 export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
   const { user, logout } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, pagination, setPage } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications, pagination, setPage } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeHash, setActiveHash] = useState("");
@@ -391,6 +391,7 @@ export default function HeroHeader({ showSidebarToggle, onOpenSidebar }) {
         onMarkAsRead={markAsRead}
         onMarkAllAsRead={markAllAsRead}
         onDelete={deleteNotification}
+        onDeleteAll={deleteAllNotifications}
         pagination={pagination}
         onPageChange={setPage}
       />

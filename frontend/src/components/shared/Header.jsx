@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Menu, ChevronDown, User, Camera } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -12,6 +12,7 @@ const Header = ({
   title = "Dashboard",
   userName = "Admin",
   userRole = "Super Admin",
+  userPhoto = null,
   onMenuClick,
   notificationCount = 0,
   onNotificationClick,
@@ -21,14 +22,21 @@ const Header = ({
   const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(""); 
+  const [modalType, setModalType] = useState("");
 
   const [profileData, setProfileData] = useState({
     name: userName,
     email: "admin@example.com",
     phone: "+1 234 567 890",
-    photo: null 
+    photo: userPhoto
   });
+
+  // userName/userPhoto often arrive after an async profile fetch in the
+  // parent layout (they start out as placeholder defaults on first render),
+  // so keep the locally-edited profileData in sync as the real values land.
+  useEffect(() => {
+    setProfileData((prev) => ({ ...prev, name: userName, photo: userPhoto }));
+  }, [userName, userPhoto]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];

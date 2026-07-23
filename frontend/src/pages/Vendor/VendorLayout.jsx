@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Header from "../../components/shared/Header";
 import Sidebar from "../../components/shared/Sidebar";
@@ -6,16 +6,25 @@ import NotificationDrawer from "../../components/shared/NotificationDrawer";
 import { vendorMenu } from "../../constants/vendormenu.js";
 import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../context/NotificationContext";
+import { getVendorProfile } from "../../services/vendor.service.js";
 
 export default function VendorLayout() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [vendorProfile, setVendorProfile] = useState(null);
+
+  useEffect(() => {
+    getVendorProfile()
+      .then((res) => setVendorProfile(res.data))
+      .catch((error) => console.error("Failed to load vendor profile:", error));
+  }, []);
   const {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     pagination,
     setPage,
   } = useNotifications();
@@ -42,8 +51,9 @@ export default function VendorLayout() {
       <div className="flex flex-col flex-1 min-w-0 w-full h-full">
         <Header
           title="Vendor Dashboard"
-          userName="Vendor"
+          userName={vendorProfile?.organizationName || "Vendor"}
           userRole="Vendor"
+          userPhoto={vendorProfile?.logo?.url}
           onMenuClick={() => setIsSidebarOpen(true)}
           notificationCount={unreadCount}
           onNotificationClick={() => setIsNotificationsOpen(true)}
@@ -62,6 +72,7 @@ export default function VendorLayout() {
         onMarkAsRead={markAsRead}
         onMarkAllAsRead={markAllAsRead}
         onDelete={deleteNotification}
+        onDeleteAll={deleteAllNotifications}
         pagination={pagination}
         onPageChange={setPage}
       />

@@ -10,24 +10,27 @@ const SOCKET_URL = import.meta.env.DEV
 
 let socket = null;
 
+// Fetches a fresh socket token over the (same-origin, cookie-reliable) REST
+// API. Passed to socket.io as an `auth` function (not a static object) below
+// - socket.io-client calls this and awaits its result before EVERY single
+// connection attempt, including automatic reconnects, so the handshake never
+// races an in-flight token refresh against a stale/expired one.
+const fetchAuthPayload = async (callback) => {
+  try {
+    const { data } = await API.get("/auth/socket-token");
+    callback({ token: data?.token });
+  } catch (error) {
+    console.error("socket: failed to fetch socket token", error);
+    callback({});
+  }
+};
+
 export const getSocket = () => {
   if (!socket) {
     socket = io(SOCKET_URL, {
       withCredentials: true,
       autoConnect: false,
-    });
-
-    // socket.io-client auto-reconnects on drops but reuses whatever `auth`
-    // was set at the time - refresh it here so a reconnect after the 1h
-    // socket token expiry (long-lived tab, laptop sleep, etc.) re-authenticates
-    // instead of failing silently.
-    socket.io.on("reconnect_attempt", async () => {
-      try {
-        const { data } = await API.get("/auth/socket-token");
-        if (data?.token) socket.auth = { token: data.token };
-      } catch (error) {
-        console.error("socket reconnect: failed to refresh socket token", error);
-      }
+      auth: fetchAuthPayload,
     });
   }
 
@@ -37,19 +40,12 @@ export const getSocket = () => {
 // The socket connects to a different origin than the page (see SOCKET_URL
 // above), so its handshake can't rely on the httpOnly `token` cookie -
 // browsers that block/partition third-party cookies (Safari, Firefox, and a
-// growing share of Chrome) drop it even with SameSite=None; Secure set. We
-// fetch a short-lived token over the (same-origin, cookie-reliable) REST
-// API instead and pass it explicitly in the handshake `auth` payload.
+// growing share of Chrome) drop it even with SameSite=None; Secure set. The
+// `auth` function on the socket (set in getSocket above) fetches a fresh
+// token itself before connecting, so there's nothing to do here but connect.
 export const connectSocket = async () => {
   const s = getSocket();
   if (s.connected) return s;
-
-  try {
-    const { data } = await API.get("/auth/socket-token");
-    if (data?.token) s.auth = { token: data.token };
-  } catch (error) {
-    console.error("connectSocket: failed to fetch socket token", error);
-  }
 
   s.connect();
   return s;

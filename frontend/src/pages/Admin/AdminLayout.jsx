@@ -12,7 +12,7 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { logout } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, pagination, setPage } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications, pagination, setPage } = useNotifications();
 
   const handleLogout = async () => {
     await logout();
@@ -56,6 +56,7 @@ export default function AdminLayout() {
         onMarkAsRead={markAsRead}
         onMarkAllAsRead={markAllAsRead}
         onDelete={deleteNotification}
+        onDeleteAll={deleteAllNotifications}
         pagination={pagination}
         onPageChange={setPage}
       />

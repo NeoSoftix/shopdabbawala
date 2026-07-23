@@ -9,6 +9,7 @@ import {
   markNotificationRead as markNotificationReadService,
   markAllNotificationsRead as markAllNotificationsReadService,
   deleteOneNotification as deleteOneNotificationService,
+  deleteAllNotifications as deleteAllNotificationsService,
 } from "../services/notification.service";
 
 const NotificationContext = createContext();
@@ -110,6 +111,17 @@ export const NotificationProvider = ({ children }) => {
     [notifications],
   );
 
+  const deleteAllNotifications = useCallback(async () => {
+    setNotifications([]);
+    setUnreadCount(0);
+
+    try {
+      await deleteAllNotificationsService();
+    } catch (error) {
+      console.log("Delete all notifications failed", error);
+    }
+  }, []);
+
   const markAllAsRead = useCallback(async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
@@ -128,11 +140,12 @@ export const NotificationProvider = ({ children }) => {
       markAsRead,
       markAllAsRead,
       deleteNotification,
+      deleteAllNotifications,
       page,
       setPage,
       pagination,
     }),
-    [notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, page, pagination],
+    [notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications, page, pagination],
   );
 
   return (
