@@ -198,6 +198,7 @@ const AboutUsPage = () => {
               <img
                 src="/about.png"
                 alt="Fresh home-style meals prepared with care"
+                loading="lazy"
                 className="h-[420px] w-full object-cover object-center sm:h-[500px]"
               />
 

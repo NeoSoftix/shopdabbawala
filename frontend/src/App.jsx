@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/shared/ScrollToTop";
@@ -6,59 +7,65 @@ import AppLoader from "./components/shared/AppLoader";
 import WhatsAppWidget from "./components/shared/WhatsAppWidget";
 import { useAuth } from "./context/AuthContext";
 
-import AdminLayout from "./pages/Admin/AdminLayout";
-import AdminDashboard from "./pages/Admin/AdminDashboard";
-import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-
-import AddCategory from "./components/Admin/AddCategory";
-import Categories from "./components/Admin/Categories";
-import UsersList from "./components/Admin/UserList";
-
 import "./index.css";
-import AdminOrdersPage from "./pages/Admin/OrdersPage";
-import Settings from "./components/Admin/Settings";
-import AddItem from "./components/Admin/AddItem";
-import Item from "./components/Admin/Item";
-import VendorList from "./components/Admin/Vendor";
-import AddVendor from "./components/Admin/AddVendor";
-import AssignVendor from "./pages/Admin/AssignVendor";
-import DeliveryCharges from "./pages/Admin/DeliveryCharges";
-import CreateAddOns from "./components/Admin/CreateAddOns";
-import AddOns from "./components/Admin/AddOns";
-import PackagesPage from "./components/Admin/PackagesPage";
-import WeeklyMenuManager from "./pages/Admin/WeeklyMenuManager";
-import CampaignDashboard from "./pages/Admin/Campaigns/CampaignDashboard";
-import CreateCampaign from "./pages/Admin/Campaigns/CreateCampaign";
-import TemplateList from "./pages/Admin/Campaigns/TemplateList";
-import TemplateBuilder from "./pages/Admin/Campaigns/TemplateBuilder";
-
-import VendorLayout from "./pages/Vendor/VendorLayout";
-import VendorDashboard from "./pages/Vendor/VendorDashboard";
-import VendorOrders from "./pages/Vendor/OrdersPage";
-import VendorProfile from "./pages/Vendor/VendorProfilePage";
-import VendorNotifications from "./pages/Vendor/VendorNotifications";
-import VendorServiceZone from "./pages/Vendor/VendorServiceZone";
-
-import UserLayout from "./pages/User/UserLayout";
-import UserDashboard from "./pages/User/UserDashboard";
 import "./react-calendar.css";
-import CreatePackage from "./pages/User/CreatePackage";
-import MealPlanner from "./pages/User/MealPlanner";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
-import NotFoundPage from "./components/shared/NotFoundPage";
 
-import PaymentSuccess from "./components/shared/PaymentSuccess";
-import PaymentFailed from "./components/shared/PaymentFailed";
-import SetDuration from "./components/Admin/SetDuration.jsx"
-import MealTierManager from "./components/Admin/MealTierManager.jsx"
-import AboutUsPage from "./pages/User/AboutUsPage.jsx";
-import ContactUsPage from "./pages/User/ContactUsPage.jsx";
-import ThankYouPage from "./pages/User/ThankYouPage";
-import PrivacyPolicyPage from "./pages/User/PrivacyPolicyPage.jsx";
-import TermsAndConditionsPage from "./pages/User/TermsAndConditionsPage.jsx";
+// Every page below is route-level, so it's fine to split each into its own
+// chunk - the browser only ever needs to download the page(s) for whichever
+// section (admin/vendor/customer) the visitor actually lands on, instead of
+// bundling admin + vendor + customer code into a single upfront download.
+const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
+const Login = lazy(() => import("./pages/Login"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+
+const AddCategory = lazy(() => import("./components/Admin/AddCategory"));
+const Categories = lazy(() => import("./components/Admin/Categories"));
+const UsersList = lazy(() => import("./components/Admin/UserList"));
+
+const AdminOrdersPage = lazy(() => import("./pages/Admin/OrdersPage"));
+const Settings = lazy(() => import("./components/Admin/Settings"));
+const AddItem = lazy(() => import("./components/Admin/AddItem"));
+const Item = lazy(() => import("./components/Admin/Item"));
+const VendorList = lazy(() => import("./components/Admin/Vendor"));
+const AddVendor = lazy(() => import("./components/Admin/AddVendor"));
+const AssignVendor = lazy(() => import("./pages/Admin/AssignVendor"));
+const DeliveryCharges = lazy(() => import("./pages/Admin/DeliveryCharges"));
+const CreateAddOns = lazy(() => import("./components/Admin/CreateAddOns"));
+const AddOns = lazy(() => import("./components/Admin/AddOns"));
+const PackagesPage = lazy(() => import("./components/Admin/PackagesPage"));
+const WeeklyMenuManager = lazy(() => import("./pages/Admin/WeeklyMenuManager"));
+const CampaignDashboard = lazy(() => import("./pages/Admin/Campaigns/CampaignDashboard"));
+const CreateCampaign = lazy(() => import("./pages/Admin/Campaigns/CreateCampaign"));
+const TemplateList = lazy(() => import("./pages/Admin/Campaigns/TemplateList"));
+const TemplateBuilder = lazy(() => import("./pages/Admin/Campaigns/TemplateBuilder"));
+
+const VendorLayout = lazy(() => import("./pages/Vendor/VendorLayout"));
+const VendorDashboard = lazy(() => import("./pages/Vendor/VendorDashboard"));
+const VendorOrders = lazy(() => import("./pages/Vendor/OrdersPage"));
+const VendorProfile = lazy(() => import("./pages/Vendor/VendorProfilePage"));
+const VendorNotifications = lazy(() => import("./pages/Vendor/VendorNotifications"));
+const VendorServiceZone = lazy(() => import("./pages/Vendor/VendorServiceZone"));
+
+const UserLayout = lazy(() => import("./pages/User/UserLayout"));
+const UserDashboard = lazy(() => import("./pages/User/UserDashboard"));
+const CreatePackage = lazy(() => import("./pages/User/CreatePackage"));
+const MealPlanner = lazy(() => import("./pages/User/MealPlanner"));
+
+const NotFoundPage = lazy(() => import("./components/shared/NotFoundPage"));
+
+const PaymentSuccess = lazy(() => import("./components/shared/PaymentSuccess"));
+const PaymentFailed = lazy(() => import("./components/shared/PaymentFailed"));
+const SetDuration = lazy(() => import("./components/Admin/SetDuration.jsx"));
+const MealTierManager = lazy(() => import("./components/Admin/MealTierManager.jsx"));
+const AboutUsPage = lazy(() => import("./pages/User/AboutUsPage.jsx"));
+const ContactUsPage = lazy(() => import("./pages/User/ContactUsPage.jsx"));
+const ThankYouPage = lazy(() => import("./pages/User/ThankYouPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/User/PrivacyPolicyPage.jsx"));
+const TermsAndConditionsPage = lazy(() => import("./pages/User/TermsAndConditionsPage.jsx"));
 
 function App() {
   const { loading } = useAuth();
@@ -104,7 +111,8 @@ function App() {
         }}
       />
 
-      
+
+      <Suspense fallback={<AppLoader />}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -184,6 +192,7 @@ function App() {
 
 <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
     </Routes>
+      </Suspense>
       {isCustomerRoute && <WhatsAppWidget />}
       <BackToTopButton />
     </>

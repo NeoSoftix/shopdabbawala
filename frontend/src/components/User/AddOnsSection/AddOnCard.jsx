@@ -36,6 +36,7 @@ export default function AddOnCard({
           <img
             src={item.image?.url || FALLBACK_ADDON_IMAGE}
             alt={item.name}
+            loading="lazy"
             className="w-full h-full object-cover rounded-full"
             onError={(e) => { e.target.src = FALLBACK_ADDON_IMAGE; e.target.onerror = null; }}
           />

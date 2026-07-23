@@ -106,9 +106,10 @@ export default function TestimonialsSlider() {
 
                   {/* यूजर प्रोफाइल */}
                   <div className="flex items-center gap-3 border-t border-gray-100 pt-4 relative">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      loading="lazy"
                       className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"
                     />
                     <div className="text-left">

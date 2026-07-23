@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Bell } from "lucide-react";
 import NotificationCard from "../../components/vendor/NotificationCard";
 import NotificationFilters from "../../components/vendor/NotificationFilters";
 import NotificationSummary from "../../components/vendor/NotificationSummary";
@@ -52,7 +53,12 @@ export default function VendorNotifications() {
     <div className="grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-3">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Notifications</h1>
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-full bg-red-50 text-[#E23747] flex items-center justify-center shrink-0">
+              <Bell size={16} />
+            </span>
+            <h1 className="text-xl font-bold">Notifications</h1>
+          </div>
 
           <button
             onClick={markAllAsRead}

@@ -122,6 +122,8 @@ const MealPlanner = () => {
     }
   }, [categories, selectedCategory]);
 
+  // Subscription-scoped data - only needs refetching when the active plan
+  // itself changes, not on every category switch while browsing meals.
   useEffect(() => {
     const fetchSavedMealPlan = async () => {
       if (!activeSubscription?._id) return;
@@ -158,6 +160,15 @@ const MealPlanner = () => {
       }
     };
 
+    fetchSavedMealPlan();
+    fetchDayStatuses();
+    refreshDayAddOns(activeSubscription?._id);
+  }, [activeSubscription?._id]);
+
+  // Category-scoped data - refetches only when the selected category
+  // changes (or the active plan changes, since availability is bounded by
+  // the plan's validity window).
+  useEffect(() => {
     const fetchAvailableDates = async () => {
       const categoryId = selectedCategory?._id || selectedCategory;
       if (!categoryId) return;
@@ -181,10 +192,7 @@ const MealPlanner = () => {
       }
     };
 
-    fetchSavedMealPlan();
-    fetchDayStatuses();
     fetchAvailableDates();
-    refreshDayAddOns(activeSubscription?._id);
   }, [activeSubscription?._id, selectedCategory]);
 
   useEffect(() => {

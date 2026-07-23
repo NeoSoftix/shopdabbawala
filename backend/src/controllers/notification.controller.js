@@ -161,3 +161,66 @@ export const deleteOneNotification = async (req, res) => {
     });
   }
 };
+
+// delete all read notification 
+
+export const deleteAllReadNotifications = async (req, res) => {
+  try {
+    const filter = await getRecipientFilter(req)
+
+    if (!filter) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification recipient not found.",
+      })
+    }
+
+    const result = await Notification.findMany({
+      ...filter,
+      read:true
+    })
+
+    return res.status(200).json({
+      message:"All read notifications delete",
+      success:true
+    })
+
+  } catch (error) {
+    console.error("Delete Read Notifications Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete notifications.",
+    });
+  }
+}
+
+//  delete all notofication
+
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const filter = await getRecipientFilter(req);
+
+    if (!filter) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification recipient not found.",
+      });
+    }
+
+    await Notification.deleteMany({ ...filter });
+
+    return res.status(200).json({
+      message: "All notifications deleted",
+      success: true,
+    });
+
+  } catch (error) {
+    console.error("Delete All Notifications Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete notifications.",
+    });
+  }
+}

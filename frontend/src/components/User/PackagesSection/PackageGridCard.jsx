@@ -22,6 +22,7 @@ export default function PackageGridCard({ pkg, isCurrentPlan, onChoose }) {
             <img
               src={pkg.image}
               alt={pkg.title}
+              loading="lazy"
               className="w-full h-full object-cover"
               onError={(e) => { e.target.src = DEFAULT_IMAGES[0]; e.target.onerror = null; }}
             />

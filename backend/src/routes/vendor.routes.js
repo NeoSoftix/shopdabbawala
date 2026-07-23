@@ -10,12 +10,12 @@ import {
   vendorProfile
 } from "../controllers/vendor.controller.js";
 import { verifyToken, allowedRoles } from "../middleware/auth.middleware.js";
-import  upload  from "../middleware/upload.middleware.js"; 
+import upload, { handleUploadError } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
 // Create Vendor
-router.post("/", verifyToken, allowedRoles("admin"), upload.single("logo"), createVendor);
+router.post("/", verifyToken, allowedRoles("admin"), upload.single("logo"), handleUploadError, createVendor);
 
 // Get Vendor Profile
 router.get("/me", verifyToken, allowedRoles("vendor"), vendorProfile);
@@ -27,7 +27,7 @@ router.get("/", verifyToken, allowedRoles("admin"), getAllVendors);
 router.get("/service-availability", checkServiceAvailability)
 
 // Update Vendor
-router.put("/:id", verifyToken, allowedRoles("admin", "vendor"), upload.single("logo"), updateVendor);
+router.put("/:id", verifyToken, allowedRoles("admin", "vendor"), upload.single("logo"), handleUploadError, updateVendor);
 
 // Toggle Status
 router.patch("/:id/status", verifyToken, allowedRoles("admin"), toggleVendorStatus);

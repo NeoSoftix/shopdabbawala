@@ -1,12 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingBag, CreditCard, Info, Megaphone, Bell, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
-
-const ICONS = {
-  order: ShoppingBag,
-  payment: CreditCard,
-  system: Info,
-  promotion: Megaphone,
-};
+import { X, Bell, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { confirmDeleteToast } from "../../utils/confirmDeleteToast";
 
 const formatTimeAgo = (dateStr) => {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -30,9 +24,14 @@ export default function NotificationDrawer({
   onMarkAsRead,
   onMarkAllAsRead,
   onDelete,
+  onDeleteAll,
   pagination = {},
   onPageChange,
 }) {
+  const handleDeleteAll = () => {
+    confirmDeleteToast("Delete all notifications?", onDeleteAll);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -54,11 +53,16 @@ export default function NotificationDrawer({
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100 shrink-0">
-              <div>
-                <h3 className="text-lg font-black text-slate-900">Notifications</h3>
-                {unreadCount > 0 && (
-                  <p className="text-xs font-semibold text-red-600 mt-0.5">{unreadCount} unread</p>
-                )}
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                  <Bell size={16} />
+                </span>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <p className="text-xs font-semibold text-red-600 mt-0.5">{unreadCount} unread</p>
+                  )}
+                </div>
               </div>
               <button
                 onClick={onClose}
@@ -68,9 +72,20 @@ export default function NotificationDrawer({
               </button>
             </div>
 
-            {/* Mark all as read */}
+            {/* Delete all / Mark all as read */}
             {notifications.length > 0 && (
-              <div className="flex justify-end px-5 pt-3">
+              <div className="flex items-center justify-between px-5 pt-3">
+                {onDeleteAll ? (
+                  <button
+                    onClick={handleDeleteAll}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 size={13} /> Delete all
+                  </button>
+                ) : (
+                  <span />
+                )}
+
                 <button
                   onClick={onMarkAllAsRead}
                   disabled={unreadCount === 0}
@@ -91,7 +106,6 @@ export default function NotificationDrawer({
                 </div>
               ) : (
                 notifications.map((notification) => {
-                  const Icon = ICONS[notification.type] || Bell;
                   const isUnread = !notification.read;
 
                   return (
@@ -106,9 +120,6 @@ export default function NotificationDrawer({
                         onClick={() => isUnread && onMarkAsRead && onMarkAsRead(notification._id)}
                         className="flex-1 min-w-0 flex items-start gap-3 text-left pr-6"
                       >
-                        <span className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center shrink-0 text-red-600">
-                          <Icon size={16} />
-                        </span>
                         <span className="flex-1 min-w-0">
                           <span className="flex items-center gap-1.5">
                             <span className="text-sm font-bold text-slate-900 truncate">{notification.title}</span>
