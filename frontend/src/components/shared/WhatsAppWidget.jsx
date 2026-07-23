@@ -17,7 +17,7 @@ const WhatsAppWidget = () => {
       className="fixed bottom-20 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:bg-[#128C7E] hover:scale-110 transition-all duration-300 flex items-center justify-center group"
       aria-label="Chat on WhatsApp"
     >
-      <FaWhatsapp size={32} />
+      <FaWhatsapp size={22} />
       
       {/* Tooltip that shows on hover */}
       <span className="absolute right-full mr-4 bg-white text-gray-800 text-sm py-2 px-4 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none border border-gray-100">
