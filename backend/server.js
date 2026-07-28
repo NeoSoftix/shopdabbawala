@@ -75,25 +75,23 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://13.233.160.69/"
+  "https://shopdabbawala.vercel.app",
+  "https://shopdabbawala-1cweh035t-deepak-5153s-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.includes("localhost") ||
-        origin.includes("13.233.160.69")
-      ) {
-        callback(null, true);
-      } else {
-        console.error("CORS Error: Origin not allowed ->", origin);
-        callback(new Error("Not allowed by CORS"));
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+
+      return callback(new Error(`Origin not allowed: ${origin}`));
     },
     credentials: true,
-  }),
+  })
 );
 
 
