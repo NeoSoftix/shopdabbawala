@@ -1,8 +1,9 @@
+
 {
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/api/(.*)",
+      "destination": "https://shopdabbawala.onrender.com/api"
     }
   ]
 }

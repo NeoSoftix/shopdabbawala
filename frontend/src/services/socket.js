@@ -5,7 +5,7 @@ import API from "./api";
 // api.js), so we connect straight to the backend origin. In dev that's
 // always localhost:8000; in prod it's derived from VITE_API_URL.
 const SOCKET_URL = import.meta.env.DEV
-  ? "http://localhost:8000"
+  ? "http://localhost:8001"
   : (import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "") || window.location.origin;
 
 let socket = null;
